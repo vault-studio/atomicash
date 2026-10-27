@@ -187,6 +187,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     xpNext: xpForLevel(1),
     kills: 0,
     dmgTotal: 0,
+    bossDmg: 0,
     dmgBy: new Float64Array(DAMAGE_SOURCES.length),
     dpsB: new Float64Array(16),
     dpsBucket: 0,
@@ -327,12 +328,14 @@ export function currentDps(w: World): number {
 
 export interface RunResults {
   charId: StatSurvivorId;
+  seed: number;
   won: boolean;
   time: number;
   kills: number;
   level: number;
   bosses: number;
   dmg: number;
+  bossDmg: number;
   rad: number;
   credits: number;
   consUsed: number;
@@ -351,12 +354,14 @@ export function results(w: World): RunResults {
     .sort((a, b) => b.dmg - a.dmg);
   return {
     charId: w.charId,
+    seed: w.seed,
     won: w.won,
     time: w.time,
     kills: w.kills,
     level: w.level,
     bosses: w.bosses,
     dmg: Math.round(w.dmgTotal),
+    bossDmg: Math.round(w.bossDmg),
     rad: Math.round(w.player.radPeak),
     credits: Math.floor(min * CREDITS.perMin + w.kills / CREDITS.perKills + w.bosses * CREDITS.perBoss),
     consUsed: w.consUsed,

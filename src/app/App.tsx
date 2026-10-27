@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { audio } from '../audio/audio';
 import { applyRun, refreshDaily, runOptionsFor } from '../meta/actions';
 import { useSave } from '../store/save';
+import { useOnline } from '../store/online';
+import { connect, afterRun } from '../online/session';
 import type { RunResults } from '../engine/world';
 import { RunScreen } from './screens/RunScreen';
 import { Backpack } from './screens/bunker/Backpack';
@@ -38,6 +40,11 @@ export function App() {
     el.toggle('reduce-motion', st.reduceMotion);
   }, [st.crtFilter, st.reduceMotion]);
 
+  // Si el jugador ya aceptó conectarse, se reconecta solo (también al volver del login de Google).
+  useEffect(() => {
+    if (useOnline.getState().connected) void connect();
+  }, []);
+
   // Misiones del día al abrir y al volver al Búnker (cambian a medianoche local).
   useEffect(() => {
     if (view === 'bunker' || view === 'board') act((d) => refreshDaily(d, new Date()));
@@ -50,7 +57,11 @@ export function App() {
   const worldOptions = useMemo(() => (active ? runOptionsFor(data, active) : undefined), [data, active]);
   const back = useCallback(() => setView('bunker'), []);
   const finish = useCallback(
-    (r: RunResults) => <RunReward reward={act((d) => applyRun(d, r, new Date()))} />,
+    (r: RunResults) => {
+      const reward = act((d) => applyRun(d, r, new Date()));
+      afterRun(r);
+      return <RunReward reward={reward} />;
+    },
     [act],
   );
 

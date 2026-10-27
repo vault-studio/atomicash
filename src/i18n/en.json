@@ -603,5 +603,51 @@
     "xp": "+{{n}} survivor XP",
     "levelUp": "+{{n}} level!",
     "achievement": "ACHIEVEMENT: {{name}}"
+  },
+  "online": {
+    "title": "ACCOUNT & CLOUD",
+    "ranking": "LEADERBOARD",
+    "disabled": "Local mode: this build has no server configured. Your save lives on this device; use Export/Import to move it.",
+    "privacy": "Connecting creates a guest account on our server (Supabase) to keep your save in the cloud and list you on the leaderboard under a nickname. No personal data is requested until you link Google.",
+    "connect": "Connect as guest",
+    "connecting": "Connecting…",
+    "error": "Can't reach the server. The game keeps working locally.",
+    "guest": "Guest account",
+    "linked": "Linked with Google ({{email}})",
+    "synced": "cloud: {{when}}",
+    "nickname": "Public nickname (3–16 characters)",
+    "saveNick": "Save nickname",
+    "nickOk": "Nickname saved.",
+    "nickErr": {
+      "type": "Invalid nickname.",
+      "format": "Use 3–16 letters, digits, spaces, - or _.",
+      "blocked": "That nickname is not allowed.",
+      "taken": "That nickname is taken.",
+      "error": "Could not save the nickname."
+    },
+    "linkGoogle": "Link with Google",
+    "autoSubmit": "Send my expeditions to the leaderboard",
+    "push": "Upload save to cloud",
+    "pull": "Download save from cloud",
+    "pullConfirm": "Replace this device's save with the cloud one?",
+    "pushed": "Save uploaded.",
+    "pulled": "Save downloaded.",
+    "noCloud": "No save in the cloud.",
+    "signOut": "Disconnect",
+    "board": {
+      "time": "Time survived",
+      "boss": "Boss damage"
+    },
+    "empty": "No records yet. Be the first!",
+    "kills": "{{n}} kills",
+    "bossDmg": "{{n, number}} damage",
+    "report": "Report",
+    "reported": "Reported",
+    "hide": "Hide",
+    "reason": {
+      "nickname": "Offensive name",
+      "cheat": "Cheating",
+      "other": "Other"
+    }
   }
 }

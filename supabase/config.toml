@@ -1,0 +1,10 @@
+# Configuración mínima del proyecto para la CLI de Supabase (`supabase link`, `supabase db push`).
+project_id = "atomicash"
+
+[auth]
+# Invitados anónimos que luego vinculan Google (docs/ONLINE.md).
+enable_anonymous_sign_ins = true
+enable_manual_linking = true
+
+[functions.submit-run]
+verify_jwt = true

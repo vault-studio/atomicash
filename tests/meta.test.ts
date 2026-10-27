@@ -27,12 +27,14 @@ const NOW = new Date(2026, 9, 28, 12, 0, 0);
 function fakeRun(over: Partial<RunResults> = {}): RunResults {
   return {
     charId: 'dot',
+    seed: 1,
     won: false,
     time: 600,
     kills: 800,
     level: 20,
     bosses: 1,
     dmg: 1,
+    bossDmg: 0,
     rad: 0,
     credits: 150,
     consUsed: 2,

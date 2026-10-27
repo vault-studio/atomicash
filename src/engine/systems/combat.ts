@@ -117,6 +117,8 @@ export function hitEnemy(
     d *= CAPS.critMult;
     crit = true;
   }
+  // Sin contar el exceso del último golpe: el ranking no puede superar la vida real del jefe.
+  if (e.boss) w.bossDmg += Math.min(d, Math.max(0, e.hp));
   e.hp -= d;
   e.flash = 0.08;
   sfx(w, SFX.hit);

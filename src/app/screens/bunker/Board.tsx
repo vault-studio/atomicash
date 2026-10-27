@@ -5,6 +5,7 @@ import { achievementProgress, claimMission } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
 import { fmtTime } from '../run/Hud';
 import { Screen } from './common';
+import { Leaderboard } from './Online';
 
 export function Board({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
@@ -67,6 +68,9 @@ export function Board({ onBack }: { onBack: () => void }) {
           );
         })}
       </ul>
+
+      <h2>{t('online.ranking')}</h2>
+      <Leaderboard />
 
       <h2>{t('board.profile')}</h2>
       <dl className="stats">

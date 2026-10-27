@@ -391,6 +391,8 @@ export interface World {
   xpNext: number;
   kills: number;
   dmgTotal: number;
+  /** Daño hecho a jefes (ranking «daño al jefe», F4). */
+  bossDmg: number;
   /** Daño por fuente (índices de DAMAGE_SOURCES). */
   readonly dmgBy: Float64Array;
   /** Daño en cubetas de 0,25 s (anillo de 16) para el DPS del HUD. */

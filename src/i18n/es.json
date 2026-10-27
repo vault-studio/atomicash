@@ -603,5 +603,51 @@
     "xp": "+{{n}} XP de superviviente",
     "levelUp": "¡+{{n}} nivel!",
     "achievement": "LOGRO: {{name}}"
+  },
+  "online": {
+    "title": "CUENTA Y NUBE",
+    "ranking": "RANKING",
+    "disabled": "Modo local: esta versión no tiene servidor configurado. La partida se guarda en este dispositivo; usa Exportar/Importar para moverla.",
+    "privacy": "Conectar crea una cuenta de invitado en nuestro servidor (Supabase) para guardar tu partida en la nube y aparecer en el ranking con un apodo. No se pide ningún dato personal hasta que vincules Google.",
+    "connect": "Conectar como invitado",
+    "connecting": "Conectando…",
+    "error": "Sin conexión con el servidor. El juego sigue funcionando en local.",
+    "guest": "Cuenta de invitado",
+    "linked": "Vinculada con Google ({{email}})",
+    "synced": "nube: {{when}}",
+    "nickname": "Apodo público (3–16 caracteres)",
+    "saveNick": "Guardar apodo",
+    "nickOk": "Apodo guardado.",
+    "nickErr": {
+      "type": "Apodo no válido.",
+      "format": "Usa 3–16 letras, números, espacios, - o _.",
+      "blocked": "Ese apodo no está permitido.",
+      "taken": "Ese apodo ya está cogido.",
+      "error": "No se pudo guardar el apodo."
+    },
+    "linkGoogle": "Vincular con Google",
+    "autoSubmit": "Enviar mis expediciones al ranking",
+    "push": "Subir partida a la nube",
+    "pull": "Bajar partida de la nube",
+    "pullConfirm": "¿Sustituir la partida de este dispositivo por la de la nube?",
+    "pushed": "Partida subida.",
+    "pulled": "Partida descargada.",
+    "noCloud": "No hay partida en la nube.",
+    "signOut": "Desconectar",
+    "board": {
+      "time": "Tiempo aguantado",
+      "boss": "Daño a jefes"
+    },
+    "empty": "Aún no hay marcas. ¡Sé el primero!",
+    "kills": "{{n}} bajas",
+    "bossDmg": "{{n, number}} de daño",
+    "report": "Reportar",
+    "reported": "Reportado",
+    "hide": "Ocultar",
+    "reason": {
+      "nickname": "Apodo ofensivo",
+      "cheat": "Trampas",
+      "other": "Otro"
+    }
   }
 }

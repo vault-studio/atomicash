@@ -18,7 +18,18 @@ const PURE_TS_IMPORTS = {
 };
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'sim.js', 'make-manifest.mjs', 'atomic-ash-proto.html', 'assets'] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      'sim.js',
+      'make-manifest.mjs',
+      'atomic-ash-proto.html',
+      'assets',
+      // Edge Functions de Deno (globals y npm: propios); `_shared` sí se lintea.
+      'supabase/functions/*/index.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

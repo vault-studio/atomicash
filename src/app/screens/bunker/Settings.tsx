@@ -5,6 +5,7 @@ import { LANGUAGES } from '../../../i18n';
 import { exportSave, importSave, type Settings as S } from '../../../meta/save';
 import { useSave } from '../../../store/save';
 import { Screen } from './common';
+import { OnlinePanel } from './Online';
 
 export function Settings({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
@@ -81,6 +82,8 @@ export function Settings({ onBack }: { onBack: () => void }) {
           ))}
         </select>
       </label>
+      <h2>{t('online.title')}</h2>
+      <OnlinePanel />
       <h2>{t('settings.save')}</h2>
       <p>
         <small>{t('settings.saveHint')}</small>
