@@ -1,0 +1,71 @@
+{
+  "app": {
+    "title": "ATOMIC ASH",
+    "subtitle": "The Outskirts · Act 1",
+    "loading": "Loading sprites…",
+    "language": "Language",
+    "rotate": "Turn your phone sideways ↻"
+  },
+  "menu": {
+    "choose": "> CHOOSE A SURVIVOR",
+    "hp": "HP {{value}}",
+    "speed": "Spd {{value}}",
+    "locked": "Locked",
+    "later": "Coming later"
+  },
+  "run": {
+    "back": "← Bunker",
+    "controls": "WASD / arrows: move · F3: debug",
+    "debugKill": "K: test death animation"
+  },
+  "passives": {
+    "dot": "+15% melee damage",
+    "mae": "Regenerates 0.5 HP/s",
+    "errante": "Takes 30% less radiation",
+    "benny": "+10% speed, +20% pickup range"
+  },
+  "entities": {
+    "dot": "Dot \"Wrench\" Harlow",
+    "mae": "Mae Calloway",
+    "errante": "The Drifter",
+    "benny": "Benny Ruiz",
+    "silas": "Silas Crow",
+    "gus": "Gus Pappas",
+    "ilse": "Dr. Ilse Varga",
+    "kip": "Kip",
+    "rosalind": "Rosalind Vance",
+    "dron": "Household drone",
+    "necrofago": "Ghoul",
+    "saqueador": "Raider",
+    "tirador": "Gunner",
+    "reptador": "Irradiated crawler",
+    "hinchado": "Bloater",
+    "cortacesped": "Lawnmower robot",
+    "torreta": "Propaganda turret",
+    "babosa": "Mutant slug",
+    "aspiradora": "Mother vacuum",
+    "aspiradora_cria": "Vacuum pup",
+    "excavadora": "Automaton digger",
+    "blindado": "Sheet-metal shieldbearer",
+    "mortero": "Scrap mortar",
+    "predicador": "Atom preacher",
+    "moscon": "Giant blowfly",
+    "rey_rata": "The Rat King",
+    "rey_rata_dmg": "The Rat King (broken crown)",
+    "dirigible": "Propaganda airship",
+    "dirigible_dmg": "Propaganda airship (damaged)",
+    "coloso": "The Concrete Colossus",
+    "coloso_p2": "The Concrete Colossus (exposed core)",
+    "coloso_p3": "The Concrete Colossus (shattered)",
+    "llave": "Spinning wrench",
+    "martillo_pilon": "Pile hammer",
+    "jeringa": "Syringe",
+    "desfibrilador": "Defibrillator",
+    "escopeta_chatarra": "Scrap shotgun",
+    "nucleo_cobalto": "Cobalt core",
+    "pistola_clavos": "Nail gun",
+    "petardos": "Firecracker string",
+    "rifle_tirador": "Gunner's rifle",
+    "escudo_puerta": "Door shield"
+  }
+}

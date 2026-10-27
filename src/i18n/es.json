@@ -1,0 +1,71 @@
+{
+  "app": {
+    "title": "ATOMIC ASH",
+    "subtitle": "Las Afueras · Acto 1",
+    "loading": "Cargando sprites…",
+    "language": "Idioma",
+    "rotate": "Gira el móvil a horizontal ↻"
+  },
+  "menu": {
+    "choose": "> ELIGE SUPERVIVIENTE",
+    "hp": "PV {{value}}",
+    "speed": "Vel. {{value}}",
+    "locked": "Bloqueado",
+    "later": "Más adelante"
+  },
+  "run": {
+    "back": "← Búnker",
+    "controls": "WASD / flechas: mover · F3: depuración",
+    "debugKill": "K: probar animación de muerte"
+  },
+  "passives": {
+    "dot": "+15 % daño cuerpo a cuerpo",
+    "mae": "Regenera 0,5 PV/s",
+    "errante": "La radiación le afecta un 30 % menos",
+    "benny": "+10 % velocidad, +20 % imán"
+  },
+  "entities": {
+    "dot": "Dot «Llave Inglesa» Harlow",
+    "mae": "Mae Calloway",
+    "errante": "El Errante",
+    "benny": "Benny Ruiz",
+    "silas": "Silas Crow",
+    "gus": "Gus Pappas",
+    "ilse": "Dra. Ilse Varga",
+    "kip": "Kip",
+    "rosalind": "Rosalind Vance",
+    "dron": "Dron doméstico",
+    "necrofago": "Necrófago",
+    "saqueador": "Saqueador",
+    "tirador": "Tirador",
+    "reptador": "Reptador irradiado",
+    "hinchado": "Hinchado",
+    "cortacesped": "Robot cortacésped",
+    "torreta": "Torreta de propaganda",
+    "babosa": "Babosa mutante",
+    "aspiradora": "Aspiradora nodriza",
+    "aspiradora_cria": "Robot cría",
+    "excavadora": "Excavadora autómata",
+    "blindado": "Blindado con escudo de chapa",
+    "mortero": "Mortero de chatarra",
+    "predicador": "Predicador del átomo",
+    "moscon": "Moscón gigante",
+    "rey_rata": "El Rey Rata",
+    "rey_rata_dmg": "El Rey Rata (corona rota)",
+    "dirigible": "Dirigible de propaganda",
+    "dirigible_dmg": "Dirigible de propaganda (dañado)",
+    "coloso": "El Coloso de Hormigón",
+    "coloso_p2": "El Coloso de Hormigón (núcleo expuesto)",
+    "coloso_p3": "El Coloso de Hormigón (destrozado)",
+    "llave": "Llave giratoria",
+    "martillo_pilon": "Martillo pilón",
+    "jeringa": "Jeringa",
+    "desfibrilador": "Desfibrilador",
+    "escopeta_chatarra": "Escopeta de chatarra",
+    "nucleo_cobalto": "Núcleo de cobalto",
+    "pistola_clavos": "Pistola de clavos",
+    "petardos": "Ristra de petardos",
+    "rifle_tirador": "Rifle del tirador",
+    "escudo_puerta": "Escudo de puerta"
+  }
+}
