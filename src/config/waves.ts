@@ -86,10 +86,13 @@ export const SPAWN = {
   maxSlime: 120,
 } as const;
 
-/** Eventos del director (02_GAMEPLAY.md §5): cada minuto, rotando, con silencio tras un jefe. */
+/**
+ * Eventos del director (02_GAMEPLAY.md §7: «1 cada ~3 min»), rotando, con silencio tras un jefe.
+ * DECISIÓN: el prototipo lanzaba uno por minuto; se sigue la especificación.
+ */
 export const EVENTS = {
-  first: 45,
-  every: 60,
+  first: 90,
+  every: 180,
   order: ['supply', 'swarm', 'rain'] as const,
   bossQuiet: 20,
   supply: { dist: 320, gems: 4, gemValue: 5 },

@@ -2,6 +2,7 @@
 
 ## 0.1.0 — 2026-10-27
 
+- feat(F2-01…F2-07): pantalla de Apaño con soldadura y chispas; eventos cada ~3 min como pide `02_GAMEPLAY.md` (suministros, enjambre, lluvia); tests de contenido: tramos de RAD, irradiados, IA de tirador/hinchado/aspiradora/babosa/cortacésped/torreta, jefes a los minutos 5/10/14 con fases, cofres, victoria con el Coloso, Tormenta, objetos y eventos.
 - feat(F1-06…F1-09): combate completo portado del prototipo al motor sin allocations: 13 armas + 4 Apaños (llave, clavos, jeringas, cóctel, tesla, Geiger, escopeta, megáfono, rifle, martillo, petardos, desfibrilador, cobalto; dinamo, remachadora, núcleo inestable, dardos incendiarios), daño con crítico/empuje, bajas con chatarra 25/5/1 e imán, XP con la curva de `02_GAMEPLAY.md`, tarjetas de nivel (1/2/3/R) que pausan el motor, HUD (PV, RAD, tiempo, XP, armas, objeto, consumibles táctiles), pausa y resultados en ticket con «Volver a jugar» sin recargar. Incluye ya la IA de los 11 enemigos, irradiados, RAD, jefes, Tormenta, objetos, consumibles y eventos (se cierran en F2).
 - feat(F1-05): oleadas por tiempo en `config/waves.ts` (ritmo, máximo de vivos y mezcla); aparición siempre fuera de la cámara real, también en monitores grandes, y recolocación de los que se quedan atrás.
 - feat(F1-04): pool denso y spatial hash de celdas de 64 px sin allocations; enemigos que persiguen y se separan, límite de 400 vivos reciclando el más lejano. Test: 1 000 enemigos durante 2 000 ticks sin ningún GC.

@@ -525,3 +525,107 @@
 .reduce-motion .ticket {
   animation: none;
 }
+
+/* Pantalla de Apaño: soldadura con chispas */
+.weld__bench {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weld__part {
+  padding: 10px 16px;
+  border: 3px solid;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 22px;
+  animation: weld-a 0.9s ease-in both;
+}
+
+.weld__part--b {
+  animation-name: weld-b;
+}
+
+@keyframes weld-a {
+  from {
+    transform: translateX(-60px);
+  }
+}
+
+@keyframes weld-b {
+  from {
+    transform: translateX(60px);
+  }
+}
+
+.weld__torch {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(#fff, #ffe14a 40%, #ff8a2a 70%, transparent 72%);
+  animation: weld-glow 0.12s steps(2) infinite;
+}
+
+.weld__torch i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 10px;
+  background: #ffe14a;
+  transform-origin: 50% 0;
+  animation: spark 0.5s var(--d) ease-out infinite;
+  rotate: var(--a);
+}
+
+@keyframes spark {
+  from {
+    transform: translateY(0) scaleY(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(46px) scaleY(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes weld-glow {
+  50% {
+    filter: brightness(1.6);
+  }
+}
+
+.weld__result {
+  max-width: min(460px, 90vw);
+  display: grid;
+  gap: 6px;
+  padding: 14px 18px;
+  background: #fff4c2;
+  color: #2a1e14;
+  border: 3px solid;
+  box-shadow: 0 0 22px #e8a33a;
+  text-align: center;
+  font-size: 18px;
+  animation: weld-pop 0.4s 0.9s both;
+}
+
+.weld__result strong {
+  font-family: var(--title-font);
+  font-size: 22px;
+}
+
+@keyframes weld-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weld__part,
+  .weld__result,
+  .weld__torch,
+  .weld__torch i {
+    animation: none;
+  }
+}

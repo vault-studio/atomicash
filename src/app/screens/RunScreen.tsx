@@ -7,6 +7,8 @@ import { startRun, type HudSnapshot, type RunSession, type RunSettings } from '.
 import { Cards } from './run/Cards';
 import { Hud } from './run/Hud';
 import { Results } from './run/Results';
+import { Weld } from './run/Weld';
+import type { WeaponId } from '../../config/weapons';
 
 const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
 
@@ -27,6 +29,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const [ready, setReady] = useState(false);
   const [hud, setHud] = useState<HudSnapshot | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
+  const [weld, setWeld] = useState<WeaponId | null>(null);
   const [paused, setPaused] = useState(false);
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
   // Cambiar la clave reinicia la run sin recargar la página (F1-09).
@@ -80,8 +83,8 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   }, [settings]);
 
   useEffect(() => {
-    sessionRef.current?.setPaused(paused);
-  }, [paused]);
+    sessionRef.current?.setPaused(paused || weld !== null);
+  }, [paused, weld]);
 
   // Pausa con Esc/P y al perder el foco de la pestaña.
   useEffect(() => {
@@ -104,7 +107,15 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
     };
   }, [result, choice]);
 
-  const pick = useCallback((i: number) => sessionRef.current?.choose(i), []);
+  const pick = useCallback((i: number) => {
+    const s = sessionRef.current;
+    if (!s) return;
+    const c = s.world.choice?.cards[i];
+    s.choose(i);
+    // El Apaño tiene pantalla propia; la run sigue en pausa mientras se ve.
+    if (c?.kind === 'fusion') setWeld(c.id);
+  }, []);
+  const endWeld = useCallback(() => setWeld(null), []);
   const consume = useCallback((i: number) => sessionRef.current?.consume(i), []);
   const pause = useCallback(() => setPaused(true), []);
   const doReroll = useCallback(() => sessionRef.current?.reroll(), []);
@@ -124,7 +135,8 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
           {import.meta.env.DEV && !COARSE_POINTER && <> · {t('run.debugKill')}</>}
         </div>
       )}
-      {choice && world && !result && (
+      {weld && !result && <Weld result={weld} onDone={endWeld} />}
+      {choice && world && !result && !weld && (
         <Cards choice={choice} world={world} onPick={pick} onReroll={doReroll} />
       )}
       {paused && !result && (

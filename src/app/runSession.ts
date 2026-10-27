@@ -210,6 +210,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   };
   renderer.app.ticker.add(onTick);
   cb.onHud(snapshot(world));
+  // Depuración: acceso al mundo desde la consola del navegador (solo en desarrollo).
+  if (import.meta.env.DEV) (window as unknown as { __world?: World }).__world = world;
 
   return {
     world,

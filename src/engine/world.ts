@@ -5,6 +5,7 @@ import { CAPS, CREDITS, PLAYER, RUN, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
+import { EVENTS } from '../config/waves';
 import { banner, createBeam, createBoom, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
@@ -187,7 +188,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     dpsB: new Float64Array(16),
     dpsBucket: 0,
     bosses: 0,
-    nextEvent: 45,
+    nextEvent: EVENTS.first,
     eventIdx: 0,
     rain: 0,
     storm: false,
