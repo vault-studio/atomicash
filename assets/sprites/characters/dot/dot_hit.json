@@ -1,0 +1,25 @@
+{
+  "id": "dot",
+  "anim": "hit",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 6,
+  "fps": 16,
+  "loop": false
+}

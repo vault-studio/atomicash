@@ -1,0 +1,9 @@
+[
+  "characters/dot/dot_death",
+  "characters/dot/dot_hit",
+  "characters/dot/dot_idle",
+  "characters/dot/dot_run",
+  "enemies/dron/dron_attack",
+  "enemies/dron/dron_death",
+  "enemies/dron/dron_move"
+]
