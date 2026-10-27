@@ -1,19 +1,45 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StatSurvivorId } from '../../config/survivors';
-import { startRun, type RunSession } from '../runSession';
+import type { Choice, World } from '../../engine/types';
+import type { RunResults, WorldOptions } from '../../engine/world';
+import { startRun, type HudSnapshot, type RunSession, type RunSettings } from '../runSession';
+import { Cards } from './run/Cards';
+import { Hud } from './run/Hud';
+import { Results } from './run/Results';
 
 const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
 
 interface Props {
   charId: StatSurvivorId;
+  settings: RunSettings;
+  /** Bonus del taller, mochila y mercader (F3). */
+  worldOptions?: WorldOptions;
   onExit: () => void;
+  /** Se llama una vez al terminar cada run (para guardar progreso). Devuelve contenido extra del ticket. */
+  onFinish?: (r: RunResults) => React.ReactNode;
 }
 
-export function RunScreen({ charId, onExit }: Props) {
+export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: Props) {
   const { t } = useTranslation();
   const hostRef = useRef<HTMLDivElement>(null);
+  const sessionRef = useRef<RunSession | null>(null);
   const [ready, setReady] = useState(false);
+  const [hud, setHud] = useState<HudSnapshot | null>(null);
+  const [choice, setChoice] = useState<Choice | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
+  // Cambiar la clave reinicia la run sin recargar la página (F1-09).
+  const [runKey, setRunKey] = useState(0);
+  const [seed, setSeed] = useState(() => (Math.random() * 2 ** 31) | 0);
+  const [world, setWorld] = useState<World | null>(null);
+  const settingsRef = useRef(settings);
+  const optionsRef = useRef(worldOptions);
+  const finishRef = useRef(onFinish);
+  useEffect(() => {
+    settingsRef.current = settings;
+    finishRef.current = onFinish;
+  });
 
   useEffect(() => {
     const host = hostRef.current;
@@ -21,31 +47,100 @@ export function RunScreen({ charId, onExit }: Props) {
     // La creación de Pixi es asíncrona: si el componente se desmonta antes (StrictMode), se libera al terminar.
     let session: RunSession | null = null;
     let cancelled = false;
-    const seed = (Math.random() * 2 ** 31) | 0;
-    void startRun(host, charId, seed).then((s) => {
+    setReady(false);
+    setResult(null);
+    setChoice(null);
+    setPaused(false);
+    void startRun(
+      host,
+      { charId, seed, settings: settingsRef.current, ...optionsRef.current },
+      {
+        onHud: setHud,
+        onChoice: setChoice,
+        onEnd: (r) => setResult({ r, extra: finishRef.current?.(r) ?? null }),
+      },
+    ).then((s) => {
       if (cancelled) s.dispose();
       else {
         session = s;
+        sessionRef.current = s;
+        setWorld(s.world);
         setReady(true);
       }
     });
     return () => {
       cancelled = true;
       session?.dispose();
+      sessionRef.current = null;
     };
-  }, [charId]);
+  }, [charId, runKey, seed]);
+
+  useEffect(() => {
+    sessionRef.current?.apply(settings);
+  }, [settings]);
+
+  useEffect(() => {
+    sessionRef.current?.setPaused(paused);
+  }, [paused]);
+
+  // Pausa con Esc/P y al perder el foco de la pestaña.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.code === 'Escape' || e.code === 'KeyP') && !result && !choice) setPaused((p) => !p);
+    };
+    const onBlur = (): void => {
+      if (!result) setPaused(true);
+    };
+    const onVis = (): void => {
+      if (document.hidden) onBlur();
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, [result, choice]);
+
+  const pick = useCallback((i: number) => sessionRef.current?.choose(i), []);
+  const consume = useCallback((i: number) => sessionRef.current?.consume(i), []);
+  const pause = useCallback(() => setPaused(true), []);
+  const doReroll = useCallback(() => sessionRef.current?.reroll(), []);
+  const again = (): void => {
+    setSeed((Math.random() * 2 ** 31) | 0);
+    setRunKey((k) => k + 1);
+  };
 
   return (
     <div className="run">
       <div className="run__canvas" ref={hostRef} />
       {!ready && <div className="run__loading">{t('app.loading')}</div>}
-      <button className="run__back" onClick={onExit}>
-        {t('run.back')}
-      </button>
-      <div className="run__hint">
-        {t(COARSE_POINTER ? 'run.controlsTouch' : 'run.controls')}
-        {import.meta.env.DEV && !COARSE_POINTER && <> · {t('run.debugKill')}</>}
-      </div>
+      {ready && hud && <Hud hud={hud} onPause={pause} onConsume={consume} />}
+      {ready && hud && hud.time < 8 && (
+        <div className="run__hint">
+          {t(COARSE_POINTER ? 'run.controlsTouch' : 'run.controls')}
+          {import.meta.env.DEV && !COARSE_POINTER && <> · {t('run.debugKill')}</>}
+        </div>
+      )}
+      {choice && world && !result && (
+        <Cards choice={choice} world={world} onPick={pick} onReroll={doReroll} />
+      )}
+      {paused && !result && (
+        <div className="overlay" role="dialog" aria-modal="true">
+          <h2 className="overlay__title">{t('run.paused')}</h2>
+          <div className="overlay__actions overlay__actions--col">
+            <button className="btn btn--primary" autoFocus onClick={() => setPaused(false)}>
+              {t('run.resume')}
+            </button>
+            <button className="btn" onClick={onExit}>
+              {t('run.abandon')}
+            </button>
+          </div>
+        </div>
+      )}
+      {result && <Results r={result.r} seed={seed} extra={result.extra} onAgain={again} onMenu={onExit} />}
     </div>
   );
 }

@@ -9,6 +9,8 @@
   --crema: #f3e9d2;
   --suelo: #16140f;
   --mono: 'VT323', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --title-font: var(--mono);
+  --hud-font: var(--mono);
 }
 
 * {
@@ -156,7 +158,8 @@ select {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: max(8px, env(safe-area-inset-bottom));
+  top: 76px;
+  padding: 0 16px;
   text-align: center;
   font-size: 0.9rem;
   opacity: 0.6;

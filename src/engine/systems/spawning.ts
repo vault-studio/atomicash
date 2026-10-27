@@ -1,8 +1,10 @@
-// Aparición de enemigos por oleadas (F1-05): ritmo y máximo según el minuto, siempre fuera de cámara.
-import { type StatEnemyId } from '../../config/enemies';
-import { SPAWN, WAVES, type WaveDef } from '../../config/waves';
+// Director de la run: oleadas fuera de cámara (F1-05), eventos y jefes (F2-05/F2-07).
+import { BOSSES, BOSS_IDS, ENEMY_RULES, type StatEnemyId } from '../../config/enemies';
+import { EVENTS, SPAWN, WAVES, type WaveDef } from '../../config/waves';
+import { banner } from '../fx';
 import type { Enemy, World } from '../types';
 import { offscreenDistance } from '../view';
+import { addPickup } from './combat';
 import { spawnEnemy } from './enemies';
 
 /** Oleada vigente en el segundo `t`. */
@@ -68,17 +70,71 @@ export function placeOffscreen(w: World, out: { x: number; y: number }): void {
 }
 
 const spot = { x: 0, y: 0 };
+const TAU = Math.PI * 2;
+const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+
+/** Punto en un anillo de radio `d ± jitter` alrededor del jugador. */
+function ringPos(w: World, d: number, jitter: number): void {
+  const p = w.player;
+  const M = w.mapSize;
+  const a = w.rng() * TAU;
+  const dd = d + (w.rng() * 2 - 1) * jitter;
+  spot.x = clamp(p.x + Math.cos(a) * dd, 20, M - 20);
+  spot.y = clamp(p.y + Math.sin(a) * dd, 20, M - 20);
+}
+
+export function spawnBoss(w: World, kind: (typeof BOSS_IDS)[number]): void {
+  w.bossSpawned[kind] = true;
+  w.lastBossAt = w.time;
+  ringPos(w, ENEMY_RULES.bossSpawnDist, SPAWN.jitter);
+  spawnEnemy(w, kind, spot.x, spot.y, false);
+  banner(w, 'banner.boss', { boss: kind });
+}
+
+function fireEvent(w: World): void {
+  const kind = EVENTS.order[w.eventIdx++ % EVENTS.order.length]!;
+  const p = w.player;
+  const M = w.mapSize;
+  if (kind === 'supply') {
+    const a = w.rng() * TAU;
+    const S = EVENTS.supply;
+    addPickup(
+      w,
+      'crate',
+      clamp(p.x + Math.cos(a) * S.dist, 60, M - 60),
+      clamp(p.y + Math.sin(a) * S.dist, 60, M - 60),
+      16,
+    );
+    banner(w, 'banner.supply');
+  } else if (kind === 'swarm') {
+    const S = EVENTS.swarm;
+    for (let i = 0; i < S.count; i++) {
+      const a = (i / S.count) * TAU;
+      spawnEnemy(
+        w,
+        S.type,
+        clamp(p.x + Math.cos(a) * S.r, 10, M - 10),
+        clamp(p.y + Math.sin(a) * S.r, 10, M - 10),
+      );
+    }
+    banner(w, 'banner.swarm');
+  } else {
+    w.rain = EVENTS.rain.dur;
+    banner(w, 'banner.rain');
+  }
+}
 
 export function updateSpawning(w: World, dt: number): void {
   const waveIdx = currentWaveIndex(w.time);
   const wave = WAVES[waveIdx]!;
   const pool = w.enemies;
 
-  // Los que se quedan muy atrás vuelven a aparecer delante, fuera de cámara.
+  // Los que se quedan muy atrás vuelven a aparecer delante, fuera de cámara (los jefes no).
   const p = w.player;
   const R2 = SPAWN.relocateDist * SPAWN.relocateDist;
   for (let i = 0; i < pool.count; i++) {
     const e = pool.items[i] as Enemy;
+    if (e.boss || e.dead) continue;
     const dx = e.x - p.x;
     const dy = e.y - p.y;
     if (dx * dx + dy * dy > R2) {
@@ -88,15 +144,32 @@ export function updateSpawning(w: World, dt: number): void {
     }
   }
 
-  w.spawnAcc += wave.rate * dt;
+  const rate =
+    wave.rate * (w.rain > 0 ? EVENTS.rain.spawnMult : 1) * (w.bossAlive > 0 ? SPAWN.bossRateMult : 1);
+  w.spawnAcc += rate * dt;
+  let alive = pool.count - w.bossAlive;
   while (w.spawnAcc >= 1) {
     w.spawnAcc -= 1;
-    if (pool.count >= wave.max) {
+    if (alive >= wave.max) {
       // Al tope: no se acumulan apariciones pendientes para cuando mueran.
       w.spawnAcc = 0;
       break;
     }
-    placeOffscreen(w, spot);
-    spawnEnemy(w, pickType(w, waveIdx), spot.x, spot.y);
+    const type = pickType(w, waveIdx);
+    if (type === 'torreta')
+      ringPos(w, (SPAWN.staticMin + SPAWN.staticMax) / 2, (SPAWN.staticMax - SPAWN.staticMin) / 2);
+    else placeOffscreen(w, spot);
+    spawnEnemy(w, type, spot.x, spot.y);
+    alive++;
   }
+
+  if (w.time >= w.nextEvent) {
+    if (w.time - w.lastBossAt < EVENTS.bossQuiet) w.nextEvent = w.lastBossAt + EVENTS.bossQuiet;
+    else {
+      fireEvent(w);
+      w.nextEvent += EVENTS.every;
+    }
+  }
+  if (w.rain > 0) w.rain -= dt;
+  for (const k of BOSS_IDS) if (!w.bossSpawned[k] && w.time >= BOSSES[k].at) spawnBoss(w, k);
 }

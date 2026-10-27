@@ -77,4 +77,24 @@ export const SPAWN = {
   relocateDist: 1500,
   /** Intentos para encontrar un punto dentro del mapa antes de pegarlo al borde. */
   placeTries: 16,
+  /** Las torretas aparecen ya dentro de este anillo (no se mueven). */
+  staticMin: 400,
+  staticMax: 600,
+  /** Con un jefe vivo aparecen menos enemigos. */
+  bossRateMult: 0.7,
+  /** Rastros de babosa simultáneos. */
+  maxSlime: 120,
 } as const;
+
+/** Eventos del director (02_GAMEPLAY.md §5): cada minuto, rotando, con silencio tras un jefe. */
+export const EVENTS = {
+  first: 45,
+  every: 60,
+  order: ['supply', 'swarm', 'rain'] as const,
+  bossQuiet: 20,
+  supply: { dist: 320, gems: 4, gemValue: 5 },
+  swarm: { count: 28, r: 380, type: 'dron' as const },
+  rain: { dur: 12, spawnMult: 1.3, xpMult: 2 },
+} as const;
+
+export type EventKind = (typeof EVENTS.order)[number];

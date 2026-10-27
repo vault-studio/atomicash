@@ -1,0 +1,527 @@
+/* ---------- HUD de la run (04_ART_UI.md §2) ---------- */
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-size: 18px;
+  text-shadow: 0 1px 0 #000;
+}
+
+.hud button {
+  pointer-events: auto;
+}
+
+.hud__tl,
+.hud__tc,
+.hud__tr,
+.hud__br {
+  position: absolute;
+}
+
+.hud__tl {
+  top: max(8px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  width: min(240px, 28vw);
+  display: grid;
+  gap: 4px;
+}
+
+.hud__tc {
+  top: max(6px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(460px, 40vw);
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+
+.hud__tr {
+  top: max(8px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud__br {
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.hud__time {
+  font-family: var(--hud-font);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.hud__time.is-storm {
+  color: var(--cereza);
+}
+
+.hud__status {
+  color: #9dff00;
+  font-size: 16px;
+}
+
+.hud__banners {
+  position: absolute;
+  top: 22%;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.hud__banner {
+  font-family: var(--title-font);
+  font-size: clamp(20px, 3.4vw, 34px);
+  color: #ffe14a;
+  letter-spacing: 0.06em;
+  text-shadow:
+    0 2px 0 #000,
+    0 0 12px rgba(0, 0, 0, 0.8);
+}
+
+.bar {
+  position: relative;
+  width: 100%;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(243, 233, 210, 0.35);
+  overflow: hidden;
+}
+
+.bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--cereza);
+  transition: width 0.1s linear;
+}
+
+.bar__text {
+  position: relative;
+  display: block;
+  padding: 0 6px;
+  font-size: 15px;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.bar--rad .bar__fill {
+  background: #9dff00;
+}
+
+.bar--xp {
+  height: 12px;
+}
+
+.bar--xp .bar__fill {
+  background: var(--turquesa);
+}
+
+.bar--xp .bar__text {
+  font-size: 12px;
+  line-height: 11px;
+  text-align: center;
+}
+
+.bar--boss {
+  height: 14px;
+  border-color: #ffe14a;
+}
+
+.bar--boss .bar__fill {
+  background: #8a3324;
+}
+
+.bar--boss .bar__text {
+  text-align: center;
+  font-size: 13px;
+  line-height: 13px;
+}
+
+.btn-icon {
+  min-width: 48px;
+  min-height: 48px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--crema);
+  border: 1px solid rgba(243, 233, 210, 0.45);
+  cursor: pointer;
+}
+
+.slots {
+  display: flex;
+  gap: 4px;
+}
+
+.slot {
+  position: relative;
+  width: 58px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(243, 233, 210, 0.4);
+  color: var(--crema);
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px;
+  text-align: center;
+}
+
+.slot.is-empty {
+  opacity: 0.35;
+}
+
+.slot--item {
+  border-color: #b06aff;
+}
+
+.slot__name {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.slot__lvl {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  font-family: var(--hud-font);
+  font-size: 14px;
+  color: #ffe14a;
+}
+
+.slot__key {
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.slot--cons {
+  pointer-events: auto;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.slot--cons:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (pointer: coarse) {
+  .slot__key {
+    display: none;
+  }
+}
+
+@media (max-height: 420px) {
+  .hud {
+    font-size: 15px;
+  }
+  .hud__time {
+    font-size: 24px;
+  }
+  .slot {
+    width: 50px;
+  }
+}
+
+/* ---------- Overlays: tarjetas, pausa y resultados ---------- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(8, 10, 6, 0.72);
+  overflow-y: auto;
+}
+
+.overlay--dark {
+  background: rgba(8, 10, 6, 0.88);
+  justify-content: flex-start;
+}
+
+.overlay__title {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: clamp(24px, 4vw, 40px);
+  color: #ffe14a;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 0 #000;
+}
+
+.overlay__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.overlay__actions--col {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.btn {
+  min-height: 48px;
+  padding: 8px 20px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--crema);
+  border: 2px solid rgba(243, 233, 210, 0.5);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.btn:hover:not(:disabled),
+.btn:focus-visible {
+  border-color: var(--crt);
+  color: var(--crt);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn--primary {
+  border-color: #ffe14a;
+  color: #ffe14a;
+}
+
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  max-width: 1000px;
+}
+
+/* Carta de menú de diner */
+.choice__card {
+  position: relative;
+  width: min(280px, 30vw);
+  min-width: 190px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 30px;
+  background: #f3e9d2;
+  color: #2a1e14;
+  border: 3px solid #8a3324;
+  box-shadow:
+    inset 0 0 0 3px #f3e9d2,
+    inset 0 0 0 5px #8a3324,
+    0 6px 0 #000;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.08s;
+}
+
+.choice__card:hover,
+.choice__card:focus-visible {
+  transform: translateY(-4px);
+  outline: none;
+}
+
+.choice__card.weapon {
+  border-color: #3fb8af;
+  box-shadow:
+    inset 0 0 0 3px #f3e9d2,
+    inset 0 0 0 5px #3fb8af,
+    0 6px 0 #000;
+}
+
+.choice__card.fusion {
+  background: #fff4c2;
+  border-color: #e8a33a;
+  box-shadow:
+    inset 0 0 0 3px #fff4c2,
+    inset 0 0 0 5px #e8a33a,
+    0 0 18px #e8a33a;
+}
+
+.choice__card.exclusive .choice__tag {
+  color: #8a3324;
+}
+
+.choice__card.rare {
+  border-color: #3a6ad6;
+}
+
+.choice__card.epic {
+  border-color: #8a3ad6;
+  box-shadow:
+    inset 0 0 0 3px #f3e9d2,
+    inset 0 0 0 5px #8a3ad6,
+    0 0 14px #8a3ad6;
+}
+
+.choice__tag {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.choice__title {
+  font-family: var(--title-font);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.choice__desc {
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.choice__key {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font: inherit;
+  font-size: 18px;
+  padding: 0 6px;
+  border: 1px solid currentColor;
+}
+
+@media (pointer: coarse) {
+  .choice__key {
+    display: none;
+  }
+}
+
+@media (max-height: 460px) {
+  .choice__card {
+    min-height: 150px;
+    padding: 10px 10px 24px;
+  }
+  .choice__title {
+    font-size: 17px;
+  }
+  .choice__desc {
+    font-size: 16px;
+  }
+}
+
+/* Ticket de caja registradora */
+.ticket {
+  width: min(380px, 92vw);
+  padding: 16px 18px 20px;
+  background: #f3e9d2;
+  color: #2a1e14;
+  box-shadow: 0 6px 0 #000;
+  animation: ticket-out 0.6s steps(12) both;
+}
+
+@keyframes ticket-out {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.ticket h2 {
+  margin: 0;
+  text-align: center;
+  font-family: var(--title-font);
+  font-size: 22px;
+  color: #8a3324;
+}
+
+.ticket h2.is-won {
+  color: #2f7a2a;
+}
+
+.ticket h3 {
+  margin: 12px 0 4px;
+  font-size: 18px;
+  border-top: 1px dashed #2a1e14;
+  padding-top: 8px;
+}
+
+.ticket__no,
+.ticket__thanks {
+  margin: 2px 0 8px;
+  text-align: center;
+  font-size: 15px;
+  opacity: 0.7;
+}
+
+.ticket dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin: 0;
+  font-size: 19px;
+  border-top: 1px dashed #2a1e14;
+  padding-top: 6px;
+}
+
+.ticket dd {
+  margin: 0;
+  text-align: right;
+  font-family: var(--hud-font);
+  font-size: 16px;
+}
+
+.ticket__total {
+  border-top: 1px dashed #2a1e14;
+  margin-top: 4px;
+  padding-top: 4px;
+  font-size: 22px;
+}
+
+.ticket__sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.ticket__sources li {
+  display: grid;
+  grid-template-columns: 9em 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.ticket__bar {
+  height: 8px;
+  background: #8a3324;
+}
+
+.ticket__extra {
+  border-top: 1px dashed #2a1e14;
+  margin-top: 8px;
+  padding-top: 6px;
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket {
+    animation: none;
+  }
+  .choice__card {
+    transition: none;
+  }
+}
+
+.reduce-motion .ticket {
+  animation: none;
+}

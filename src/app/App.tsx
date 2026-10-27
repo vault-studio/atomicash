@@ -4,6 +4,9 @@ import type { StatSurvivorId } from '../config/survivors';
 import { RunScreen } from './screens/RunScreen';
 import { SurvivorSelect } from './screens/SurvivorSelect';
 
+// DECISIÓN: ajustes fijos hasta el store persistido (F3-01).
+const SETTINGS = { showDamage: false, reduceMotion: false };
+
 export function App() {
   const { t } = useTranslation();
   const [charId, setCharId] = useState<StatSurvivorId | null>(null);
@@ -11,7 +14,7 @@ export function App() {
   return (
     <>
       {charId ? (
-        <RunScreen charId={charId} onExit={() => setCharId(null)} />
+        <RunScreen charId={charId} settings={SETTINGS} onExit={() => setCharId(null)} />
       ) : (
         <SurvivorSelect onPick={setCharId} />
       )}

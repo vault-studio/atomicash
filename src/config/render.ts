@@ -59,3 +59,33 @@ export const PALETTE = {
   crt: 0x3cff6b,
   shadow: 0x000000,
 } as const;
+
+/** Colores de la run (placeholders de proyectiles, chatarra, charcos…). */
+export const RUN_COLORS = {
+  gem: { 1: 0xe8d36a, 5: 0x6ad8e8, 25: 0xff8ad8 } as Readonly<Record<number, number>>,
+  gemBig: 0xff8ad8,
+  stim: 0xff5577,
+  chest: 0xd8a53a,
+  crate: 0x8a7a4a,
+  hazard: 0x9dff00,
+  hazardAlpha: 0.18,
+  slime: 0x7dff3a,
+  pool: 0xff7a2a,
+  tele: 0xff3c28,
+  mine: 0xff5a5a,
+  ebullet: 0xff6a3a,
+  shadow: 0x000000,
+  irradiated: 0xa8ff70,
+  flash: 0xffb0b0,
+  rain: 0x9dff00,
+  storm: 0x8a3324,
+  aura: 0x7dff6a,
+  text: {
+    dmg: 0xeeeeee,
+    crit: 0xffe14a,
+    hurt: 0xff6050,
+    dodge: 0x99ccff,
+    pickup: 0xffffff,
+    slogan: 0xd6b0ff,
+  },
+} as const;

@@ -6,6 +6,8 @@ import { RUN } from '../src/config/run';
 import { removeEnemyAt, spawnEnemy } from '../src/engine/systems/enemies';
 import { createWorld, tick } from '../src/engine/world';
 import type { InputState, World } from '../src/engine/types';
+import { createWeapon } from '../src/engine/systems/weapons';
+import type { WeaponId } from '../src/config/weapons';
 
 const N = 1000;
 const STEP = 1 / RUN.tickHz;
@@ -74,6 +76,51 @@ describe('motor sin allocations', () => {
     },
     30_000,
   );
+
+  // Cada arma por separado: proyectiles, charcos, rayos, petardos y bajas salen de pools.
+  const LOADOUTS: WeaponId[][] = [
+    ['llave', 'pistola_clavos', 'escopeta_chatarra', 'tesla'],
+    ['coctel', 'geiger', 'megafono', 'rifle_cerrojo'],
+    ['martillo_pilon', 'petardos', 'desfibrilador', 'nucleo_cobalto'],
+    ['dinamo', 'remachadora', 'nucleo_inestable', 'dardos_incendiarios'],
+  ];
+  for (const loadout of LOADOUTS) {
+    it.runIf(gc)(
+      `combate sin GC: ${loadout.join(', ')}`,
+      async () => {
+        const w = crowd();
+        w.weapons = loadout.map((id) => createWeapon(id, 5));
+        w.player.god = true;
+        // Sin subidas de nivel (abrir tarjetas sí reserva memoria, y pausa el motor).
+        w.xpNext = Infinity;
+        for (let i = 0; i < w.enemies.count; i++) {
+          const e = w.enemies.items[i]!;
+          e.hp = e.maxHp = 400;
+        }
+        let k = 0;
+        const run = (n: number): void => {
+          for (let i = 0; i < n; i++, k++)
+            tick(w, { moveX: Math.cos(k / 50), moveY: Math.sin(k / 50) }, STEP);
+        };
+        const gcs: number[] = [];
+        const obs = new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) gcs.push(e.startTime);
+        });
+        obs.observe({ entryTypes: ['gc'] });
+        run(600);
+        gc!();
+        run(100);
+        const t0 = performance.now();
+        run(900);
+        const t1 = performance.now();
+        await new Promise((r) => setTimeout(r, 50));
+        obs.disconnect();
+        expect(w.kills).toBeGreaterThan(0);
+        expect(gcs.filter((t) => t >= t0 && t <= t1)).toEqual([]);
+      },
+      30_000,
+    );
+  }
 
   it('los enemigos se separan en vez de apilarse', () => {
     const w = createWorld('dot', 1);

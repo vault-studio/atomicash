@@ -14,10 +14,22 @@
     "later": "Más adelante"
   },
   "run": {
-    "controls": "WASD / flechas: mover · F3: depuración",
+    "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 5–8: consumibles · Esc: pausa",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
     "back": "← Búnker",
-    "debugKill": "K: probar muerte · J: +100 enemigos"
+    "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min",
+    "dodge": "ESQUIVA",
+    "pause": "Pausa",
+    "paused": "EN PAUSA",
+    "resume": "Continuar",
+    "abandon": "Abandonar expedición",
+    "level": "NV {{n}}",
+    "kills": "{{n}} bajas",
+    "dps": "{{n}} DPS",
+    "rad": "RAD {{n}}",
+    "rain": "Lluvia radiactiva",
+    "storm": "Tormenta",
+    "slotEmpty": "Vacío"
   },
   "passives": {
     "dot": "+15 % daño cuerpo a cuerpo",
@@ -68,5 +80,275 @@
     "petardos": "Ristra de petardos",
     "rifle_tirador": "Rifle del tirador",
     "escudo_puerta": "Escudo de puerta"
+  },
+  "cards": {
+    "levelUp": "¡SUBIDA DE NIVEL!",
+    "itemTitle": "COFRE DE OBJETO",
+    "reroll": "Cambiar (R) · quedan {{n}}",
+    "upgrade": "MEJORA",
+    "newWeapon": "ARMA NUEVA",
+    "exclusive": "ARMA EXCLUSIVA",
+    "fusion": "APAÑO",
+    "fusionDesc": "{{a}} + {{b}}: {{desc}} Libera un hueco.",
+    "trait": "RASGO",
+    "item": "OBJETO",
+    "keep": "CONSERVAR",
+    "nothing": "Nada",
+    "emptySlot": "Dejar el hueco vacío.",
+    "supply": "SUMINISTRO",
+    "heal": "Botiquín",
+    "healDesc": "Cura el 30 % de los PV.",
+    "purge": "Lavado químico",
+    "purgeDesc": "−30 RAD.",
+    "pick": "Pulsa {{n}}"
+  },
+  "rarity": {
+    "common": "COMÚN",
+    "rare": "RARA",
+    "epic": "ÉPICA"
+  },
+  "weapons": {
+    "llave": {
+      "name": "Llave giratoria",
+      "short": "Llave",
+      "desc": "{{n}} llave(s) en órbita, {{dmg, number}} de daño cada una."
+    },
+    "pistola_clavos": {
+      "name": "Pistola de clavos",
+      "short": "Clavos",
+      "desc": "{{n}} clavo(s) de {{dmg}} de daño cada {{cd, number}} s al más cercano."
+    },
+    "jeringa": {
+      "name": "Jeringas",
+      "short": "Jeringas",
+      "desc": "Abanico de {{n}} jeringas de {{dmg}} de daño. Cada baja cura {{heal, number}} PV (tope 4 PV/s)."
+    },
+    "coctel": {
+      "name": "Cóctel de gasolina",
+      "short": "Cóctel",
+      "desc": "{{n}} cóctel(es); el charco hace {{dmg, number}} de daño cada {{tick, number}} s durante {{dur, number}} s."
+    },
+    "tesla": {
+      "name": "Tesla de pecho",
+      "short": "Tesla",
+      "desc": "Rayo de {{dmg, number}} de daño que salta {{jumps}} veces."
+    },
+    "geiger": {
+      "name": "Contador Geiger",
+      "short": "Geiger",
+      "desc": "Aura de {{dmg, number}} de daño cada {{tick, number}} s. Radio {{r}} + {{k, number}} por punto de RAD."
+    },
+    "escopeta_chatarra": {
+      "name": "Escopeta de chatarra",
+      "short": "Escopeta",
+      "desc": "{{n}} perdigones de {{dmg}} de daño a corta distancia. Mucho empuje."
+    },
+    "megafono": {
+      "name": "Megáfono de feria",
+      "short": "Megáfono",
+      "desc": "Onda en cono de {{deg}}° que hace {{dmg, number}} de daño y aparta a todos."
+    },
+    "rifle_cerrojo": {
+      "name": "Rifle de cerrojo",
+      "short": "Rifle",
+      "desc": "Disparo de {{dmg, number}} de daño al enemigo más duro; atraviesa {{pierce}}. Cada {{cd, number}} s."
+    },
+    "martillo_pilon": {
+      "name": "Martillo pilón",
+      "short": "Martillo",
+      "desc": "Golpe de {{dmg, number}} de daño en radio {{r}} cada {{cd, number}} s. Cuerpo a cuerpo, gran empuje."
+    },
+    "petardos": {
+      "name": "Ristra de petardos",
+      "short": "Petardos",
+      "desc": "Un petardo cada {{step}} px recorridos: {{dmg, number}} de daño en radio {{r}}."
+    },
+    "desfibrilador": {
+      "name": "Desfibrilador",
+      "short": "Desfib.",
+      "desc": "Descarga a {{n}} enemigos: {{dmg, number}} de daño, +{{pct}} % por cada PV/s de regeneración."
+    },
+    "nucleo_cobalto": {
+      "name": "Núcleo de cobalto",
+      "short": "Cobalto",
+      "desc": "Orbe de {{dmg, number}} de daño que atraviesa {{pierce}}. +{{pct}} % de daño por punto de RAD."
+    },
+    "dinamo": {
+      "name": "Dinamo giratoria",
+      "short": "Dinamo",
+      "desc": "{{n}} llaves electrificadas de {{dmg}} de daño; cada golpe encadena un rayo ({{jumps}} saltos, {{chain}} de daño)."
+    },
+    "remachadora": {
+      "name": "Remachadora pesada",
+      "short": "Remaches",
+      "desc": "{{n}} remaches de {{dmg}} de daño cada {{cd, number}} s que atraviesan {{pierce}} enemigos."
+    },
+    "nucleo_inestable": {
+      "name": "Núcleo inestable",
+      "short": "Inestable",
+      "desc": "Aura de {{dmg}} de daño (radio {{r}}, crece con la RAD) que lanza {{n}} rayos de {{bolt}} cada {{cd, number}} s."
+    },
+    "dardos_incendiarios": {
+      "name": "Dardos incendiarios",
+      "short": "Dardos",
+      "desc": "Abanico de {{n}} dardos de {{dmg}} de daño que dejan fuego ({{fire}} por tic). Cada baja cura {{heal}} PV."
+    }
+  },
+  "traits": {
+    "ammo": {
+      "name": "Munición casera",
+      "desc": "+{{v, number}} % daño"
+    },
+    "boots": {
+      "name": "Botas de aviador",
+      "desc": "+{{v, number}} % velocidad"
+    },
+    "manual": {
+      "name": "Manual de supervivencia",
+      "desc": "+{{v, number}} % experiencia"
+    },
+    "helmet": {
+      "name": "Casco de obra",
+      "desc": "−{{v, number}} % daño recibido"
+    },
+    "plate": {
+      "name": "Chaleco de chapa",
+      "desc": "+{{v}} armadura (resta plana)"
+    },
+    "suture": {
+      "name": "Kit de sutura",
+      "desc": "+{{v, number}} PV/s de regeneración"
+    },
+    "magnet": {
+      "name": "Imán de chatarrero",
+      "desc": "+{{v, number}} % radio de recogida"
+    },
+    "cat": {
+      "name": "Reflejos de gato",
+      "desc": "+{{v, number}} % esquiva"
+    },
+    "scope": {
+      "name": "Ojo de francotirador",
+      "desc": "+{{v, number}} % de crítico ×2 (ataques directos)"
+    },
+    "ration": {
+      "name": "Ración militar",
+      "desc": "+{{v, number}} PV máx. y cura {{v, number}}"
+    },
+    "oil": {
+      "name": "Aceite de engranaje",
+      "desc": "−{{v, number}} % enfriamiento"
+    },
+    "iodine": {
+      "name": "Filtro de yodo",
+      "desc": "−{{v, number}} RAD/s"
+    },
+    "fuse": {
+      "name": "Mecha corta",
+      "desc": "+{{v, number}} % área (auras, charcos, explosiones)"
+    },
+    "tips": {
+      "name": "Puntas templadas",
+      "desc": "Los proyectiles atraviesan +{{v}}"
+    },
+    "adren": {
+      "name": "Adrenalina",
+      "desc": "+{{v, number}} % daño con menos del 40 % de PV"
+    },
+    "rabbit": {
+      "name": "Pata de conejo",
+      "desc": "+{{v, number}} suerte (rareza y botín)"
+    },
+    "stock": {
+      "name": "Culata de hierro",
+      "desc": "+{{v, number}} % empuje"
+    }
+  },
+  "items": {
+    "dice": {
+      "name": "Dados de peluche",
+      "desc": "+15 suerte"
+    },
+    "apron": {
+      "name": "Delantal de plomo",
+      "desc": "La radiación sube un 40 % menos"
+    },
+    "skates": {
+      "name": "Patines",
+      "desc": "+20 % velocidad"
+    },
+    "fridge": {
+      "name": "Imán de nevera gigante",
+      "desc": "+60 % imán"
+    },
+    "belt": {
+      "name": "Cinturón de herramientas",
+      "desc": "−15 % enfriamiento"
+    },
+    "bobble": {
+      "name": "Cabezón del atleta",
+      "desc": "+25 % daño, −15 % PV máx."
+    }
+  },
+  "consumables": {
+    "stim": {
+      "name": "Estimulante",
+      "short": "Estim.",
+      "desc": "Cura el 40 % de los PV"
+    },
+    "iodine": {
+      "name": "Yodo-Pak",
+      "short": "Yodo",
+      "desc": "−50 RAD"
+    },
+    "grenade": {
+      "name": "Granada de lata",
+      "short": "Granada",
+      "desc": "Explosión de 150 de daño en el enemigo más cercano"
+    },
+    "turbo": {
+      "name": "Batido turbo",
+      "short": "Turbo",
+      "desc": "+40 % velocidad y daño durante 8 s"
+    }
+  },
+  "banner": {
+    "chest": "¡Cofre de objeto!",
+    "blimpDown": "El dirigible pierde altura",
+    "colossusPhase": "El Coloso: fase {{n}}",
+    "boss": "¡{{name}}!",
+    "supply": "Caída de suministros",
+    "swarm": "¡Enjambre de drones!",
+    "rain": "Lluvia radiactiva",
+    "fusion": "¡Apaño! {{name}}",
+    "storm": "¡LLEGA LA TORMENTA!"
+  },
+  "slogans": [
+    "¡EL ÁTOMO ES TU AMIGO!",
+    "¡SONRÍA, CIUDADANO!",
+    "¡LA LLUVIA VERDE ES VITAMINA!",
+    "¡TU REFUGIO TE QUIERE!",
+    "¡NO MIRE EL HONGO!",
+    "¡BRILLAR ES SANO!"
+  ],
+  "results": {
+    "won": "¡HAS SOBREVIVIDO!",
+    "lost": "FIN DE LA EXPEDICIÓN",
+    "ticket": "TICKET Nº {{n}}",
+    "time": "Tiempo",
+    "kills": "Bajas",
+    "level": "Nivel",
+    "bosses": "Jefes",
+    "dmg": "Daño total",
+    "rad": "RAD máxima",
+    "credits": "Créditos",
+    "bySource": "Daño por arma",
+    "again": "Volver a jugar",
+    "menu": "Volver al búnker",
+    "thanks": "GRACIAS POR SU VISITA"
+  },
+  "sources": {
+    "granada": "Granada",
+    "hinchado": "Hinchado"
   }
 }

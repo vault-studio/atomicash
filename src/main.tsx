@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import './app/styles.css';
+import './app/run.css';
 import { validateConfig } from './config/validate';
 import './i18n';
 

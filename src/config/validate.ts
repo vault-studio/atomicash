@@ -1,6 +1,6 @@
 // Validación de la config al arrancar en dev (05_TECH.md §5) y en tests.
 import { ENTITIES, ENTITY_IDS, isEntityId, type SurvivorId } from './entities';
-import { ENEMY_RULES, ENEMY_STATS } from './enemies';
+import { ENEMY_RULES, ENEMY_STATS, type EnemyStats } from './enemies';
 import { SURVIVORS, hasStats } from './survivors';
 import { WAVES } from './waves';
 
@@ -36,9 +36,10 @@ export function validateConfig(): string[] {
         errors.push(`survivors.${id}: arma ${w} no existe`);
     }
   }
-  for (const [id, s] of Object.entries(ENEMY_STATS)) {
-    if (!isEntityId(id) || ENTITIES[id].category !== 'enemies')
-      errors.push(`enemies.${id}: no es un enemigo`);
+  for (const [id, s] of Object.entries(ENEMY_STATS) as [string, EnemyStats][]) {
+    const cat = isEntityId(id) ? ENTITIES[id].category : null;
+    if (cat !== (s.boss ? 'bosses' : 'enemies'))
+      errors.push(`enemies.${id}: no es un ${s.boss ? 'jefe' : 'enemigo'}`);
     if (!(s.hp > 0) || s.speed < 0) errors.push(`enemies.${id}: PV o velocidad inválidos`);
   }
   WAVES.forEach((wave, i) => {

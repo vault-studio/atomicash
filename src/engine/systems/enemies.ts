@@ -1,14 +1,37 @@
-// IA básica de enemigos: perseguir al jugador y separarse de los vecinos con el spatial hash.
-// Sin allocations: recorre el pool por índice y usa el buffer `scratch` del World.
+// Enemigos: aparición, IA (persecución, tirador, embestida, torreta, babosa, jefes) y separación.
+// Sin allocations: recorre el pool por índice y usa buffers del World.
 // No usar Math.hypot en el bucle caliente: V8 reserva memoria en cada llamada (argumentos variables).
 import {
+  AI,
   ENEMY_RULES,
   ENEMY_STATS,
   MAX_ENEMY_RADIUS,
   enemyRadius,
+  type EnemyStats,
   type StatEnemyId,
 } from '../../config/enemies';
-import type { Enemy, World } from '../types';
+import { IRRADIATED } from '../../config/radiation';
+import { FX, KNOCKBACK, PLAYER } from '../../config/run';
+import { SPAWN } from '../../config/waves';
+import { addShake, banner, boom, textFx } from '../fx';
+import {
+  MODE_AIM,
+  MODE_CHASE,
+  MODE_DASH,
+  ORBIT_SLOTS,
+  type AttackAnim,
+  type Enemy,
+  type EnemyBullet,
+  type Slime,
+  type Telegraph,
+  type World,
+} from '../types';
+import { hurtPlayer, irradiatedChance } from './combat';
+
+const TAU = Math.PI * 2;
+const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+/** Eslóganes de la torreta (i18n `slogans.<n>`). */
+export const SLOGAN_COUNT = 6;
 
 export function createEnemy(): Enemy {
   return {
@@ -22,18 +45,67 @@ export function createEnemy(): Enemy {
     hp: 0,
     maxHp: 0,
     speed: 0,
+    dmg: 0,
+    xp: 0,
     facingX: Math.SQRT1_2,
     facingY: Math.SQRT1_2,
     moving: false,
     born: 0,
+    dead: false,
+    irr: false,
+    boss: false,
+    flying: false,
+    atkCd: 0,
+    kbx: 0,
+    kby: 0,
+    flash: 0,
+    mode: MODE_CHASE,
+    mt: 0,
+    dx: 0,
+    dy: 0,
+    burst: 0,
+    bt: 0,
+    stun: 0,
+    act: 0,
+    alt: false,
+    phase: 1,
+    lastAtk: -9,
+    atkAnim: 'attack',
+    trail: 0,
+    timer: 0,
+    side: 1,
+    hitT: new Float64Array(ORBIT_SLOTS),
   };
 }
 
+export const createBullet = (): EnemyBullet => ({ x: 0, y: 0, vx: 0, vy: 0, r: 0, dmg: 0, rad: 0, life: 0 });
+export const createTele = (): Telegraph => ({ x: 0, y: 0, r: 0, t: 0, dur: 0, dmg: 0, spawn: null });
+export const createSlime = (): Slime => ({ x: 0, y: 0, r: 0, life: 0, max: 0, rad: 0 });
+
+function firstTimer(type: StatEnemyId): number {
+  switch (type) {
+    case 'tirador':
+      return AI.tirador.fireCd;
+    case 'cortacesped':
+      return AI.cortacesped.every;
+    case 'torreta':
+      return AI.torreta.every;
+    case 'rey_rata':
+      return AI.rey_rata.every;
+    case 'dirigible':
+      return AI.dirigible.every;
+    case 'coloso':
+      return AI.coloso.every;
+    default:
+      return 0;
+  }
+}
+
 /**
- * Crea un enemigo en (x, y). Si ya hay `w.maxEnemies`, recicla el más lejano al jugador.
- * Devuelve el enemigo reinicializado.
+ * Crea un enemigo en (x, y). Si ya hay `w.maxEnemies`, recicla el más lejano al jugador (nunca un jefe).
+ * `irr`: forzar (o impedir) la variante irradiada; si falta, se sortea.
  */
-export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number): Enemy {
+export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, irr?: boolean): Enemy {
   const pool = w.enemies;
   let e: Enemy;
   if (pool.count >= w.maxEnemies) {
@@ -42,7 +114,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number): E
     let farD = -1;
     for (let i = 0; i < pool.count; i++) {
       const o = pool.items[i] as Enemy;
-      const d = (o.x - p.x) ** 2 + (o.y - p.y) ** 2;
+      if (o.boss && !o.dead) continue;
+      const d = (o.x - p.x) ** 2 + (o.y - p.y) ** 2 + (o.dead ? 1e12 : 0);
       if (d > farD) {
         farD = d;
         far = i;
@@ -52,24 +125,348 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number): E
   } else {
     e = pool.acquire();
   }
-  const s = ENEMY_STATS[type];
+  const s: EnemyStats = ENEMY_STATS[type];
+  const boss = s.boss === true;
+  const isIrr = boss ? false : (irr ?? w.rng() < irradiatedChance(w));
+  const hp = s.hp * (boss ? 1 : 1 + w.time * ENEMY_RULES.hpPerSec) * (isIrr ? IRRADIATED.hp : 1);
   e.id = w.nextId++;
   e.type = type;
   e.x = e.prevX = x;
   e.y = e.prevY = y;
   e.r = enemyRadius(type);
-  e.hp = e.maxHp = s.hp;
+  e.hp = e.maxHp = hp;
   e.speed = s.speed;
+  e.dmg = s.dmg;
+  e.xp = s.xp;
   e.facingX = Math.SQRT1_2;
   e.facingY = Math.SQRT1_2;
   e.moving = false;
   e.born = w.time;
+  e.dead = false;
+  e.irr = isIrr;
+  e.boss = boss;
+  e.flying = s.flying === true;
+  e.atkCd = 0;
+  e.kbx = e.kby = 0;
+  e.flash = 0;
+  e.mode = MODE_CHASE;
+  e.mt = 0;
+  e.dx = e.dy = 0;
+  e.burst = 0;
+  e.bt = 0;
+  e.stun = 0;
+  e.act = 0;
+  e.alt = false;
+  e.phase = 1;
+  e.lastAtk = -9;
+  e.atkAnim = 'attack';
+  e.trail = 0;
+  e.timer = firstTimer(type) * (0.4 + w.rng() * 0.6);
+  e.side = w.rng() < 0.5 ? -1 : 1;
+  e.hitT.fill(-1e9);
+  if (boss) w.bossAlive++;
   return e;
 }
 
 /** Elimina el enemigo de la posición `i` del pool (el último ocupa su hueco). */
 export function removeEnemyAt(w: World, i: number): void {
   w.enemies.releaseAt(i);
+}
+
+/** Retira del pool los enemigos muertos en este tick. */
+export function compactEnemies(w: World): void {
+  const pool = w.enemies;
+  for (let i = pool.count - 1; i >= 0; i--) if ((pool.items[i] as Enemy).dead) pool.releaseAt(i);
+}
+
+function markAttack(w: World, e: Enemy, anim: AttackAnim = 'attack'): void {
+  e.lastAtk = w.time;
+  e.atkAnim = anim;
+}
+
+export function fireBullet(
+  w: World,
+  x: number,
+  y: number,
+  ux: number,
+  uy: number,
+  spd: number,
+  dmg: number,
+  rad: number,
+): void {
+  const b = w.ebullets.acquire();
+  b.x = x;
+  b.y = y;
+  b.vx = ux * spd;
+  b.vy = uy * spd;
+  b.r = ENEMY_RULES.bulletR;
+  b.dmg = dmg;
+  b.rad = rad;
+  b.life = ENEMY_RULES.bulletLife;
+}
+
+function telegraph(
+  w: World,
+  x: number,
+  y: number,
+  r: number,
+  dur: number,
+  dmg: number,
+  spawn: StatEnemyId | null = null,
+): void {
+  const t = w.tele.acquire();
+  t.x = x;
+  t.y = y;
+  t.r = r;
+  t.t = 0;
+  t.dur = dur;
+  t.dmg = dmg;
+  t.spawn = spawn;
+}
+
+function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, dist: number): void {
+  const M = w.mapSize;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * TAU;
+    spawnEnemy(
+      w,
+      type,
+      clamp(cx + Math.cos(a) * dist, 10, M - 10),
+      clamp(cy + Math.sin(a) * dist, 10, M - 10),
+      false,
+    );
+  }
+}
+
+// Velocidad deseada calculada por la IA (evita devolver objetos).
+let vx = 0;
+let vy = 0;
+
+function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number): void {
+  const p = w.player;
+  const M = w.mapSize;
+  const spd = e.speed;
+  const irrRad = e.irr ? IRRADIATED.rad : 0;
+  switch (e.type) {
+    case 'tirador': {
+      const A = AI.tirador;
+      if (d > A.keepMax) {
+        vx = ux * spd;
+        vy = uy * spd;
+      } else if (d < A.keepMin) {
+        vx = -ux * spd;
+        vy = -uy * spd;
+      } else {
+        vx = -uy * spd * A.strafe * e.side;
+        vy = ux * spd * A.strafe * e.side;
+      }
+      e.timer -= dt;
+      if (e.timer <= 0 && d < A.range) {
+        e.timer = A.fireCd;
+        fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad);
+        markAttack(w, e);
+      }
+      break;
+    }
+    case 'cortacesped':
+    case 'rey_rata': {
+      const A = e.type === 'rey_rata' ? AI.rey_rata : AI.cortacesped;
+      if (e.mode === MODE_CHASE) {
+        vx = ux * spd;
+        vy = uy * spd;
+        e.timer -= dt;
+        if (e.type === 'cortacesped') {
+          if (e.timer <= 0 && d < AI.cortacesped.range) {
+            e.mode = MODE_AIM;
+            e.mt = A.aim;
+            e.dx = ux;
+            e.dy = uy;
+            markAttack(w, e);
+          }
+        } else if (e.timer <= 0) {
+          const R = AI.rey_rata;
+          e.timer = R.every;
+          if (e.alt) {
+            e.mode = MODE_AIM;
+            e.mt = R.aim;
+            e.dx = ux;
+            e.dy = uy;
+            markAttack(w, e, 'attack_1');
+          } else {
+            markAttack(w, e, 'attack_2');
+            ring(w, R.summonType, e.x, e.y, R.summon, R.summonDist);
+          }
+          e.alt = !e.alt;
+        }
+      } else if (e.mode === MODE_AIM) {
+        vx = vy = 0;
+        e.mt -= dt;
+        if (e.mt <= 0) {
+          e.mode = MODE_DASH;
+          e.mt = A.dash;
+        }
+      } else {
+        vx = e.dx * A.dashSpd;
+        vy = e.dy * A.dashSpd;
+        e.mt -= dt;
+        if (e.mt <= 0) {
+          e.mode = MODE_CHASE;
+          if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
+        }
+      }
+      break;
+    }
+    case 'torreta': {
+      const A = AI.torreta;
+      vx = vy = 0;
+      e.timer -= dt;
+      if (e.burst > 0) {
+        e.bt -= dt;
+        if (e.bt <= 0) {
+          e.burst--;
+          e.bt = A.burstGap;
+          fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad);
+        }
+      } else if (e.timer <= 0 && d < A.range) {
+        e.timer = A.every;
+        e.burst = A.burst;
+        e.bt = 0;
+        markAttack(w, e);
+        if (w.rng() < A.sloganChance) textFx(w, 'slogan', e.x, e.y, (w.rng() * SLOGAN_COUNT) | 0);
+      }
+      e.facingX = ux;
+      e.facingY = uy;
+      break;
+    }
+    case 'babosa': {
+      const A = AI.babosa;
+      vx = ux * spd;
+      vy = uy * spd;
+      e.trail -= dt;
+      if (e.trail <= 0) {
+        e.trail = A.trailEvery;
+        let s: Slime;
+        if (w.slimes.count < SPAWN.maxSlime) s = w.slimes.acquire();
+        else {
+          // Lleno: reemplaza el rastro con menos vida.
+          let oi = 0;
+          for (let i = 1; i < w.slimes.count; i++)
+            if (w.slimes.items[i]!.life < w.slimes.items[oi]!.life) oi = i;
+          s = w.slimes.items[oi]!;
+        }
+        s.x = e.x;
+        s.y = e.y;
+        s.r = A.trailR;
+        s.life = s.max = A.trailLife;
+        s.rad = A.trailRad;
+      }
+      break;
+    }
+    case 'dirigible': {
+      const A = AI.dirigible;
+      // Orbita al jugador a `orbitR`.
+      const tx = -uy * e.side;
+      const ty = ux * e.side;
+      const err = clamp((d - A.orbitR) * 1.5, -spd, spd);
+      vx = tx * spd + ux * err;
+      vy = ty * spd + uy * err;
+      const p2 = e.hp / e.maxHp < A.p2;
+      if (p2 && e.phase === 1) {
+        e.phase = 2;
+        banner(w, 'banner.blimpDown');
+      }
+      e.timer -= dt;
+      if (e.timer <= 0) {
+        e.timer = p2 ? A.everyP2 : A.every;
+        if (!e.alt) {
+          markAttack(w, e, 'attack_1');
+          for (let i = 0; i < A.paraCount; i++) {
+            const a = w.rng() * TAU;
+            const rr = A.paraMin + w.rng() * (A.paraMax - A.paraMin);
+            telegraph(
+              w,
+              clamp(p.x + Math.cos(a) * rr, 30, M - 30),
+              clamp(p.y + Math.sin(a) * rr, 30, M - 30),
+              A.paraR,
+              A.paraWarn,
+              A.paraDmg,
+              'torreta',
+            );
+          }
+        } else {
+          markAttack(w, e, 'attack_2');
+          const l = Math.sqrt(vx * vx + vy * vy) || 1;
+          const bx = vx / l;
+          const by = vy / l;
+          for (let i = 0; i < A.bombCount; i++) {
+            const off = (i - (A.bombCount - 1) / 2) * A.bombSpacing;
+            telegraph(
+              w,
+              clamp(p.x + bx * off, 0, M),
+              clamp(p.y + by * off, 0, M),
+              A.bombR,
+              A.bombWarn,
+              A.bombDmg,
+            );
+          }
+          if (p2) ring(w, A.p2SummonType, p.x, p.y, A.p2Summon, A.p2SummonDist);
+        }
+        e.alt = !e.alt;
+      }
+      break;
+    }
+    case 'coloso': {
+      const A = AI.coloso;
+      const f = e.hp / e.maxHp;
+      const ph = f > A.p2 ? 1 : f > A.p3 ? 2 : 3;
+      if (ph !== e.phase) {
+        e.phase = ph;
+        banner(w, 'banner.colossusPhase', { n: String(ph) });
+      }
+      const sp = spd * (ph === 3 ? A.spdP3 : 1);
+      if (e.stun > 0) {
+        e.stun -= dt;
+        vx = vy = 0;
+      } else {
+        vx = ux * sp;
+        vy = uy * sp;
+      }
+      e.timer -= dt;
+      if (e.timer <= 0) {
+        e.timer = ph === 3 ? A.everyP3 : A.every;
+        const rot = ph >= 2 ? 3 : 2;
+        const act = e.act++ % rot;
+        if (act === 0) {
+          markAttack(w, e, 'attack_1');
+          telegraph(w, e.x, e.y, A.stompR, A.stompWarn, A.stompDmg);
+          e.stun = A.stompWarn;
+        } else if (act === 1) {
+          markAttack(w, e, 'attack_2');
+          const n = A.debrisBase + A.debrisPerPhase * ph;
+          for (let i = 0; i < n; i++) {
+            const a = w.rng() * TAU;
+            const rr = i === 0 ? 0 : 40 + w.rng() * A.debrisSpread;
+            telegraph(
+              w,
+              clamp(p.x + Math.cos(a) * rr, 0, M),
+              clamp(p.y + Math.sin(a) * rr, 0, M),
+              A.debrisR,
+              A.debrisWarn,
+              A.debrisDmg,
+            );
+          }
+        } else {
+          markAttack(w, e, 'attack_2');
+          spawnEnemy(w, 'torreta', clamp(e.x + 110, 20, M - 20), clamp(e.y, 20, M - 20), false);
+          ring(w, 'necrofago', e.x, e.y, A.summonGhouls, A.summonDist);
+        }
+      }
+      break;
+    }
+    default:
+      vx = ux * spd;
+      vy = uy * spd;
+  }
 }
 
 export function updateEnemies(w: World, dt: number): void {
@@ -80,60 +477,144 @@ export function updateEnemies(w: World, dt: number): void {
   const grid = w.enemyGrid;
   const out = w.scratch;
   const M = w.mapSize;
-
-  grid.build(items, n);
+  const kd = Math.exp(-KNOCKBACK.decay * dt);
+  const alive = p.deadAt === null;
 
   for (let i = 0; i < n; i++) {
     const e = items[i] as Enemy;
+    if (e.dead) continue;
     e.prevX = e.x;
     e.prevY = e.y;
+    e.flash -= dt;
+    e.atkCd -= dt;
 
-    // Persecución
-    let vx = 0;
-    let vy = 0;
     const dx = p.x - e.x;
     const dy = p.y - e.y;
-    const d = Math.sqrt(dx * dx + dy * dy);
-    if (e.speed > 0 && d > e.r + p.r) {
-      vx = (dx / d) * e.speed;
-      vy = (dy / d) * e.speed;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / d;
+    const uy = dy / d;
+    vx = 0;
+    vy = 0;
+    if (alive) think(w, e, d, ux, uy, dt);
+    // Si ya está encima del jugador, no lo empuja (solo se separa).
+    if (e.mode === MODE_CHASE && d <= e.r + p.r && e.type !== 'dirigible') {
+      vx = 0;
+      vy = 0;
     }
 
-    // Separación con los vecinos solapados
+    // Separación con los vecinos solapados (no aplica a jefes, voladores ni torretas).
     let sx = 0;
     let sy = 0;
-    const k = grid.query(e.x, e.y, e.r, MAX_ENEMY_RADIUS, out);
-    for (let j = 0; j < k && j < ENEMY_RULES.maxNeighbors; j++) {
-      const oi = out[j]!;
-      if (oi === i) continue;
-      const o = items[oi] as Enemy;
-      let ox = e.x - o.x;
-      let oy = e.y - o.y;
-      let od = Math.sqrt(ox * ox + oy * oy);
-      if (od < 1e-6) {
-        // Centros coincidentes: separa en una dirección determinista según el orden en el pool.
-        ox = i < oi ? 1 : -1;
-        oy = 0;
-        od = 1;
-      }
-      const overlap = e.r + o.r - od;
-      if (overlap > 0) {
-        const push = Math.min(overlap, ENEMY_RULES.separationMaxPush) * ENEMY_RULES.separationShare;
-        sx += (ox / od) * push;
-        sy += (oy / od) * push;
+    if (!e.boss && !e.flying && e.type !== 'torreta') {
+      const k = grid.query(e.x, e.y, e.r, MAX_ENEMY_RADIUS, out);
+      for (let j = 0; j < k && j < ENEMY_RULES.maxNeighbors; j++) {
+        const oi = out[j]!;
+        if (oi === i) continue;
+        const o = items[oi] as Enemy;
+        if (o.flying || o.dead) continue;
+        let ox = e.x - o.x;
+        let oy = e.y - o.y;
+        let od = Math.sqrt(ox * ox + oy * oy);
+        if (od < 1e-6) {
+          // Centros coincidentes: separa en una dirección determinista según el orden en el pool.
+          ox = i < oi ? 1 : -1;
+          oy = 0;
+          od = 1;
+        }
+        const overlap = e.r + o.r - od;
+        if (overlap > 0) {
+          const push =
+            Math.min(overlap, ENEMY_RULES.separationMaxPush) * (o.boss ? 1 : ENEMY_RULES.separationShare);
+          sx += (ox / od) * push;
+          sy += (oy / od) * push;
+        }
       }
     }
 
-    const nx = e.x + vx * dt + sx;
-    const ny = e.y + vy * dt + sy;
+    const nx = e.x + (vx + e.kbx) * dt + sx;
+    const ny = e.y + (vy + e.kby) * dt + sy;
     e.x = nx < e.r ? e.r : nx > M - e.r ? M - e.r : nx;
     e.y = ny < e.r ? e.r : ny > M - e.r ? M - e.r : ny;
+    e.kbx *= kd;
+    e.kby *= kd;
 
-    e.moving = vx !== 0 || vy !== 0;
-    if (e.moving) {
-      const l = Math.sqrt(vx * vx + vy * vy);
-      e.facingX = vx / l;
-      e.facingY = vy / l;
+    // Orientación para el sprite.
+    const vl = Math.sqrt(vx * vx + vy * vy);
+    e.moving = vl > ENEMY_RULES.movingSpeed;
+    if (e.mode === MODE_AIM) {
+      e.facingX = e.dx;
+      e.facingY = e.dy;
+    } else if (e.type !== 'torreta') {
+      if (e.moving) {
+        e.facingX = vx / vl;
+        e.facingY = vy / vl;
+      } else {
+        e.facingX = ux;
+        e.facingY = uy;
+      }
     }
+
+    // Contacto.
+    if (alive && !e.flying && e.dmg > 0 && e.type !== 'torreta' && d < p.r + e.r && e.atkCd <= 0) {
+      const s: EnemyStats = ENEMY_STATS[e.type];
+      const r = hurtPlayer(w, e.dmg, (s.rad ?? 0) + (e.irr ? IRRADIATED.rad : 0));
+      if (r !== 0) {
+        e.atkCd = PLAYER.contactCd;
+        if (!e.boss) markAttack(w, e);
+      }
+    }
+  }
+}
+
+export function updateEnemyBullets(w: World, dt: number): void {
+  const p = w.player;
+  const pool = w.ebullets;
+  for (let i = pool.count - 1; i >= 0; i--) {
+    const b = pool.items[i]!;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    b.life -= dt;
+    if (b.life <= 0) {
+      pool.releaseAt(i);
+      continue;
+    }
+    const dx = b.x - p.x;
+    const dy = b.y - p.y;
+    const rr = p.r + b.r;
+    if (dx * dx + dy * dy < rr * rr) {
+      pool.releaseAt(i);
+      hurtPlayer(w, b.dmg, b.rad);
+    }
+  }
+}
+
+export function updateTelegraphs(w: World, dt: number): void {
+  const p = w.player;
+  const pool = w.tele;
+  for (let i = pool.count - 1; i >= 0; i--) {
+    const t = pool.items[i]!;
+    t.t += dt;
+    if (t.t < t.dur) continue;
+    const x = t.x;
+    const y = t.y;
+    const r = t.r;
+    const dmg = t.dmg;
+    const spawn = t.spawn;
+    pool.releaseAt(i);
+    boom(w, x, y, r, 0.25, FX.colors.tele);
+    addShake(w, 3);
+    const dx = p.x - x;
+    const dy = p.y - y;
+    const rr = r + p.r;
+    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, dmg);
+    if (spawn) spawnEnemy(w, spawn, x, y, false);
+  }
+}
+
+export function updateSlimes(w: World, dt: number): void {
+  for (let i = w.slimes.count - 1; i >= 0; i--) {
+    const s = w.slimes.items[i]!;
+    s.life -= dt;
+    if (s.life <= 0) w.slimes.releaseAt(i);
   }
 }

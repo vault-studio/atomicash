@@ -9,6 +9,8 @@ export class ActorView extends Container {
   private readonly sprite = new Sprite();
   private readonly placeholder: Placeholder;
   private readonly cellScale: number;
+  /** Contenedor del cuerpo: se eleva para los voladores. */
+  private readonly body = new Container();
 
   constructor(
     private readonly def: EntityDef,
@@ -23,7 +25,16 @@ export class ActorView extends Container {
       def.size * VIEW.placeholderRadiusPerSize,
       withArrow,
     );
-    this.addChild(this.sprite, this.placeholder);
+    this.body.addChild(this.sprite, this.placeholder);
+    this.addChild(this.body);
+  }
+
+  /** Altura de vuelo en px de pantalla, tinte (irradiado, golpe) y transparencia. */
+  style(lift: number, tint: number, alpha: number): void {
+    this.body.y = -lift;
+    this.sprite.tint = tint;
+    this.placeholder.tint = tint;
+    this.body.alpha = alpha;
   }
 
   get entityId(): string {

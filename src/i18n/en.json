@@ -14,10 +14,22 @@
     "later": "Coming later"
   },
   "run": {
-    "controls": "WASD / arrows: move · F3: debug",
+    "controls": "WASD / arrows: move · 1 2 3 / R: cards · 5–8: consumables · Esc: pause",
     "controlsTouch": "Drag on the left half to move",
     "back": "← Bunker",
-    "debugKill": "K: test death · J: +100 enemies"
+    "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min",
+    "dodge": "DODGE",
+    "pause": "Pause",
+    "paused": "PAUSED",
+    "resume": "Resume",
+    "abandon": "Abandon expedition",
+    "level": "LV {{n}}",
+    "kills": "{{n}} kills",
+    "dps": "{{n}} DPS",
+    "rad": "RAD {{n}}",
+    "rain": "Radioactive rain",
+    "storm": "Storm",
+    "slotEmpty": "Empty"
   },
   "passives": {
     "dot": "+15% melee damage",
@@ -68,5 +80,275 @@
     "petardos": "Firecracker string",
     "rifle_tirador": "Gunner's rifle",
     "escudo_puerta": "Door shield"
+  },
+  "cards": {
+    "levelUp": "LEVEL UP!",
+    "itemTitle": "ITEM CHEST",
+    "reroll": "Reroll (R) · {{n}} left",
+    "upgrade": "UPGRADE",
+    "newWeapon": "NEW WEAPON",
+    "exclusive": "EXCLUSIVE WEAPON",
+    "fusion": "JURY-RIG",
+    "fusionDesc": "{{a}} + {{b}}: {{desc}} Frees a slot.",
+    "trait": "TRAIT",
+    "item": "ITEM",
+    "keep": "KEEP",
+    "nothing": "Nothing",
+    "emptySlot": "Leave the slot empty.",
+    "supply": "SUPPLY",
+    "heal": "First-aid kit",
+    "healDesc": "Heals 30% HP.",
+    "purge": "Chemical wash",
+    "purgeDesc": "−30 RAD.",
+    "pick": "Press {{n}}"
+  },
+  "rarity": {
+    "common": "COMMON",
+    "rare": "RARE",
+    "epic": "EPIC"
+  },
+  "weapons": {
+    "llave": {
+      "name": "Spinning wrench",
+      "short": "Wrench",
+      "desc": "{{n}} orbiting wrench(es), {{dmg, number}} damage each."
+    },
+    "pistola_clavos": {
+      "name": "Nail gun",
+      "short": "Nails",
+      "desc": "{{n}} nail(s) of {{dmg}} damage every {{cd, number}} s at the nearest enemy."
+    },
+    "jeringa": {
+      "name": "Syringes",
+      "short": "Syringes",
+      "desc": "Fan of {{n}} syringes, {{dmg}} damage. Each kill heals {{heal, number}} HP (max 4 HP/s)."
+    },
+    "coctel": {
+      "name": "Gasoline cocktail",
+      "short": "Cocktail",
+      "desc": "{{n}} cocktail(s); the puddle deals {{dmg, number}} damage every {{tick, number}} s for {{dur, number}} s."
+    },
+    "tesla": {
+      "name": "Chest tesla",
+      "short": "Tesla",
+      "desc": "Bolt of {{dmg, number}} damage that jumps {{jumps}} times."
+    },
+    "geiger": {
+      "name": "Geiger counter",
+      "short": "Geiger",
+      "desc": "Aura dealing {{dmg, number}} damage every {{tick, number}} s. Radius {{r}} + {{k, number}} per RAD point."
+    },
+    "escopeta_chatarra": {
+      "name": "Scrap shotgun",
+      "short": "Shotgun",
+      "desc": "{{n}} pellets of {{dmg}} damage at short range. Heavy knockback."
+    },
+    "megafono": {
+      "name": "Fairground megaphone",
+      "short": "Megaphone",
+      "desc": "{{deg}}° cone wave dealing {{dmg, number}} damage and shoving everyone back."
+    },
+    "rifle_cerrojo": {
+      "name": "Bolt-action rifle",
+      "short": "Rifle",
+      "desc": "Shot of {{dmg, number}} damage at the toughest enemy; pierces {{pierce}}. Every {{cd, number}} s."
+    },
+    "martillo_pilon": {
+      "name": "Pile hammer",
+      "short": "Hammer",
+      "desc": "Slam of {{dmg, number}} damage in radius {{r}} every {{cd, number}} s. Melee, heavy knockback."
+    },
+    "petardos": {
+      "name": "Firecracker string",
+      "short": "Firecrackers",
+      "desc": "A firecracker every {{step}} px travelled: {{dmg, number}} damage in radius {{r}}."
+    },
+    "desfibrilador": {
+      "name": "Defibrillator",
+      "short": "Defib.",
+      "desc": "Shocks {{n}} enemies: {{dmg, number}} damage, +{{pct}}% per HP/s of regeneration."
+    },
+    "nucleo_cobalto": {
+      "name": "Cobalt core",
+      "short": "Cobalt",
+      "desc": "Orb of {{dmg, number}} damage that pierces {{pierce}}. +{{pct}}% damage per RAD point."
+    },
+    "dinamo": {
+      "name": "Spinning dynamo",
+      "short": "Dynamo",
+      "desc": "{{n}} electrified wrenches of {{dmg}} damage; each hit chains a bolt ({{jumps}} jumps, {{chain}} damage)."
+    },
+    "remachadora": {
+      "name": "Heavy riveter",
+      "short": "Rivets",
+      "desc": "{{n}} rivets of {{dmg}} damage every {{cd, number}} s that pierce {{pierce}} enemies."
+    },
+    "nucleo_inestable": {
+      "name": "Unstable core",
+      "short": "Unstable",
+      "desc": "Aura of {{dmg}} damage (radius {{r}}, grows with RAD) that fires {{n}} bolts of {{bolt}} every {{cd, number}} s."
+    },
+    "dardos_incendiarios": {
+      "name": "Incendiary darts",
+      "short": "Darts",
+      "desc": "Fan of {{n}} darts of {{dmg}} damage that leave fire ({{fire}} per tick). Each kill heals {{heal}} HP."
+    }
+  },
+  "traits": {
+    "ammo": {
+      "name": "Homemade ammo",
+      "desc": "+{{v, number}}% damage"
+    },
+    "boots": {
+      "name": "Aviator boots",
+      "desc": "+{{v, number}}% speed"
+    },
+    "manual": {
+      "name": "Survival manual",
+      "desc": "+{{v, number}}% experience"
+    },
+    "helmet": {
+      "name": "Hard hat",
+      "desc": "−{{v, number}}% damage taken"
+    },
+    "plate": {
+      "name": "Sheet-metal vest",
+      "desc": "+{{v}} armor (flat reduction)"
+    },
+    "suture": {
+      "name": "Suture kit",
+      "desc": "+{{v, number}} HP/s regeneration"
+    },
+    "magnet": {
+      "name": "Scrapper's magnet",
+      "desc": "+{{v, number}}% pickup radius"
+    },
+    "cat": {
+      "name": "Cat reflexes",
+      "desc": "+{{v, number}}% dodge"
+    },
+    "scope": {
+      "name": "Sniper's eye",
+      "desc": "+{{v, number}}% ×2 critical chance (direct attacks)"
+    },
+    "ration": {
+      "name": "Military ration",
+      "desc": "+{{v, number}} max HP and heals {{v, number}}"
+    },
+    "oil": {
+      "name": "Gear oil",
+      "desc": "−{{v, number}}% cooldown"
+    },
+    "iodine": {
+      "name": "Iodine filter",
+      "desc": "−{{v, number}} RAD/s"
+    },
+    "fuse": {
+      "name": "Short fuse",
+      "desc": "+{{v, number}}% area (auras, puddles, explosions)"
+    },
+    "tips": {
+      "name": "Tempered tips",
+      "desc": "Projectiles pierce +{{v}}"
+    },
+    "adren": {
+      "name": "Adrenaline",
+      "desc": "+{{v, number}}% damage below 40% HP"
+    },
+    "rabbit": {
+      "name": "Rabbit's foot",
+      "desc": "+{{v, number}} luck (rarity and loot)"
+    },
+    "stock": {
+      "name": "Iron stock",
+      "desc": "+{{v, number}}% knockback"
+    }
+  },
+  "items": {
+    "dice": {
+      "name": "Fuzzy dice",
+      "desc": "+15 luck"
+    },
+    "apron": {
+      "name": "Lead apron",
+      "desc": "Radiation builds 40% slower"
+    },
+    "skates": {
+      "name": "Roller skates",
+      "desc": "+20% speed"
+    },
+    "fridge": {
+      "name": "Giant fridge magnet",
+      "desc": "+60% magnet"
+    },
+    "belt": {
+      "name": "Tool belt",
+      "desc": "−15% cooldown"
+    },
+    "bobble": {
+      "name": "Athlete bobblehead",
+      "desc": "+25% damage, −15% max HP"
+    }
+  },
+  "consumables": {
+    "stim": {
+      "name": "Stimulant",
+      "short": "Stim",
+      "desc": "Heals 40% HP"
+    },
+    "iodine": {
+      "name": "Iodo-Pak",
+      "short": "Iodine",
+      "desc": "−50 RAD"
+    },
+    "grenade": {
+      "name": "Tin-can grenade",
+      "short": "Grenade",
+      "desc": "150 damage blast on the nearest enemy"
+    },
+    "turbo": {
+      "name": "Turbo shake",
+      "short": "Turbo",
+      "desc": "+40% speed and damage for 8 s"
+    }
+  },
+  "banner": {
+    "chest": "Item chest!",
+    "blimpDown": "The blimp is losing altitude",
+    "colossusPhase": "The Colossus: phase {{n}}",
+    "boss": "{{name}}!",
+    "supply": "Supply drop",
+    "swarm": "Drone swarm!",
+    "rain": "Radioactive rain",
+    "fusion": "Jury-rigged! {{name}}",
+    "storm": "THE STORM IS COMING!"
+  },
+  "slogans": [
+    "THE ATOM IS YOUR FRIEND!",
+    "SMILE, CITIZEN!",
+    "GREEN RAIN IS VITAMINS!",
+    "YOUR SHELTER LOVES YOU!",
+    "DO NOT LOOK AT THE MUSHROOM!",
+    "GLOWING IS HEALTHY!"
+  ],
+  "results": {
+    "won": "YOU SURVIVED!",
+    "lost": "EXPEDITION OVER",
+    "ticket": "TICKET No. {{n}}",
+    "time": "Time",
+    "kills": "Kills",
+    "level": "Level",
+    "bosses": "Bosses",
+    "dmg": "Total damage",
+    "rad": "Peak RAD",
+    "credits": "Credits",
+    "bySource": "Damage by weapon",
+    "again": "Play again",
+    "menu": "Back to bunker",
+    "thanks": "THANK YOU FOR YOUR VISIT"
+  },
+  "sources": {
+    "granada": "Grenade",
+    "hinchado": "Bloater"
   }
 }

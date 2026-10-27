@@ -7,6 +7,14 @@ import type { Enemy, InputState, World } from '../src/engine/types';
 import { isOnScreen, setView } from '../src/engine/view';
 import { createWorld, tick } from '../src/engine/world';
 
+/** Sin armas, daño ni eventos (el enjambre aparece a la vista a propósito): solo las oleadas. */
+function passive(seed: number): ReturnType<typeof createWorld> {
+  const w = createWorld('dot', seed, { startWeapon: null, hazards: false });
+  w.player.god = true;
+  w.nextEvent = Infinity;
+  return w;
+}
+
 const STEP = 1 / RUN.tickHz;
 const STILL: InputState = { moveX: 0, moveY: 0 };
 
@@ -45,13 +53,13 @@ describe('oleadas', () => {
   });
 
   it('respeta el ritmo de la primera oleada', () => {
-    const w = createWorld('dot', 1);
+    const w = passive(1);
     runCollecting(w, 10);
     expect(w.enemies.count).toBe(Math.floor(WAVES[0]!.rate * 10));
   });
 
   it('no supera el máximo de vivos de la oleada', () => {
-    const w = createWorld('dot', 1);
+    const w = passive(1);
     runCollecting(w, 59);
     expect(w.enemies.count).toBeLessThanOrEqual(WAVES[0]!.max);
     expect(w.enemies.count).toBe(WAVES[0]!.max);
@@ -80,7 +88,7 @@ describe('oleadas', () => {
 
 describe('aparición fuera de cámara', () => {
   it('nunca aparece un enemigo dentro de la cámara, ni moviéndose', () => {
-    const w = createWorld('dot', 3);
+    const w = passive(3);
     const spawned = runCollecting(w, 120, { moveX: 0.6, moveY: -0.8 });
     // Sin armas nadie muere: el tope de vivos de las dos primeras oleadas (40 y 70) limita las apariciones.
     expect(spawned.length).toBe(WAVES[1]!.max);
@@ -88,7 +96,7 @@ describe('aparición fuera de cámara', () => {
   });
 
   it('se adapta a una cámara grande (monitor ancho)', () => {
-    const w = createWorld('dot', 3);
+    const w = passive(3);
     setView(w, 1400, 800);
     const spawned = runCollecting(w, 30);
     expect(spawned.length).toBeGreaterThan(20);
@@ -99,7 +107,7 @@ describe('aparición fuera de cámara', () => {
   });
 
   it('con el jugador en una esquina sigue dentro del mapa y fuera de cámara', () => {
-    const w = createWorld('dot', 5);
+    const w = passive(5);
     w.player.x = w.player.prevX = 30;
     w.player.y = w.player.prevY = 30;
     const out = { x: 0, y: 0 };
@@ -115,7 +123,7 @@ describe('aparición fuera de cámara', () => {
   });
 
   it('los enemigos que se quedan muy atrás reaparecen delante, fuera de cámara', () => {
-    const w = createWorld('dot', 9);
+    const w = passive(9);
     runCollecting(w, 5);
     const e = w.enemies.items[0] as Enemy;
     e.x = e.prevX = w.player.x + SPAWN.relocateDist + 200;
