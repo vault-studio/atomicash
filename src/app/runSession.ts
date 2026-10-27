@@ -5,10 +5,13 @@ import type { StatSurvivorId } from '../config/survivors';
 import { advance, createFixedStep } from '../engine/loop';
 import type { InputState } from '../engine/types';
 import { createWorld, killPlayer, tick } from '../engine/world';
-import { KeyboardInput } from '../input/keyboard';
+import { InputManager } from '../input';
 import { screenToWorldDir } from '../render/iso';
 import { GameRenderer } from '../render/renderer';
 import { sprites } from '../render/sprites';
+
+/** Móvil (puntero grueso) en vertical. Es la misma condición que muestra el aviso `.rotate` en CSS. */
+export const PORTRAIT_QUERY = '(orientation: portrait) and (pointer: coarse)';
 
 export interface RunSession {
   dispose(): void;
@@ -18,9 +21,11 @@ export async function startRun(host: HTMLElement, charId: StatSurvivorId, seed: 
   await sprites.load();
   const world = createWorld(charId, seed);
   const renderer = await GameRenderer.create(host, sprites, world);
-  const keyboard = new KeyboardInput();
+  const controls = new InputManager(host);
   const fs = createFixedStep(RUN.tickHz, RUN.maxStepsPerFrame);
   const input: InputState = { moveX: 0, moveY: 0 };
+  // Solo horizontal (04_ART_UI.md §3): en un móvil en vertical la run se congela tras el aviso de giro.
+  const portrait = window.matchMedia(PORTRAIT_QUERY);
 
   const onKey = (e: KeyboardEvent): void => {
     if (e.code === 'F3') {
@@ -37,8 +42,14 @@ export async function startRun(host: HTMLElement, charId: StatSurvivorId, seed: 
   const onTick = (ticker: Ticker): void => {
     const frameSec = ticker.deltaMS / 1000;
     let steps = 0;
+    if (portrait.matches) {
+      controls.release();
+      fs.acc = 0;
+      renderer.render(world, 1, { fps, steps });
+      return;
+    }
     const alpha = advance(fs, frameSec, (dt) => {
-      const d = keyboard.read();
+      const d = controls.read();
       const m = screenToWorldDir(d.x, d.y);
       input.moveX = m.x;
       input.moveY = m.y;
@@ -54,7 +65,7 @@ export async function startRun(host: HTMLElement, charId: StatSurvivorId, seed: 
     dispose() {
       window.removeEventListener('keydown', onKey);
       renderer.app.ticker.remove(onTick);
-      keyboard.dispose();
+      controls.dispose();
       renderer.destroy();
     },
   };

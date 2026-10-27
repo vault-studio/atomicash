@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import type { StatSurvivorId } from '../../config/survivors';
 import { startRun, type RunSession } from '../runSession';
 
+const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
+
 interface Props {
   charId: StatSurvivorId;
   onExit: () => void;
@@ -41,8 +43,8 @@ export function RunScreen({ charId, onExit }: Props) {
         {t('run.back')}
       </button>
       <div className="run__hint">
-        {t('run.controls')}
-        {import.meta.env.DEV && <> · {t('run.debugKill')}</>}
+        {t(COARSE_POINTER ? 'run.controlsTouch' : 'run.controls')}
+        {import.meta.env.DEV && !COARSE_POINTER && <> · {t('run.debugKill')}</>}
       </div>
     </div>
   );

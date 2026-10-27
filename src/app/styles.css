@@ -175,8 +175,42 @@ select {
     z-index: 10;
     display: grid;
     place-items: center;
+    padding: 24px;
+    text-align: center;
     background: var(--crt-bg);
     color: var(--crt);
     font-size: 1.4rem;
   }
+}
+
+/* ---------- Joystick virtual (mitad izquierda) ---------- */
+.run__canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.joy {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  background: rgba(11, 20, 13, 0.35);
+  pointer-events: none;
+}
+
+.joy[hidden] {
+  display: none;
+}
+
+.joy__knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  background: rgba(60, 255, 107, 0.55);
+  border: 2px solid var(--crt);
 }

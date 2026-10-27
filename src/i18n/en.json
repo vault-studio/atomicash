@@ -14,8 +14,9 @@
     "later": "Coming later"
   },
   "run": {
-    "back": "← Bunker",
     "controls": "WASD / arrows: move · F3: debug",
+    "controlsTouch": "Drag on the left half to move",
+    "back": "← Bunker",
     "debugKill": "K: test death animation"
   },
   "passives": {
