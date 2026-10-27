@@ -1,7 +1,7 @@
 // Render de la run con PixiJS v8. Lee el World y dibuja; nunca lo modifica.
-import { Application, Container, Graphics, Text } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Text, type Texture } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
-import { PALETTE, RUN_COLORS, VIEW } from '../config/render';
+import { PALETTE, RUN_COLORS, TILES, VIEW } from '../config/render';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
 import { ActorView } from './actor';
@@ -38,10 +38,13 @@ export class GameRenderer {
     private readonly lib: SpriteLibrary,
     world: World,
     translate: (key: string) => string,
+    tiles: (Texture | null)[],
   ) {
     app.stage.addChild(this.worldLayer);
     this.drawGround(world);
-    this.worldLayer.addChild(this.ground, this.fx.ground);
+    this.worldLayer.addChild(this.ground);
+    this.worldLayer.addChild(this.tileGround(world, tiles));
+    this.worldLayer.addChild(this.hazardLayer(world), this.fx.ground);
     // Actores ordenados por profundidad entre el suelo y el aire.
     this.actors.sortableChildren = true;
     this.worldLayer.addChild(this.actors);
@@ -80,7 +83,13 @@ export class GameRenderer {
       preference: 'webgl',
     });
     host.appendChild(app.canvas);
-    return new GameRenderer(app, lib, world, translate);
+    // Las baldosas son opcionales: si faltan, queda el suelo liso con rejilla.
+    const tiles = await Promise.all(
+      TILES.weights.map((wgt, i) =>
+        wgt > 0 ? Assets.load<Texture>(`${TILES.path}${i}.png`).catch(() => null) : Promise.resolve(null),
+      ),
+    );
+    return new GameRenderer(app, lib, world, translate, tiles);
   }
 
   toggleDebug(): void {
@@ -99,12 +108,50 @@ export class GameRenderer {
       g.moveTo(isoX(0, v), isoY(0, v)).lineTo(isoX(M, v), isoY(M, v));
     }
     g.stroke({ width: 1, color: PALETTE.grid, alpha: PALETTE.gridAlpha });
-    // Charcos radiactivos fijos.
+  }
+
+  /** Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla). */
+  private tileGround(w: World, tiles: (Texture | null)[]): Container {
+    const layer = new Container();
+    const avail: number[] = tiles.map((t, i) => (t ? TILES.weights[i]! : 0));
+    const total = avail.reduce((a, b) => a + b, 0);
+    if (total === 0) return layer;
+    const n = Math.round(w.mapSize / TILES.worldSize);
+    const T = w.mapSize / n;
+    // Un lado T del mundo mide T·√2 de ancho en la vista isométrica.
+    const scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
+    let h = (w.seed ^ 0x9e3779b9) >>> 0;
+    for (let j = 0; j < n; j++) {
+      for (let i = 0; i < n; i++) {
+        h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) + i * 7919 + j * 104729;
+        h = (h ^ (h >>> 13)) >>> 0;
+        let r = (h / 4294967296) * total;
+        let k = 0;
+        while (k < avail.length - 1 && r >= avail[k]!) r -= avail[k++]!;
+        const tex = tiles[k];
+        if (!tex) continue;
+        const s = new Sprite(tex);
+        s.anchor.set(0.5);
+        s.scale.set(scale);
+        s.tint = TILES.tint;
+        const cx = (i + 0.5) * T;
+        const cy = (j + 0.5) * T;
+        s.position.set(isoX(cx, cy), isoY(cx, cy));
+        layer.addChild(s);
+      }
+    }
+    return layer;
+  }
+
+  /** Charcos radiactivos fijos. */
+  private hazardLayer(w: World): Graphics {
+    const g = new Graphics();
     for (const h of w.hazards) {
       g.ellipse(isoX(h.x, h.y), isoY(h.x, h.y), h.r, h.r / 2)
         .fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha })
         .stroke({ width: 2, color: RUN_COLORS.hazard, alpha: 0.35 });
     }
+    return g;
   }
 
   /** Zoom de la cámara: encaja la vista de referencia en la pantalla. */

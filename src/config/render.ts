@@ -89,3 +89,21 @@ export const RUN_COLORS = {
     slogan: 0xd6b0ff,
   },
 } as const;
+
+/**
+ * Baldosas de suelo recortadas de ARTE/tiles_suelo.png con tools/slice_tiles.py (rombo 2:1 de 256×128).
+ * DECISIÓN: sin las de carretera (4 y 8), que al colocarse al azar cortarían líneas sin continuidad.
+ */
+export const TILES = {
+  path: 'assets/tiles/suelo_',
+  /** Peso de aparición de cada baldosa por índice. */
+  weights: [5, 4, 1, 2, 0, 1, 2, 1, 0] as readonly number[],
+  /** Ancho del rombo en la imagen, en px. */
+  imageWidth: 256,
+  /** Lado aproximado de la baldosa en px de mundo (se ajusta para dividir el mapa exacto). */
+  worldSize: 320,
+  /** Oscurece el suelo para que destaquen los personajes. */
+  tint: 0xb8a890,
+  /** Solape para que no se vean costuras. */
+  overlap: 1.03,
+} as const;

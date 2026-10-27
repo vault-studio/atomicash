@@ -7,6 +7,7 @@ import { EVENTS } from '../../config/waves';
 import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
 import { addShake, banner, boom, textFx } from '../fx';
 import { recalc } from '../stats';
+import { SFX, sfx } from '../sfx';
 import type { Card, World } from '../types';
 import { addPickup, heal, hitEnemy, nearest, queryEnemies } from './combat';
 import { compactEnemies } from './enemies';
@@ -51,6 +52,7 @@ export function updatePickups(w: World, dt: number): void {
     const ky = k.y;
     if (kind === 'gem') w.gemCount--;
     pool.releaseAt(i);
+    sfx(w, SFX.pickup);
     if (kind === 'gem') gainXp(w, val);
     else if (kind === 'stim') {
       w.cons.stim = Math.min(PLAYER.consumableMax, w.cons.stim + 1);

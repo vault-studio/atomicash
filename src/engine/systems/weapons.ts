@@ -3,6 +3,7 @@
 import { WEAPONS, scaled, type WeaponId } from '../../config/weapons';
 import { FX } from '../../config/run';
 import { addShake, beamPoint, beamStart, boom } from '../fx';
+import { SFX, sfx } from '../sfx';
 import {
   SHOT_HITS,
   type Enemy,
@@ -62,6 +63,7 @@ function addShot(
   kb: number,
 ): void {
   const p = w.player;
+  sfx(w, SFX.shot);
   const s = w.shots.acquire();
   s.x = p.x;
   s.y = p.y;

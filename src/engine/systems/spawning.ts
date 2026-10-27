@@ -2,6 +2,7 @@
 import { BOSSES, BOSS_IDS, ENEMY_RULES, type StatEnemyId } from '../../config/enemies';
 import { EVENTS, SPAWN, WAVES, type WaveDef } from '../../config/waves';
 import { banner } from '../fx';
+import { SFX, sfx } from '../sfx';
 import type { Enemy, World } from '../types';
 import { offscreenDistance } from '../view';
 import { addPickup } from './combat';
@@ -88,6 +89,7 @@ export function spawnBoss(w: World, kind: (typeof BOSS_IDS)[number]): void {
   w.lastBossAt = w.time;
   ringPos(w, ENEMY_RULES.bossSpawnDist, SPAWN.jitter);
   spawnEnemy(w, kind, spot.x, spot.y, false);
+  sfx(w, SFX.boss);
   banner(w, 'banner.boss', { boss: kind });
 }
 

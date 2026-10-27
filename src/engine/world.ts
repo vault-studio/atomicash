@@ -39,6 +39,7 @@ import {
 } from './systems/weapons';
 import type { Corpse, Hazard, InputState, Point, World } from './types';
 import { defaultView } from './view';
+import { SFX_COUNT } from './sfx';
 
 export interface WorldOptions {
   /** Enemigos simultáneos antes de reciclar el más lejano. Por defecto, ENEMY_RULES.maxAlive. */
@@ -197,6 +198,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     bossAlive: 0,
     shake: 0,
     showDmg: false,
+    sfx: new Int32Array(SFX_COUNT),
   };
   recalc(w);
   w.player.hp = w.st.maxHp;

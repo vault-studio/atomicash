@@ -1,7 +1,7 @@
 // Plugin de Vite para la carpeta de arte `assets/` (contrato de la biblia de arte §3–§4).
 // - Genera `assets/manifest.json` con todas las hojas que tienen PNG + JSON.
 // - En dev lo regenera al añadir o quitar hojas; Vite ya sirve `assets/` desde la raíz.
-// - En build publica solo lo que consume el juego: manifest, sprites e iconos.
+// - En build publica solo lo que consume el juego: manifest, sprites, iconos y baldosas.
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import type { Plugin } from 'vite';
@@ -9,6 +9,7 @@ import type { Plugin } from 'vite';
 const ASSETS_DIR = 'assets';
 const SPRITES_DIR = join(ASSETS_DIR, 'sprites');
 const ICONS_DIR = join(ASSETS_DIR, 'icons');
+const TILES_DIR = join(ASSETS_DIR, 'tiles');
 const MANIFEST = join(ASSETS_DIR, 'manifest.json');
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -55,7 +56,7 @@ export function artAssets(): Plugin {
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'assets/manifest.json', source: writeManifest() });
-      for (const file of [...walk(SPRITES_DIR), ...walk(ICONS_DIR)]) {
+      for (const file of [...walk(SPRITES_DIR), ...walk(ICONS_DIR), ...walk(TILES_DIR)]) {
         if (!/\.(json|png)$/i.test(file)) continue;
         this.emitFile({ type: 'asset', fileName: toPosix(file), source: readFileSync(file) });
       }

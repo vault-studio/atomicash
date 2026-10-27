@@ -407,4 +407,6 @@ export interface World {
   shake: number;
   /** Mostrar números de daño (ajuste). */
   showDmg: boolean;
+  /** Contadores de sonidos por tipo (índices SFX); el audio reproduce las diferencias entre frames. */
+  readonly sfx: Int32Array;
 }

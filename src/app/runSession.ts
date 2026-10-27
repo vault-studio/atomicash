@@ -1,6 +1,8 @@
 // Une motor, entrada y render: paso fijo a 60 Hz y render a la tasa del monitor con interpolación.
 // La UI (React) recibe una foto del estado 10 veces por segundo y las elecciones al abrirse.
 import type { Ticker } from 'pixi.js';
+import { audio } from '../audio/audio';
+import { AUDIO } from '../config/audio';
 import { STAT_ENEMY_IDS, type StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import { radTier } from '../config/radiation';
@@ -11,6 +13,7 @@ import { spawnEnemy } from '../engine/systems/enemies';
 import { applyChoice, gainXp, reroll, consumeItem } from '../engine/systems/progression';
 import { spawnBoss } from '../engine/systems/spawning';
 import type { Banner, Choice, InputState, World } from '../engine/types';
+import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
 import { setView } from '../engine/view';
 import {
   createWorld,
@@ -63,6 +66,27 @@ export interface RunSettings {
   reduceMotion: boolean;
 }
 
+const SFX_NAMES = Object.keys(SFX) as SfxId[];
+
+/** Hace sonar lo que el motor contó desde el último fotograma y el chasquido del Geiger según la RAD. */
+function createSoundTap(): (w: World, frameSec: number) => void {
+  const prev = new Int32Array(SFX_COUNT);
+  let geiger = 0;
+  return (w, frameSec) => {
+    for (let i = 0; i < SFX_COUNT; i++) {
+      const n = w.sfx[i]! - prev[i]!;
+      if (n > 0) audio.play(SFX_NAMES[i]!, 0.6 + n * 0.1);
+      prev[i] = w.sfx[i]!;
+    }
+    geiger += frameSec * AUDIO.geigerRate * (w.player.rad / 100) * (0.5 + Math.random());
+    if (geiger >= 1) {
+      geiger = 0;
+      audio.play('geiger');
+    }
+    audio.setMusic(w.bossAlive > 0 ? 'boss' : 'run');
+  };
+}
+
 export interface RunSession {
   readonly world: World;
   choose(i: number): void;
@@ -110,7 +134,8 @@ function snapshot(w: World): HudSnapshot {
 }
 
 export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallbacks): Promise<RunSession> {
-  await sprites.load();
+  // Los Text de Pixi miden la fuente al crearse: hay que tenerla cargada antes.
+  await Promise.all([sprites.load(), document.fonts.load('700 14px "Pixelify Sans"').catch(() => [])]);
   const world = createWorld(opts.charId, opts.seed, opts);
   const renderer = await GameRenderer.create(host, sprites, world, (k) => i18n.t(k));
   const controls = new InputManager(host);
@@ -122,6 +147,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   let ended = false;
   let lastChoice: Choice | null = null;
   let hudAcc = 1;
+  const sound = createSoundTap();
 
   const apply = (s: RunSettings): void => {
     renderer.showDamage = s.showDamage;
@@ -133,6 +159,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const syncChoice = (): void => {
     if (world.choice !== lastChoice) {
       lastChoice = world.choice;
+      if (world.choice) audio.play(world.choice.type === 'item' ? 'chest' : 'level');
       cb.onChoice(world.choice);
       hudAcc = 1;
     }
@@ -195,6 +222,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     });
     if (frameSec > 0) fps += (1 / frameSec - fps) * 0.1;
     renderer.render(world, world.choice ? 1 : alpha, { fps, steps });
+    sound(world, frameSec);
     syncChoice();
     hudAcc += frameSec;
     if (hudAcc >= 0.1) {
@@ -204,6 +232,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     if (world.over && !ended) {
       ended = true;
       controls.release();
+      audio.setMusic(null);
+      audio.play(world.won ? 'win' : 'death');
       cb.onHud(snapshot(world));
       cb.onEnd(results(world));
     }
@@ -236,6 +266,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     dispose() {
       window.removeEventListener('keydown', onKey);
       renderer.app.ticker.remove(onTick);
+      audio.setMusic('menu');
       controls.dispose();
       renderer.destroy();
     },

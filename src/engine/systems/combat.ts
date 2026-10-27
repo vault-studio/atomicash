@@ -9,6 +9,7 @@ import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { banner, boom, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
+import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
 
@@ -117,6 +118,7 @@ export function hitEnemy(
   }
   e.hp -= d;
   e.flash = 0.08;
+  sfx(w, SFX.hit);
   w.dmgTotal += d;
   const si = SOURCE_INDEX[src];
   if (si !== undefined) w.dmgBy[si] = w.dmgBy[si]! + d;
@@ -223,6 +225,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (e.dead) return;
   e.dead = true;
   w.kills++;
+  sfx(w, SFX.kill);
   addCorpse(w, e);
   const xp = e.xp * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
   if (xp > 0) dropGems(w, e.x, e.y, xp);
@@ -282,6 +285,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   if (p.inv > 0 || p.god || p.deadAt !== null) return 0;
   if (st.dodge > 0 && w.rng() < st.dodge) {
     p.inv = 0.2;
+    sfx(w, SFX.dodge);
     textFx(w, 'dodge', p.x, p.y, 0);
     return -1;
   }
@@ -290,6 +294,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   p.hp -= d;
   p.inv = PLAYER.invuln;
   p.lastHit = w.time;
+  sfx(w, SFX.hurt);
   w.shake = Math.min(FX.shakeMax, w.shake + 3);
   if (rad > 0) addRad(w, rad);
   textFx(w, 'hurt', p.x, p.y, Math.round(d));
