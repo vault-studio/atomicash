@@ -28,6 +28,11 @@ document.addEventListener('visibilitychange', () => audio.setFocused(!document.h
 window.addEventListener('blur', () => audio.setFocused(false));
 window.addEventListener('focus', () => audio.setFocused(true));
 
+// PWA (F3-09): el service worker solo existe en el build; precachea el juego para jugar sin conexión.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('sw.js'));
+}
+
 const root = document.getElementById('root');
 if (!root) throw new Error('Falta #root en index.html');
 
