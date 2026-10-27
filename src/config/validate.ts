@@ -1,7 +1,8 @@
 // Validación de la config al arrancar en dev (05_TECH.md §5) y en tests.
 import { ENTITIES, ENTITY_IDS, isEntityId, type SurvivorId } from './entities';
-import { ENEMY_STATS } from './enemies';
+import { ENEMY_RULES, ENEMY_STATS } from './enemies';
 import { SURVIVORS, hasStats } from './survivors';
+import { WAVES } from './waves';
 
 const SNAKE_ASCII = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
@@ -40,5 +41,18 @@ export function validateConfig(): string[] {
       errors.push(`enemies.${id}: no es un enemigo`);
     if (!(s.hp > 0) || s.speed < 0) errors.push(`enemies.${id}: PV o velocidad inválidos`);
   }
+  WAVES.forEach((wave, i) => {
+    const prev = WAVES[i - 1];
+    if (i === 0 && wave.from !== 0) errors.push('waves[0]: la primera oleada debe empezar en 0');
+    if (prev && wave.from <= prev.from) errors.push(`waves[${i}]: oleadas fuera de orden`);
+    if (!(wave.rate > 0) || !(wave.max > 0)) errors.push(`waves[${i}]: rate y max deben ser > 0`);
+    if (wave.max > ENEMY_RULES.maxAlive) errors.push(`waves[${i}]: max supera ENEMY_RULES.maxAlive`);
+    const mix = Object.entries(wave.mix);
+    if (!mix.some(([, wgt]) => (wgt ?? 0) > 0)) errors.push(`waves[${i}]: mezcla vacía`);
+    for (const [id] of mix) {
+      if (!Object.prototype.hasOwnProperty.call(ENEMY_STATS, id))
+        errors.push(`waves[${i}]: ${id} no tiene stats de enemigo`);
+    }
+  });
   return errors;
 }

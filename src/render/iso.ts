@@ -1,10 +1,10 @@
-// Proyección isométrica 2:1. El motor trabaja en coordenadas cenitales; la vista isométrica es solo de render.
-// Sin dependencias de Pixi para poder testearlo.
+// Utilidades isométricas del render. La proyección (isoX, isoY) vive en engine/view.ts porque el motor
+// la necesita para saber qué ve la cámara. Sin dependencias de Pixi para poder testearlo.
+import { isoX, isoY } from '../engine/view';
+
+export { isoX, isoY };
 
 const ISO = Math.SQRT1_2;
-
-export const isoX = (x: number, y: number): number => (x - y) * ISO;
-export const isoY = (x: number, y: number): number => (x + y) * ISO * 0.5;
 
 /** Dirección de pantalla (teclas/joystick, y hacia abajo) → dirección de mundo, conservando la magnitud (≤ 1). */
 export function screenToWorldDir(mx: number, my: number): { x: number; y: number } {

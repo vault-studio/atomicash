@@ -6,7 +6,9 @@ import { Pool } from './pool';
 import { createRng } from './rng';
 import { SpatialHash } from './spatialHash';
 import { createEnemy, updateEnemies } from './systems/enemies';
+import { updateSpawning } from './systems/spawning';
 import type { InputState, World } from './types';
+import { defaultView } from './view';
 
 export interface WorldOptions {
   /** Enemigos simultáneos antes de reciclar el más lejano. Por defecto, ENEMY_RULES.maxAlive. */
@@ -44,6 +46,8 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     enemyGrid: new SpatialHash(RUN.mapSize, RUN.gridCell, maxEnemies),
     scratch: new Int32Array(ENEMY_RULES.maxNeighbors * 4),
     nextId: 1,
+    spawnAcc: 0,
+    view: defaultView(),
   };
 }
 
@@ -70,11 +74,12 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   }
 }
 
-/** Orden de sistemas (05_TECH.md §3): input → movimiento jugador → … → IA enemigos → … */
+/** Orden de sistemas (05_TECH.md §3): input → movimiento jugador → spawning → IA enemigos → … */
 export function tick(w: World, input: InputState, dt: number): void {
   w.time += dt;
   w.ticks++;
   updatePlayer(w, input, dt);
+  updateSpawning(w, dt);
   updateEnemies(w, dt);
 }
 

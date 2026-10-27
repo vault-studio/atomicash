@@ -2,6 +2,7 @@
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, VIEW } from '../config/render';
+import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
 import { ActorView } from './actor';
 import { EnemyLayer } from './enemyLayer';
@@ -80,10 +81,22 @@ export class GameRenderer {
     g.stroke({ width: 1, color: PALETTE.grid, alpha: PALETTE.gridAlpha });
   }
 
+  /** Zoom de la cámara: encaja la vista de referencia en la pantalla. */
+  private cameraScale(): number {
+    const { width, height } = this.app.screen;
+    return clamp(Math.min(width / VIEW.width, height / VIEW.height), VIEW.minScale, VIEW.maxScale);
+  }
+
+  /** Lo que ve la cámara en unidades isométricas de mundo (para que el motor spawnee fuera de ella). */
+  viewHalfExtent(): { halfW: number; halfH: number } {
+    const k = this.cameraScale();
+    return { halfW: this.app.screen.width / 2 / k, halfH: this.app.screen.height / 2 / k };
+  }
+
   /** `alpha` ∈ [0, 1) interpola entre el paso anterior y el actual del motor. */
   render(w: World, alpha: number, dbg: DebugInfo): void {
     const { width, height } = this.app.screen;
-    const k = clamp(Math.min(width / VIEW.width, height / VIEW.height), VIEW.minScale, VIEW.maxScale);
+    const k = this.cameraScale();
     const p = w.player;
     const px = p.prevX + (p.x - p.prevX) * alpha;
     const py = p.prevY + (p.y - p.prevY) * alpha;
@@ -114,7 +127,7 @@ export class GameRenderer {
       // DECISIÓN: el overlay F3 es una herramienta de desarrollo y no pasa por i18n.
       this.debugText.text =
         `FPS ${dbg.fps.toFixed(0)}  pasos/frame ${dbg.steps}\n` +
-        `t ${w.time.toFixed(1)} s  ticks ${w.ticks}  enemigos ${w.enemies.count}\n` +
+        `t ${w.time.toFixed(1)} s  ticks ${w.ticks}  oleada ${currentWaveIndex(w.time)}  enemigos ${w.enemies.count}\n` +
         `sprites ${this.lib.count}  ${p.charId} (${p.x.toFixed(0)}, ${p.y.toFixed(0)}) dir ${dirIndex(p.facingX, p.facingY)}`;
     }
   }

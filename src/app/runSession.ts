@@ -5,6 +5,7 @@ import type { StatSurvivorId } from '../config/survivors';
 import { STAT_ENEMY_IDS } from '../config/enemies';
 import { advance, createFixedStep } from '../engine/loop';
 import { spawnEnemy } from '../engine/systems/enemies';
+import { setView } from '../engine/view';
 import type { InputState } from '../engine/types';
 import { createWorld, killPlayer, tick } from '../engine/world';
 import { InputManager } from '../input';
@@ -59,6 +60,8 @@ export async function startRun(host: HTMLElement, charId: StatSurvivorId, seed: 
       renderer.render(world, 1, { fps, steps });
       return;
     }
+    const view = renderer.viewHalfExtent();
+    setView(world, view.halfW, view.halfH);
     const alpha = advance(fs, frameSec, (dt) => {
       const d = controls.read();
       const m = screenToWorldDir(d.x, d.y);

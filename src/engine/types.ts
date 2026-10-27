@@ -3,6 +3,7 @@ import type { StatSurvivorId } from '../config/survivors';
 import type { Pool } from './pool';
 import type { Rng } from './rng';
 import type { SpatialHash } from './spatialHash';
+import type { ViewExtent } from './view';
 
 /** Entrada ya convertida a coordenadas de mundo. Magnitud ≤ 1. */
 export interface InputState {
@@ -65,4 +66,8 @@ export interface World {
   /** Buffer reutilizable para resultados de consultas al spatial hash. */
   readonly scratch: Int32Array;
   nextId: number;
+  /** Apariciones pendientes (acumulador fraccionario del ritmo de la oleada). */
+  spawnAcc: number;
+  /** Lo que ve la cámara, para que los enemigos aparezcan fuera de ella. */
+  readonly view: ViewExtent;
 }
