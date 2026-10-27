@@ -35,6 +35,7 @@ export interface PlayerStats {
   radGain: number;
   radDecayBonus: number;
   meleeMult: number;
+  bossMult: number;
 }
 
 export interface Player {
@@ -348,6 +349,8 @@ export interface World {
   weapons: Weapon[];
   readonly cons: Record<ConsumableId, number>;
   consUsed: number;
+  /** Consumibles con los que empezó (para devolver a la Mochila lo que sobre). */
+  readonly consStart: Readonly<Record<ConsumableId, number>>;
 
   /** Enemigos simultáneos antes de reciclar el más lejano. */
   readonly maxEnemies: number;

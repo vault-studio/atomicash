@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
 import { PLAYER } from '../../../config/run';
+import { weaponSlots } from '../../../config/survivors';
 import { WEAPONS } from '../../../config/weapons';
 import type { Banner } from '../../../engine/types';
 import type { HudSnapshot } from '../../runSession';
@@ -34,7 +35,10 @@ export function Hud({ hud, onPause, onConsume }: Props) {
   const { t } = useTranslation();
   const bannerText = useBannerText();
   const hpFrac = hud.maxHp > 0 ? hud.hp / hud.maxHp : 0;
-  const slots = Array.from({ length: PLAYER.weaponSlots }, (_, i) => hud.weapons[i] ?? null);
+  const slots = Array.from(
+    { length: weaponSlots(hud.charId, PLAYER.weaponSlots) },
+    (_, i) => hud.weapons[i] ?? null,
+  );
 
   return (
     <div className="hud">

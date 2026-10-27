@@ -35,6 +35,7 @@ import { sprites } from '../render/sprites';
 export const PORTRAIT_QUERY = '(orientation: portrait) and (pointer: coarse)';
 
 export interface HudSnapshot {
+  charId: StatSurvivorId;
   hp: number;
   maxHp: number;
   rad: number;
@@ -112,6 +113,7 @@ function snapshot(w: World): HudSnapshot {
     }
   }
   return {
+    charId: w.charId,
     hp: Math.max(0, w.player.hp),
     maxHp: w.player.maxHp,
     rad: w.player.rad,

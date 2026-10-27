@@ -1,8 +1,9 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
+import type { ConsumableId } from '../config/items';
 import { ENEMY_RULES } from '../config/enemies';
 import { HAZARDS, RAD, radTier } from '../config/radiation';
 import { CAPS, CREDITS, PLAYER, RUN, xpForLevel } from '../config/run';
-import { survivorStats, type StatSurvivorId } from '../config/survivors';
+import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS } from '../config/waves';
@@ -154,6 +155,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     weapons: startWeapon ? [createWeapon(startWeapon)] : [],
     cons: { ...PLAYER.startConsumables, ...opts.consumables },
     consUsed: 0,
+    consStart: { ...PLAYER.startConsumables, ...opts.consumables },
     maxEnemies,
     enemies: new Pool(createEnemy, maxEnemies),
     enemyGrid: new SpatialHash(M, RUN.gridCell, maxEnemies),
@@ -258,7 +260,7 @@ function updateRadiation(w: World, dt: number): void {
   if (w.st.radDecayBonus) p.rad -= w.st.radDecayBonus * dt;
   p.rad = clamp(p.rad, 0, RAD.max);
   const tier = radTier(p.rad);
-  if (tier.drain && !p.god) p.hp -= tier.drain * dt;
+  if (tier.drain && !p.god && !(survivorStats(w.charId) as SurvivorStats).radImmune) p.hp -= tier.drain * dt;
 }
 
 /** Orden de sistemas (05_TECH.md §3): input → jugador → director → armas → proyectiles → IA → recogida. */
@@ -334,6 +336,9 @@ export interface RunResults {
   rad: number;
   credits: number;
   consUsed: number;
+  /** Consumibles que sobraron (vuelven a la Mochila). */
+  consLeft: Record<ConsumableId, number>;
+  consStart: Record<ConsumableId, number>;
   /** Daño por fuente, de mayor a menor (solo las que hicieron daño). */
   dmgBy: { src: string; dmg: number }[];
   weapons: { id: WeaponId; lvl: number }[];
@@ -355,6 +360,8 @@ export function results(w: World): RunResults {
     rad: Math.round(w.player.radPeak),
     credits: Math.floor(min * CREDITS.perMin + w.kills / CREDITS.perKills + w.bosses * CREDITS.perBoss),
     consUsed: w.consUsed,
+    consLeft: { ...w.cons },
+    consStart: { ...w.consStart },
     dmgBy,
     weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
   };

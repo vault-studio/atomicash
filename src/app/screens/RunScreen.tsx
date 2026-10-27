@@ -41,6 +41,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const finishRef = useRef(onFinish);
   useEffect(() => {
     settingsRef.current = settings;
+    optionsRef.current = worldOptions;
     finishRef.current = onFinish;
   });
 

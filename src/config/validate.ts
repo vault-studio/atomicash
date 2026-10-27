@@ -3,6 +3,7 @@ import { ENTITIES, ENTITY_IDS, isEntityId, type SurvivorId } from './entities';
 import { ENEMY_RULES, ENEMY_STATS, type EnemyStats } from './enemies';
 import { SURVIVORS, hasStats } from './survivors';
 import { WAVES } from './waves';
+import { WEAPONS } from './weapons';
 
 const SNAKE_ASCII = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 const HEX = /^#[0-9A-Fa-f]{6}$/;
@@ -31,9 +32,8 @@ export function validateConfig(): string[] {
   for (const [id, s] of Object.entries(SURVIVORS)) {
     if (!isEntityId(id) || ENTITIES[id].category !== 'characters')
       errors.push(`survivors.${id}: no es un superviviente`);
-    for (const w of [s.weapon, s.exclusiveWeapon]) {
-      if (!isEntityId(w) || ENTITIES[w].category !== 'props')
-        errors.push(`survivors.${id}: arma ${w} no existe`);
+    for (const w of [s.weapon, 'exclusiveWeapon' in s ? s.exclusiveWeapon : s.weapon]) {
+      if (!(w in WEAPONS)) errors.push(`survivors.${id}: arma ${w} no existe`);
     }
   }
   for (const [id, s] of Object.entries(ENEMY_STATS) as [string, EnemyStats][]) {

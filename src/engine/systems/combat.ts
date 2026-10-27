@@ -111,6 +111,7 @@ export function hitEnemy(
   if (e.dead) return 0;
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
+  if (e.boss) d *= st.bossMult;
   let crit = false;
   if (flags & HIT_DIRECT && st.crit > 0 && w.rng() < st.crit) {
     d *= CAPS.critMult;

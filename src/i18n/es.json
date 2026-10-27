@@ -6,13 +6,6 @@
     "language": "Idioma",
     "rotate": "Gira el móvil a horizontal ↻"
   },
-  "menu": {
-    "choose": "> ELIGE SUPERVIVIENTE",
-    "hp": "PV {{value}}",
-    "speed": "Vel. {{value}}",
-    "locked": "Bloqueado",
-    "later": "Más adelante"
-  },
   "run": {
     "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 5–8: consumibles · Esc: pausa",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
@@ -35,7 +28,12 @@
     "dot": "+15 % daño cuerpo a cuerpo",
     "mae": "Regenera 0,5 PV/s",
     "errante": "La radiación le afecta un 30 % menos",
-    "benny": "+10 % velocidad, +20 % imán"
+    "benny": "+10 % velocidad, +20 % imán",
+    "silas": "+20 % daño a jefes",
+    "gus": "Los consumibles duran un 50 % más",
+    "ilse": "La RAD le da el doble de bonus de daño",
+    "kip": "No pierde PV por RAD alta",
+    "rosalind": "+1 hueco de arma"
   },
   "entities": {
     "dot": "Dot «Llave Inglesa» Harlow",
@@ -105,7 +103,8 @@
   "rarity": {
     "common": "COMÚN",
     "rare": "RARA",
-    "epic": "ÉPICA"
+    "epic": "ÉPICA",
+    "legendary": "LEGENDARIA"
   },
   "weapons": {
     "llave": {
@@ -350,5 +349,259 @@
   "sources": {
     "granada": "Granada",
     "hinchado": "Hinchado"
+  },
+  "bunker": {
+    "expedition": {
+      "cmd": "EXPEDICIÓN",
+      "desc": "Salir al páramo"
+    },
+    "survivors": {
+      "cmd": "SUPERVIVIENTES",
+      "desc": "Tu colección"
+    },
+    "workshop": {
+      "cmd": "TALLER",
+      "desc": "Mejoras por personaje"
+    },
+    "merchant": {
+      "cmd": "MERCADER",
+      "desc": "Estimulantes, implantes y manuales"
+    },
+    "backpack": {
+      "cmd": "MOCHILA",
+      "desc": "Consumibles"
+    },
+    "supplies": {
+      "cmd": "SUMINISTROS",
+      "desc": "Cajas por zona"
+    },
+    "board": {
+      "cmd": "TABLÓN",
+      "desc": "Misiones, logros y perfil"
+    },
+    "settings": {
+      "cmd": "AJUSTES",
+      "desc": "Sonido, gráficos, accesibilidad"
+    },
+    "back": "← Búnker",
+    "credits": "{{n, number}} créditos",
+    "price": "{{n, number}} cr",
+    "active": "Superviviente activo: {{name}}"
+  },
+  "collection": {
+    "unknown": "???",
+    "notRecruited": "Sin reclutar. Búscalo en los Suministros.",
+    "level": "Nv. {{n}}",
+    "irradiated": "IRRADIADO",
+    "count": "Reclutados: {{n}}/{{total}}",
+    "xp": "XP {{xp}}/{{next}}",
+    "maxLevel": "Nivel máximo",
+    "shards": "Fichas {{n}}/{{cost}}",
+    "maxStars": "Estrellas al máximo",
+    "starter": "Arma inicial",
+    "setActive": "Elegir",
+    "isActive": "Activo",
+    "starUp": "Subir estrella"
+  },
+  "workshop": {
+    "only": "Las mejoras solo se aplican cuando juegas con {{name}}.",
+    "max": "Máx.",
+    "implant": "Implante:",
+    "none": "ninguno (cómpralos al Mercader)",
+    "hp": {
+      "name": "Chaleco acolchado",
+      "desc": "+{{n}} PV por nivel"
+    },
+    "dmg": {
+      "name": "Afilador",
+      "desc": "+{{n}} % daño por nivel"
+    },
+    "spd": {
+      "name": "Suelas nuevas",
+      "desc": "+{{n}} % velocidad por nivel"
+    },
+    "mag": {
+      "name": "Bolsillos imantados",
+      "desc": "+{{n}} % imán por nivel"
+    },
+    "reroll": {
+      "name": "Dado de la suerte",
+      "desc": "+{{n}} cambio de tarjetas por run"
+    },
+    "cons": {
+      "name": "Riñonera",
+      "desc": "+{{n}} de cada consumible por expedición"
+    }
+  },
+  "stats": {
+    "dmg": "daño",
+    "spd": "velocidad",
+    "hp": "PV",
+    "mag": "imán",
+    "armor": "armadura",
+    "cd": "enfriamiento",
+    "red": "reducción de daño"
+  },
+  "implants": {
+    "effect": "+{{upVal}} {{up}}, {{downVal}} {{down}}",
+    "cortex": "Córtex de válvulas",
+    "piernas": "Piernas de muelle",
+    "pulmon": "Pulmón de hierro",
+    "iman": "Placa imantada",
+    "reflejos": "Reflejos de relé",
+    "blindaje": "Costillas de plomo"
+  },
+  "merchant": {
+    "restock": "Género nuevo en {{time}}",
+    "sold": "Agotado",
+    "forActive": "se instala en {{name}}",
+    "manual": "Manual: {{weapon}}",
+    "manualFor": "para {{name}} (arma inicial alternativa)"
+  },
+  "backpack": {
+    "rule": "Cada expedición se lleva hasta {{n}} de cada consumible.",
+    "have": "Tienes {{n}}",
+    "takes": "llevas {{n}}",
+    "hint": "Lo que no gastes vuelve a la Mochila. Más en el Mercader."
+  },
+  "zones": {
+    "paramo": "Las Afueras"
+  },
+  "supplies": {
+    "zone": "Caja de {{zone}}",
+    "rates": "Probabilidades por tirada",
+    "pity": "Legendario garantizado en {{n}} tiradas como mucho.",
+    "rules": "×10: al menos un raro o mejor por cada 10. Solo créditos del juego; sin dinero real. Los repetidos dan fichas.",
+    "pull": "×{{n}} · {{cost, number}} cr",
+    "skip": "Saltar",
+    "close": "Recoger",
+    "new": "¡NUEVO!",
+    "dup": "+{{n}} fichas"
+  },
+  "board": {
+    "daily": "MISIONES DE HOY",
+    "claim": "Cobrar {{n}} cr",
+    "claimed": "Cobrada",
+    "achievements": "LOGROS",
+    "reward": "{{credits}} cr + {{shards}} fichas",
+    "profile": "EXPEDIENTE",
+    "runs": "Expediciones",
+    "kills": "Bajas",
+    "best": "Mejor tiempo",
+    "bosses": "Jefes abatidos",
+    "wins": "Victorias",
+    "pulls": "Cajas abiertas"
+  },
+  "missions": {
+    "kills": "Abate {{n}} enemigos",
+    "surviveMin": "Aguanta {{n}} min en una expedición",
+    "surviveWith": "Aguanta {{n}} min con {{name}}",
+    "runs": "Completa {{n}} expediciones",
+    "bosses": "Abate {{n}} jefe",
+    "consumables": "Usa {{n}} consumibles"
+  },
+  "achievements": {
+    "firstBlood": {
+      "name": "Control de plagas",
+      "desc": "{{n}} bajas en total"
+    },
+    "exterminator": {
+      "name": "Exterminador del año",
+      "desc": "{{n}} bajas en total"
+    },
+    "bossHunter": {
+      "name": "Cazajefes",
+      "desc": "{{n}} jefes abatidos"
+    },
+    "survivor": {
+      "name": "Ciudadano ejemplar",
+      "desc": "Gana una expedición"
+    },
+    "collector": {
+      "name": "Plantilla completa",
+      "desc": "{{n}} supervivientes reclutados"
+    },
+    "veteran": {
+      "name": "Veterano",
+      "desc": "Un superviviente a nivel {{n}}"
+    },
+    "glowing": {
+      "name": "Brilla en la oscuridad",
+      "desc": "Consigue un superviviente irradiado"
+    }
+  },
+  "settings": {
+    "sound": "SONIDO",
+    "musicVol": "Música",
+    "sfxVol": "Efectos",
+    "graphics": "GRÁFICOS",
+    "crtFilter": "Filtro CRT (líneas y viñeta)",
+    "damageNumbers": "Números de daño",
+    "access": "ACCESIBILIDAD",
+    "reduceMotion": "Reducir movimiento (sin temblor de cámara ni parpadeos)",
+    "lang": {
+      "es": "Español",
+      "en": "English"
+    },
+    "save": "PARTIDA",
+    "saveHint": "Se guarda sola en este navegador. Exporta una copia antes de cambiar de dispositivo.",
+    "export": "Exportar partida",
+    "import": "Importar partida",
+    "reset": "Borrar partida",
+    "exported": "Copia descargada.",
+    "imported": "Partida importada.",
+    "importBad": "Ese archivo no es una partida de Atomic Ash.",
+    "importConfirm": "¿Sustituir la partida actual por la del archivo?",
+    "resetConfirm": "¿Borrar toda la partida? No se puede deshacer."
+  },
+  "psych": {
+    "title": "MINISTERIO DE APTITUD CIVIL",
+    "form": "Formulario 27-B · pregunta {{n}} de {{total}}",
+    "fine": "Marque una sola casilla. El Ministerio no se hace responsable de sus respuestas.",
+    "verdict": "RESULTADO: el Ministerio le asigna a…",
+    "why": "Empieza con: {{weapon}}",
+    "accept": "Aceptar destino",
+    "other": "Elegir otro",
+    "q1": {
+      "q": "Se avería la radio del refugio. Usted…",
+      "a0": "La desmonta con una llave inglesa.",
+      "a1": "Consuela a los vecinos asustados.",
+      "a2": "Sale a buscar otra al páramo."
+    },
+    "q2": {
+      "q": "Su comida favorita es…",
+      "a0": "Lo que haya en la lata, con grasa de motor.",
+      "a1": "Sopa caliente para todos.",
+      "a2": "Cecina de origen desconocido."
+    },
+    "q3": {
+      "q": "Ve un hongo atómico en el horizonte.",
+      "a0": "Calculo la onda con una regla.",
+      "a1": "Reparto pastillas de yodo.",
+      "a2": "Me pongo las gafas de sol."
+    },
+    "q4": {
+      "q": "Un vecino brilla en la oscuridad.",
+      "a0": "Le pido que me alumbre el motor.",
+      "a1": "Le tomo la temperatura.",
+      "a2": "Le pregunto dónde se ha bañado."
+    },
+    "q5": {
+      "q": "Su lema vital es…",
+      "a0": "«Si no se rompe, no lo has usado».",
+      "a1": "«Primero los heridos».",
+      "a2": "«El camino es mi casa»."
+    },
+    "q6": {
+      "q": "¿Qué llevaría a una isla desierta?",
+      "a0": "Una caja de herramientas.",
+      "a1": "Un botiquín.",
+      "a2": "Nada. La isla ya es mía."
+    }
+  },
+  "reward": {
+    "xp": "+{{n}} XP de superviviente",
+    "levelUp": "¡+{{n}} nivel!",
+    "achievement": "LOGRO: {{name}}"
   }
 }

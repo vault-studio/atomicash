@@ -3,6 +3,7 @@ import { CONSUMABLES, CONSUMABLE_IDS, ITEM_IDS, type ConsumableId } from '../../
 import { RAD } from '../../config/radiation';
 import { FX, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
+import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
 import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
 import { addShake, banner, boom, textFx } from '../fx';
@@ -107,7 +108,7 @@ export function weaponOptions(w: World): Card[] {
     }
   for (const wp of w.weapons)
     if (!isFusion(wp.id) && wp.lvl < PLAYER.maxWeaponLevel) opts.push({ kind: 'up', id: wp.id });
-  if (w.weapons.length < PLAYER.weaponSlots)
+  if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots))
     for (const id of WEAPON_IDS) {
       if (isFusion(id) || owned.has(id) || blocked.has(id)) continue;
       const owner = ownerOf(id);
@@ -288,7 +289,7 @@ export function consumeItem(w: World, i: number): boolean {
     boom(w, tx, ty, R, 0.35, FX.colors.grenade);
     addShake(w, 6, 12);
   } else {
-    p.turbo = CONSUMABLES.turbo.dur;
+    p.turbo = CONSUMABLES.turbo.dur * (1 + ((survivorStats(w.charId) as SurvivorStats).consDurPct ?? 0));
   }
   w.cons[id]--;
   w.consUsed++;

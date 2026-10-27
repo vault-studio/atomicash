@@ -2,7 +2,7 @@
 import { ITEMS, type ItemDef, CONSUMABLES } from '../config/items';
 import { radTier } from '../config/radiation';
 import { CAPS, DMG_TAKEN, PLAYER, RUN } from '../config/run';
-import { survivorStats } from '../config/survivors';
+import { survivorStats, type SurvivorStats } from '../config/survivors';
 import type { PlayerStats, World } from './types';
 
 const NO_ITEM: ItemDef = {};
@@ -27,13 +27,14 @@ export function createStats(): PlayerStats {
     radGain: 1,
     radDecayBonus: 0,
     meleeMult: 1,
+    bossMult: 1,
   };
 }
 
 /** Recalcula `w.st` en el sitio. Si cambian los PV máximos, conserva el porcentaje de vida. */
 export function recalc(w: World): void {
   const p = w.player;
-  const ch = survivorStats(w.charId);
+  const ch: SurvivorStats = survivorStats(w.charId);
   const tr = w.tr;
   const it: ItemDef = w.item ? ITEMS[w.item] : NO_ITEM;
   const tier = radTier(p.rad);
@@ -45,7 +46,7 @@ export function recalc(w: World): void {
   st.magnet = PLAYER.magnetBase * (1 + (ch.magnetPct ?? 0) + tr.mag / 100) * (1 + (it.magnet ?? 0));
   st.armor = tr.armor;
   st.luck = tr.luck + (it.luck ?? 0);
-  let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg) * (1 + (it.dmg ?? 0)) * turbo;
+  let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg * (ch.radDmgMult ?? 1)) * (1 + (it.dmg ?? 0)) * turbo;
   if (p.hp < 0.4 * p.maxHp) dmg *= 1 + tr.adren / 100;
   st.dmgMult = dmg;
   st.cdMult = 1 - Math.min(CAPS.cdReduction, tr.cd / 100 + (it.cd ?? 0));
@@ -60,6 +61,7 @@ export function recalc(w: World): void {
   st.radGain = (ch.radGain ?? 1) * (it.radGain ?? 1);
   st.radDecayBonus = tr.radDecay;
   st.meleeMult = 1 + (ch.meleePct ?? 0);
+  st.bossMult = 1 + (ch.bossPct ?? 0);
   if (st.maxHp !== maxHp && st.maxHp > 0) p.hp = (p.hp * maxHp) / st.maxHp;
   st.maxHp = maxHp;
   p.maxHp = maxHp;

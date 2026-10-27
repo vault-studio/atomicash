@@ -8,6 +8,7 @@ import '@fontsource/pixelify-sans/400.css';
 import '@fontsource/pixelify-sans/700.css';
 import './app/styles.css';
 import './app/run.css';
+import './app/bunker.css';
 import { validateConfig } from './config/validate';
 import { audio } from './audio/audio';
 import './i18n';
