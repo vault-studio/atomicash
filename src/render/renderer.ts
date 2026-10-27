@@ -4,6 +4,7 @@ import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, VIEW } from '../config/render';
 import type { World } from '../engine/types';
 import { ActorView } from './actor';
+import { EnemyLayer } from './enemyLayer';
 import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteLibrary } from './sprites';
 
@@ -18,6 +19,7 @@ export class GameRenderer {
   private readonly worldLayer = new Container();
   private readonly ground = new Graphics();
   private readonly player: ActorView;
+  private readonly enemies: EnemyLayer;
   private readonly debugText: Text;
   private debugOn = false;
 
@@ -33,6 +35,7 @@ export class GameRenderer {
 
     this.player = new ActorView(ENTITIES[world.player.charId], lib, true);
     this.worldLayer.addChild(this.player);
+    this.enemies = new EnemyLayer(this.worldLayer, lib);
 
     this.debugText = new Text({
       text: '',
@@ -105,12 +108,13 @@ export class GameRenderer {
     this.player.show(anims, dirIndex(p.facingX, p.facingY), t, screenAngle);
     this.player.position.set(isoX(px, py), isoY(px, py));
     this.player.zIndex = px + py;
+    this.enemies.sync(w, alpha);
 
     if (this.debugOn) {
       // DECISIÓN: el overlay F3 es una herramienta de desarrollo y no pasa por i18n.
       this.debugText.text =
         `FPS ${dbg.fps.toFixed(0)}  pasos/frame ${dbg.steps}\n` +
-        `t ${w.time.toFixed(1)} s  ticks ${w.ticks}\n` +
+        `t ${w.time.toFixed(1)} s  ticks ${w.ticks}  enemigos ${w.enemies.count}\n` +
         `sprites ${this.lib.count}  ${p.charId} (${p.x.toFixed(0)}, ${p.y.toFixed(0)}) dir ${dirIndex(p.facingX, p.facingY)}`;
     }
   }

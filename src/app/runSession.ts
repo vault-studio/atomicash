@@ -2,7 +2,9 @@
 import type { Ticker } from 'pixi.js';
 import { RUN } from '../config/run';
 import type { StatSurvivorId } from '../config/survivors';
+import { STAT_ENEMY_IDS } from '../config/enemies';
 import { advance, createFixedStep } from '../engine/loop';
+import { spawnEnemy } from '../engine/systems/enemies';
 import type { InputState } from '../engine/types';
 import { createWorld, killPlayer, tick } from '../engine/world';
 import { InputManager } from '../input';
@@ -34,6 +36,15 @@ export async function startRun(host: HTMLElement, charId: StatSurvivorId, seed: 
     } else if (e.code === 'KeyK' && import.meta.env.DEV) {
       // Depuración: probar la animación de muerte.
       killPlayer(world);
+    } else if (e.code === 'KeyJ' && import.meta.env.DEV) {
+      // Depuración: 100 enemigos en anillo para medir rendimiento (el spawning real llega en F1-05).
+      const p = world.player;
+      for (let i = 0; i < 100; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const d = 350 + Math.random() * 250;
+        const type = STAT_ENEMY_IDS[(Math.random() * STAT_ENEMY_IDS.length) | 0] ?? 'dron';
+        spawnEnemy(world, type, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d);
+      }
     }
   };
   window.addEventListener('keydown', onKey);

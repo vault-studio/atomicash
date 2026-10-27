@@ -1,5 +1,6 @@
 // Validación de la config al arrancar en dev (05_TECH.md §5) y en tests.
 import { ENTITIES, ENTITY_IDS, isEntityId, type SurvivorId } from './entities';
+import { ENEMY_STATS } from './enemies';
 import { SURVIVORS, hasStats } from './survivors';
 
 const SNAKE_ASCII = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
@@ -33,6 +34,11 @@ export function validateConfig(): string[] {
       if (!isEntityId(w) || ENTITIES[w].category !== 'props')
         errors.push(`survivors.${id}: arma ${w} no existe`);
     }
+  }
+  for (const [id, s] of Object.entries(ENEMY_STATS)) {
+    if (!isEntityId(id) || ENTITIES[id].category !== 'enemies')
+      errors.push(`enemies.${id}: no es un enemigo`);
+    if (!(s.hp > 0) || s.speed < 0) errors.push(`enemies.${id}: PV o velocidad inválidos`);
   }
   return errors;
 }

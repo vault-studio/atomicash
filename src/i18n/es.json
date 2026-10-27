@@ -17,7 +17,7 @@
     "controls": "WASD / flechas: mover · F3: depuración",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
     "back": "← Búnker",
-    "debugKill": "K: probar animación de muerte"
+    "debugKill": "K: probar muerte · J: +100 enemigos"
   },
   "passives": {
     "dot": "+15 % daño cuerpo a cuerpo",

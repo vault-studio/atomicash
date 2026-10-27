@@ -8,6 +8,8 @@ export const RUN = {
   mapSize: 3200,
   /** Duración de la run en segundos. */
   duration: 900,
+  /** Lado de celda del spatial hash de colisiones, en px de mundo (05_TECH.md §3). */
+  gridCell: 64,
 } as const;
 
 export const PLAYER = {

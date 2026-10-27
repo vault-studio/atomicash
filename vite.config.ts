@@ -12,5 +12,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Permite forzar el GC en los tests de allocations (tests/alloc.test.ts).
+    pool: 'forks',
+    execArgv: ['--expose-gc'],
   },
 });

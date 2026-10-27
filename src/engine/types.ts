@@ -1,5 +1,8 @@
+import type { StatEnemyId } from '../config/enemies';
 import type { StatSurvivorId } from '../config/survivors';
+import type { Pool } from './pool';
 import type { Rng } from './rng';
+import type { SpatialHash } from './spatialHash';
 
 /** Entrada ya convertida a coordenadas de mundo. Magnitud ≤ 1. */
 export interface InputState {
@@ -26,6 +29,26 @@ export interface Player {
   deadAt: number | null;
 }
 
+/** Enemigo reutilizable del pool: todos sus campos se reinician en `spawnEnemy`. */
+export interface Enemy {
+  /** Identificador único en la run (el índice en el pool cambia al liberar). */
+  id: number;
+  type: StatEnemyId;
+  x: number;
+  y: number;
+  prevX: number;
+  prevY: number;
+  r: number;
+  hp: number;
+  maxHp: number;
+  speed: number;
+  facingX: number;
+  facingY: number;
+  moving: boolean;
+  /** Tiempo de la run en que apareció (para la fase de la animación). */
+  born: number;
+}
+
 export interface World {
   readonly seed: number;
   readonly rng: Rng;
@@ -34,4 +57,12 @@ export interface World {
   ticks: number;
   readonly mapSize: number;
   readonly player: Player;
+  /** Enemigos simultáneos antes de reciclar el más lejano. */
+  readonly maxEnemies: number;
+  readonly enemies: Pool<Enemy>;
+  /** Spatial hash de enemigos, reconstruido cada tick. */
+  readonly enemyGrid: SpatialHash<Enemy>;
+  /** Buffer reutilizable para resultados de consultas al spatial hash. */
+  readonly scratch: Int32Array;
+  nextId: number;
 }

@@ -17,7 +17,7 @@
     "controls": "WASD / arrows: move · F3: debug",
     "controlsTouch": "Drag on the left half to move",
     "back": "← Bunker",
-    "debugKill": "K: test death animation"
+    "debugKill": "K: test death · J: +100 enemies"
   },
   "passives": {
     "dot": "+15% melee damage",

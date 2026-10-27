@@ -26,6 +26,10 @@ export class ActorView extends Container {
     this.addChild(this.sprite, this.placeholder);
   }
 
+  get entityId(): string {
+    return this.def.id;
+  }
+
   /**
    * Muestra la primera animación de `anims` que tenga hoja (p. ej. idle → run).
    * `t` son los segundos desde que empezó la animación; `dir` la fila 0–7.
