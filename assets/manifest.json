@@ -5,5 +5,8 @@
   "characters/dot/dot_run",
   "enemies/dron/dron_attack",
   "enemies/dron/dron_death",
-  "enemies/dron/dron_move"
+  "enemies/dron/dron_move",
+  "enemies/necrofago/necrofago_attack",
+  "enemies/necrofago/necrofago_death",
+  "enemies/necrofago/necrofago_move"
 ]
