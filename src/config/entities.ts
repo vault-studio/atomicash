@@ -44,7 +44,14 @@ const DEFS = {
     act: 1,
     status: 'locked',
   },
-  benny: { category: 'characters', size: 1.3, color: '#5FB0FF', method: 'mixamo', act: 1, status: 'playable' },
+  benny: {
+    category: 'characters',
+    size: 1.3,
+    color: '#5FB0FF',
+    method: 'mixamo',
+    act: 1,
+    status: 'playable',
+  },
   // DECISIÓN: la biblia da «negro / carmesí» para Silas; el color de firma es el carmesí.
   silas: { category: 'characters', size: 1.3, color: '#8B1E2D', method: 'mixamo', act: 1, status: 'locked' },
   gus: { category: 'characters', size: 1.3, color: '#3FB7A9', method: 'mixamo', act: 1, status: 'playable' },

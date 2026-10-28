@@ -56,6 +56,7 @@ export function createEnemy(): Enemy {
     irr: false,
     boss: false,
     flying: false,
+    gar: -1,
     atkCd: 0,
     kbx: 0,
     kby: 0,
@@ -103,7 +104,7 @@ function firstTimer(type: StatEnemyId): number {
 }
 
 /**
- * Crea un enemigo en (x, y). Si ya hay `w.maxEnemies`, recicla el más lejano al jugador (nunca un jefe).
+ * Crea un enemigo en (x, y). Si ya hay `w.maxEnemies`, recicla el más lejano al jugador (nunca un jefe ni una guarnición).
  * `irr`: forzar (o impedir) la variante irradiada; si falta, se sortea.
  */
 export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, irr?: boolean): Enemy {
@@ -115,7 +116,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
     let farD = -1;
     for (let i = 0; i < pool.count; i++) {
       const o = pool.items[i] as Enemy;
-      if (o.boss && !o.dead) continue;
+      // Ni jefes ni guarniciones: su cofre depende de matarlos a todos.
+      if ((o.boss || o.gar >= 0) && !o.dead) continue;
       const d = (o.x - p.x) ** 2 + (o.y - p.y) ** 2 + (o.dead ? 1e12 : 0);
       if (d > farD) {
         farD = d;
@@ -147,6 +149,7 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.irr = isIrr;
   e.boss = boss;
   e.flying = s.flying === true;
+  e.gar = -1;
   e.atkCd = 0;
   e.kbx = e.kby = 0;
   e.flash = 0;

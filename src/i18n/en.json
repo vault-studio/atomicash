@@ -53,7 +53,8 @@
     "kills": "Kills",
     "bosses": "Bosses",
     "dmgTotal": "Total damage",
-    "dps": "DPS"
+    "dps": "DPS",
+    "coupons": "Coupons picked up"
   },
   "passives": {
     "dot": "+15% melee damage",
@@ -347,10 +348,13 @@
     "magnet": "Magnet",
     "bomb": "Bomb",
     "crate": "Supplies",
-    "chest": "Chest"
+    "chest": "Chest",
+    "cache": "Special chest",
+    "coupons": "coupons"
   },
   "banner": {
     "chest": "Item chest!",
+    "cache": "Area cleared! Special chest by the building",
     "blimpDown": "The blimp is losing altitude",
     "colossusPhase": "The Colossus: phase {{n}}",
     "boss": "{{name}}!",
@@ -379,7 +383,8 @@
     "bosses": "Bosses",
     "dmg": "Total damage",
     "rad": "Peak RAD",
-    "credits": "Credits",
+    "credits": "Coupons",
+    "coupons": "Coupons picked up",
     "bySource": "Damage by weapon",
     "again": "Play again",
     "menu": "Back to bunker",
@@ -424,8 +429,8 @@
       "desc": "Sound, graphics, accessibility"
     },
     "back": "← Bunker",
-    "credits": "{{n, number}} credits",
-    "price": "{{n, number}} cr",
+    "credits": "{{n, number}} coupons",
+    "price": "{{n, number}} cp",
     "active": "Active survivor: {{name}}"
   },
   "collection": {
@@ -511,8 +516,8 @@
     "zone": "{{zone}} crate",
     "rates": "Odds per pull",
     "pity": "Best in the box ({{rarity}}) guaranteed within {{n}} pulls.",
-    "rules": "×10: at least one rare or better per 10. In-game credits only; no real money. Duplicates give shards.",
-    "pull": "×{{n}} · {{cost, number}} cr",
+    "rules": "×10: at least one rare or better per 10. In-game coupons only; no real money. Duplicates give shards.",
+    "pull": "×{{n}} · {{cost, number}} cp",
     "skip": "Skip",
     "close": "Collect",
     "new": "NEW!",
@@ -520,10 +525,10 @@
   },
   "board": {
     "daily": "TODAY'S MISSIONS",
-    "claim": "Claim {{n}} cr",
+    "claim": "Claim {{n}} cp",
     "claimed": "Claimed",
     "achievements": "ACHIEVEMENTS",
-    "reward": "{{credits}} cr + {{shards}} shards",
+    "reward": "{{credits}} cp + {{shards}} shards",
     "profile": "RECORD",
     "runs": "Expeditions",
     "kills": "Kills",

@@ -1,7 +1,7 @@
 // Recogida de chatarra, XP, subidas de nivel y tarjetas (F1-07), cofres de objeto y consumibles.
 import { CONSUMABLES, CONSUMABLE_IDS, FIELD_PICKUPS, ITEM_IDS, type ConsumableId } from '../../config/items';
 import { RAD } from '../../config/radiation';
-import { FX, PLAYER, XP, xpForLevel } from '../../config/run';
+import { COUPONS, FX, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
 import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
@@ -38,7 +38,7 @@ export function updatePickups(w: World, dt: number): void {
     const dx = p.x - k.x;
     const dy = p.y - k.y;
     const d = Math.sqrt(dx * dx + dy * dy) || 1;
-    if (k.kind === 'gem' || k.kind === 'stim') {
+    if (k.kind === 'gem' || k.kind === 'stim' || k.kind === 'coupon') {
       if (!k.pull && d < mag) k.pull = true;
       if (k.pull) {
         k.sp = (k.sp || XP.pullSpeed) + XP.pullAccel * dt;
@@ -59,6 +59,14 @@ export function updatePickups(w: World, dt: number): void {
     else if (kind === 'stim') {
       w.cons.stim = Math.min(PLAYER.consumableMax, w.cons.stim + 1);
       textFx(w, 'pickup', p.x, p.y, 0, 'consumables.stim.name');
+    } else if (kind === 'coupon') {
+      w.coupons += val;
+      textFx(w, 'pickup', p.x, p.y, val, 'pickups.coupons');
+    } else if (kind === 'cache') {
+      // Un nivel justo: la experiencia que falta para el siguiente, sin multiplicadores.
+      w.coupons += COUPONS.cache;
+      textFx(w, 'pickup', p.x, p.y, COUPONS.cache, 'pickups.coupons');
+      gainXp(w, w.xpNext - w.xp, true);
     } else if (kind === 'chest') openItemChoice(w);
     else if (kind === 'medkit') {
       heal(w, p.maxHp * FIELD_PICKUPS.medkitHeal);

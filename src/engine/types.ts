@@ -109,6 +109,8 @@ export interface Enemy {
   irr: boolean;
   boss: boolean;
   flying: boolean;
+  /** Guarnición a la que pertenece (índice en `World.garrisons`), o −1. */
+  gar: number;
   /** Enfriamiento del golpe de contacto. */
   atkCd: number;
   kbx: number;
@@ -258,7 +260,24 @@ export interface Hazard {
   readonly r: number;
 }
 
-export type PickupKind = 'gem' | 'stim' | 'chest' | 'crate' | 'medkit' | 'magnet' | 'bomb';
+export type PickupKind =
+  | 'gem'
+  | 'stim'
+  | 'chest'
+  | 'crate'
+  | 'medkit'
+  | 'magnet'
+  | 'bomb'
+  | 'coupon'
+  /** Cofre especial de un edificio con la guarnición eliminada. */
+  | 'cache';
+
+/** Guarnición de un edificio: dónde sale su cofre y cuántos enemigos quedan. */
+export interface Garrison {
+  readonly x: number;
+  readonly y: number;
+  left: number;
+}
 
 export interface Pickup {
   kind: PickupKind;
@@ -402,6 +421,7 @@ export interface World {
   buildings: readonly Building[];
   /** Edificios (`Building.key`) cuya guarnición ya apareció. */
   readonly garrisoned: Set<string>;
+  readonly garrisons: Garrison[];
   /** Punto de inicio de la run (alrededor no hay charcos). */
   readonly start: { readonly x: number; readonly y: number };
   readonly pickups: Pool<Pickup>;
@@ -416,6 +436,8 @@ export interface World {
   level: number;
   xpNext: number;
   kills: number;
+  /** Cupones recogidos en la partida. */
+  coupons: number;
   dmgTotal: number;
   /** Daño hecho a jefes (ranking «daño al jefe», F4). */
   bossDmg: number;

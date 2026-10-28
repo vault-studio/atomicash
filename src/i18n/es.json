@@ -53,7 +53,8 @@
     "kills": "Bajas",
     "bosses": "Jefes",
     "dmgTotal": "Daño total",
-    "dps": "DPS"
+    "dps": "DPS",
+    "coupons": "Cupones recogidos"
   },
   "passives": {
     "dot": "+15 % daño cuerpo a cuerpo",
@@ -347,10 +348,13 @@
     "magnet": "Imán",
     "bomb": "Bomba",
     "crate": "Suministros",
-    "chest": "Cofre"
+    "chest": "Cofre",
+    "cache": "Cofre especial",
+    "coupons": "cupones"
   },
   "banner": {
     "chest": "¡Cofre de objeto!",
+    "cache": "¡Zona limpia! Cofre especial junto al edificio",
     "blimpDown": "El dirigible pierde altura",
     "colossusPhase": "El Coloso: fase {{n}}",
     "boss": "¡{{name}}!",
@@ -379,7 +383,8 @@
     "bosses": "Jefes",
     "dmg": "Daño total",
     "rad": "RAD máxima",
-    "credits": "Créditos",
+    "credits": "Cupones",
+    "coupons": "Cupones recogidos",
     "bySource": "Daño por arma",
     "again": "Volver a jugar",
     "menu": "Volver al búnker",
@@ -424,8 +429,8 @@
       "desc": "Sonido, gráficos, accesibilidad"
     },
     "back": "← Búnker",
-    "credits": "{{n, number}} créditos",
-    "price": "{{n, number}} cr",
+    "credits": "{{n, number}} cupones",
+    "price": "{{n, number}} cup.",
     "active": "Superviviente activo: {{name}}"
   },
   "collection": {
@@ -511,8 +516,8 @@
     "zone": "Caja de {{zone}}",
     "rates": "Probabilidades por tirada",
     "pity": "Lo mejor de la caja ({{rarity}}) garantizado en {{n}} tiradas como mucho.",
-    "rules": "×10: al menos un raro o mejor por cada 10. Solo créditos del juego; sin dinero real. Los repetidos dan fichas.",
-    "pull": "×{{n}} · {{cost, number}} cr",
+    "rules": "×10: al menos un raro o mejor por cada 10. Solo cupones del juego; sin dinero real. Los repetidos dan fichas.",
+    "pull": "×{{n}} · {{cost, number}} cup.",
     "skip": "Saltar",
     "close": "Recoger",
     "new": "¡NUEVO!",
@@ -520,10 +525,10 @@
   },
   "board": {
     "daily": "MISIONES DE HOY",
-    "claim": "Cobrar {{n}} cr",
+    "claim": "Cobrar {{n}} cup.",
     "claimed": "Cobrada",
     "achievements": "LOGROS",
-    "reward": "{{credits}} cr + {{shards}} fichas",
+    "reward": "{{credits}} cup. + {{shards}} fichas",
     "profile": "EXPEDIENTE",
     "runs": "Expediciones",
     "kills": "Bajas",

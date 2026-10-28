@@ -39,6 +39,8 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
           <dd>{r.dmg.toLocaleString()}</dd>
           <dt>{t('results.rad')}</dt>
           <dd>{r.rad}</dd>
+          <dt>{t('results.coupons')}</dt>
+          <dd>{r.coupons}</dd>
           <dt className="ticket__total">{t('results.credits')}</dt>
           <dd className="ticket__total">{r.credits}</dd>
         </dl>

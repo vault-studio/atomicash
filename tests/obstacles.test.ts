@@ -4,9 +4,11 @@ import { BUILDINGS, PROP_LIST, PROP_SHAPES } from '../src/config/props';
 import { RUN } from '../src/config/run';
 import { hazardAt } from '../src/engine/hazards';
 import { createCellObject, objectAt } from '../src/engine/obstacles';
-import { spawnEnemy } from '../src/engine/systems/enemies';
+import { COUPONS } from '../src/config/run';
+import { killEnemy } from '../src/engine/systems/combat';
+import { compactEnemies, spawnEnemy } from '../src/engine/systems/enemies';
 import type { World } from '../src/engine/types';
-import { createWorld, tick } from '../src/engine/world';
+import { createWorld, results, tick } from '../src/engine/world';
 
 const T = RUN.groundCell;
 const STEP = 1 / RUN.tickHz;
@@ -86,7 +88,17 @@ describe('obstáculos', () => {
     w.player.y = o.y;
     tick(w, { moveX: 0, moveY: 0 }, STEP);
     const s = w.shots.acquire();
-    Object.assign(s, { x: o.x - o.r - 20, y: o.y, vx: 600, vy: 0, r: 4, life: 2, dmg: 1, pierce: 0, nHit: 0 });
+    Object.assign(s, {
+      x: o.x - o.r - 20,
+      y: o.y,
+      vx: 600,
+      vy: 0,
+      r: 4,
+      life: 2,
+      dmg: 1,
+      pierce: 0,
+      nHit: 0,
+    });
     for (let t = 0; t < 0.2 / STEP; t++) tick(w, { moveX: 0, moveY: 0 }, STEP);
     expect(w.shots.count).toBe(0);
   });
@@ -109,24 +121,65 @@ describe('obstáculos', () => {
 });
 
 describe('edificios', () => {
-  it.each(['raiders', 'robots', 'necro'] as const)('%s: aparece su guarnición una sola vez al acercarse', (kind) => {
-    const { w, x, y } = worldWithBuilding(kind);
-    const p = w.player;
-    p.x = x - BUILDINGS.trigger + 50;
-    p.y = y;
-    const types = (): string[] =>
-      w.enemies.items
+  it.each(['raiders', 'robots', 'necro'] as const)(
+    '%s: aparece su guarnición una sola vez al acercarse',
+    (kind) => {
+      const { w, x, y } = worldWithBuilding(kind);
+      const p = w.player;
+      p.x = x - BUILDINGS.trigger + 50;
+      p.y = y;
+      const types = (): string[] =>
+        w.enemies.items
+          .slice(0, w.enemies.count)
+          .filter((e) => Math.hypot(e.x - x, e.y - y) < BUILDINGS.ring + BUILDINGS.jitter + T)
+          .map((e) => e.type);
+      tick(w, { moveX: 0, moveY: 0 }, STEP);
+      const near = types();
+      for (const [type, count] of BUILDINGS.enemies[kind])
+        expect(near.filter((t) => t === type).length).toBeGreaterThanOrEqual(count);
+      const before = w.enemies.count;
+      tick(w, { moveX: 0, moveY: 0 }, STEP);
+      expect(w.enemies.count).toBeLessThanOrEqual(before + 1);
+    },
+  );
+
+  it.each(['raiders', 'robots', 'necro'] as const)(
+    '%s: al acabar con toda la guarnición sale un cofre especial delante que da cupones y un nivel',
+    (kind) => {
+      const { w, x, y } = worldWithBuilding(kind);
+      const p = w.player;
+      p.x = x - BUILDINGS.trigger + 50;
+      p.y = y;
+      tick(w, { moveX: 0, moveY: 0 }, STEP);
+      const guards = w.enemies.items
         .slice(0, w.enemies.count)
-        .filter((e) => Math.hypot(e.x - x, e.y - y) < BUILDINGS.ring + BUILDINGS.jitter + T)
-        .map((e) => e.type);
-    tick(w, { moveX: 0, moveY: 0 }, STEP);
-    const near = types();
-    for (const [type, count] of BUILDINGS.enemies[kind])
-      expect(near.filter((t) => t === type).length).toBeGreaterThanOrEqual(count);
-    const before = w.enemies.count;
-    tick(w, { moveX: 0, moveY: 0 }, STEP);
-    expect(w.enemies.count).toBeLessThanOrEqual(before + 1);
-  });
+        .filter(
+          (e) => e.gar >= 0 && Math.hypot(w.garrisons[e.gar]!.x - x, w.garrisons[e.gar]!.y - y) < 3 * T,
+        );
+      // Puede haber otro edificio cerca con su propia guarnición: solo cuenta el cofre de este.
+      const caches = () =>
+        w.pickups.items
+          .slice(0, w.pickups.count)
+          .filter((k) => k.kind === 'cache' && Math.hypot(k.x - x, k.y - y) < 3 * T);
+      for (const e of guards.slice(1)) killEnemy(w, e, 'llave');
+      expect(caches()).toHaveLength(0);
+      killEnemy(w, guards[0]!, 'llave');
+      const [c] = caches();
+      expect(c).toBeDefined();
+      // Delante del edificio = hacia la cámara (+x, +y), fuera de su huella.
+      expect(c!.x).toBeGreaterThan(x + 1.2 * T);
+      expect(c!.y).toBeGreaterThan(y + 1.2 * T);
+      w.nextEvent = Infinity;
+      const level = w.level;
+      const coupons = w.coupons;
+      p.x = c!.x;
+      p.y = c!.y;
+      tick(w, { moveX: 0, moveY: 0 }, STEP);
+      expect(w.coupons - coupons).toBeGreaterThanOrEqual(COUPONS.cache);
+      expect(w.level).toBe(level + 1);
+      expect(caches()).toHaveLength(0);
+    },
+  );
 
   it('el supermercado sale rodeado de 3 o 4 cajas de suministros', () => {
     const { w, x, y } = worldWithBuilding('supply');
@@ -135,8 +188,29 @@ describe('edificios', () => {
     tick(w, { moveX: 0, moveY: 0 }, STEP);
     const crates = w.pickups.items
       .slice(0, w.pickups.count)
-      .filter((k) => k.kind === 'crate' && Math.hypot(k.x - x, k.y - y) < BUILDINGS.ring + BUILDINGS.jitter + 1);
+      .filter(
+        (k) => k.kind === 'crate' && Math.hypot(k.x - x, k.y - y) < BUILDINGS.ring + BUILDINGS.jitter + 1,
+      );
     expect(crates.length).toBeGreaterThanOrEqual(BUILDINGS.crates.min);
     expect(crates.length).toBeLessThanOrEqual(BUILDINGS.crates.max);
+  });
+});
+
+describe('cupones', () => {
+  it('los enemigos normales los sueltan rara vez y suman al final de la partida', () => {
+    const w = createWorld('dot', 5, { startWeapon: null, hazards: false });
+    let drops = 0;
+    for (let n = 0; n < 2000; n++) {
+      const before = w.pickups.items.slice(0, w.pickups.count).filter((k) => k.kind === 'coupon').length;
+      killEnemy(w, spawnEnemy(w, 'necrofago', w.player.x + 3000, w.player.y, false), 'llave');
+      const after = w.pickups.items.slice(0, w.pickups.count).filter((k) => k.kind === 'coupon').length;
+      drops += after - before;
+      compactEnemies(w);
+    }
+    expect(drops).toBeGreaterThan(2000 * COUPONS.dropChance * 0.4);
+    expect(drops).toBeLessThan(2000 * COUPONS.dropChance * 2);
+    const base = results(w).credits;
+    w.coupons += 37;
+    expect(results(w).credits).toBe(base + 37);
   });
 });

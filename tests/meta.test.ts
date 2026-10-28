@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { GACHA, RARITIES, SAVE, STARS, UPGRADES, topRarity, upgradeCost, zoneRates } from '../src/config/meta';
+import {
+  GACHA,
+  RARITIES,
+  SAVE,
+  STARS,
+  UPGRADES,
+  topRarity,
+  upgradeCost,
+  zoneRates,
+} from '../src/config/meta';
 import { SURVIVORS } from '../src/config/survivors';
 import {
   applyRun,
@@ -33,6 +42,7 @@ function fakeRun(over: Partial<RunResults> = {}): RunResults {
     kills: 800,
     level: 20,
     bosses: 1,
+    coupons: 0,
     dmg: 1,
     bossDmg: 0,
     rad: 0,
@@ -281,7 +291,11 @@ describe('guardado', () => {
     const v0 = {
       profile: { credits: 77, starterChosen: 'gus', stats: { runs: 3 } },
       // Mae ya no está en el plantel: se quita.
-      survivors: { gus: { level: 4, implants: ['cortex'], upgrades: { hp: 1 } }, mae: { level: 9 }, fake: { level: 2 } },
+      survivors: {
+        gus: { level: 4, implants: ['cortex'], upgrades: { hp: 1 } },
+        mae: { level: 9 },
+        fake: { level: 2 },
+      },
       gacha: { pityCounter: { paramo: 12 } },
       settings: { musicVol: 2, language: 'en' },
     };

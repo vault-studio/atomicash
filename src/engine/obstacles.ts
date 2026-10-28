@@ -41,13 +41,29 @@ const pick = (list: readonly number[], r: number): number => list[Math.floor(r *
 const B = PROPS.block;
 
 /** ¿Están libres las casillas [i0, i0 + n) × [j0, j0 + m)? */
-function allFree(seed: number, i0: number, j0: number, n: number, m: number, sx: number, sy: number): boolean {
-  for (let j = j0; j < j0 + m; j++) for (let i = i0; i < i0 + n; i++) if (!free(seed, i, j, sx, sy)) return false;
+function allFree(
+  seed: number,
+  i0: number,
+  j0: number,
+  n: number,
+  m: number,
+  sx: number,
+  sy: number,
+): boolean {
+  for (let j = j0; j < j0 + m; j++)
+    for (let i = i0; i < i0 + n; i++) if (!free(seed, i, j, sx, sy)) return false;
   return true;
 }
 
 /** Rellena `out` con el objeto que ocupa la casilla (i, j); false si no hay ninguno. */
-export function objectAt(seed: number, i: number, j: number, sx: number, sy: number, out: CellObject): boolean {
+export function objectAt(
+  seed: number,
+  i: number,
+  j: number,
+  sx: number,
+  sy: number,
+  out: CellObject,
+): boolean {
   const bi = Math.floor(i / B);
   const bj = Math.floor(j / B);
   const i0 = bi * B;

@@ -97,6 +97,12 @@ export const KNOCKBACK = { base: 120, decay: 9 } as const;
 
 export const CREDITS = { perMin: 10, perKills: 20, perBoss: 50 } as const;
 
+/**
+ * Cupones recogidos en la partida (se suman a los del final). Los enemigos normales sueltan a veces un cupón; el cofre
+ * especial de un edificio limpio da un buen puñado y un nivel.
+ */
+export const COUPONS = { dropChance: 0.01, drop: 5, r: 6, cache: 100 } as const;
+
 export const FX = {
   maxTexts: 120,
   textLife: 0.8,

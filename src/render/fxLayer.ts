@@ -75,6 +75,37 @@ export class FxLayer {
         g.rect(sx - 4, sy - 8, 8, 12)
           .fill({ color: RUN_COLORS.stim })
           .stroke({ width: 1, color: 0xffffff });
+      } else if (k.kind === 'coupon') {
+        // Cupón de racionamiento: papel crema con una franja roja, ligeramente ladeado.
+        const r = k.r;
+        const y = sy - r - 2 + Math.sin(t * 4 + k.x) * 1.5;
+        g.poly([
+          sx - r * 1.3,
+          y - r * 0.5,
+          sx + r * 1.1,
+          y - r * 0.8,
+          sx + r * 1.3,
+          y + r * 0.5,
+          sx - r * 1.1,
+          y + r * 0.8,
+        ])
+          .fill({ color: RUN_COLORS.coupon })
+          .stroke({ width: 1, color: 0x000000, alpha: 0.6 });
+        g.rect(sx - r * 0.25, y - r * 0.6, r * 0.5, r * 1.2).fill({ color: RUN_COLORS.couponInk });
+      } else if (k.kind === 'cache') {
+        // Cofre especial: grande, turquesa con herrajes dorados, con un halo que late para verlo de lejos.
+        const r = k.r;
+        const bob = Math.sin(t * 3) * 2;
+        groundCircle(g, k.x, k.y, r * 2.2).fill({
+          color: RUN_COLORS.cacheTrim,
+          alpha: 0.15 + 0.1 * Math.sin(t * 5),
+        });
+        const top = sy - r * 1.5 + bob;
+        g.rect(sx - r * 1.2, top, r * 2.4, r * 1.5)
+          .fill({ color: RUN_COLORS.cache })
+          .stroke({ width: 2, color: 0x000000, alpha: 0.7 });
+        g.rect(sx - r * 1.2, top + r * 0.45, r * 2.4, r * 0.18).fill({ color: RUN_COLORS.cacheTrim });
+        g.rect(sx - r * 0.2, top + r * 0.3, r * 0.4, r * 0.5).fill({ color: RUN_COLORS.cacheTrim });
       } else if (k.kind === 'medkit' || k.kind === 'magnet' || k.kind === 'bomb') {
         // Placeholders hasta tener sprites: flotan y laten un poco para que se vean entre la chatarra.
         const bob = Math.sin(t * 4) * 2;
@@ -222,7 +253,7 @@ export class TextLayer extends Container {
           s = this.translate('run.dodge');
           break;
         case 'pickup':
-          s = `+${this.translate(ft.key)}`;
+          s = ft.value ? `+${ft.value} ${this.translate(ft.key)}` : `+${this.translate(ft.key)}`;
           break;
         case 'slogan':
           s = this.translate(`slogans.${ft.value}`);

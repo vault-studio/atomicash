@@ -130,11 +130,13 @@ function updateGarrisons(w: World): void {
     const groups = BUILDINGS.enemies[B.kind];
     let n = 0;
     for (const [, count] of groups) n += count;
+    const gar = w.garrisons.length;
+    w.garrisons.push({ x: B.x + BUILDINGS.cache.offset, y: B.y + BUILDINGS.cache.offset, left: n });
     let k = 0;
     for (const [type, count] of groups)
       for (let c = 0; c < count; c++) {
         aroundBuilding(w, B.x, B.y, k++, n);
-        spawnEnemy(w, type, spot.x, spot.y);
+        spawnEnemy(w, type, spot.x, spot.y).gar = gar;
       }
   }
 }
@@ -145,12 +147,12 @@ export function updateSpawning(w: World, dt: number): void {
   const wave = WAVES[waveIdx]!;
   const pool = w.enemies;
 
-  // Los que se quedan muy atrás vuelven a aparecer delante, fuera de cámara (los jefes no).
+  // Los que se quedan muy atrás vuelven a aparecer delante, fuera de cámara (los jefes y las guarniciones no).
   const p = w.player;
   const R2 = SPAWN.relocateDist * SPAWN.relocateDist;
   for (let i = 0; i < pool.count; i++) {
     const e = pool.items[i] as Enemy;
-    if (e.boss || e.dead) continue;
+    if (e.boss || e.gar >= 0 || e.dead) continue;
     const dx = e.x - p.x;
     const dy = e.y - p.y;
     if (dx * dx + dy * dy > R2) {

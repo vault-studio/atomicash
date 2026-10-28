@@ -145,7 +145,8 @@ export function zoneRates(zone: ZoneId): Record<SurvivorRarity, number> {
   const have = zoneRarities(zone);
   const out: Record<SurvivorRarity, number> = { common: 0, rare: 0, epic: 0, legendary: 0 };
   for (const r of RARITIES) {
-    const lower = have.filter((h) => RARITIES.indexOf(h) <= RARITIES.indexOf(r)).at(-1) ?? have[0] ?? 'common';
+    const lower =
+      have.filter((h) => RARITIES.indexOf(h) <= RARITIES.indexOf(r)).at(-1) ?? have[0] ?? 'common';
     out[lower] += GACHA.rates[r];
   }
   return out;

@@ -44,6 +44,7 @@ export function PauseStats({ world: w }: { world: World }) {
     ['bosses', w.bosses],
     ['dmgTotal', Math.round(w.dmgTotal).toLocaleString()],
     ['dps', Math.round(currentDps(w))],
+    ['coupons', w.coupons],
   ];
 
   const rows = (list: Row[]) =>

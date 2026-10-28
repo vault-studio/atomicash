@@ -3,7 +3,8 @@ import { AI, ENEMY_STATS, MAX_ENEMY_RADIUS, type EnemyStats } from '../../config
 import { BOSS_VARIANTS } from '../../config/enemies';
 import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
-import { CAPS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
+import { BUILDINGS } from '../../config/props';
+import { CAPS, COUPONS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { BOSS_WEAPONS, SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponId } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
@@ -253,6 +254,15 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (xp > 0) {
     if (e.boss) dropGems(w, e.x, e.y, xp);
     else dropKillGems(w, e.x, e.y, xp, e.irr ? XP.rareGems : XP.killGems);
+  }
+  if (e.gar >= 0) {
+    const g = w.garrisons[e.gar]!;
+    if (--g.left === 0) {
+      addPickup(w, 'cache', g.x, g.y, BUILDINGS.cache.r);
+      banner(w, 'banner.cache');
+    }
+  } else if (!e.boss && w.rng() < COUPONS.dropChance) {
+    addPickup(w, 'coupon', e.x, e.y, COUPONS.r, COUPONS.drop);
   }
   if (e.boss) {
     w.bosses++;

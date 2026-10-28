@@ -82,7 +82,8 @@ export const RADAR = {
     bomb: '#ff9a2e',
     crate: '#ffe14a',
     chest: '#c77dff',
-  } as Readonly<Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest', string>>,
+    cache: '#3fb8af',
+  } as Readonly<Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest' | 'cache', string>>,
   /** Edificios de 3×3: un rombo del color de lo que los rodea. */
   buildings: {
     raiders: '#ff6a3d',
@@ -101,6 +102,10 @@ export const RUN_COLORS = {
   stim: 0xff5577,
   chest: 0xd8a53a,
   crate: 0x8a7a4a,
+  coupon: 0xf3e9d2,
+  couponInk: 0xd7263d,
+  cache: 0x3fb8af,
+  cacheTrim: 0xffe14a,
   medkit: 0xf2efe6,
   medkitCross: 0xd8322e,
   magnet: 0xd8322e,

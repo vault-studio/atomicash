@@ -168,6 +168,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     obstacleCell: { i: Number.NaN, j: Number.NaN },
     buildings: [],
     garrisoned: new Set(),
+    garrisons: [],
     start: { x: c, y: c },
     pickups: new Pool(createPickup, 400),
     gemCount: 0,
@@ -180,6 +181,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     level: 1,
     xpNext: xpForLevel(1),
     kills: 0,
+    coupons: 0,
     dmgTotal: 0,
     bossDmg: 0,
     dmgBy: new Float64Array(DAMAGE_SOURCES.length),
@@ -337,7 +339,9 @@ export interface RunResults {
   dmg: number;
   bossDmg: number;
   rad: number;
+  /** Incluye los cupones recogidos en la partida (`coupons`). */
   credits: number;
+  coupons: number;
   consUsed: number;
   /** Consumibles que sobraron (vuelven a la Mochila). */
   consLeft: Record<ConsumableId, number>;
@@ -363,7 +367,9 @@ export function results(w: World): RunResults {
     dmg: Math.round(w.dmgTotal),
     bossDmg: Math.round(w.bossDmg),
     rad: Math.round(w.player.radPeak),
-    credits: Math.floor(min * CREDITS.perMin + w.kills / CREDITS.perKills + w.bosses * CREDITS.perBoss),
+    credits:
+      Math.floor(min * CREDITS.perMin + w.kills / CREDITS.perKills + w.bosses * CREDITS.perBoss) + w.coupons,
+    coupons: w.coupons,
     consUsed: w.consUsed,
     consLeft: { ...w.cons },
     consStart: { ...w.consStart },

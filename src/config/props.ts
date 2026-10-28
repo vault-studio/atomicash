@@ -74,6 +74,11 @@ export const BUILDINGS = {
   } as Readonly<Record<BuildingKind, readonly (readonly [StatEnemyId, number])[]>>,
   /** Cajas de suministros alrededor del supermercado: entre min y max. */
   crates: { min: 3, max: 4 },
+  /**
+   * Al acabar con toda la guarnición sale un cofre especial delante del edificio (hacia la cámara), a `offset` del
+   * centro en cada eje: justo fuera de la esquina del edificio (1,2 casillas + redondeo).
+   */
+  cache: { offset: 1.45 * T, r: 20 },
 } as const;
 
 /** Lo que escribe tools/slice_props.py en `props.json`. */
@@ -97,8 +102,7 @@ export interface PropShape {
 
 export const PROP_LIST: readonly PropInfo[] = index.props;
 
-const indicesWith = (cells: number): number[] =>
-  PROP_LIST.flatMap((p, k) => (p.cells === cells ? [k] : []));
+const indicesWith = (cells: number): number[] => PROP_LIST.flatMap((p, k) => (p.cells === cells ? [k] : []));
 export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indicesWith(9) } as const;
 
 /** Escala de cada objeto respecto a una baldosa. */
@@ -107,7 +111,9 @@ export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) =>
 );
 
 /** Tipo de edificio de cada objeto, o null si no es edificio. */
-export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map((p) => BUILDINGS.byFile[p.file] ?? null);
+export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map(
+  (p) => BUILDINGS.byFile[p.file] ?? null,
+);
 
 /**
  * Forma de choque de cada objeto en unidades de mundo. Para los de una casilla, un círculo: un círculo de radio r
