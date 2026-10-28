@@ -199,11 +199,10 @@ export class GameRenderer {
           sand();
         const wx = (i + 0.5) * T;
         const wy = (j + 0.5) * T;
-        // Espejo horizontal al azar: el rombo sigue encajando y se repite menos.
-        const flip = next() < 0.5 ? -1 : 1;
-        layer.addChild(this.groundSprite(t, t.tex, isoX(wx, wy), isoY(wx, wy), scale, flip));
+        // DECISIÓN: sin espejo al azar; las ondas de la arena van todas en el mismo sentido y se ven más naturales.
+        layer.addChild(this.groundSprite(t, t.tex, isoX(wx, wy), isoY(wx, wy), scale));
         if (t.top) {
-          const top = this.groundSprite(t, t.top, isoX(wx, wy), isoY(wx, wy), scale, flip);
+          const top = this.groundSprite(t, t.top, isoX(wx, wy), isoY(wx, wy), scale);
           top.zIndex = wx + wy;
           this.actors.addChild(top);
         }
@@ -212,18 +211,11 @@ export class GameRenderer {
     return layer;
   }
 
-  private groundSprite(
-    t: GroundTile,
-    tex: Texture,
-    x: number,
-    y: number,
-    scale: number,
-    flip: number,
-  ): Sprite {
+  private groundSprite(t: GroundTile, tex: Texture, x: number, y: number, scale: number): Sprite {
     const s = new Sprite(tex);
     // El centro del rombo, no el de la imagen: la parte de arriba es lo que sobresale.
     s.anchor.set(0.5, (t.head + (tex.height - t.head) / 2) / tex.height);
-    s.scale.set(flip * scale, scale);
+    s.scale.set(scale);
     s.tint = TILES.tint;
     s.position.set(x, y);
     return s;
