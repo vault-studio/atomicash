@@ -132,7 +132,8 @@ export class GameRenderer {
         if (!tex) continue;
         const s = new Sprite(tex);
         s.anchor.set(0.5);
-        s.scale.set(scale);
+        // Espejo horizontal al azar: el rombo sigue encajando y se repite menos.
+        s.scale.set(h & 1 ? -scale : scale, scale);
         s.tint = TILES.tint;
         const cx = (i + 0.5) * T;
         const cy = (j + 0.5) * T;

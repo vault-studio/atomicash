@@ -92,16 +92,21 @@ export const RUN_COLORS = {
 
 /**
  * Baldosas de suelo recortadas de ARTE/tiles_suelo.png con tools/slice_tiles.py (rombo 2:1 de 256×128).
- * DECISIÓN: sin las de carretera (4 y 8), que al colocarse al azar cortarían líneas sin continuidad.
+ * DECISIÓN: sin las de carretera (4, 5 y 8), que al colocarse al azar cortarían líneas sin continuidad, y con
+ * mucho más peso para la tierra lisa (0 y 1): con baldosas pequeñas, las de escombros formaban un patrón visible.
  */
 export const TILES = {
   path: 'assets/tiles/suelo_',
   /** Peso de aparición de cada baldosa por índice. */
-  weights: [5, 4, 1, 2, 0, 1, 2, 1, 0] as readonly number[],
+  weights: [8, 7, 1, 1, 0, 0, 1, 1, 0] as readonly number[],
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
-  /** Lado aproximado de la baldosa en px de mundo (se ajusta para dividir el mapa exacto). */
-  worldSize: 320,
+  /**
+   * Lado aproximado de la baldosa en px de mundo (se ajusta para dividir el mapa exacto).
+   * DECISIÓN: 120 deja un bidón a la altura de la cintura del superviviente y dibuja la baldosa a ~0,66×
+   * (reducida, nítida). Con 320 el suelo salía a 1,8× y las piedras eran tan grandes como los personajes.
+   */
+  worldSize: 120,
   /** Oscurece el suelo para que destaquen los personajes. */
   tint: 0xb8a890,
   /** Solape para que no se vean costuras. */
