@@ -16,10 +16,12 @@ const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > 
 interface GroundTile {
   readonly tex: Texture;
   readonly head: number;
+  readonly fade: boolean;
 }
 
 interface GroundTiles {
-  readonly yermo: readonly GroundTile[];
+  readonly clean: readonly GroundTile[];
+  readonly stony: readonly GroundTile[];
   readonly deco: readonly GroundTile[];
   readonly acid: readonly GroundTile[];
 }
@@ -31,14 +33,18 @@ async function loadGroundTiles(): Promise<GroundTiles> {
     const out = await Promise.all(
       set.map((t) =>
         Assets.load<Texture>(TILES.dir + t.file)
-          .then((tex) => ({ tex, head: t.head, acid: t.acid }))
+          .then((tex) => ({ tex, head: t.head, acid: t.acid, fade: t.fade === true }))
           .catch(() => null),
       ),
     );
     return out.filter((t) => t !== null);
   };
-  const [yermo, deco] = await Promise.all([load(index.sets.yermo), load(index.sets.deco)]);
-  return { yermo, deco: deco.filter((t) => !t.acid), acid: deco.filter((t) => t.acid) };
+  const [clean, stony, deco] = await Promise.all([
+    load(index.sets.limpio),
+    load(index.sets.yermo),
+    load(index.sets.deco),
+  ]);
+  return { clean, stony, deco: deco.filter((t) => !t.acid), acid: deco.filter((t) => t.acid) };
 }
 
 export interface DebugInfo {
@@ -136,12 +142,12 @@ export class GameRenderer {
   }
 
   /**
-   * Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla): yermo casi
-   * siempre, decoración de vez en cuando y lago de ácido justo en las casillas con charco radiactivo.
+   * Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla): tierra
+   * limpia casi siempre, yermo con piedras y decoración de vez en cuando y lago de ácido justo en las casillas con charco radiactivo.
    */
   private tileGround(w: World, tiles: GroundTiles | null): Container {
     const layer = new Container();
-    if (!tiles || tiles.yermo.length === 0) return layer;
+    if (!tiles || tiles.clean.length === 0) return layer;
     const { n, T } = groundGrid(w.mapSize);
     const acidCells = new Set(w.hazards.map((h) => Math.floor(h.y / T) * n + Math.floor(h.x / T)));
     // Un lado T del mundo mide T·√2 de ancho en la vista isométrica.
@@ -158,24 +164,33 @@ export class GameRenderer {
       for (let i = 0; i < n; i++) {
         const roll = next();
         const t = acidCells.has(j * n + i)
-          ? (pick(tiles.acid) ?? pick(tiles.yermo))
+          ? (pick(tiles.acid) ?? pick(tiles.clean))
           : roll < TILES.decoChance
-            ? (pick(tiles.deco) ?? pick(tiles.yermo))
-            : pick(tiles.yermo);
+            ? (pick(tiles.deco) ?? pick(tiles.clean))
+            : roll < TILES.decoChance + TILES.stonyChance
+              ? (pick(tiles.stony) ?? pick(tiles.clean))
+              : pick(tiles.clean);
         if (!t) continue;
-        const s = new Sprite(t.tex);
-        // El centro del rombo, no el de la imagen: la parte de arriba es lo que sobresale.
-        s.anchor.set(0.5, (t.head + (t.tex.height - t.head) / 2) / t.tex.height);
+        const x = isoX((i + 0.5) * T, (j + 0.5) * T);
+        const y = isoY((i + 0.5) * T, (j + 0.5) * T);
+        // Lo que se desvanece hacia el borde necesita tierra limpia debajo.
+        const base = t.fade ? pick(tiles.clean) : undefined;
+        if (base) layer.addChild(this.groundSprite(base, x, y, scale, h & 2 ? -1 : 1));
         // Espejo horizontal al azar: el rombo sigue encajando y se repite menos.
-        s.scale.set(h & 1 ? -scale : scale, scale);
-        s.tint = TILES.tint;
-        const cx = (i + 0.5) * T;
-        const cy = (j + 0.5) * T;
-        s.position.set(isoX(cx, cy), isoY(cx, cy));
-        layer.addChild(s);
+        layer.addChild(this.groundSprite(t, x, y, scale, h & 1 ? -1 : 1));
       }
     }
     return layer;
+  }
+
+  private groundSprite(t: GroundTile, x: number, y: number, scale: number, flip: 1 | -1): Sprite {
+    const s = new Sprite(t.tex);
+    // El centro del rombo, no el de la imagen: la parte de arriba es lo que sobresale.
+    s.anchor.set(0.5, (t.head + (t.tex.height - t.head) / 2) / t.tex.height);
+    s.scale.set(flip * scale, scale);
+    s.tint = TILES.tint;
+    s.position.set(x, y);
+    return s;
   }
 
   /** Borde tenue del radio exacto de cada charco, sobre el lago pintado (o solo, si faltan las baldosas). */

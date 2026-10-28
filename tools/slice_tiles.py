@@ -1,4 +1,4 @@
-# Recorta las baldosas isométricas de ARTE/tiles_yermo.webp y ARTE/tiles_deco.webp (6×5 cada una, fondo negro)
+# Recorta las baldosas isométricas de las láminas de ARTE/ (limpio, yermo y deco; 6×5 cada una, fondo negro)
 # a PNG con transparencia en assets/tiles/ y escribe assets/tiles/tiles.json con lo que hay en cada una.
 # Uso: python tools/slice_tiles.py
 #
@@ -24,7 +24,26 @@ BLACK = 28  # canal máximo por debajo del cual es fondo
 WALL = 9  # alto del canto de tierra bajo la cara, en píxeles de la lámina
 HALF = 122.5  # medio ancho de la cara, en píxeles de la lámina
 INSET = 0.97
-SHEETS = {'yermo': Path('ARTE/tiles_yermo.webp'), 'deco': Path('ARTE/tiles_deco.webp')}
+RIM = 0.965  # desde aquí hasta el borde de la cara se rellena con el interior
+MATCH = 'limpio'  # lámina cuyo tono de tierra siguen las demás
+GAIN = 0.6  # cuánto se acerca el tono de las demás (1 = igual)
+LIGHT = 30  # radio (px) de la luz de baja frecuencia que se aplana en las baldosas de FLATTEN
+FLATTEN = ('limpio', 'yermo')
+FADE = 0.3  # franja exterior de la cara que se desvanece en las láminas que no son la de referencia
+SHEETS = {
+    'limpio': Path('ARTE/tiles_limpio.webp'),
+    'yermo': Path('ARTE/tiles_yermo.webp'),
+    'deco': Path('ARTE/tiles_deco.webp'),
+}
+
+
+yy, xx = np.mgrid[0 : HEAD + H, 0:W]
+# Rombo de la cara y semiplano «por encima de los dos lados inferiores» en el destino.
+cxw, cyw = W / 2, HEAD + H / 2
+dist = np.abs(xx - cxw) / (W / 2) + np.abs(yy - cyw) / (H / 2)
+in_face = dist <= 1.0
+above_lower = (yy - cyw) / (H / 2) <= 1 - np.abs(xx - cxw) / (W / 2)
+above_upper = (cyw - yy) / (H / 2) >= 1 - np.abs(xx - cxw) / (W / 2)
 
 
 def grid(mask: np.ndarray):
@@ -83,13 +102,6 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
     mask = nd.binary_opening(arr.max(2) > BLACK, iterations=1)
     centers, pw, ph = grid(mask)
     out = []
-    yy, xx = np.mgrid[0 : HEAD + H, 0:W]
-    # Rombo de la cara y semiplano «por encima de los dos lados inferiores» en el destino.
-    cxw, cyw = W / 2, HEAD + H / 2
-    dist = np.abs(xx - cxw) / (W / 2) + np.abs(yy - cyw) / (H / 2)
-    in_face = dist <= 1.0
-    above_lower = (yy - cyw) / (H / 2) <= 1 - np.abs(xx - cxw) / (W / 2)
-    above_upper = (cyw - yy) / (H / 2) >= 1 - np.abs(xx - cxw) / (W / 2)
     edges = [edge_points(mask, cx, cy) for cx, cy in centers]
     sl = float(np.median([np.polyfit(*e[-1].T, 1)[0] for e in edges]))
     sr = float(np.median([np.polyfit(*e[1].T, 1)[0] for e in edges]))
@@ -107,9 +119,10 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         others = Image.fromarray((np.logical_or.reduce([f for j, f in enumerate(feet) if j != i]) * 255).astype(np.uint8))
         tile = img.transform((W, HEAD + H), Image.AFFINE, affine_for(L, R, B), resample=Image.BICUBIC)
         t = np.array(tile).astype(int)
-        # Si la baldosa de la lámina está algo girada, el borde de la cara recoge fondo negro, que en el juego se ve
-        # como rayas oscuras: esos píxeles toman el color más cercano de la cara.
-        edge = in_face & (dist > 0.85) & (t.max(2) < 45)
+        # Si la baldosa de la lámina está algo girada, el borde de la cara recoge fondo negro, y algunas láminas
+        # pintan un bisel oscuro en la arista; en el juego ambos se ven como una rejilla. Esos píxeles toman el
+        # color más cercano del interior de la cara.
+        edge = in_face & (((dist > 0.85) & (t.max(2) < 45)) | (dist > RIM))
         if edge.any():
             iy, ix = nd.distance_transform_edt(edge | ~in_face, return_distances=False, return_indices=True)
             t[edge] = t[iy[edge], ix[edge]]
@@ -130,17 +143,50 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         head = max(0, int(HEAD - rows.min())) if len(rows) else 0
         # Recorta el margen superior que no se usa.
         rgba = rgba[HEAD - head :]
-        fname = f'{name}_{i:02d}.png'
-        Image.fromarray(rgba, 'RGBA').save(OUT / fname, optimize=True)
-        info = {'file': fname, 'head': head, 'acid': acid > 0.04}
-        out.append(info)
+        info = {'file': f'{name}_{i:02d}.png', 'head': head, 'acid': acid > 0.04}
+        out.append((info, rgba))
     return out
+
+
+def ground_color(tiles: list) -> np.ndarray:
+    """Color mediano de la tierra de una lámina (interior de las caras)."""
+    inner = (dist <= 0.8)[HEAD:]
+    return np.median(np.concatenate([rgba[-H:][inner][:, :3] for _, rgba in tiles]), axis=0)
 
 
 OUT.mkdir(parents=True, exist_ok=True)
 for old in OUT.glob('*.png'):
     old.unlink()
-meta = {'width': W, 'height': H, 'sets': {n: slice_sheet(n, p) for n, p in SHEETS.items()}}
+sliced = {n: slice_sheet(n, p) for n, p in SHEETS.items()}
+# DECISIÓN: cada lámina salió con un tono de tierra distinto. Las que no son la de referencia se acercan a ella
+# con una ganancia por canal suavizada (igualarla del todo quemaba los objetos) y su cara se desvanece hacia el
+# borde: el juego pone debajo una baldosa limpia, así que piedras y objetos quedan como manchas sin arista.
+ref = ground_color(sliced[MATCH])
+face = in_face[HEAD:]
+wsum = nd.gaussian_filter(face.astype(float), LIGHT)
+for n in FLATTEN:
+    # Cada baldosa trae su propia luz (una esquina más clara) y al juntarlas se nota la rejilla: se divide por la
+    # luz de baja frecuencia de la cara y se multiplica por la media de la lámina.
+    for _, rgba in sliced[n]:
+        rgb = rgba[-H:, :, :3].astype(float)
+        low = np.dstack([nd.gaussian_filter(rgb[..., c] * face, LIGHT) for c in range(3)]) / np.maximum(wsum, 1e-3)[..., None]
+        mean = rgb[face].mean(0)
+        rgb[face] = (rgb * mean / np.maximum(low, 1))[face]
+        rgba[-H:, :, :3] = np.clip(rgb, 0, 255).astype(np.uint8)
+fade = np.clip((1 - dist) / FADE, 0, 1)[HEAD:]
+fade = fade * fade * (3 - 2 * fade)
+for n, tiles in sliced.items():
+    gain = (ref / ground_color(tiles)) ** GAIN
+    for info, rgba in tiles:
+        rgba[..., :3] = np.clip(rgba[..., :3] * gain, 0, 255).astype(np.uint8)
+        if n != MATCH:
+            a = rgba[-H:, :, 3].astype(float)
+            a[face] *= fade[face]
+            rgba[-H:, :, 3] = a.astype(np.uint8)
+            info['fade'] = True
+        Image.fromarray(rgba, 'RGBA').save(OUT / info['file'], optimize=True)
+    print(n, 'ganancia', np.round(gain, 2))
+meta = {'width': W, 'height': H, 'sets': {n: [info for info, _ in tiles] for n, tiles in sliced.items()}}
 (OUT / 'tiles.json').write_text(json.dumps(meta, indent=2) + '\n', encoding='utf8', newline='\n')
 for n, tiles in meta['sets'].items():
     print(n, len(tiles), 'acido:', [t['file'] for t in tiles if t['acid']])

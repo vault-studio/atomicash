@@ -91,17 +91,20 @@ export const RUN_COLORS = {
 } as const;
 
 /**
- * Baldosas de suelo recortadas de ARTE/tiles_yermo.webp y ARTE/tiles_deco.webp con tools/slice_tiles.py (rombo 2:1
+ * Baldosas de suelo recortadas de las láminas de ARTE/ (limpio, yermo y deco) con tools/slice_tiles.py (rombo 2:1
  * de 256×128). `tiles.json` dice qué baldosa de decoración lleva lago de ácido y cuánto sobresale por arriba.
- * DECISIÓN: el páramo es yermo casi entero; la decoración (bidones, cajas, coches, vallas…) sale en una de cada
- * ~14 casillas para que no forme patrón, y los lagos de ácido solo donde hay charco radiactivo: el verde en el
- * suelo siempre significa daño.
+ * DECISIÓN: la base es tierra limpia (arena y matojos), que deja leer bien a personajes y proyectiles; el yermo
+ * con piedras sale poco, para romper la monotonía sin ensuciar; la decoración (bidones, cajas, coches, vallas…)
+ * en una de cada ~14 casillas, y los lagos de ácido solo donde hay charco radiactivo: el verde en el suelo
+ * siempre significa daño.
  */
 export const TILES = {
   dir: 'assets/tiles/',
   index: 'assets/tiles/tiles.json',
   /** Probabilidad de que una casilla sin charco lleve decoración. */
   decoChance: 0.07,
+  /** Probabilidad de que una casilla sin charco ni decoración sea yermo con piedras en vez de tierra limpia. */
+  stonyChance: 0.05,
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
   /** Oscurece el suelo para que destaquen los personajes. */
@@ -116,10 +119,16 @@ export interface TileInfo {
   /** Px de la imagen por encima del rombo (objetos que sobresalen). */
   readonly head: number;
   readonly acid: boolean;
+  /** La cara se desvanece hacia el borde: va encima de una baldosa limpia. */
+  readonly fade?: boolean;
 }
 
 export interface TileIndex {
   readonly width: number;
   readonly height: number;
-  readonly sets: { readonly yermo: readonly TileInfo[]; readonly deco: readonly TileInfo[] };
+  readonly sets: {
+    readonly limpio: readonly TileInfo[];
+    readonly yermo: readonly TileInfo[];
+    readonly deco: readonly TileInfo[];
+  };
 }

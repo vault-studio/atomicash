@@ -2,308 +2,520 @@
   "width": 256,
   "height": 128,
   "sets": {
+    "limpio": [
+      {
+        "file": "limpio_00.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_01.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_02.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_03.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_04.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_05.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_06.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_07.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_08.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_09.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_10.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_11.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_12.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_13.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_14.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_15.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_16.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_17.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_18.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_19.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_20.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_21.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_22.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_23.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_24.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_25.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_26.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_27.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_28.png",
+        "head": 0,
+        "acid": false
+      },
+      {
+        "file": "limpio_29.png",
+        "head": 0,
+        "acid": false
+      }
+    ],
     "yermo": [
       {
         "file": "yermo_00.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_01.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_02.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_03.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_04.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_05.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_06.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_07.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_08.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_09.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_10.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_11.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_12.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_13.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_14.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_15.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_16.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_17.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_18.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_19.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_20.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_21.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_22.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_23.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_24.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_25.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_26.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_27.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_28.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "yermo_29.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       }
     ],
     "deco": [
       {
         "file": "deco_00.png",
         "head": 4,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_01.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_02.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_03.png",
         "head": 2,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_04.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_05.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_06.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_07.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_08.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_09.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_10.png",
         "head": 2,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_11.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_12.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_13.png",
         "head": 2,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_14.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_15.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_16.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_17.png",
         "head": 2,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_18.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_19.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_20.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_21.png",
         "head": 1,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_22.png",
         "head": 0,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_23.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_24.png",
         "head": 4,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_25.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_26.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_27.png",
         "head": 5,
-        "acid": true
+        "acid": true,
+        "fade": true
       },
       {
         "file": "deco_28.png",
         "head": 2,
-        "acid": false
+        "acid": false,
+        "fade": true
       },
       {
         "file": "deco_29.png",
         "head": 3,
-        "acid": false
+        "acid": false,
+        "fade": true
       }
     ]
   }
