@@ -3,10 +3,11 @@
 # Uso: python tools/slice_tiles.py
 #
 # Cada baldosa de la lámina es un bloque suelto: cara superior (rombo ~1,4:1) y un canto de tierra debajo. Se buscan
-# sus esquinas, se lleva la cara a un rombo 2:1 de 256×128 con una transformación afín y se tira el canto. Lo que
+# sus esquinas, se lleva la cara a un rombo 2:1 de 256×128 con una perspectiva por sus cuatro esquinas y se tira el canto. Lo que
 # sobresale por encima de la cara (árbol, poste, señales, surtidor) va aparte en `_top.png`, que el juego ordena en
 # profundidad con los personajes para que puedan pasar por detrás.
-# DECISIÓN: la afín aplasta ~30 % en vertical también los objetos; a esta escala apenas se nota y evita costuras.
+# DECISIÓN: la transformación aplasta ~30 % en vertical también los objetos; a esta escala apenas se nota y evita
+# costuras. Es de perspectiva y no afín porque las caras de las láminas no siempre son paralelogramos.
 import json
 from pathlib import Path
 
@@ -22,10 +23,11 @@ INSET = 0.98  # la cara se toma un poco hacia dentro para no arrastrar la arista
 RIM = 0.965  # desde aquí hasta el borde de la cara se rellena con el interior
 LIGHT = 30  # radio (px) de la luz de baja frecuencia que se aplana en las láminas de FLATTEN
 FLATTEN = ('suelo',)
+TOP_TOL = 12  # px que puede separarse la esquina de arriba medida de la del paralelogramo
 MIN_TOP = 8  # px que tiene que sobresalir un objeto para ir aparte
 # DECISIÓN: el suelo es solo arena y lagos de ácido; la decoración irá aparte, como objetos sin baldosa.
 SHEETS = {
-    'suelo': Path('ARTE/tiles_suelo_acido.webp'),
+    'suelo': Path('ARTE/tiles_suelo_acido_2.webp'),
 }
 
 yy, xx = np.mgrid[0 : HEAD + H, 0:W]
@@ -59,15 +61,24 @@ def corners(blob: np.ndarray):
     wall = ((lcol.max() - lcol.min()) + (rcol.max() - rcol.min())) / 2
     bottom = ys.max()
     B = np.array([xs[ys >= bottom - 1].mean(), bottom - wall], float)
+    # Esquina de arriba: la medida, salvo que la tape algo que sobresale; entonces la del paralelogramo.
+    T = L + R - B
+    top = ys.min()
+    if abs(top - T[1]) < TOP_TOL:
+        T = np.array([xs[ys <= top + 1].mean(), top], float)
     C = (L + R) / 2
-    return C + (L - C) * INSET, C + (R - C) * INSET, C + (B - C) * INSET
+    return [C + (P - C) * INSET for P in (L, R, B, T)]
 
 
-def affine_for(L, R, B):
-    """Coeficientes para Image.transform(AFFINE): de coordenadas destino a origen."""
-    dst = np.array([[0, cyw, 1], [W, cyw, 1], [W / 2, HEAD + H, 1]], float)
-    m = np.linalg.solve(dst, np.array([L, R, B], float))
-    return (m[0, 0], m[1, 0], m[2, 0], m[0, 1], m[1, 1], m[2, 1])
+def perspective_for(L, R, B, T):
+    """Coeficientes para Image.transform(PERSPECTIVE): de coordenadas destino a origen."""
+    dst = [(0, cyw), (W, cyw), (W / 2, HEAD + H), (W / 2, HEAD)]
+    a = []
+    for (x, y), (u, v) in zip(dst, (L, R, B, T)):
+        a.append([x, y, 1, 0, 0, 0, -u * x, -u * y, u])
+        a.append([0, 0, 0, x, y, 1, -v * x, -v * y, v])
+    a = np.array(a, float)
+    return tuple(np.linalg.solve(a[:, :8], a[:, 8]))
 
 
 def flatten_light(rgb: np.ndarray, ref: np.ndarray) -> None:
@@ -85,9 +96,9 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
     mask = nd.binary_opening(np.array(img).max(2) > BLACK, iterations=2)
     out = []
     for i, blob in enumerate(blobs(mask)):
-        coef = affine_for(*corners(blob))
-        t = np.array(img.transform((W, HEAD + H), Image.AFFINE, coef, resample=Image.BICUBIC)).astype(float)
-        mine = np.array(Image.fromarray(blob).transform((W, HEAD + H), Image.AFFINE, coef, resample=Image.NEAREST))
+        coef = perspective_for(*corners(blob))
+        t = np.array(img.transform((W, HEAD + H), Image.PERSPECTIVE, coef, resample=Image.BICUBIC)).astype(float)
+        mine = np.array(Image.fromarray(blob).transform((W, HEAD + H), Image.PERSPECTIVE, coef, resample=Image.NEAREST))
         # Arista: el bisel oscuro y el fondo negro que pueda colarse toman el color más cercano del interior.
         edge = in_face & ((dist > RIM) | (t.max(2) < 45))
         iy, ix = nd.distance_transform_edt(edge | ~in_face, return_distances=False, return_indices=True)
@@ -102,6 +113,10 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         stick &= nd.binary_opening(stick, iterations=1)
         rows = np.where(stick.any(1))[0]
         head = max(0, int(HEAD - rows.min())) if len(rows) else 0
+        # Unos pocos px por encima del borde son restos del canto, no un objeto: fuera, que se ven como rayas.
+        if head < MIN_TOP:
+            stick[:] = False
+            head = 0
         a = nd.gaussian_filter((in_face | stick).astype(float), 0.6)
         a[in_face] = 1.0
         rgba = np.dstack([np.clip(t, 0, 255), np.clip(a, 0, 1) * 255]).astype(np.uint8)[HEAD - head :]

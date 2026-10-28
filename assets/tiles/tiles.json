@@ -13,8 +13,8 @@
       },
       {
         "file": "suelo_02.png",
-        "head": 3,
-        "acid": 0.283
+        "head": 0,
+        "acid": 0.27
       },
       {
         "file": "suelo_03.png",
@@ -26,8 +26,8 @@
       },
       {
         "file": "suelo_05.png",
-        "head": 3,
-        "acid": 0.084
+        "head": 0,
+        "acid": 0.162
       }
     ]
   }
