@@ -67,7 +67,7 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
  */
 export class GroundView {
   readonly layer = new Container();
-  /** Borde tenue del radio exacto de cada charco, sobre el lago pintado (o solo, si faltan las baldosas). */
+  /** Charco dibujado a mano, solo si faltan las baldosas del lago. */
   readonly outlines = new Graphics();
   private readonly sprites: Sprite[] = [];
   private readonly tops: Sprite[] = [];
@@ -143,11 +143,13 @@ export class GroundView {
         // El rectángulo de casillas es un rombo en pantalla: se saltan las que quedan fuera.
         if (Math.abs(x - sx) > hw || Math.abs(y - sy) > hh) continue;
         const hz = hazardAt(seed, i, j, start.x, start.y);
-        if (hz >= 0) {
+        // DECISIÓN: con el lago pintado no se marca el borde; solo se dibuja el charco si faltan las baldosas.
+        if (hz >= 0 && !painted) {
           const r = T * HAZARDS.cellRadii[hz]!;
-          this.outlines.ellipse(x, y, r, r / 2);
-          if (!painted) this.outlines.fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha });
-          this.outlines.stroke({ width: 2, color: RUN_COLORS.hazard, alpha: painted ? 0.22 : 0.35 });
+          this.outlines
+            .ellipse(x, y, r, r / 2)
+            .fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha })
+            .stroke({ width: 2, color: RUN_COLORS.hazard, alpha: 0.35 });
         }
         const t = this.pick(i, j, hz);
         if (!t) continue;

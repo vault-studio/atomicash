@@ -191,6 +191,24 @@ export function dropGems(w: World, x: number, y: number, value: number): void {
   }
 }
 
+/** Reparte `value` de experiencia en `count` bolitas (el resto entero, en las primeras). */
+export function dropKillGems(w: World, x: number, y: number, value: number, count: number): void {
+  const v = Math.max(count, Math.round(value));
+  const each = Math.floor(v / count);
+  for (let i = 0; i < count; i++) {
+    const g = each + (i < v % count ? 1 : 0);
+    if (w.gemCount >= XP.maxGems && mergeIntoGem(w, g)) continue;
+    const spread = count > 1 ? 18 : 0;
+    addPickup(w, 'gem', x + (w.rng() - 0.5) * spread, y + (w.rng() - 0.5) * spread, gemRadius(g), g);
+  }
+}
+
+/** Tamaño de la bolita según lo que vale. */
+function gemRadius(v: number): number {
+  for (const g of XP.gems) if (v >= g) return XP.gemRadius[g] ?? 3.5;
+  return XP.gemRadius[1] ?? 3.5;
+}
+
 /** Con demasiadas gemas en el suelo, suma el valor a una existente al azar. */
 function mergeIntoGem(w: World, g: number): boolean {
   const n = w.pickups.count;
@@ -232,7 +250,10 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   sfx(w, SFX.kill);
   addCorpse(w, e);
   const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
-  if (xp > 0) dropGems(w, e.x, e.y, xp);
+  if (xp > 0) {
+    if (e.boss) dropGems(w, e.x, e.y, xp);
+    else dropKillGems(w, e.x, e.y, xp, e.irr ? XP.rareGems : XP.killGems);
+  }
   if (e.boss) {
     w.bosses++;
     w.bossAlive--;

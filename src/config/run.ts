@@ -83,6 +83,13 @@ export const XP = {
   pullAccel: 900,
   /** Multiplicador de la experiencia que suelta cada enemigo (ver SPAWN.rateMult). */
   killMult: 2.5,
+  /**
+   * Bolitas que suelta un enemigo normal y uno irradiado (los raros); se reparten toda su experiencia.
+   * DECISIÓN: una sola bolita por baja, que vale lo que antes varias: menos ruido en el suelo y más fácil de leer.
+   * Los jefes siguen soltando su lluvia de chatarra.
+   */
+  killGems: 1,
+  rareGems: 3,
 } as const;
 
 export const KNOCKBACK = { base: 120, decay: 9 } as const;

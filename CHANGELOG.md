@@ -2,6 +2,7 @@
 
 ## 0.1.0 — 2026-10-27
 
+- feat(run): cada enemigo suelta una sola bolita de experiencia con todo su valor y los irradiados tres; los lagos de ácido ya no llevan el borde verde.
 - feat(run): cámara más cerca (vista de 820×460, antes 1100×620); aparecen un 30 % menos de enemigos pero cada uno da ×2,5 de experiencia; números de daño activados por defecto (también en partidas guardadas), pequeños, y críticos más grandes.
 - feat(dot): Dot empieza con la pistola de clavos en vez de la llave.
 - feat(run): mapa sin bordes en ninguna dirección (suelo y charcos generados por casilla con la semilla); radar arriba a la derecha con botiquín, imán, bomba, suministros y cofre por colores y flechas en el borde hacia los que quedan lejos; HUD de terminal de fósforo más grande (vida, radiación, armas con nivel en pips); 3 armas como mucho (la inicial y dos más) y cada minijefe da siempre su arma en un hueco extra: Rey Rata → rifle de cerrojo, Dirigible → tesla de pecho.

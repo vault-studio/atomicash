@@ -79,6 +79,15 @@ describe('radiación (02_GAMEPLAY.md §6)', () => {
   });
 });
 
+describe('bolitas de experiencia', () => {
+  it('un enemigo normal suelta una sola bolita con toda su experiencia', () => {
+    const w = quiet();
+    killEnemy(w, spawnEnemy(w, 'saqueador', 0, 0, false), 'llave');
+    expect(w.pickups.count).toBe(XP.killGems);
+    expect(w.pickups.items[0]!.val).toBe(Math.round(ENEMY_STATS.saqueador.xp * XP.killMult));
+  });
+});
+
 describe('irradiados', () => {
   it('más PV, el doble de chatarra y su golpe da RAD', () => {
     const w = quiet();
@@ -88,6 +97,7 @@ describe('irradiados', () => {
     killEnemy(w, i, 'llave');
     const xp = w.pickups.items.slice(0, w.pickups.count).reduce((s, k) => s + k.val, 0);
     expect(xp).toBe(ENEMY_STATS.saqueador.xp * XP.killMult * IRRADIATED.xp);
+    expect(w.pickups.count).toBe(XP.rareGems);
     const r = spawnEnemy(w, 'necrofago', w.player.x + 5, w.player.y, true);
     r.atkCd = 0;
     tick(w, STILL, STEP);
