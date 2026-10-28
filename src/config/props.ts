@@ -26,6 +26,11 @@ export const PROPS = {
   /** Medio grosor de los de 2 casillas, en fracción de la casilla. */
   longR: 0.25,
   /**
+   * Escala de los de 2 casillas sobre su huella (coche, tubería, sacos, valla, quitamiedos, tronco); el choque se
+   * encoge igual. DECISIÓN: llenando las 2 casillas un coche medía casi 4 personajes de alto; a 0,6 queda creíble.
+   */
+  longScale: 0.6,
+  /**
    * Edificios de 3×3: medio lado del núcleo y redondeo, en fracción de la casilla (llega a 1,2 de los 1,5 de cada
    * lado). DECISIÓN: de 3×3 y no de 2×2 para que impongan al lado del personaje; además la lámina se usa casi a su
    * resolución.
@@ -97,7 +102,9 @@ const indicesWith = (cells: number): number[] =>
 export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indicesWith(9) } as const;
 
 /** Escala de cada objeto respecto a una baldosa. */
-export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) => (p.cells === 1 ? PROPS.scale : 1));
+export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) =>
+  p.cells === 1 ? PROPS.scale : p.cells === 2 ? PROPS.longScale : 1,
+);
 
 /** Tipo de edificio de cada objeto, o null si no es edificio. */
 export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map((p) => BUILDINGS.byFile[p.file] ?? null);
@@ -108,7 +115,7 @@ export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map((p)
  * fw/256 · T·√2 · overlap · escala.
  */
 export const PROP_SHAPES: readonly PropShape[] = PROP_LIST.map((p, k) => {
-  if (p.cells === 2) return { hx: T / 2, hy: 0, r: T * PROPS.longR };
+  if (p.cells === 2) return { hx: (T / 2) * PROPS.longScale, hy: 0, r: T * PROPS.longR * PROPS.longScale };
   if (p.cells === 9) return { hx: T * PROPS.bigHalf, hy: T * PROPS.bigHalf, r: T * PROPS.bigR };
   const r = ((p.fw / PROPS.tileWidth) * T * Math.SQRT2 * PROPS.overlap * PROP_SCALE[k]! * PROPS.hit) / 2;
   return { hx: 0, hy: 0, r };
