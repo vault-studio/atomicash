@@ -77,7 +77,7 @@ export function defaultSettings(): Settings {
     musicVol: 0.5,
     sfxVol: 0.7,
     crtFilter: true,
-    damageNumbers: false,
+    damageNumbers: true,
     language: defaultLanguage(),
     reduceMotion: typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches,
   };
@@ -242,9 +242,11 @@ export function normalize(raw: unknown): SaveData {
 
 /** Migración del store persistido: de cualquier versión anterior a la actual. */
 export function migrate(persisted: unknown, fromVersion: number): SaveData {
-  void fromVersion;
   // v0 (prototipo) → v1: mismos campos con otros nombres; `normalize` los recoge.
-  return normalize(persisted);
+  const s = normalize(persisted);
+  // v1 → v2: los números de daño pasan a estar activados por defecto.
+  if (fromVersion < 2) s.settings.damageNumbers = true;
+  return s;
 }
 
 const EXPORT_TAG = 'atomicash-save';

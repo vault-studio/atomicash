@@ -81,6 +81,8 @@ export const XP = {
   /** Velocidad inicial y aceleración de una gema atraída por el imán, en px/s y px/s². */
   pullSpeed: 250,
   pullAccel: 900,
+  /** Multiplicador de la experiencia que suelta cada enemigo (ver SPAWN.rateMult). */
+  killMult: 2.5,
 } as const;
 
 export const KNOCKBACK = { base: 120, decay: 9 } as const;

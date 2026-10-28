@@ -122,7 +122,10 @@ export function updateSpawning(w: World, dt: number): void {
   }
 
   const rate =
-    wave.rate * (w.rain > 0 ? EVENTS.rain.spawnMult : 1) * (w.bossAlive > 0 ? SPAWN.bossRateMult : 1);
+    wave.rate *
+    SPAWN.rateMult *
+    (w.rain > 0 ? EVENTS.rain.spawnMult : 1) *
+    (w.bossAlive > 0 ? SPAWN.bossRateMult : 1);
   w.spawnAcc += rate * dt;
   let alive = pool.count - w.bossAlive;
   while (w.spawnAcc >= 1) {

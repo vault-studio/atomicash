@@ -80,6 +80,12 @@ export const SPAWN = {
   staticMax: 600,
   /** Con un jefe vivo aparecen menos enemigos. */
   bossRateMult: 0.7,
+  /**
+   * Multiplicador global del ritmo de aparición de todas las oleadas.
+   * DECISIÓN: menos enemigos que dan mucha más experiencia (XP.killMult): se sube de nivel más a menudo con menos
+   * agobio en pantalla, ahora que la cámara está más cerca.
+   */
+  rateMult: 0.7,
   /** Rastros de babosa simultáneos. */
   maxSlime: 120,
 } as const;

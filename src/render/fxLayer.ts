@@ -232,7 +232,7 @@ export class TextLayer extends Container {
       if (this.kinds[used - 1] !== ft.kind) {
         this.kinds[used - 1] = ft.kind;
         tx.style.fill = RUN_COLORS.text[ft.kind];
-        tx.style.fontSize = ft.kind === 'crit' ? 17 : ft.kind === 'dmg' ? 11 : 13;
+        tx.style.fontSize = ft.kind === 'crit' ? 24 : ft.kind === 'dmg' ? 10 : 13;
       }
       const rise = (1 - ft.life / 0.8) * 30;
       tx.position.set(isoX(ft.x, ft.y), isoY(ft.x, ft.y) - 40 - rise);

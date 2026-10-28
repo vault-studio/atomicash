@@ -231,7 +231,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   w.kills++;
   sfx(w, SFX.kill);
   addCorpse(w, e);
-  const xp = e.xp * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
+  const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
   if (xp > 0) dropGems(w, e.x, e.y, xp);
   if (e.boss) {
     w.bosses++;

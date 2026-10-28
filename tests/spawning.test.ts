@@ -55,7 +55,7 @@ describe('oleadas', () => {
   it('respeta el ritmo de la primera oleada', () => {
     const w = passive(1);
     runCollecting(w, 10);
-    expect(w.enemies.count).toBe(Math.floor(WAVES[0]!.rate * 10));
+    expect(w.enemies.count).toBe(Math.floor(WAVES[0]!.rate * SPAWN.rateMult * 10));
   });
 
   it('no supera el máximo de vivos de la oleada', () => {

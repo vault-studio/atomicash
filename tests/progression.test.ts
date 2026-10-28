@@ -207,7 +207,7 @@ describe('daño y bajas', () => {
       if (w.choice) applyChoice(w, 0);
       kills = w.kills;
     }
-    expect(kills).toBeGreaterThan(50);
+    expect(kills).toBeGreaterThan(30);
     expect(w.shots.items).toBe(shots);
   });
 });

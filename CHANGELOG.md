@@ -2,6 +2,7 @@
 
 ## 0.1.0 — 2026-10-27
 
+- feat(run): cámara más cerca (vista de 820×460, antes 1100×620); aparecen un 30 % menos de enemigos pero cada uno da ×2,5 de experiencia; números de daño activados por defecto (también en partidas guardadas), pequeños, y críticos más grandes.
 - feat(dot): Dot empieza con la pistola de clavos en vez de la llave.
 - feat(run): mapa sin bordes en ninguna dirección (suelo y charcos generados por casilla con la semilla); radar arriba a la derecha con botiquín, imán, bomba, suministros y cofre por colores y flechas en el borde hacia los que quedan lejos; HUD de terminal de fósforo más grande (vida, radiación, armas con nivel en pips); 3 armas como mucho (la inicial y dos más) y cada minijefe da siempre su arma en un hueco extra: Rey Rata → rifle de cerrojo, Dirigible → tesla de pecho.
 - feat(run): recogibles de campo que sueltan al azar los enemigos al morir (0,6 % por baja, más con suerte): botiquín (cura 30 % de la vida, el más frecuente), imán (atrae la chatarra y estimulantes de la pantalla) y bomba (mata todo lo que se ve; a los jefes, 400 de daño; la más rara). A cambio, el daño recibido sube ~25 % (de 0,55→1,3 a 0,7→1,6 con el tiempo).

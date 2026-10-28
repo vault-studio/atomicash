@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { AI, BOSSES, ENEMY_STATS } from '../src/config/enemies';
 import { ITEMS } from '../src/config/items';
 import { IRRADIATED, RAD, radTier } from '../src/config/radiation';
-import { RUN } from '../src/config/run';
+import { RUN, XP } from '../src/config/run';
 import { EVENTS } from '../src/config/waves';
 import { hitEnemy, irradiatedChance, killEnemy } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
@@ -87,7 +87,7 @@ describe('irradiados', () => {
     expect(i.maxHp).toBeCloseTo(n.maxHp * IRRADIATED.hp);
     killEnemy(w, i, 'llave');
     const xp = w.pickups.items.slice(0, w.pickups.count).reduce((s, k) => s + k.val, 0);
-    expect(xp).toBe(ENEMY_STATS.saqueador.xp * IRRADIATED.xp);
+    expect(xp).toBe(ENEMY_STATS.saqueador.xp * XP.killMult * IRRADIATED.xp);
     const r = spawnEnemy(w, 'necrofago', w.player.x + 5, w.player.y, true);
     r.atkCd = 0;
     tick(w, STILL, STEP);

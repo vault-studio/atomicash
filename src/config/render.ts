@@ -34,10 +34,12 @@ export const SPRITES = {
 
 export const VIEW = {
   /** Vista de referencia; la escala de cámara se ajusta para que quepa. */
-  width: 1100,
-  height: 620,
+  // DECISIÓN: vista más cerca (antes 1100×620, tope 1.4): personajes y enemigos se ven más grandes, como en otros
+  // juegos del género; el radar compensa lo que se deja de ver.
+  width: 820,
+  height: 460,
   minScale: 0.45,
-  maxScale: 1.4,
+  maxScale: 2.4,
   /** Escala de la celda en pantalla = tamaño de la entidad × este valor. */
   scalePerSize: { characters: 0.32, enemies: 0.32, bosses: 0.14, props: 0.32 } satisfies Record<
     Category,

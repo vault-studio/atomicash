@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GACHA, RARITIES, STARS, UPGRADES, upgradeCost } from '../src/config/meta';
+import { GACHA, RARITIES, SAVE, STARS, UPGRADES, upgradeCost } from '../src/config/meta';
 import { SURVIVORS } from '../src/config/survivors';
 import {
   applyRun,
@@ -277,7 +277,8 @@ describe('guardado', () => {
       settings: { musicVol: 2, language: 'en' },
     };
     const s = migrate(v0, 0);
-    expect(s.version).toBe(1);
+    expect(s.version).toBe(SAVE.version);
+    expect(s.settings.damageNumbers).toBe(true);
     expect(s.profile.credits).toBe(77);
     expect(s.profile.active).toBe('mae');
     expect(s.survivors.mae!.implant).toBe('cortex');
