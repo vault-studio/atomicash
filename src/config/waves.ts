@@ -13,6 +13,8 @@ export interface WaveDef {
   readonly mix: Readonly<Partial<Record<StatEnemyId, number>>>;
 }
 
+// DECISIÓN: cada jefe llega con un minuto de respiro (menos enemigos y de los flojos) a su hora (BOSSES.at); entre
+// respiros, la dificultad sube al mismo ritmo que antes. Si el jefe sale antes por bajas, el respiro sigue a su hora.
 export const WAVES: readonly WaveDef[] = [
   { from: 0, rate: 1.3, max: 40, mix: { dron: 6, necrofago: 4 } },
   { from: 60, rate: 2.0, max: 70, mix: { dron: 5, necrofago: 5, saqueador: 2 } },
@@ -22,34 +24,36 @@ export const WAVES: readonly WaveDef[] = [
     max: 100,
     mix: { necrofago: 4, saqueador: 3, reptador: 3, dron: 3, aspiradora: 1 },
   },
+  // Respiro: Rey Rata (minuto 3)
+  { from: 180, rate: 2.2, max: 90, mix: { dron: 5, necrofago: 4, saqueador: 3 } },
   {
-    from: 200,
+    from: 240,
     rate: 3.2,
     max: 130,
     mix: { saqueador: 4, reptador: 3, tirador: 2, hinchado: 2, aspiradora: 2, dron: 3 },
   },
-  // Respiro (minuto 5)
-  { from: 300, rate: 3.0, max: 120, mix: { dron: 5, necrofago: 4, saqueador: 3 } },
   {
-    from: 360,
+    from: 300,
     rate: 3.8,
     max: 160,
     mix: { saqueador: 4, tirador: 2, hinchado: 2, babosa: 2, aspiradora: 3, reptador: 3 },
   },
+  // Respiro: Dirigible (minuto 6)
+  { from: 360, rate: 3.0, max: 120, mix: { dron: 5, necrofago: 4, saqueador: 3, reptador: 2 } },
   {
-    from: 450,
+    from: 420,
     rate: 4.4,
     max: 190,
     mix: { cortacesped: 2, saqueador: 4, babosa: 2, reptador: 3, tirador: 2, aspiradora: 2, necrofago: 3 },
   },
   {
-    from: 540,
+    from: 510,
     rate: 5.0,
     max: 220,
     mix: { cortacesped: 3, torreta: 1, saqueador: 4, babosa: 3, hinchado: 3, reptador: 3 },
   },
-  // Respiro (minuto 10)
-  { from: 600, rate: 4.0, max: 180, mix: { dron: 5, necrofago: 4, saqueador: 3, reptador: 2 } },
+  // Respiro: Coloso (minuto 10)
+  { from: 600, rate: 4.0, max: 180, mix: { necrofago: 4, saqueador: 3, reptador: 3, dron: 5 } },
   {
     from: 660,
     rate: 5.6,
@@ -62,8 +66,6 @@ export const WAVES: readonly WaveDef[] = [
     max: 300,
     mix: { cortacesped: 4, torreta: 2, babosa: 3, aspiradora: 4, saqueador: 4, reptador: 4, hinchado: 2 },
   },
-  // Respiro (minuto 14)
-  { from: 840, rate: 5.0, max: 240, mix: { necrofago: 4, saqueador: 3, reptador: 3, dron: 5 } },
 ];
 
 export const SPAWN = {

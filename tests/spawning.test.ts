@@ -70,12 +70,12 @@ describe('oleadas', () => {
     const first = runCollecting(w, 59);
     expect(new Set(first.map((s) => s.type))).toEqual(new Set(Object.keys(WAVES[0]!.mix)));
 
-    // Saltamos al minuto 4: la oleada de 200 s incluye tiradores e hinchados.
+    // Saltamos al minuto 4: la oleada de 240 s incluye tiradores e hinchados.
     const w2 = createWorld('dot', 7, { hazards: false });
-    w2.time = 200;
+    w2.time = 240;
     w2.bossSpawned.rey_rata = true;
     const later = runCollecting(w2, 30);
-    const allowed = new Set(Object.keys(WAVES[3]!.mix));
+    const allowed = new Set(Object.keys(WAVES[4]!.mix));
     expect(later.length).toBeGreaterThan(0);
     for (const s of later) expect(allowed.has(s.type), s.type).toBe(true);
   });
