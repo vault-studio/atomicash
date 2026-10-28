@@ -91,7 +91,6 @@ const createPoint = (): Point => ({ x: 0, y: 0 });
 /** Charcos en el centro de casillas del suelo, sin repetir casilla ni tocar el borde del mapa. */
 function makeHazards(rng: () => number, M: number): Hazard[] {
   const { n, T } = groundGrid(M);
-  const r = T * HAZARDS.cellRadius;
   const out: Hazard[] = [];
   const used = new Set<number>();
   let guard = 0;
@@ -105,7 +104,8 @@ function makeHazards(rng: () => number, M: number): Hazard[] {
     const dy = y - M / 2;
     if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) continue;
     used.add(j * n + i);
-    out.push({ x, y, r });
+    const k = Math.floor(rng() * HAZARDS.cellRadii.length);
+    out.push({ x, y, r: T * HAZARDS.cellRadii[k]! });
   }
   return out;
 }

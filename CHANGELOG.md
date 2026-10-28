@@ -2,6 +2,7 @@
 
 ## 0.1.0 — 2026-10-27
 
+- feat(suelo): suelos nuevos de arena (casi siempre la lisa) con decoración salpicada (poste, trinchera, bidones, valla, barrera, señales, árbol, surtidor, coche) y lagos de ácido en dos tamaños según el charco (60 charcos); lo que sobresale de las baldosas va en la capa de actores para que los personajes pasen por detrás. Fuera las láminas de yermo, limpio y deco anteriores.
 - feat(suelo): base de tierra limpia (nueva lámina `tiles_limpio`) con el yermo de piedras en solo un 5 % de casillas; piedras, objetos y lagos se funden con la tierra (borde desvanecido sobre una baldosa limpia y tono igualado) y se aplana la luz de cada baldosa para que no se note la rejilla.
 - feat(suelo): páramo de yermo con decoración dispersa (60 baldosas nuevas recortadas de dos láminas con `tools/slice_tiles.py`), y los charcos radiactivos pasan a ser casillas enteras con un lago de ácido pintado justo donde hacen daño (80 charcos de radio fijo en vez de 45 círculos sueltos).
 - fix(suelo): baldosas a escala de los personajes (lado de 320 a 120 px de mundo: se dibujan reducidas y nítidas en vez de ampliadas 1,8×), más peso a la tierra lisa, fuera el tramo de carretera suelto y espejo horizontal al azar para que se note menos la repetición.

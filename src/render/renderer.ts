@@ -2,6 +2,7 @@
 import { Application, Assets, Container, Graphics, Sprite, Text, type Texture } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, RUN_COLORS, TILES, VIEW, type TileIndex, type TileInfo } from '../config/render';
+import { HAZARDS } from '../config/radiation';
 import { groundGrid } from '../config/run';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
@@ -16,35 +17,48 @@ const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > 
 interface GroundTile {
   readonly tex: Texture;
   readonly head: number;
-  readonly fade: boolean;
+  /** Lo que sobresale, para ordenarlo con los personajes. */
+  readonly top: Texture | null;
+  readonly acid: number;
+  readonly weight: number;
 }
 
 interface GroundTiles {
-  readonly clean: readonly GroundTile[];
-  readonly stony: readonly GroundTile[];
+  readonly sand: readonly GroundTile[];
   readonly deco: readonly GroundTile[];
+  /** Lagos de ácido, de menor a mayor. */
   readonly acid: readonly GroundTile[];
 }
 
 /** Carga `tiles.json` y sus texturas; las que fallen se saltan. */
 async function loadGroundTiles(): Promise<GroundTiles> {
   const index = await Assets.load<TileIndex>(TILES.index);
-  const load = async (set: readonly TileInfo[]): Promise<(GroundTile & { acid: boolean })[]> => {
+  const load = async (set: readonly TileInfo[], weights?: readonly number[]): Promise<GroundTile[]> => {
     const out = await Promise.all(
-      set.map((t) =>
-        Assets.load<Texture>(TILES.dir + t.file)
-          .then((tex) => ({ tex, head: t.head, acid: t.acid, fade: t.fade === true }))
-          .catch(() => null),
-      ),
+      set.map(async (t, i) => {
+        try {
+          const [tex, top] = await Promise.all([
+            Assets.load<Texture>(TILES.dir + t.file),
+            t.top ? Assets.load<Texture>(TILES.dir + t.top) : Promise.resolve(null),
+          ]);
+          return { tex, top, head: t.head, acid: t.acid ?? 0, weight: weights?.[i] ?? 1 };
+        } catch {
+          return null;
+        }
+      }),
     );
-    return out.filter((t) => t !== null);
+    return out.filter((t) => t !== null && t.weight > 0) as GroundTile[];
   };
-  const [clean, stony, deco] = await Promise.all([
-    load(index.sets.limpio),
-    load(index.sets.yermo),
-    load(index.sets.deco),
+  const [sand, ...decoSets] = await Promise.all([
+    load(index.sets[TILES.sand] ?? [], TILES.sandWeights),
+    ...TILES.deco.map((name) => load(index.sets[name] ?? [])),
   ]);
-  return { clean, stony, deco: deco.filter((t) => !t.acid), acid: deco.filter((t) => t.acid) };
+  const deco = decoSets.flat();
+  return {
+    sand: sand ?? [],
+    deco: deco.filter((t) => t.acid === 0),
+    acid: deco.filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
+  };
 }
 
 export interface DebugInfo {
@@ -142,14 +156,26 @@ export class GameRenderer {
   }
 
   /**
-   * Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla): tierra
-   * limpia casi siempre, yermo con piedras y decoración de vez en cuando y lago de ácido justo en las casillas con charco radiactivo.
+   * Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla): arena casi
+   * siempre, decoración de vez en cuando y lago de ácido, del tamaño del charco, en las casillas con charco
+   * radiactivo. Lo que sobresale de una baldosa (árbol, poste, señales) va a la capa de actores, ordenado por
+   * profundidad, para que los personajes puedan pasar por detrás.
    */
   private tileGround(w: World, tiles: GroundTiles | null): Container {
     const layer = new Container();
-    if (!tiles || tiles.clean.length === 0) return layer;
+    if (!tiles || tiles.sand.length === 0) return layer;
     const { n, T } = groundGrid(w.mapSize);
-    const acidCells = new Set(w.hazards.map((h) => Math.floor(h.y / T) * n + Math.floor(h.x / T)));
+    const radii = HAZARDS.cellRadii;
+    const acidAt = new Map<number, GroundTile>();
+    for (const hz of w.hazards) {
+      // El índice del radio entre los posibles elige el lago, de menor a mayor.
+      let k = 0;
+      for (let r = 1; r < radii.length; r++)
+        if (Math.abs(hz.r / T - radii[r]!) < Math.abs(hz.r / T - radii[k]!)) k = r;
+      const lake = tiles.acid[Math.round((k / Math.max(1, radii.length - 1)) * (tiles.acid.length - 1))];
+      if (lake) acidAt.set(Math.floor(hz.y / T) * n + Math.floor(hz.x / T), lake);
+    }
+    const sandTotal = tiles.sand.reduce((a, t) => a + t.weight, 0);
     // Un lado T del mundo mide T·√2 de ancho en la vista isométrica.
     const scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
     let h = (w.seed ^ 0x9e3779b9) >>> 0;
@@ -158,35 +184,45 @@ export class GameRenderer {
       h = (h ^ (h >>> 13)) >>> 0;
       return h / 4294967296;
     };
-    const pick = (set: readonly GroundTile[]): GroundTile | undefined => set[Math.floor(next() * set.length)];
-    // Por filas de atrás adelante: lo que sobresale de una baldosa tapa a la de detrás, no al revés.
+    const sand = (): GroundTile => {
+      let r = next() * sandTotal;
+      let k = 0;
+      while (k < tiles.sand.length - 1 && r >= tiles.sand[k]!.weight) r -= tiles.sand[k++]!.weight;
+      return tiles.sand[k]!;
+    };
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
         const roll = next();
-        const t = acidCells.has(j * n + i)
-          ? (pick(tiles.acid) ?? pick(tiles.clean))
-          : roll < TILES.decoChance
-            ? (pick(tiles.deco) ?? pick(tiles.clean))
-            : roll < TILES.decoChance + TILES.stonyChance
-              ? (pick(tiles.stony) ?? pick(tiles.clean))
-              : pick(tiles.clean);
-        if (!t) continue;
-        const x = isoX((i + 0.5) * T, (j + 0.5) * T);
-        const y = isoY((i + 0.5) * T, (j + 0.5) * T);
-        // Lo que se desvanece hacia el borde necesita tierra limpia debajo.
-        const base = t.fade ? pick(tiles.clean) : undefined;
-        if (base) layer.addChild(this.groundSprite(base, x, y, scale, h & 2 ? -1 : 1));
+        const t =
+          acidAt.get(j * n + i) ??
+          (roll < TILES.decoChance ? tiles.deco[Math.floor(next() * tiles.deco.length)] : undefined) ??
+          sand();
+        const wx = (i + 0.5) * T;
+        const wy = (j + 0.5) * T;
         // Espejo horizontal al azar: el rombo sigue encajando y se repite menos.
-        layer.addChild(this.groundSprite(t, x, y, scale, h & 1 ? -1 : 1));
+        const flip = next() < 0.5 ? -1 : 1;
+        layer.addChild(this.groundSprite(t, t.tex, isoX(wx, wy), isoY(wx, wy), scale, flip));
+        if (t.top) {
+          const top = this.groundSprite(t, t.top, isoX(wx, wy), isoY(wx, wy), scale, flip);
+          top.zIndex = wx + wy;
+          this.actors.addChild(top);
+        }
       }
     }
     return layer;
   }
 
-  private groundSprite(t: GroundTile, x: number, y: number, scale: number, flip: 1 | -1): Sprite {
-    const s = new Sprite(t.tex);
+  private groundSprite(
+    t: GroundTile,
+    tex: Texture,
+    x: number,
+    y: number,
+    scale: number,
+    flip: number,
+  ): Sprite {
+    const s = new Sprite(tex);
     // El centro del rombo, no el de la imagen: la parte de arriba es lo que sobresale.
-    s.anchor.set(0.5, (t.head + (t.tex.height - t.head) / 2) / t.tex.height);
+    s.anchor.set(0.5, (t.head + (tex.height - t.head) / 2) / tex.height);
     s.scale.set(flip * scale, scale);
     s.tint = TILES.tint;
     s.position.set(x, y);

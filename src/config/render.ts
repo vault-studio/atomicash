@@ -91,20 +91,23 @@ export const RUN_COLORS = {
 } as const;
 
 /**
- * Baldosas de suelo recortadas de las láminas de ARTE/ (limpio, yermo y deco) con tools/slice_tiles.py (rombo 2:1
- * de 256×128). `tiles.json` dice qué baldosa de decoración lleva lago de ácido y cuánto sobresale por arriba.
- * DECISIÓN: la base es tierra limpia (arena y matojos), que deja leer bien a personajes y proyectiles; el yermo
- * con piedras sale poco, para romper la monotonía sin ensuciar; la decoración (bidones, cajas, coches, vallas…)
- * en una de cada ~14 casillas, y los lagos de ácido solo donde hay charco radiactivo: el verde en el suelo
- * siempre significa daño.
+ * Baldosas de suelo recortadas de las láminas de ARTE/ (arena y dos de decoración) con tools/slice_tiles.py (rombo
+ * 2:1 de 256×128). `tiles.json` dice qué baldosa lleva lago de ácido, cuánto sobresale por arriba y si lo que
+ * sobresale va aparte (`top`) para ordenarlo con los personajes.
+ * DECISIÓN: casi todo es arena, sobre todo la lisa sin matojos (deja leer bien personajes y proyectiles); la
+ * decoración (poste, trinchera, bidones, valla, barrera, señales, árbol, surtidor, coche) sale en una de cada ~14
+ * casillas, y los lagos de ácido solo donde hay charco radiactivo: el verde en el suelo siempre significa daño.
  */
 export const TILES = {
   dir: 'assets/tiles/',
   index: 'assets/tiles/tiles.json',
+  /** Lámina de arena y peso de cada una de sus baldosas (la 1 y la 4 son arena lisa). */
+  sand: 'arena',
+  sandWeights: [1, 6, 1, 1, 6, 1] as readonly number[],
+  /** Láminas de decoración; sus baldosas con ácido son los lagos. */
+  deco: ['deco_a', 'deco_b'] as readonly string[],
   /** Probabilidad de que una casilla sin charco lleve decoración. */
   decoChance: 0.07,
-  /** Probabilidad de que una casilla sin charco ni decoración sea yermo con piedras en vez de tierra limpia. */
-  stonyChance: 0.05,
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
   /** Oscurece el suelo para que destaquen los personajes. */
@@ -118,17 +121,14 @@ export interface TileInfo {
   readonly file: string;
   /** Px de la imagen por encima del rombo (objetos que sobresalen). */
   readonly head: number;
-  readonly acid: boolean;
-  /** La cara se desvanece hacia el borde: va encima de una baldosa limpia. */
-  readonly fade?: boolean;
+  /** Fracción de la cara cubierta de ácido, si la hay. */
+  readonly acid?: number;
+  /** Lo que sobresale, aparte, en el mismo lienzo que `file`. */
+  readonly top?: string;
 }
 
 export interface TileIndex {
   readonly width: number;
   readonly height: number;
-  readonly sets: {
-    readonly limpio: readonly TileInfo[];
-    readonly yermo: readonly TileInfo[];
-    readonly deco: readonly TileInfo[];
-  };
+  readonly sets: Readonly<Record<string, readonly TileInfo[]>>;
 }

@@ -32,13 +32,16 @@ export const RAD = {
 
 /**
  * Charcos radiactivos fijos del mapa: cada uno es una casilla del suelo con un lago de ácido pintado.
- * DECISIÓN: antes eran 45 círculos de radio 55–110 en cualquier sitio; al pegarlos a las casillas (radio 0,42 de
- * casilla, ~50 px) se suben a 80 para que el páramo siga igual de salpicado, con algo menos de área total.
+ * DECISIÓN: antes eran 45 círculos de radio 55–110 en cualquier sitio; ahora van pegados a casillas, en dos tamaños
+ * que corresponden a los dos lagos pintados (pequeño y grande), y hay 60: algunos más que objetos de decoración.
  */
 export const HAZARDS = {
-  count: 80,
-  /** Radio del daño en fracción del lado de la casilla (el lago pintado ocupa algo más de la mitad del rombo). */
-  cellRadius: 0.42,
+  count: 60,
+  /**
+   * Radios posibles del daño en fracción del lado de la casilla, de menor a mayor; el render pinta el lago que
+   * corresponde a cada uno (el pequeño ocupa ~media cara, el grande casi toda).
+   */
+  cellRadii: [0.25, 0.42] as readonly number[],
   /** Radio libre alrededor del punto de inicio. */
   safe: 350,
 } as const;
