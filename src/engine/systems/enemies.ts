@@ -26,6 +26,7 @@ import {
   type Telegraph,
   type World,
 } from '../types';
+import { blockCircle, hitsObstacle } from '../obstacles';
 import { hurtPlayer, irradiatedChance } from './combat';
 
 const TAU = Math.PI * 2;
@@ -519,6 +520,8 @@ export function updateEnemies(w: World, dt: number): void {
     const ny = e.y + (vy + e.kby) * dt + sy;
     e.x = nx;
     e.y = ny;
+    // Los de tierra rodean los obstáculos; los voladores pasan por encima.
+    if (!e.flying && e.type !== 'torreta') blockCircle(w, e, e.r, vx + e.kbx, vy + e.kby, e.side);
     e.kbx *= kd;
     e.kby *= kd;
 
@@ -558,7 +561,7 @@ export function updateEnemyBullets(w: World, dt: number): void {
     b.x += b.vx * dt;
     b.y += b.vy * dt;
     b.life -= dt;
-    if (b.life <= 0) {
+    if (b.life <= 0 || hitsObstacle(w, b.x, b.y)) {
       pool.releaseAt(i);
       continue;
     }

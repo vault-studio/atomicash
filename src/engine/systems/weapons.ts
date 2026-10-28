@@ -14,6 +14,7 @@ import {
   type Weapon,
   type World,
 } from '../types';
+import { hitsObstacle } from '../obstacles';
 import { HIT_DIRECT, HIT_KB_DIR, HIT_MELEE, hitEnemy, nearest, queryEnemies } from './combat';
 
 const TAU = Math.PI * 2;
@@ -569,7 +570,7 @@ export function updateShots(w: World, dt: number): void {
     s.x += s.vx * dt;
     s.y += s.vy * dt;
     s.life -= dt;
-    let done = s.life <= 0;
+    let done = s.life <= 0 || hitsObstacle(w, s.x, s.y);
     if (!done) {
       const k = queryEnemies(w, s.x, s.y, s.r, out);
       for (let q = 0; q < k; q++) {

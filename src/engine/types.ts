@@ -379,9 +379,14 @@ export interface World {
   readonly slimes: Pool<Slime>;
   /** Charcos alrededor del jugador (el mapa no tiene bordes; ver engine/hazards.ts). */
   hazards: readonly Hazard[];
+  /** Con charcos y obstáculos (las pruebas los quitan para tener el campo limpio). */
   readonly hazardsOn: boolean;
   /** Casilla del jugador cuando se calcularon `hazards`. */
   readonly hazardCell: { i: number; j: number };
+  /** Radios de los obstáculos de las casillas alrededor del jugador (ver engine/obstacles.ts). */
+  readonly obstacles: Float32Array;
+  /** Casilla del jugador cuando se calcularon `obstacles`. */
+  readonly obstacleCell: { i: number; j: number };
   /** Punto de inicio de la run (alrededor no hay charcos). */
   readonly start: { readonly x: number; readonly y: number };
   readonly pickups: Pool<Pickup>;

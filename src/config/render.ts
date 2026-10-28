@@ -138,16 +138,8 @@ export const TILES = {
   deco: [] as readonly string[],
   /** Probabilidad de que una casilla sin charco lleve decoración. */
   decoChance: 0.07,
-  /** Objetos sueltos (sin baldosa) de tools/slice_props.py, a la misma escala que las baldosas. */
+  /** Objetos sueltos (sin baldosa) de tools/slice_props.py; qué hay y dónde, en config/props.ts. */
   propsDir: 'assets/props/',
-  propsIndex: 'assets/props/props.json',
-  /** Probabilidad de que una casilla de arena lleve un objeto encima; en las de ácido nunca. */
-  propChance: 0.07,
-  /**
-   * Escala de los objetos respecto a las baldosas.
-   * DECISIÓN: a la escala de la lámina un contenedor doblaba al personaje; a la mitad queda un bidón por la cintura.
-   */
-  propScale: 0.5,
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
   /** Oscurece el suelo para que destaquen los personajes. */
@@ -165,18 +157,6 @@ export interface TileInfo {
   readonly acid?: number;
   /** Lo que sobresale, aparte, en el mismo lienzo que `file`. */
   readonly top?: string;
-}
-
-/** Lo que escribe tools/slice_props.py en `props.json`. */
-export interface PropInfo {
-  readonly file: string;
-  /** Punto de apoyo (centro de la huella), en fracción del ancho y del alto de la imagen. */
-  readonly ax: number;
-  readonly ay: number;
-}
-
-export interface PropIndex {
-  readonly props: readonly PropInfo[];
 }
 
 export interface TileIndex {

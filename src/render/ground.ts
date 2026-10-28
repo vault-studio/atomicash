@@ -2,9 +2,11 @@
 // Cada casilla elige su baldosa con un hash de la semilla, así que el mismo sitio se ve siempre igual.
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import { HAZARDS } from '../config/radiation';
-import { RUN_COLORS, TILES, type PropIndex, type TileIndex, type TileInfo } from '../config/render';
+import { PROP_LIST, PROPS } from '../config/props';
+import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
 import { RUN } from '../config/run';
 import { cellRand, hazardAt } from '../engine/hazards';
+import { propAt } from '../engine/obstacles';
 import type { World } from '../engine/types';
 import { isoX, isoY } from './iso';
 
@@ -33,27 +35,21 @@ export interface GroundTiles {
   readonly deco: readonly GroundTile[];
   /** Lagos de ácido, de menor a mayor. */
   readonly acid: readonly GroundTile[];
-  /** Objetos sueltos que van encima de la arena. */
-  readonly props: readonly Prop[];
+  /** Objetos sueltos que van encima de la arena, en el orden de `PROP_LIST`; null si no cargó. */
+  readonly props: readonly (Prop | null)[];
 }
 
-/** Carga `props.json` y sus texturas; si falta, no hay objetos. */
-async function loadProps(): Promise<Prop[]> {
-  try {
-    const index = await Assets.load<PropIndex>(TILES.propsIndex);
-    const out = await Promise.all(
-      index.props.map(async (p) => {
-        try {
-          return { tex: await Assets.load<Texture>(TILES.propsDir + p.file), ax: p.ax, ay: p.ay };
-        } catch {
-          return null;
-        }
-      }),
-    );
-    return out.filter((p) => p !== null);
-  } catch {
-    return [];
-  }
+/** Carga las texturas de los objetos; las que fallen quedan a null (el obstáculo sigue estando). */
+function loadProps(): Promise<(Prop | null)[]> {
+  return Promise.all(
+    PROP_LIST.map(async (p) => {
+      try {
+        return { tex: await Assets.load<Texture>(TILES.propsDir + p.file), ax: p.ax, ay: p.ay };
+      } catch {
+        return null;
+      }
+    }),
+  );
 }
 
 /** Carga `tiles.json` y sus texturas; las que fallen se saltan. */
@@ -187,12 +183,12 @@ export class GroundView {
           const top = this.place(this.topSprite(), t, t.top, x, y);
           top.zIndex = wx + wy;
         }
-        const prop = hz < 0 && t.acid === 0 ? this.pickProp(i, j) : undefined;
+        const prop = this.tiles?.props[propAt(seed, i, j, start.x, start.y)];
         if (prop) {
           const s = this.topSprite();
           s.texture = prop.tex;
           s.anchor.set(prop.ax, prop.ay);
-          s.scale.set(this.scale * TILES.propScale);
+          s.scale.set(this.scale * PROPS.scale);
           s.position.set(x, y);
           s.visible = true;
           s.zIndex = wx + wy;
@@ -218,18 +214,6 @@ export class GroundView {
     let k = 0;
     while (k < tiles.sand.length - 1 && r >= tiles.sand[k]!.weight) r -= tiles.sand[k++]!.weight;
     return tiles.sand[k];
-  }
-
-  private pickProp(i: number, j: number): Prop | undefined {
-    const props = this.tiles?.props;
-    const seed = this.world.seed;
-    if (!props || props.length === 0 || cellRand(seed, i, j, 6) >= TILES.propChance) return undefined;
-    // Como los charcos, ninguno junto a la salida.
-    const { start } = this.world;
-    const dx = (i + 0.5) * T - start.x;
-    const dy = (j + 0.5) * T - start.y;
-    if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) return undefined;
-    return props[Math.floor(cellRand(seed, i, j, 7) * props.length)];
   }
 
   private sprite(): Sprite {

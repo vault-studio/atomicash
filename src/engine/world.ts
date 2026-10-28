@@ -8,6 +8,7 @@ import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS } from '../config/waves';
 import { refreshHazards } from './hazards';
+import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
@@ -163,6 +164,8 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     hazards: [],
     hazardsOn: opts.hazards !== false,
     hazardCell: { i: Number.NaN, j: Number.NaN },
+    obstacles: createObstacleGrid(),
+    obstacleCell: { i: Number.NaN, j: Number.NaN },
     start: { x: c, y: c },
     pickups: new Pool(createPickup, 400),
     gemCount: 0,
@@ -196,6 +199,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   recalc(w);
   w.player.hp = w.st.maxHp;
   refreshHazards(w);
+  refreshObstacles(w);
   return w;
 }
 
@@ -219,6 +223,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
     p.facingY = uy;
     p.x += ux * k;
     p.y += uy * k;
+    blockCircle(w, p, p.r, ux, uy, 1);
   }
   p.inv -= dt;
   p.turbo -= dt;
@@ -269,6 +274,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   recalc(w);
   updatePlayer(w, input, dt);
   refreshHazards(w);
+  refreshObstacles(w);
   updateRadiation(w, dt);
 
   w.enemyGrid.build(w.enemies.items, w.enemies.count);

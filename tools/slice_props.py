@@ -1,5 +1,5 @@
 # Recorta los objetos sueltos de las láminas de ARTE/ (fondo negro, sin baldosa debajo) a PNG con transparencia en
-# assets/props/ y escribe assets/props/props.json con su tamaño y su punto de apoyo.
+# assets/props/ y escribe assets/props/props.json con su tamaño, su punto de apoyo y el ancho de su base.
 # Uso: python tools/slice_props.py
 #
 # Cada objeto es una mancha separada de las demás; los trozos sueltos (piedrecillas, sombra) se juntan con el
@@ -21,7 +21,9 @@ BLACK = 10  # canal máximo por debajo del cual es fondo
 SOFT = 40  # desde BLACK hasta BLACK + SOFT el fondo pasa a opaco (sombras suaves)
 JOIN = 18  # px de dilatación para juntar los trozos sueltos de un objeto
 PAD = 2
-BAND = 0.2  # fracción de abajo del objeto que se toma como su base
+BAND = 0.5  # fracción de abajo del objeto que se toma como su base
+# Objetos descartados (nombre_índice): farola y carrito.
+SKIP = {'obj_b_01', 'obj_b_02'}
 SHEETS = {
     'obj_a': Path('ARTE/objetos_1x1_a.webp'),
     'obj_b': Path('ARTE/objetos_1x1_b.webp'),
@@ -43,6 +45,8 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
     objs.sort(key=lambda b: (round((b[0] + b[1]) / 2 / (img.shape[0] / 2) - 0.5), b[2]))
     out = []
     for i, (y0, y1, x0, x1) in enumerate(objs):
+        if f'{name}_{i:02d}' in SKIP:
+            continue
         y0, x0 = max(0, y0 - PAD), max(0, x0 - PAD)
         y1, x1 = min(img.shape[0], y1 + PAD), min(img.shape[1], x1 + PAD)
         rgb = img[y0:y1, x0:x1]
@@ -58,7 +62,15 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         cols = np.where(band)[0]
         cx = (cols.min() + cols.max() + 1) / 2 * SCALE
         foot_y = (bottom - (cols.max() - cols.min()) / 4) * SCALE
-        info = {'file': f'{name}_{i:02d}.png', 'w': w, 'h': h, 'ax': round(cx / w, 3), 'ay': round(foot_y / h, 3)}
+        info = {
+            'file': f'{name}_{i:02d}.png',
+            'w': w,
+            'h': h,
+            'ax': round(cx / w, 3),
+            'ay': round(foot_y / h, 3),
+            # Ancho de la base en px de baldosa (256 = una casilla): de aquí sale el radio de choque.
+            'fw': round((cols.max() - cols.min() + 1) * SCALE),
+        }
         rgba.save(OUT / info['file'], optimize=True)
         out.append(info)
     return out
