@@ -1,7 +1,8 @@
 // Render de la run con PixiJS v8. Lee el World y dibuja; nunca lo modifica.
 import { Application, Assets, Container, Graphics, Sprite, Text, type Texture } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
-import { PALETTE, RUN_COLORS, TILES, VIEW } from '../config/render';
+import { PALETTE, RUN_COLORS, TILES, VIEW, type TileIndex, type TileInfo } from '../config/render';
+import { groundGrid } from '../config/run';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
 import { ActorView } from './actor';
@@ -11,6 +12,34 @@ import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteLibrary } from './sprites';
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+
+interface GroundTile {
+  readonly tex: Texture;
+  readonly head: number;
+}
+
+interface GroundTiles {
+  readonly yermo: readonly GroundTile[];
+  readonly deco: readonly GroundTile[];
+  readonly acid: readonly GroundTile[];
+}
+
+/** Carga `tiles.json` y sus texturas; las que fallen se saltan. */
+async function loadGroundTiles(): Promise<GroundTiles> {
+  const index = await Assets.load<TileIndex>(TILES.index);
+  const load = async (set: readonly TileInfo[]): Promise<(GroundTile & { acid: boolean })[]> => {
+    const out = await Promise.all(
+      set.map((t) =>
+        Assets.load<Texture>(TILES.dir + t.file)
+          .then((tex) => ({ tex, head: t.head, acid: t.acid }))
+          .catch(() => null),
+      ),
+    );
+    return out.filter((t) => t !== null);
+  };
+  const [yermo, deco] = await Promise.all([load(index.sets.yermo), load(index.sets.deco)]);
+  return { yermo, deco: deco.filter((t) => !t.acid), acid: deco.filter((t) => t.acid) };
+}
 
 export interface DebugInfo {
   fps: number;
@@ -38,13 +67,13 @@ export class GameRenderer {
     private readonly lib: SpriteLibrary,
     world: World,
     translate: (key: string) => string,
-    tiles: (Texture | null)[],
+    tiles: GroundTiles | null,
   ) {
     app.stage.addChild(this.worldLayer);
     this.drawGround(world);
     this.worldLayer.addChild(this.ground);
     this.worldLayer.addChild(this.tileGround(world, tiles));
-    this.worldLayer.addChild(this.hazardLayer(world), this.fx.ground);
+    this.worldLayer.addChild(this.hazardLayer(world, tiles !== null), this.fx.ground);
     // Actores ordenados por profundidad entre el suelo y el aire.
     this.actors.sortableChildren = true;
     this.worldLayer.addChild(this.actors);
@@ -84,11 +113,7 @@ export class GameRenderer {
     });
     host.appendChild(app.canvas);
     // Las baldosas son opcionales: si faltan, queda el suelo liso con rejilla.
-    const tiles = await Promise.all(
-      TILES.weights.map((wgt, i) =>
-        wgt > 0 ? Assets.load<Texture>(`${TILES.path}${i}.png`).catch(() => null) : Promise.resolve(null),
-      ),
-    );
+    const tiles = await loadGroundTiles().catch(() => null);
     return new GameRenderer(app, lib, world, translate, tiles);
   }
 
@@ -110,28 +135,37 @@ export class GameRenderer {
     g.stroke({ width: 1, color: PALETTE.grid, alpha: PALETTE.gridAlpha });
   }
 
-  /** Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla). */
-  private tileGround(w: World, tiles: (Texture | null)[]): Container {
+  /**
+   * Suelo de baldosas elegidas con una semilla fija por casilla (siempre el mismo mapa por semilla): yermo casi
+   * siempre, decoración de vez en cuando y lago de ácido justo en las casillas con charco radiactivo.
+   */
+  private tileGround(w: World, tiles: GroundTiles | null): Container {
     const layer = new Container();
-    const avail: number[] = tiles.map((t, i) => (t ? TILES.weights[i]! : 0));
-    const total = avail.reduce((a, b) => a + b, 0);
-    if (total === 0) return layer;
-    const n = Math.round(w.mapSize / TILES.worldSize);
-    const T = w.mapSize / n;
+    if (!tiles || tiles.yermo.length === 0) return layer;
+    const { n, T } = groundGrid(w.mapSize);
+    const acidCells = new Set(w.hazards.map((h) => Math.floor(h.y / T) * n + Math.floor(h.x / T)));
     // Un lado T del mundo mide T·√2 de ancho en la vista isométrica.
     const scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
     let h = (w.seed ^ 0x9e3779b9) >>> 0;
+    const next = (): number => {
+      h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) + 0x6d2b79f5;
+      h = (h ^ (h >>> 13)) >>> 0;
+      return h / 4294967296;
+    };
+    const pick = (set: readonly GroundTile[]): GroundTile | undefined => set[Math.floor(next() * set.length)];
+    // Por filas de atrás adelante: lo que sobresale de una baldosa tapa a la de detrás, no al revés.
     for (let j = 0; j < n; j++) {
       for (let i = 0; i < n; i++) {
-        h = Math.imul(h ^ (h >>> 15), 0x2c1b3c6d) + i * 7919 + j * 104729;
-        h = (h ^ (h >>> 13)) >>> 0;
-        let r = (h / 4294967296) * total;
-        let k = 0;
-        while (k < avail.length - 1 && r >= avail[k]!) r -= avail[k++]!;
-        const tex = tiles[k];
-        if (!tex) continue;
-        const s = new Sprite(tex);
-        s.anchor.set(0.5);
+        const roll = next();
+        const t = acidCells.has(j * n + i)
+          ? (pick(tiles.acid) ?? pick(tiles.yermo))
+          : roll < TILES.decoChance
+            ? (pick(tiles.deco) ?? pick(tiles.yermo))
+            : pick(tiles.yermo);
+        if (!t) continue;
+        const s = new Sprite(t.tex);
+        // El centro del rombo, no el de la imagen: la parte de arriba es lo que sobresale.
+        s.anchor.set(0.5, (t.head + (t.tex.height - t.head) / 2) / t.tex.height);
         // Espejo horizontal al azar: el rombo sigue encajando y se repite menos.
         s.scale.set(h & 1 ? -scale : scale, scale);
         s.tint = TILES.tint;
@@ -144,13 +178,13 @@ export class GameRenderer {
     return layer;
   }
 
-  /** Charcos radiactivos fijos. */
-  private hazardLayer(w: World): Graphics {
+  /** Borde tenue del radio exacto de cada charco, sobre el lago pintado (o solo, si faltan las baldosas). */
+  private hazardLayer(w: World, painted: boolean): Graphics {
     const g = new Graphics();
     for (const h of w.hazards) {
-      g.ellipse(isoX(h.x, h.y), isoY(h.x, h.y), h.r, h.r / 2)
-        .fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha })
-        .stroke({ width: 2, color: RUN_COLORS.hazard, alpha: 0.35 });
+      g.ellipse(isoX(h.x, h.y), isoY(h.x, h.y), h.r, h.r / 2);
+      if (!painted) g.fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha });
+      g.stroke({ width: 2, color: RUN_COLORS.hazard, alpha: painted ? 0.22 : 0.35 });
     }
     return g;
   }

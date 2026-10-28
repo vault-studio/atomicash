@@ -30,11 +30,15 @@ export const RAD = {
   ] as readonly RadTier[],
 } as const;
 
-/** Charcos radiactivos fijos del mapa. */
+/**
+ * Charcos radiactivos fijos del mapa: cada uno es una casilla del suelo con un lago de ácido pintado.
+ * DECISIÓN: antes eran 45 círculos de radio 55–110 en cualquier sitio; al pegarlos a las casillas (radio 0,42 de
+ * casilla, ~50 px) se suben a 80 para que el páramo siga igual de salpicado, con algo menos de área total.
+ */
 export const HAZARDS = {
-  count: 45,
-  rMin: 55,
-  rMax: 110,
+  count: 80,
+  /** Radio del daño en fracción del lado de la casilla (el lago pintado ocupa algo más de la mitad del rombo). */
+  cellRadius: 0.42,
   /** Radio libre alrededor del punto de inicio. */
   safe: 350,
 } as const;

@@ -2,7 +2,7 @@
 import type { ConsumableId } from '../config/items';
 import { ENEMY_RULES } from '../config/enemies';
 import { HAZARDS, RAD, radTier } from '../config/radiation';
-import { CAPS, CREDITS, PLAYER, RUN, xpForLevel } from '../config/run';
+import { CAPS, CREDITS, PLAYER, RUN, groundGrid, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
@@ -88,16 +88,23 @@ const createCorpse = (): Corpse => ({
 });
 const createPoint = (): Point => ({ x: 0, y: 0 });
 
+/** Charcos en el centro de casillas del suelo, sin repetir casilla ni tocar el borde del mapa. */
 function makeHazards(rng: () => number, M: number): Hazard[] {
+  const { n, T } = groundGrid(M);
+  const r = T * HAZARDS.cellRadius;
   const out: Hazard[] = [];
+  const used = new Set<number>();
   let guard = 0;
   while (out.length < HAZARDS.count && guard++ < 2000) {
-    const r = HAZARDS.rMin + rng() * (HAZARDS.rMax - HAZARDS.rMin);
-    const x = r + rng() * (M - 2 * r);
-    const y = r + rng() * (M - 2 * r);
+    const i = 1 + Math.floor(rng() * (n - 2));
+    const j = 1 + Math.floor(rng() * (n - 2));
+    if (used.has(j * n + i)) continue;
+    const x = (i + 0.5) * T;
+    const y = (j + 0.5) * T;
     const dx = x - M / 2;
     const dy = y - M / 2;
     if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) continue;
+    used.add(j * n + i);
     out.push({ x, y, r });
   }
   return out;

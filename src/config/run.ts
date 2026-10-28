@@ -7,6 +7,13 @@ export const RUN = {
   maxStepsPerFrame: 5,
   /** Lado del mapa cuadrado, en px de mundo. */
   mapSize: 3200,
+  /**
+   * Lado aproximado de una casilla del suelo, en px de mundo: el render pone una baldosa por casilla y los charcos
+   * radiactivos ocupan casillas enteras (así el lago de ácido pintado coincide con donde hace daño).
+   * DECISIÓN: 120 deja un bidón a la altura de la cintura del superviviente y dibuja la baldosa a ~0,66×
+   * (reducida, nítida). Con 320 el suelo salía a 1,8× y las piedras eran tan grandes como los personajes.
+   */
+  groundCell: 120,
   /** Duración de la run en segundos. */
   duration: 900,
   /** Lado de celda del spatial hash de colisiones, en px de mundo (05_TECH.md §3). */
@@ -96,3 +103,9 @@ export const FX = {
 
 export const xpForLevel = (n: number): number =>
   XP.a + XP.b * (n - 1) + Math.floor(XP.c * Math.pow(n - 1, 1.5));
+
+/** Casillas del suelo por lado y su lado exacto `T` (el mapa se reparte sin sobrante). */
+export function groundGrid(mapSize: number): { n: number; T: number } {
+  const n = Math.round(mapSize / RUN.groundCell);
+  return { n, T: mapSize / n };
+}

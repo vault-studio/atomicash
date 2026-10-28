@@ -91,24 +91,35 @@ export const RUN_COLORS = {
 } as const;
 
 /**
- * Baldosas de suelo recortadas de ARTE/tiles_suelo.png con tools/slice_tiles.py (rombo 2:1 de 256×128).
- * DECISIÓN: sin las de carretera (4, 5 y 8), que al colocarse al azar cortarían líneas sin continuidad, y con
- * mucho más peso para la tierra lisa (0 y 1): con baldosas pequeñas, las de escombros formaban un patrón visible.
+ * Baldosas de suelo recortadas de ARTE/tiles_yermo.webp y ARTE/tiles_deco.webp con tools/slice_tiles.py (rombo 2:1
+ * de 256×128). `tiles.json` dice qué baldosa de decoración lleva lago de ácido y cuánto sobresale por arriba.
+ * DECISIÓN: el páramo es yermo casi entero; la decoración (bidones, cajas, coches, vallas…) sale en una de cada
+ * ~14 casillas para que no forme patrón, y los lagos de ácido solo donde hay charco radiactivo: el verde en el
+ * suelo siempre significa daño.
  */
 export const TILES = {
-  path: 'assets/tiles/suelo_',
-  /** Peso de aparición de cada baldosa por índice. */
-  weights: [8, 7, 1, 1, 0, 0, 1, 1, 0] as readonly number[],
+  dir: 'assets/tiles/',
+  index: 'assets/tiles/tiles.json',
+  /** Probabilidad de que una casilla sin charco lleve decoración. */
+  decoChance: 0.07,
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
-  /**
-   * Lado aproximado de la baldosa en px de mundo (se ajusta para dividir el mapa exacto).
-   * DECISIÓN: 120 deja un bidón a la altura de la cintura del superviviente y dibuja la baldosa a ~0,66×
-   * (reducida, nítida). Con 320 el suelo salía a 1,8× y las piedras eran tan grandes como los personajes.
-   */
-  worldSize: 120,
   /** Oscurece el suelo para que destaquen los personajes. */
   tint: 0xb8a890,
   /** Solape para que no se vean costuras. */
   overlap: 1.03,
 } as const;
+
+/** Lo que escribe tools/slice_tiles.py en `tiles.json`. */
+export interface TileInfo {
+  readonly file: string;
+  /** Px de la imagen por encima del rombo (objetos que sobresalen). */
+  readonly head: number;
+  readonly acid: boolean;
+}
+
+export interface TileIndex {
+  readonly width: number;
+  readonly height: number;
+  readonly sets: { readonly yermo: readonly TileInfo[]; readonly deco: readonly TileInfo[] };
+}
