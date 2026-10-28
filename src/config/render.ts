@@ -60,6 +60,28 @@ export const PALETTE = {
   shadow: 0x000000,
 } as const;
 
+/**
+ * Radar del HUD: recogibles y cajas de alrededor, cada tipo con su color; lo que queda fuera del alcance se marca
+ * con una flecha en el borde. Alcance en px isométricos de pantalla (la vista de referencia mide 1280 de ancho).
+ */
+export const RADAR = {
+  range: 1500,
+  /** Lado del radar en px CSS (el HUD lo encoge en pantallas bajas). */
+  size: 176,
+  /** Vueltas por segundo del barrido. */
+  sweep: 0.35,
+  phosphor: '#3cff6b',
+  dim: 'rgba(60, 255, 107, 0.28)',
+  bg: 'rgba(6, 20, 9, 0.88)',
+  kinds: {
+    medkit: '#ff4d4d',
+    magnet: '#4db8ff',
+    bomb: '#ff9a2e',
+    crate: '#ffe14a',
+    chest: '#c77dff',
+  } as Readonly<Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest', string>>,
+} as const;
+
 /** Colores de la run (placeholders de proyectiles, chatarra, charcos…). */
 export const RUN_COLORS = {
   gem: { 1: 0xe8d36a, 5: 0x6ad8e8, 25: 0xff8ad8 } as Readonly<Record<number, number>>,

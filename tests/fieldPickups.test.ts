@@ -59,3 +59,35 @@ describe('recogibles de campo', () => {
     expect(w.enemies.items[0]).toBe(far);
   });
 });
+
+describe('huecos de arma y armas de jefe', () => {
+  it('3 armas como mucho: la inicial y dos más', async () => {
+    const { weaponOptions } = await import('../src/engine/systems/progression');
+    const { createWeapon } = await import('../src/engine/systems/weapons');
+    const w = createWorld('dot', 1, { hazards: false });
+    w.weapons.push(createWeapon('pistola_clavos'), createWeapon('geiger'));
+    expect(w.weapons.length).toBe(3);
+    expect(weaponOptions(w).some((c) => c.kind === 'new')).toBe(false);
+  });
+
+  it('cada minijefe da siempre la misma arma en un hueco extra', async () => {
+    const { BOSS_WEAPONS } = await import('../src/config/weapons');
+    const { killEnemy } = await import('../src/engine/systems/combat');
+    const w = createWorld('dot', 1, { hazards: false });
+    const before = w.weapons.length;
+    for (const boss of ['rey_rata', 'dirigible'] as const) {
+      const e = spawnEnemy(w, boss, w.player.x + 500, w.player.y, false);
+      killEnemy(w, e, 'llave');
+      expect(w.weapons.some((x) => x.id === BOSS_WEAPONS[boss])).toBe(true);
+    }
+    expect(w.weapons.length).toBe(before + 2);
+    expect(w.bonusSlots).toBe(2);
+  });
+
+  it('las armas de jefe no salen en las tarjetas de arma nueva', async () => {
+    const { weaponOptions } = await import('../src/engine/systems/progression');
+    const { BOSS_WEAPON_IDS } = await import('../src/config/weapons');
+    const w = createWorld('dot', 1, { hazards: false });
+    for (const c of weaponOptions(w)) if (c.kind === 'new') expect(BOSS_WEAPON_IDS.has(c.id)).toBe(false);
+  });
+});

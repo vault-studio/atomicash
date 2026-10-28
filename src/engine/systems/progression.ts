@@ -5,7 +5,7 @@ import { FX, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
 import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
-import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
+import { BOSS_WEAPON_IDS, FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
 import { addShake, banner, boom, textFx } from '../fx';
 import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
@@ -118,9 +118,9 @@ export function weaponOptions(w: World): Card[] {
     }
   for (const wp of w.weapons)
     if (!isFusion(wp.id) && wp.lvl < PLAYER.maxWeaponLevel) opts.push({ kind: 'up', id: wp.id });
-  if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots))
+  if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots) + w.bonusSlots)
     for (const id of WEAPON_IDS) {
-      if (isFusion(id) || owned.has(id) || blocked.has(id)) continue;
+      if (isFusion(id) || owned.has(id) || blocked.has(id) || BOSS_WEAPON_IDS.has(id)) continue;
       const owner = ownerOf(id);
       if (owner && owner !== w.charId) continue;
       opts.push({ kind: 'new', id });

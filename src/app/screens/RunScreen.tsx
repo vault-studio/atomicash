@@ -129,7 +129,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
     <div className="run">
       <div className="run__canvas" ref={hostRef} />
       {!ready && <div className="run__loading">{t('app.loading')}</div>}
-      {ready && hud && <Hud hud={hud} onPause={pause} onConsume={consume} />}
+      {ready && hud && world && <Hud hud={hud} world={world} onPause={pause} onConsume={consume} />}
       {ready && hud && hud.time < 8 && (
         <div className="run__hint">
           {t(COARSE_POINTER ? 'run.controlsTouch' : 'run.controls')}

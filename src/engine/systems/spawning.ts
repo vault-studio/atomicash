@@ -47,41 +47,28 @@ function pickType(w: World, waveIdx: number): StatEnemyId {
   return m.types[m.types.length - 1]!;
 }
 
-/**
- * Elige un punto fuera de cámara alrededor del jugador y lo escribe en `out`.
- * Prueba varios ángulos para no salirse del mapa; si no puede, lo pega al borde.
- */
+/** Elige un punto fuera de cámara alrededor del jugador y lo escribe en `out` (el mapa no tiene bordes). */
 export function placeOffscreen(w: World, out: { x: number; y: number }): void {
   const p = w.player;
-  const M = w.mapSize;
-  let x = p.x;
-  let y = p.y;
-  for (let i = 0; i < SPAWN.placeTries; i++) {
-    const a = w.rng() * Math.PI * 2;
-    const ux = Math.cos(a);
-    const uy = Math.sin(a);
-    const base = offscreenDistance(w, ux, uy) + SPAWN.offscreenMargin;
-    const d = (base > SPAWN.minDist ? base : SPAWN.minDist) + w.rng() * SPAWN.jitter;
-    x = p.x + ux * d;
-    y = p.y + uy * d;
-    if (x >= 0 && x <= M && y >= 0 && y <= M) break;
-  }
-  out.x = x < 0 ? 0 : x > M ? M : x;
-  out.y = y < 0 ? 0 : y > M ? M : y;
+  const a = w.rng() * Math.PI * 2;
+  const ux = Math.cos(a);
+  const uy = Math.sin(a);
+  const base = offscreenDistance(w, ux, uy) + SPAWN.offscreenMargin;
+  const d = (base > SPAWN.minDist ? base : SPAWN.minDist) + w.rng() * SPAWN.jitter;
+  out.x = p.x + ux * d;
+  out.y = p.y + uy * d;
 }
 
 const spot = { x: 0, y: 0 };
 const TAU = Math.PI * 2;
-const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
 /** Punto en un anillo de radio `d ± jitter` alrededor del jugador. */
 function ringPos(w: World, d: number, jitter: number): void {
   const p = w.player;
-  const M = w.mapSize;
   const a = w.rng() * TAU;
   const dd = d + (w.rng() * 2 - 1) * jitter;
-  spot.x = clamp(p.x + Math.cos(a) * dd, 20, M - 20);
-  spot.y = clamp(p.y + Math.sin(a) * dd, 20, M - 20);
+  spot.x = p.x + Math.cos(a) * dd;
+  spot.y = p.y + Math.sin(a) * dd;
 }
 
 export function spawnBoss(w: World, kind: (typeof BOSS_IDS)[number]): void {
@@ -96,28 +83,16 @@ export function spawnBoss(w: World, kind: (typeof BOSS_IDS)[number]): void {
 function fireEvent(w: World): void {
   const kind = EVENTS.order[w.eventIdx++ % EVENTS.order.length]!;
   const p = w.player;
-  const M = w.mapSize;
   if (kind === 'supply') {
     const a = w.rng() * TAU;
     const S = EVENTS.supply;
-    addPickup(
-      w,
-      'crate',
-      clamp(p.x + Math.cos(a) * S.dist, 60, M - 60),
-      clamp(p.y + Math.sin(a) * S.dist, 60, M - 60),
-      16,
-    );
+    addPickup(w, 'crate', p.x + Math.cos(a) * S.dist, p.y + Math.sin(a) * S.dist, 16);
     banner(w, 'banner.supply');
   } else if (kind === 'swarm') {
     const S = EVENTS.swarm;
     for (let i = 0; i < S.count; i++) {
       const a = (i / S.count) * TAU;
-      spawnEnemy(
-        w,
-        S.type,
-        clamp(p.x + Math.cos(a) * S.r, 10, M - 10),
-        clamp(p.y + Math.sin(a) * S.r, 10, M - 10),
-      );
+      spawnEnemy(w, S.type, p.x + Math.cos(a) * S.r, p.y + Math.sin(a) * S.r);
     }
     banner(w, 'banner.swarm');
   } else {

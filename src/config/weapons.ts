@@ -243,6 +243,16 @@ export const WEAPONS = {
 export type WeaponId = keyof typeof WEAPONS;
 export const WEAPON_IDS = Object.keys(WEAPONS) as WeaponId[];
 
+/**
+ * Arma que da cada minijefe al morir, siempre la misma, en un hueco extra. No salen en las tarjetas de arma nueva,
+ * así que llegan siempre nuevas. Minuto 5 (acto 1): rifle de cerrojo; minuto 10 (acto 2): tesla de pecho.
+ */
+export const BOSS_WEAPONS: Readonly<Partial<Record<string, WeaponId>>> = {
+  rey_rata: 'rifle_cerrojo',
+  dirigible: 'tesla',
+};
+export const BOSS_WEAPON_IDS: ReadonlySet<WeaponId> = new Set(Object.values(BOSS_WEAPONS) as WeaponId[]);
+
 export interface FusionDef {
   readonly a: WeaponId;
   readonly b: WeaponId;

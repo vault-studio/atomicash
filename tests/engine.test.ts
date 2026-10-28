@@ -51,11 +51,14 @@ describe('world', () => {
     expect([w.player.facingX, w.player.facingY]).toEqual([1, 0]);
   });
 
-  it('no sale del mapa', () => {
+  it('el mapa no tiene bordes: se puede andar más allá de cualquier lado', () => {
     const w = createWorld('errante', 1);
-    for (let i = 0; i < RUN.tickHz * 20; i++) tick(w, { moveX: -1, moveY: -1 }, step);
-    expect(w.player.x).toBe(w.player.r);
-    expect(w.player.y).toBe(w.player.r);
+    for (let i = 0; i < RUN.tickHz * 30; i++) tick(w, { moveX: -1, moveY: -1 }, step);
+    expect(w.player.x).toBeLessThan(0);
+    expect(w.player.y).toBeLessThan(0);
+    // Y sigue habiendo charcos alrededor, aunque esté lejos del inicio.
+    expect(w.hazards.length).toBeGreaterThan(0);
+    for (const h of w.hazards) expect(Math.hypot(h.x - w.player.x, h.y - w.player.y)).toBeLessThan(2500);
   });
 
   it('un jugador muerto no se mueve y guarda el instante de muerte', () => {

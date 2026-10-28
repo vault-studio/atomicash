@@ -225,16 +225,9 @@ function telegraph(
 }
 
 function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, dist: number): void {
-  const M = w.mapSize;
   for (let i = 0; i < n; i++) {
     const a = (i / n) * TAU;
-    spawnEnemy(
-      w,
-      type,
-      clamp(cx + Math.cos(a) * dist, 10, M - 10),
-      clamp(cy + Math.sin(a) * dist, 10, M - 10),
-      false,
-    );
+    spawnEnemy(w, type, cx + Math.cos(a) * dist, cy + Math.sin(a) * dist, false);
   }
 }
 
@@ -244,7 +237,6 @@ let vy = 0;
 
 function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number): void {
   const p = w.player;
-  const M = w.mapSize;
   const spd = e.speed;
   const irrRad = e.irr ? IRRADIATED.rad : 0;
   switch (e.type) {
@@ -385,8 +377,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             const rr = A.paraMin + w.rng() * (A.paraMax - A.paraMin);
             telegraph(
               w,
-              clamp(p.x + Math.cos(a) * rr, 30, M - 30),
-              clamp(p.y + Math.sin(a) * rr, 30, M - 30),
+              p.x + Math.cos(a) * rr,
+              p.y + Math.sin(a) * rr,
               A.paraR,
               A.paraWarn,
               A.paraDmg,
@@ -400,14 +392,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           const by = vy / l;
           for (let i = 0; i < A.bombCount; i++) {
             const off = (i - (A.bombCount - 1) / 2) * A.bombSpacing;
-            telegraph(
-              w,
-              clamp(p.x + bx * off, 0, M),
-              clamp(p.y + by * off, 0, M),
-              A.bombR,
-              A.bombWarn,
-              A.bombDmg,
-            );
+            telegraph(w, p.x + bx * off, p.y + by * off, A.bombR, A.bombWarn, A.bombDmg);
           }
           if (p2) ring(w, A.p2SummonType, p.x, p.y, A.p2Summon, A.p2SummonDist);
         }
@@ -448,8 +433,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             const rr = i === 0 ? 0 : 40 + w.rng() * A.debrisSpread;
             telegraph(
               w,
-              clamp(p.x + Math.cos(a) * rr, 0, M),
-              clamp(p.y + Math.sin(a) * rr, 0, M),
+              p.x + Math.cos(a) * rr,
+              p.y + Math.sin(a) * rr,
               A.debrisR,
               A.debrisWarn,
               A.debrisDmg,
@@ -457,7 +442,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           }
         } else {
           markAttack(w, e, 'attack_2');
-          spawnEnemy(w, 'torreta', clamp(e.x + 110, 20, M - 20), clamp(e.y, 20, M - 20), false);
+          spawnEnemy(w, 'torreta', e.x + 110, e.y, false);
           ring(w, 'necrofago', e.x, e.y, A.summonGhouls, A.summonDist);
         }
       }
@@ -476,7 +461,6 @@ export function updateEnemies(w: World, dt: number): void {
   const p = w.player;
   const grid = w.enemyGrid;
   const out = w.scratch;
-  const M = w.mapSize;
   const kd = Math.exp(-KNOCKBACK.decay * dt);
   const alive = p.deadAt === null;
 
@@ -533,8 +517,8 @@ export function updateEnemies(w: World, dt: number): void {
 
     const nx = e.x + (vx + e.kbx) * dt + sx;
     const ny = e.y + (vy + e.kby) * dt + sy;
-    e.x = nx < e.r ? e.r : nx > M - e.r ? M - e.r : nx;
-    e.y = ny < e.r ? e.r : ny > M - e.r ? M - e.r : ny;
+    e.x = nx;
+    e.y = ny;
     e.kbx *= kd;
     e.kby *= kd;
 

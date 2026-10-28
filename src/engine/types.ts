@@ -377,7 +377,13 @@ export interface World {
   readonly mines: Pool<Mine>;
   readonly tele: Pool<Telegraph>;
   readonly slimes: Pool<Slime>;
-  readonly hazards: readonly Hazard[];
+  /** Charcos alrededor del jugador (el mapa no tiene bordes; ver engine/hazards.ts). */
+  hazards: readonly Hazard[];
+  readonly hazardsOn: boolean;
+  /** Casilla del jugador cuando se calcularon `hazards`. */
+  readonly hazardCell: { i: number; j: number };
+  /** Punto de inicio de la run (alrededor no hay charcos). */
+  readonly start: { readonly x: number; readonly y: number };
   readonly pickups: Pool<Pickup>;
   gemCount: number;
   readonly beams: Pool<Beam>;
@@ -407,6 +413,8 @@ export interface World {
   storm: boolean;
   lastBossAt: number;
   readonly bossSpawned: Record<string, boolean>;
+  /** Huecos de arma de más ganados con los minijefes. */
+  bonusSlots: number;
   /** Jefes vivos (para bajar el ritmo de oleadas y la barra de jefe). */
   bossAlive: number;
   shake: number;

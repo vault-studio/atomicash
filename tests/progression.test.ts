@@ -78,7 +78,8 @@ describe('tarjetas', () => {
     expect(opts).toContain('martillo_pilon');
     expect(opts).not.toContain('desfibrilador');
     expect(opts).not.toContain('dinamo');
-    w.weapons.push(createWeapon('tesla'), createWeapon('geiger'), createWeapon('coctel'));
+    while (w.weapons.length < PLAYER.weaponSlots)
+      w.weapons.push(createWeapon(['geiger', 'coctel', 'megafono'][w.weapons.length - 1] as 'geiger'));
     expect(w.weapons).toHaveLength(PLAYER.weaponSlots);
     expect(weaponOptions(w).every((c) => c.kind === 'up')).toBe(true);
   });

@@ -5,10 +5,13 @@ export const RUN = {
   tickHz: 60,
   /** Máximo de pasos por frame para no entrar en espiral si el navegador se congela. */
   maxStepsPerFrame: 5,
-  /** Lado del mapa cuadrado, en px de mundo. */
+  /**
+   * El mapa no tiene bordes; este lado solo sitúa el punto de inicio (en su centro) y dimensiona la rejilla de
+   * colisiones, que se repite.
+   */
   mapSize: 3200,
   /**
-   * Lado aproximado de una casilla del suelo, en px de mundo: el render pone una baldosa por casilla y los charcos
+   * Lado de una casilla del suelo, en px de mundo: el render pone una baldosa por casilla y los charcos
    * radiactivos ocupan casillas enteras (así el lago de ácido pintado coincide con donde hace daño).
    * DECISIÓN: 120 deja un bidón a la altura de la cintura del superviviente y dibuja la baldosa a ~0,66×
    * (reducida, nítida). Con 320 el suelo salía a 1,8× y las piedras eran tan grandes como los personajes.
@@ -34,7 +37,11 @@ export const PLAYER = {
   invuln: 0.45,
   /** Tiempo entre golpes de contacto del mismo enemigo, en s. */
   contactCd: 0.7,
-  weaponSlots: 4,
+  /**
+   * Armas a la vez: la inicial y dos más. Cada minijefe da además un arma fija en un hueco extra (BOSS_WEAPONS).
+   * DECISIÓN: bajado de 4 a 3 para que las armas de los jefes se noten.
+   */
+  weaponSlots: 3,
   maxWeaponLevel: 5,
   /** Cambios de tarjetas gratis por run. */
   rerolls: 1,
@@ -106,9 +113,3 @@ export const FX = {
 
 export const xpForLevel = (n: number): number =>
   XP.a + XP.b * (n - 1) + Math.floor(XP.c * Math.pow(n - 1, 1.5));
-
-/** Casillas del suelo por lado y su lado exacto `T` (el mapa se reparte sin sobrante). */
-export function groundGrid(mapSize: number): { n: number; T: number } {
-  const n = Math.round(mapSize / RUN.groundCell);
-  return { n, T: mapSize / n };
-}

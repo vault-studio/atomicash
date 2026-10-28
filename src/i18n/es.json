@@ -22,7 +22,11 @@
     "rad": "RAD {{n}}",
     "rain": "Lluvia radiactiva",
     "storm": "Tormenta",
-    "slotEmpty": "Vacío"
+    "slotEmpty": "Vacío",
+    "hp": "PV",
+    "radar": "RADAR",
+    "weapons": "ARMAS",
+    "kit": "EQUIPO"
   },
   "passives": {
     "dot": "+15 % daño cuerpo a cuerpo",
@@ -314,7 +318,9 @@
   "pickups": {
     "medkit": "Botiquín",
     "magnet": "Imán",
-    "bomb": "¡Bomba!"
+    "bomb": "Bomba",
+    "crate": "Suministros",
+    "chest": "Cofre"
   },
   "banner": {
     "chest": "¡Cofre de objeto!",
@@ -325,7 +331,8 @@
     "swarm": "¡Enjambre de drones!",
     "rain": "Lluvia radiactiva",
     "fusion": "¡Apaño! {{name}}",
-    "storm": "¡LLEGA LA TORMENTA!"
+    "storm": "¡LLEGA LA TORMENTA!",
+    "bossWeapon": "¡Arma de jefe: {{name}}!"
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",

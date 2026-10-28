@@ -6,7 +6,7 @@ import { AUDIO } from '../config/audio';
 import { STAT_ENEMY_IDS, type StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import { radTier } from '../config/radiation';
-import { RUN } from '../config/run';
+import { PLAYER, RUN } from '../config/run';
 import type { WeaponId } from '../config/weapons';
 import { advance, createFixedStep } from '../engine/loop';
 import { spawnEnemy } from '../engine/systems/enemies';
@@ -24,7 +24,7 @@ import {
   type RunResults,
   type WorldOptions,
 } from '../engine/world';
-import type { StatSurvivorId } from '../config/survivors';
+import { weaponSlots, type StatSurvivorId } from '../config/survivors';
 import i18n from '../i18n';
 import { InputManager } from '../input';
 import { screenToWorldDir } from '../render/iso';
@@ -47,6 +47,8 @@ export interface HudSnapshot {
   kills: number;
   dps: number;
   weapons: { id: WeaponId; lvl: number }[];
+  /** Huecos de arma: los del personaje más los ganados con los minijefes. */
+  slots: number;
   cons: Record<ConsumableId, number>;
   item: ItemId | null;
   rerolls: number;
@@ -125,6 +127,7 @@ function snapshot(w: World): HudSnapshot {
     kills: w.kills,
     dps: currentDps(w),
     weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
+    slots: weaponSlots(w.charId, PLAYER.weaponSlots) + w.bonusSlots,
     cons: { ...w.cons },
     item: w.item,
     rerolls: w.rerolls,

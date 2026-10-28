@@ -1,4 +1,6 @@
 // Spatial hash de rejilla fija para colisiones de círculos (05_TECH.md §3, celdas de 64 px).
+// La rejilla se repite (coordenadas módulo su tamaño) porque el mapa no tiene bordes: dos puntos lejanos pueden
+// caer en la misma celda, pero `query` comprueba la distancia real, así que solo cuesta algún candidato de más.
 // Se reconstruye cada tick con una ordenación por conteo sobre arrays tipados: sin allocations
 // mientras el número de entidades no supere la capacidad reservada.
 
@@ -7,6 +9,8 @@ export interface Circle {
   y: number;
   r: number;
 }
+
+const wrap = (i: number, n: number): number => ((i % n) + n) % n;
 
 export class SpatialHash<T extends Circle = Circle> {
   readonly cols: number;
@@ -41,13 +45,11 @@ export class SpatialHash<T extends Circle = Circle> {
   }
 
   private col(x: number): number {
-    const c = Math.floor(x * this.inv);
-    return c < 0 ? 0 : c >= this.cols ? this.cols - 1 : c;
+    return wrap(Math.floor(x * this.inv), this.cols);
   }
 
   private row(y: number): number {
-    const r = Math.floor(y * this.inv);
-    return r < 0 ? 0 : r >= this.rows ? this.rows - 1 : r;
+    return wrap(Math.floor(y * this.inv), this.rows);
   }
 
   /** Indexa items[0..count) por la celda de su centro. Los índices devueltos por `query` son de este array. */
@@ -78,15 +80,17 @@ export class SpatialHash<T extends Circle = Circle> {
    */
   query(x: number, y: number, r: number, maxR: number, out: Int32Array): number {
     const reach = r + maxR;
-    const c0 = this.col(x - reach);
-    const c1 = this.col(x + reach);
-    const r0 = this.row(y - reach);
-    const r1 = this.row(y + reach);
+    // Celdas sin repetir: si el radio abarca más que la rejilla, basta con recorrerla una vez.
+    const c0 = Math.floor((x - reach) * this.inv);
+    const c1 = Math.min(Math.floor((x + reach) * this.inv), c0 + this.cols - 1);
+    const r0 = Math.floor((y - reach) * this.inv);
+    const r1 = Math.min(Math.floor((y + reach) * this.inv), r0 + this.rows - 1);
     const items = this.src;
     let k = 0;
-    for (let cy = r0; cy <= r1; cy++) {
-      for (let cx = c0; cx <= c1; cx++) {
-        const cell = cy * this.cols + cx;
+    for (let ry = r0; ry <= r1; ry++) {
+      const cy = wrap(ry, this.rows);
+      for (let rx = c0; rx <= c1; rx++) {
+        const cell = cy * this.cols + wrap(rx, this.cols);
         const end = this.cellStart[cell + 1]!;
         for (let e = this.cellStart[cell]!; e < end; e++) {
           const i = this.entries[e]!;

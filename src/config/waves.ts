@@ -75,8 +75,6 @@ export const SPAWN = {
   jitter: 80,
   /** Los enemigos más lejos que esto vuelven a aparecer cerca, fuera de cámara (no aplica a jefes). */
   relocateDist: 1500,
-  /** Intentos para encontrar un punto dentro del mapa antes de pegarlo al borde. */
-  placeTries: 16,
   /** Las torretas aparecen ya dentro de este anillo (no se mueven). */
   staticMin: 400,
   staticMax: 600,

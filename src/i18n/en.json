@@ -22,7 +22,11 @@
     "rad": "RAD {{n}}",
     "rain": "Radioactive rain",
     "storm": "Storm",
-    "slotEmpty": "Empty"
+    "slotEmpty": "Empty",
+    "hp": "HP",
+    "radar": "RADAR",
+    "weapons": "WEAPONS",
+    "kit": "KIT"
   },
   "passives": {
     "dot": "+15% melee damage",
@@ -314,7 +318,9 @@
   "pickups": {
     "medkit": "Medkit",
     "magnet": "Magnet",
-    "bomb": "Bomb!"
+    "bomb": "Bomb",
+    "crate": "Supplies",
+    "chest": "Chest"
   },
   "banner": {
     "chest": "Item chest!",
@@ -325,7 +331,8 @@
     "swarm": "Drone swarm!",
     "rain": "Radioactive rain",
     "fusion": "Jury-rigged! {{name}}",
-    "storm": "THE STORM IS COMING!"
+    "storm": "THE STORM IS COMING!",
+    "bossWeapon": "Boss weapon: {{name}}!"
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",

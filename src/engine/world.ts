@@ -1,12 +1,13 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
 import type { ConsumableId } from '../config/items';
 import { ENEMY_RULES } from '../config/enemies';
-import { HAZARDS, RAD, radTier } from '../config/radiation';
-import { CAPS, CREDITS, PLAYER, RUN, groundGrid, xpForLevel } from '../config/run';
+import { RAD, radTier } from '../config/radiation';
+import { CAPS, CREDITS, PLAYER, RUN, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS } from '../config/waves';
+import { refreshHazards } from './hazards';
 import { banner, createBeam, createBoom, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
@@ -38,7 +39,7 @@ import {
   updateShots,
   updateWeapons,
 } from './systems/weapons';
-import type { Corpse, Hazard, InputState, Point, World } from './types';
+import type { Corpse, InputState, Point, World } from './types';
 import { defaultView } from './view';
 import { SFX_COUNT } from './sfx';
 
@@ -87,28 +88,6 @@ const createCorpse = (): Corpse => ({
   irr: false,
 });
 const createPoint = (): Point => ({ x: 0, y: 0 });
-
-/** Charcos en el centro de casillas del suelo, sin repetir casilla ni tocar el borde del mapa. */
-function makeHazards(rng: () => number, M: number): Hazard[] {
-  const { n, T } = groundGrid(M);
-  const out: Hazard[] = [];
-  const used = new Set<number>();
-  let guard = 0;
-  while (out.length < HAZARDS.count && guard++ < 2000) {
-    const i = 1 + Math.floor(rng() * (n - 2));
-    const j = 1 + Math.floor(rng() * (n - 2));
-    if (used.has(j * n + i)) continue;
-    const x = (i + 0.5) * T;
-    const y = (j + 0.5) * T;
-    const dx = x - M / 2;
-    const dy = y - M / 2;
-    if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) continue;
-    used.add(j * n + i);
-    const k = Math.floor(rng() * HAZARDS.cellRadii.length);
-    out.push({ x, y, r: T * HAZARDS.cellRadii[k]! });
-  }
-  return out;
-}
 
 export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOptions = {}): World {
   const stats = survivorStats(charId);
@@ -181,7 +160,10 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     mines: new Pool(createMine, 80),
     tele: new Pool(createTele, 32),
     slimes: new Pool(createSlime, 120),
-    hazards: opts.hazards === false ? [] : makeHazards(rng, M),
+    hazards: [],
+    hazardsOn: opts.hazards !== false,
+    hazardCell: { i: Number.NaN, j: Number.NaN },
+    start: { x: c, y: c },
     pickups: new Pool(createPickup, 400),
     gemCount: 0,
     beams: new Pool(createBeam, 60),
@@ -205,6 +187,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     storm: false,
     lastBossAt: -999,
     bossSpawned: {},
+    bonusSlots: 0,
     bossAlive: 0,
     shake: 0,
     showDmg: false,
@@ -212,6 +195,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   };
   recalc(w);
   w.player.hp = w.st.maxHp;
+  refreshHazards(w);
   return w;
 }
 
@@ -233,8 +217,8 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
     const k = Math.min(1, mag) * w.st.speed * dt;
     p.facingX = ux;
     p.facingY = uy;
-    p.x = clamp(p.x + ux * k, p.r, w.mapSize - p.r);
-    p.y = clamp(p.y + uy * k, p.r, w.mapSize - p.r);
+    p.x += ux * k;
+    p.y += uy * k;
   }
   p.inv -= dt;
   p.turbo -= dt;
@@ -284,6 +268,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   w.ticks++;
   recalc(w);
   updatePlayer(w, input, dt);
+  refreshHazards(w);
   updateRadiation(w, dt);
 
   w.enemyGrid.build(w.enemies.items, w.enemies.count);

@@ -1,13 +1,14 @@
-// HUD de la run (04_ART_UI.md §2): PV y RAD arriba a la izquierda, tiempo y XP arriba al centro,
-// bajas y pausa arriba a la derecha, armas, objeto y consumibles abajo a la derecha.
+// HUD de la run (04_ART_UI.md §2) con estética de terminal de fósforo de los 50: PV y RAD arriba a la izquierda,
+// tiempo y XP arriba al centro, radar, bajas y pausa arriba a la derecha, armas, objeto y consumibles abajo a la
+// derecha.
 import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
 import { PLAYER } from '../../../config/run';
-import { weaponSlots } from '../../../config/survivors';
 import { WEAPONS } from '../../../config/weapons';
-import type { Banner } from '../../../engine/types';
+import type { Banner, World } from '../../../engine/types';
 import type { HudSnapshot } from '../../runSession';
+import { Minimap } from './Minimap';
 
 export const fmtTime = (s: number): string => {
   const m = Math.floor(s / 60);
@@ -17,6 +18,7 @@ export const fmtTime = (s: number): string => {
 
 interface Props {
   hud: HudSnapshot;
+  world: World;
   onPause: () => void;
   onConsume: (i: number) => void;
 }
@@ -31,53 +33,63 @@ function useBannerText(): (b: Banner) => string {
   };
 }
 
-export function Hud({ hud, onPause, onConsume }: Props) {
+export function Hud({ hud, world, onPause, onConsume }: Props) {
   const { t } = useTranslation();
   const bannerText = useBannerText();
   const hpFrac = hud.maxHp > 0 ? hud.hp / hud.maxHp : 0;
-  const slots = Array.from(
-    { length: weaponSlots(hud.charId, PLAYER.weaponSlots) },
-    (_, i) => hud.weapons[i] ?? null,
-  );
+  const slots = Array.from({ length: hud.slots }, (_, i) => hud.weapons[i] ?? null);
 
   return (
     <div className="hud">
-      <div className="hud__tl">
-        <div className="bar bar--hp" aria-label={`${Math.ceil(hud.hp)} / ${hud.maxHp}`}>
-          <div className="bar__fill" style={{ width: `${hpFrac * 100}%` }} />
-          <span className="bar__text">
-            {Math.ceil(hud.hp)} / {hud.maxHp}
+      <div className="hud__tl panel">
+        <div className={`meter meter--hp ${hpFrac < 0.3 ? 'is-low' : ''}`}>
+          <span className="meter__label">{t('run.hp')}</span>
+          <div className="meter__bar" aria-label={`${Math.ceil(hud.hp)} / ${hud.maxHp}`}>
+            <div className="meter__fill" style={{ width: `${hpFrac * 100}%` }} />
+          </div>
+          <span className="meter__val">
+            {Math.ceil(hud.hp)}/{hud.maxHp}
           </span>
         </div>
-        <div className="bar bar--rad">
-          <div
-            className="bar__fill"
-            style={{ width: `${(hud.rad / RAD.max) * 100}%`, background: hud.radColor }}
-          />
-          <span className="bar__text">☢ {t('run.rad', { n: Math.round(hud.rad) })}</span>
+        <div className="meter meter--rad">
+          <span className="meter__label">☢</span>
+          <div className="meter__bar">
+            <div
+              className="meter__fill"
+              style={{ width: `${(hud.rad / RAD.max) * 100}%`, background: hud.radColor }}
+            />
+          </div>
+          <span className="meter__val">{t('run.rad', { n: Math.round(hud.rad) })}</span>
         </div>
       </div>
 
       <div className="hud__tc">
         <div className={`hud__time ${hud.storm ? 'is-storm' : ''}`}>{fmtTime(hud.time)}</div>
-        <div className="bar bar--xp">
-          <div className="bar__fill" style={{ width: `${(hud.xp / hud.xpNext) * 100}%` }} />
-          <span className="bar__text">{t('run.level', { n: hud.level })}</span>
+        <div className="meter meter--xp">
+          <span className="meter__label">{t('run.level', { n: hud.level })}</span>
+          <div className="meter__bar">
+            <div className="meter__fill" style={{ width: `${(hud.xp / hud.xpNext) * 100}%` }} />
+          </div>
         </div>
         {hud.boss && (
-          <div className="bar bar--boss">
-            <div className="bar__fill" style={{ width: `${hud.boss.frac * 100}%` }} />
-            <span className="bar__text">{t(`entities.${hud.boss.id}`)}</span>
+          <div className="meter meter--boss">
+            <div className="meter__bar">
+              <div className="meter__fill" style={{ width: `${hud.boss.frac * 100}%` }} />
+              <span className="meter__over">{t(`entities.${hud.boss.id}`)}</span>
+            </div>
           </div>
         )}
         {hud.rain && <div className="hud__status">{t('run.rain')}</div>}
       </div>
 
       <div className="hud__tr">
-        <span className="hud__kills">{t('run.kills', { n: hud.kills })}</span>
         <button className="btn-icon" onClick={onPause} aria-label={t('run.pause')}>
           ❚❚
         </button>
+        <div className="hud__radar panel">
+          <Minimap world={world} />
+          <span className="hud__kills">{t('run.kills', { n: hud.kills })}</span>
+        </div>
       </div>
 
       <div className="hud__banners" aria-live="polite">
@@ -88,7 +100,8 @@ export function Hud({ hud, onPause, onConsume }: Props) {
         ))}
       </div>
 
-      <div className="hud__br">
+      <div className="hud__br panel">
+        <span className="panel__label">{t('run.weapons')}</span>
         <div className="slots">
           {slots.map((w, i) => (
             <div
@@ -100,7 +113,11 @@ export function Hud({ hud, onPause, onConsume }: Props) {
               {w && (
                 <>
                   <span className="slot__name">{t(`weapons.${w.id}.short`)}</span>
-                  <span className="slot__lvl">{w.lvl}</span>
+                  <span className="slot__pips" aria-label={t('run.level', { n: w.lvl })}>
+                    {Array.from({ length: PLAYER.maxWeaponLevel }, (_, k) => (
+                      <i key={k} className={k < w.lvl ? 'is-on' : ''} />
+                    ))}
+                  </span>
                 </>
               )}
             </div>
@@ -112,6 +129,7 @@ export function Hud({ hud, onPause, onConsume }: Props) {
             {hud.item && <span className="slot__name">{t(`items.${hud.item}.name`)}</span>}
           </div>
         </div>
+        <span className="panel__label">{t('run.kit')}</span>
         <div className="slots slots--cons">
           {CONSUMABLE_IDS.map((id, i) => (
             <button

@@ -33,10 +33,13 @@ export const RAD = {
 /**
  * Charcos radiactivos fijos del mapa: cada uno es una casilla del suelo con un lago de ácido pintado.
  * DECISIÓN: antes eran 45 círculos de radio 55–110 en cualquier sitio; ahora van pegados a casillas, en dos tamaños
- * que corresponden a los dos lagos pintados (pequeño y grande), y hay 60: algunos más que objetos de decoración.
+ * que corresponden a los dos lagos pintados (pequeño y grande). El mapa no tiene bordes, así que no hay un número
+ * fijo: cada casilla lleva charco con probabilidad `density` (algo más que la decoración).
  */
 export const HAZARDS = {
-  count: 60,
+  density: 0.08,
+  /** Casillas alrededor del jugador (en cada sentido) cuyos charcos se tienen en cuenta para el daño. */
+  window: 12,
   /**
    * Radios posibles del daño en fracción del lado de la casilla, de menor a mayor; el render pinta el lago que
    * corresponde a cada uno (el pequeño ocupa ~media cara, el grande casi toda).

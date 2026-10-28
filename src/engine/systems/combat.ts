@@ -5,13 +5,14 @@ import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../.
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { CAPS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
 import { EVENTS } from '../../config/waves';
-import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
+import { BOSS_WEAPONS, SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponId } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { banner, boom, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
+import { createWeapon } from './weapons';
 
 /** Opciones de `hitEnemy` como bits para no crear objetos en cada golpe. */
 export const HIT_DIRECT = 1;
@@ -232,14 +233,15 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   addCorpse(w, e);
   const xp = e.xp * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
   if (xp > 0) dropGems(w, e.x, e.y, xp);
-  const M = w.mapSize;
   if (e.boss) {
     w.bosses++;
     w.bossAlive--;
     if (e.type === 'rey_rata' || e.type === 'dirigible') {
-      addPickup(w, 'chest', clamp(e.x, 40, M - 40), clamp(e.y, 40, M - 40), 14);
+      addPickup(w, 'chest', e.x, e.y, 14);
       banner(w, 'banner.chest');
     }
+    const reward = BOSS_WEAPONS[e.type];
+    if (reward) grantBossWeapon(w, reward);
     if (e.type === 'dirigible') dropGems(w, e.x, e.y, AI.dirigible.dropXp);
     if (e.type === 'coloso') {
       w.over = true;
@@ -259,8 +261,8 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
       const c = spawnEnemy(
         w,
         A.childType,
-        clamp(e.x + Math.cos(a) * A.childDist, 5, M - 5),
-        clamp(e.y + Math.sin(a) * A.childDist, 5, M - 5),
+        e.x + Math.cos(a) * A.childDist,
+        e.y + Math.sin(a) * A.childDist,
         false,
       );
       c.facingX = e.facingX;
@@ -281,6 +283,15 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (w.rng() < DROPS.stimChance * (1 + w.st.luck / 50)) addPickup(w, 'stim', e.x, e.y, 7);
   else if (w.rng() < FIELD_PICKUPS.chance * (1 + w.st.luck / 50))
     addPickup(w, rollFieldPickup(w.rng()), e.x, e.y, FIELD_PICKUPS.r);
+}
+
+/** Arma de minijefe: va a un hueco extra; si ya la tuviera (no debería), sube un nivel. */
+export function grantBossWeapon(w: World, id: WeaponId): void {
+  w.bonusSlots++;
+  const have = w.weapons.find((x) => x.id === id);
+  if (have) have.lvl = Math.min(PLAYER.maxWeaponLevel, have.lvl + 1);
+  else w.weapons.push(createWeapon(id));
+  banner(w, 'banner.bossWeapon', { weapon: id });
 }
 
 /** Elige botiquín, imán o bomba según sus pesos; `u` ∈ [0, 1). */

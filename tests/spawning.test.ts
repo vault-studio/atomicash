@@ -106,20 +106,15 @@ describe('aparición fuera de cámara', () => {
     expect(far).toBe(true);
   });
 
-  it('con el jugador en una esquina sigue dentro del mapa y fuera de cámara', () => {
+  it('lejos del inicio (sin bordes) siempre aparece fuera de cámara', () => {
     const w = passive(5);
-    w.player.x = w.player.prevX = 30;
-    w.player.y = w.player.prevY = 30;
+    w.player.x = w.player.prevX = -5000;
+    w.player.y = w.player.prevY = -5000;
     const out = { x: 0, y: 0 };
-    let offscreen = 0;
     for (let i = 0; i < 500; i++) {
       placeOffscreen(w, out);
-      expect(out.x).toBeGreaterThanOrEqual(0);
-      expect(out.y).toBeGreaterThanOrEqual(0);
-      if (!isOnScreen(w, out.x, out.y)) offscreen++;
+      expect(isOnScreen(w, out.x, out.y)).toBe(false);
     }
-    // Con 16 intentos, que fallen todos en una esquina (¾ de los ángulos salen del mapa) es < 1 %.
-    expect(offscreen).toBeGreaterThanOrEqual(495);
   });
 
   it('los enemigos que se quedan muy atrás reaparecen delante, fuera de cámara', () => {
