@@ -138,7 +138,8 @@ describe('motor sin allocations', () => {
   });
 
   it('persiguen al jugador', () => {
-    const w = createWorld('dot', 1);
+    // Sin arma: el retroceso de los disparos falsearía la distancia recorrida.
+    const w = createWorld('dot', 1, { startWeapon: null });
     const e = spawnEnemy(w, 'dron', w.player.x + 400, w.player.y);
     const d0 = Math.hypot(e.x - w.player.x, e.y - w.player.y);
     for (let i = 0; i < 60; i++) tick(w, { moveX: 0, moveY: 0 }, STEP);

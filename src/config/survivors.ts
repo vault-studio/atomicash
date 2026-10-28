@@ -39,7 +39,7 @@ export const SURVIVORS = {
     hp: 100,
     speed: 200,
     rarity: 'common',
-    weapon: 'llave',
+    weapon: 'pistola_clavos',
     exclusiveWeapon: 'martillo_pilon',
     meleePct: 0.15,
   },

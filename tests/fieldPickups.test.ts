@@ -65,7 +65,7 @@ describe('huecos de arma y armas de jefe', () => {
     const { weaponOptions } = await import('../src/engine/systems/progression');
     const { createWeapon } = await import('../src/engine/systems/weapons');
     const w = createWorld('dot', 1, { hazards: false });
-    w.weapons.push(createWeapon('pistola_clavos'), createWeapon('geiger'));
+    w.weapons.push(createWeapon('llave'), createWeapon('geiger'));
     expect(w.weapons.length).toBe(3);
     expect(weaponOptions(w).some((c) => c.kind === 'new')).toBe(false);
   });
