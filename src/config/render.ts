@@ -121,21 +121,21 @@ export const RUN_COLORS = {
 } as const;
 
 /**
- * Baldosas de suelo recortadas de las láminas de ARTE/ (arena y dos de decoración) con tools/slice_tiles.py (rombo
+ * Baldosas de suelo recortadas de las láminas de ARTE/ con tools/slice_tiles.py (rombo
  * 2:1 de 256×128). `tiles.json` dice qué baldosa lleva lago de ácido, cuánto sobresale por arriba y si lo que
  * sobresale va aparte (`top`) para ordenarlo con los personajes.
- * DECISIÓN: casi todo es arena, sobre todo la lisa sin matojos (deja leer bien personajes y proyectiles); la
- * decoración (poste, trinchera, bidones, valla, barrera, señales, árbol, surtidor, coche) sale en una de cada ~14
- * casillas, y los lagos de ácido solo donde hay charco radiactivo: el verde en el suelo siempre significa daño.
+ * DECISIÓN: el suelo es una sola lámina de arena con dos lagos de ácido (grande y pequeño). Casi todo es arena, sobre
+ * todo la lisa sin matojos (deja leer bien personajes y proyectiles), y los lagos solo salen donde hay charco
+ * radiactivo: el verde en el suelo siempre significa daño. La decoración irá encima como objetos sin baldosa.
  */
 export const TILES = {
   dir: 'assets/tiles/',
   index: 'assets/tiles/tiles.json',
-  /** Lámina de arena y peso de cada una de sus baldosas (la 1 y la 4 son arena lisa). */
-  sand: 'arena',
+  /** Lámina del suelo y peso de cada baldosa de arena (la 1 y la 4 son lisas); las de ácido son los lagos. */
+  sand: 'suelo',
   sandWeights: [1, 6, 1, 1, 6, 1] as readonly number[],
-  /** Láminas de decoración; sus baldosas con ácido son los lagos. */
-  deco: ['deco_a', 'deco_b'] as readonly string[],
+  /** Láminas de decoración con baldosa; sus baldosas con ácido también son lagos. */
+  deco: [] as readonly string[],
   /** Probabilidad de que una casilla sin charco lleve decoración. */
   decoChance: 0.07,
   /** Ancho del rombo en la imagen, en px. */

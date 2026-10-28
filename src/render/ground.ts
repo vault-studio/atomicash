@@ -54,9 +54,9 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
   ]);
   const deco = decoSets.flat();
   return {
-    sand: sand ?? [],
+    sand: (sand ?? []).filter((t) => t.acid === 0),
     deco: deco.filter((t) => t.acid === 0),
-    acid: deco.filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
+    acid: [...(sand ?? []), ...deco].filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
   };
 }
 

@@ -2,88 +2,32 @@
   "width": 256,
   "height": 128,
   "sets": {
-    "arena": [
+    "suelo": [
       {
-        "file": "arena_00.png",
+        "file": "suelo_00.png",
         "head": 0
       },
       {
-        "file": "arena_01.png",
+        "file": "suelo_01.png",
         "head": 0
       },
       {
-        "file": "arena_02.png",
-        "head": 1
-      },
-      {
-        "file": "arena_03.png",
-        "head": 0
-      },
-      {
-        "file": "arena_04.png",
-        "head": 0
-      },
-      {
-        "file": "arena_05.png",
-        "head": 2
-      }
-    ],
-    "deco_a": [
-      {
-        "file": "deco_a_00.png",
-        "head": 37,
-        "top": "deco_a_00_top.png"
-      },
-      {
-        "file": "deco_a_01.png",
-        "head": 0
-      },
-      {
-        "file": "deco_a_02.png",
-        "head": 1
-      },
-      {
-        "file": "deco_a_03.png",
-        "head": 11,
-        "top": "deco_a_03_top.png"
-      },
-      {
-        "file": "deco_a_04.png",
-        "head": 0
-      },
-      {
-        "file": "deco_a_05.png",
-        "head": 0
-      }
-    ],
-    "deco_b": [
-      {
-        "file": "deco_b_00.png",
-        "head": 27,
-        "top": "deco_b_00_top.png"
-      },
-      {
-        "file": "deco_b_01.png",
-        "head": 3,
-        "acid": 0.084
-      },
-      {
-        "file": "deco_b_02.png",
+        "file": "suelo_02.png",
         "head": 3,
         "acid": 0.283
       },
       {
-        "file": "deco_b_03.png",
-        "head": 1
-      },
-      {
-        "file": "deco_b_04.png",
+        "file": "suelo_03.png",
         "head": 0
       },
       {
-        "file": "deco_b_05.png",
-        "head": 11,
-        "top": "deco_b_05_top.png"
+        "file": "suelo_04.png",
+        "head": 0
+      },
+      {
+        "file": "suelo_05.png",
+        "head": 3,
+        "acid": 0.084
       }
     ]
   }

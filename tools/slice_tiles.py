@@ -21,12 +21,11 @@ BLACK = 28  # canal máximo por debajo del cual es fondo
 INSET = 0.98  # la cara se toma un poco hacia dentro para no arrastrar la arista
 RIM = 0.965  # desde aquí hasta el borde de la cara se rellena con el interior
 LIGHT = 30  # radio (px) de la luz de baja frecuencia que se aplana en las láminas de FLATTEN
-FLATTEN = ('arena',)
+FLATTEN = ('suelo',)
 MIN_TOP = 8  # px que tiene que sobresalir un objeto para ir aparte
+# DECISIÓN: el suelo es solo arena y lagos de ácido; la decoración irá aparte, como objetos sin baldosa.
 SHEETS = {
-    'arena': Path('ARTE/tiles_arena.webp'),
-    'deco_a': Path('ARTE/tiles_deco_a.webp'),
-    'deco_b': Path('ARTE/tiles_deco_b.webp'),
+    'suelo': Path('ARTE/tiles_suelo_acido.webp'),
 }
 
 yy, xx = np.mgrid[0 : HEAD + H, 0:W]
@@ -71,13 +70,14 @@ def affine_for(L, R, B):
     return (m[0, 0], m[1, 0], m[2, 0], m[0, 1], m[1, 1], m[2, 1])
 
 
-def flatten_light(rgb: np.ndarray) -> None:
+def flatten_light(rgb: np.ndarray, ref: np.ndarray) -> None:
     """Cada baldosa trae su propia luz (una esquina más clara) y al juntarlas se nota la rejilla: se divide por la
-    luz de baja frecuencia de la cara y se multiplica por su media."""
+    luz de baja frecuencia de la cara y se multiplica por su media. La luz se mide solo en `ref` (la arena), para que
+    el brillo del ácido no cuente como luz de la lámina."""
     f = rgb[-H:]
-    wsum = nd.gaussian_filter(face.astype(float), LIGHT)
-    low = np.dstack([nd.gaussian_filter(f[..., c] * face, LIGHT) for c in range(3)]) / np.maximum(wsum, 1e-3)[..., None]
-    f[face] = (f * f[face].mean(0) / np.maximum(low, 1))[face]
+    wsum = nd.gaussian_filter(ref.astype(float), LIGHT)
+    low = np.dstack([nd.gaussian_filter(f[..., c] * ref, LIGHT) for c in range(3)]) / np.maximum(wsum, 1e-3)[..., None]
+    f[face] = (f * f[ref].mean(0) / np.maximum(low, 1))[face]
 
 
 def slice_sheet(name: str, path: Path) -> list[dict]:
@@ -92,8 +92,11 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         edge = in_face & ((dist > RIM) | (t.max(2) < 45))
         iy, ix = nd.distance_transform_edt(edge | ~in_face, return_distances=False, return_indices=True)
         t[edge] = t[iy[edge], ix[edge]]
+        r, g, b = t[..., 0], t[..., 1], t[..., 2]
+        green = (g > 100) & (g >= r * 0.85) & (g - b > 80)
+        acid = float(green[in_face].mean())
         if name in FLATTEN:
-            flatten_light(t)
+            flatten_light(t, face & ~nd.binary_dilation(green[HEAD:], iterations=12))
         # Lo que sobresale: de esta baldosa, no negro y por encima de la cara.
         stick = mine & (t.max(2) > BLACK) & above_upper & ~in_face & above_lower
         stick &= nd.binary_opening(stick, iterations=1)
@@ -102,9 +105,6 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         a = nd.gaussian_filter((in_face | stick).astype(float), 0.6)
         a[in_face] = 1.0
         rgba = np.dstack([np.clip(t, 0, 255), np.clip(a, 0, 1) * 255]).astype(np.uint8)[HEAD - head :]
-        f = t[in_face]
-        r, g, b = f[:, 0], f[:, 1], f[:, 2]
-        acid = float(((g > 100) & (g >= r * 0.85) & (g - b > 80)).mean())
         info: dict = {'file': f'{name}_{i:02d}.png', 'head': head}
         if acid > 0.04:
             info['acid'] = round(acid, 3)
