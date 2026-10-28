@@ -1,12 +1,26 @@
 [
+  "bosses/rey_rata/rey_rata_attack_1",
+  "bosses/rey_rata/rey_rata_attack_2",
+  "bosses/rey_rata/rey_rata_death",
+  "bosses/rey_rata/rey_rata_hit",
+  "bosses/rey_rata/rey_rata_run",
+  "characters/benny/benny_death",
+  "characters/benny/benny_hit",
+  "characters/benny/benny_run",
   "characters/dot/dot_death",
   "characters/dot/dot_hit",
   "characters/dot/dot_idle",
   "characters/dot/dot_run",
+  "characters/gus/gus_death",
+  "characters/gus/gus_hit",
+  "characters/gus/gus_run",
   "enemies/dron/dron_attack",
   "enemies/dron/dron_death",
   "enemies/dron/dron_move",
   "enemies/necrofago/necrofago_attack",
   "enemies/necrofago/necrofago_death",
-  "enemies/necrofago/necrofago_move"
+  "enemies/necrofago/necrofago_move",
+  "enemies/saqueador/saqueador_death",
+  "enemies/saqueador/saqueador_hit",
+  "enemies/saqueador/saqueador_run"
 ]

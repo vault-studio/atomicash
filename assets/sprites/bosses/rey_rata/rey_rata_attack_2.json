@@ -1,0 +1,25 @@
+{
+  "id": "rey_rata",
+  "anim": "attack_2",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 16,
+  "fps": 12,
+  "loop": false
+}

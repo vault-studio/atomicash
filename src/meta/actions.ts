@@ -17,6 +17,7 @@ import {
   type StarterId,
   STARS,
   SURVIVOR_LEVEL,
+  topRarity,
   UPGRADES,
   upgradeCost,
   type AchievementId,
@@ -25,7 +26,7 @@ import {
   type UpgradeId,
   type ZoneId,
 } from '../config/meta';
-import { STAT_SURVIVOR_IDS, SURVIVORS, type StatSurvivorId, type SurvivorRarity } from '../config/survivors';
+import { ROSTER, STAT_SURVIVOR_IDS, SURVIVORS, type StatSurvivorId, type SurvivorRarity } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
@@ -255,7 +256,7 @@ export function refreshDaily(s: SaveData, now: Date): void {
     claimed: false,
     char:
       MISSIONS[id].kind === 'surviveWith'
-        ? (pickN(rng, chars.length ? chars : STAT_SURVIVOR_IDS, 1)[0] ?? null)
+        ? (pickN(rng, chars.length ? chars : ROSTER, 1)[0] ?? null)
         : null,
   }));
 }
@@ -395,13 +396,15 @@ export function pullBoxes(s: SaveData, zone: ZoneId, size: PullSize, rng: Rng): 
   if (!spend(s, GACHA.cost[size])) return null;
   const out: Grant[] = [];
   let rareInBlock = false;
+  // La garantía es de lo mejor que tenga la caja (legendario, si lo hay).
+  const top = topRarity(zone);
   for (let i = 0; i < size; i++) {
     if (i % 10 === 0) rareInBlock = false;
     let rarity = rollRarity(rng);
-    if (s.gacha.pity[zone] + 1 >= GACHA.pity) rarity = 'legendary';
+    if (s.gacha.pity[zone] + 1 >= GACHA.pity) rarity = top;
     else if (size >= 10 && i % 10 === 9 && !rareInBlock && rarity === 'common') rarity = 'rare';
     if (rarity !== 'common') rareInBlock = true;
-    s.gacha.pity[zone] = rarity === 'legendary' ? 0 : s.gacha.pity[zone] + 1;
+    s.gacha.pity[zone] = RARITIES.indexOf(rarity) >= RARITIES.indexOf(top) ? 0 : s.gacha.pity[zone] + 1;
     s.gacha.pulls++;
     out.push(grantSurvivor(s, pickFromPool(zone, rarity, rng), rng() < IRRADIATED_PULL));
   }

@@ -122,7 +122,8 @@ export class GameRenderer {
     this.worldLayer.position.set(width / 2 - isoX(px, py) * k + shx, height / 2 - isoY(px, py) * k + shy);
     this.groundView.update(px, py, width / 2 / k, height / 2 / k);
 
-    // Animación del jugador (biblia §5): death una vez; run al moverse; idle quieto (cae a run si no hay idle).
+    // Animación del jugador (biblia §5): death una vez; run al moverse; idle quieto. Sin hoja de idle, quieto se
+    // queda en el primer fotograma de run en vez de correr sin moverse.
     let anims: readonly AnimId[];
     let t: number;
     if (p.deadAt !== null) {
@@ -131,9 +132,12 @@ export class GameRenderer {
     } else if (p.moving) {
       anims = ['run'];
       t = w.time;
-    } else {
-      anims = ['idle', 'run'];
+    } else if (this.lib.has(w.charId, 'idle')) {
+      anims = ['idle'];
       t = w.time;
+    } else {
+      anims = ['run'];
+      t = 0;
     }
     const screenAngle = Math.atan2(isoY(p.facingX, p.facingY), isoX(p.facingX, p.facingY));
     this.player.show(anims, dirIndex(p.facingX, p.facingY), t, screenAngle);

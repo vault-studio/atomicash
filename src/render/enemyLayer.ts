@@ -10,13 +10,14 @@ import { FLY_HEIGHT } from './fxLayer';
 import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteLibrary } from './sprites';
 
-const MOVE_ANIMS = ['move', 'idle'] as const;
-const IDLE_ANIMS = ['idle', 'move'] as const;
+// Algunas hojas llaman `run` a lo que el juego llama `move` (saqueador, Rey Rata).
+const MOVE_ANIMS = ['move', 'run', 'idle'] as const;
+const IDLE_ANIMS = ['idle', 'move', 'run'] as const;
 const DEATH_ANIMS = ['death'] as const;
 const ATTACK_ANIMS: Record<string, readonly AnimId[]> = {
-  attack: ['attack', 'move', 'idle'],
-  attack_1: ['attack_1', 'attack', 'move', 'idle'],
-  attack_2: ['attack_2', 'attack', 'move', 'idle'],
+  attack: ['attack', 'move', 'run', 'idle'],
+  attack_1: ['attack_1', 'attack', 'move', 'run', 'idle'],
+  attack_2: ['attack_2', 'attack', 'move', 'run', 'idle'],
 };
 /** Duración de la animación de ataque si la hoja no existe. */
 const ATTACK_FALLBACK = 0.35;

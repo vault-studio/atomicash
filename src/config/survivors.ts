@@ -90,3 +90,10 @@ export const weaponSlots = (id: StatSurvivorId, base: number): number =>
   base + ((SURVIVORS[id] as SurvivorStats).extraWeaponSlots ?? 0);
 
 export const STAT_SURVIVOR_IDS = Object.keys(SURVIVORS) as StatSurvivorId[];
+
+/**
+ * Supervivientes que hay ahora en el juego: test inicial, caja y colección.
+ * DECISIÓN: por ahora solo los tres con arte completo (Dot, Gus el cocinero y Benny el mensajero); el resto
+ * conserva sus stats para cuando tenga sprites.
+ */
+export const ROSTER = ['dot', 'gus', 'benny'] as const satisfies readonly StatSurvivorId[];

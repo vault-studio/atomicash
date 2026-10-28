@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GACHA, RARITIES, SAVE, STARS, UPGRADES, upgradeCost } from '../src/config/meta';
+import { GACHA, RARITIES, SAVE, STARS, UPGRADES, topRarity, upgradeCost, zoneRates } from '../src/config/meta';
 import { SURVIVORS } from '../src/config/survivors';
 import {
   applyRun,
@@ -59,27 +59,35 @@ describe('cajas de suministros', () => {
     expect(RARITIES.reduce((a, r) => a + GACHA.rates[r], 0)).toBeCloseTo(1, 10);
   });
 
-  it('garantía: nunca pasan más de 90 tiradas seguidas sin legendario', () => {
+  it('garantía: nunca pasan más de 90 tiradas seguidas sin lo mejor de la caja', () => {
     const s = defaultSave();
     s.profile.credits = 1e9;
     const rng = createRng(7);
+    const top = topRarity('paramo');
     let since = 0;
     for (let i = 0; i < 50; i++) {
       for (const g of pullBoxes(s, 'paramo', 100, rng)!) {
-        since = g.rarity === 'legendary' ? 0 : since + 1;
+        since = g.rarity === top ? 0 : since + 1;
         expect(since).toBeLessThan(GACHA.pity);
       }
     }
   });
 
-  it('la tirada número 90 sin legendario es legendaria', () => {
+  it('la tirada número 90 sin lo mejor de la caja lo da', () => {
     const s = defaultSave();
     s.profile.credits = 1e9;
     s.gacha.pity.paramo = GACHA.pity - 1;
     const g = pullBoxes(s, 'paramo', 1, () => 0.0)!;
-    // rng 0 daría común; la garantía lo convierte en legendario.
-    expect(g[0]!.rarity).toBe('legendary');
+    // rng 0 daría común; la garantía lo convierte en lo mejor que haya (legendario, si lo hay).
+    expect(g[0]!.rarity).toBe(topRarity('paramo'));
     expect(s.gacha.pity.paramo).toBe(0);
+  });
+
+  it('las probabilidades visibles suman 1 y solo tienen rarezas que hay en la caja', () => {
+    const r = zoneRates('paramo');
+    expect(Object.values(r).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+    for (const k of RARITIES)
+      if (r[k] > 0) expect(GACHA.pool.paramo.some((id) => SURVIVORS[id].rarity === k)).toBe(true);
   });
 
   it('×10 garantiza al menos un raro o mejor', () => {
@@ -116,17 +124,17 @@ describe('colección', () => {
 
   it('un irradiado repetido vuelve irradiado al que tienes', () => {
     const s = defaultSave();
-    grantSurvivor(s, 'mae');
-    grantSurvivor(s, 'mae', true);
-    expect(s.survivors.mae!.irradiated).toBe(true);
+    grantSurvivor(s, 'gus');
+    grantSurvivor(s, 'gus', true);
+    expect(s.survivors.gus!.irradiated).toBe(true);
   });
 
   it('el perfil psicológico solo elige la primera vez', () => {
     const s = defaultSave();
-    chooseStarter(s, 'mae');
+    chooseStarter(s, 'gus');
     chooseStarter(s, 'dot');
-    expect(s.profile.starterChosen).toBe('mae');
-    expect(s.profile.active).toBe('mae');
+    expect(s.profile.starterChosen).toBe('gus');
+    expect(s.profile.active).toBe('gus');
     expect(s.survivors.dot).toBeUndefined();
   });
 });
@@ -135,11 +143,11 @@ describe('taller', () => {
   it('las mejoras solo aplican al personaje que las compró', () => {
     const s = defaultSave();
     grantSurvivor(s, 'dot');
-    grantSurvivor(s, 'mae');
+    grantSurvivor(s, 'gus');
     s.profile.credits = 1e6;
     expect(buyUpgrade(s, 'dot', 'dmg')).toBe(true);
     expect(runOptionsFor(s, 'dot').bonus?.dmg).toBe(UPGRADES.dmg.per);
-    expect(runOptionsFor(s, 'mae').bonus?.dmg).toBeUndefined();
+    expect(runOptionsFor(s, 'gus').bonus?.dmg).toBeUndefined();
     const w = createWorld('dot', 1, runOptionsFor(s, 'dot'));
     expect(w.tr.dmg).toBe(UPGRADES.dmg.per);
   });
@@ -257,9 +265,9 @@ describe('misiones y logros', () => {
 describe('guardado', () => {
   it('exportar e importar conserva la partida', () => {
     const s = defaultSave();
-    chooseStarter(s, 'errante');
+    chooseStarter(s, 'benny');
     s.profile.credits = 4321;
-    s.survivors.errante!.upgrades.hp = 2;
+    s.survivors.benny!.upgrades.hp = 2;
     const back = importSave(exportSave(s));
     expect(back).toEqual(s);
   });
@@ -271,8 +279,9 @@ describe('guardado', () => {
 
   it('migra una partida v0 del prototipo a v1', () => {
     const v0 = {
-      profile: { credits: 77, starterChosen: 'mae', stats: { runs: 3 } },
-      survivors: { mae: { level: 4, implants: ['cortex'], upgrades: { hp: 1 } }, fake: { level: 2 } },
+      profile: { credits: 77, starterChosen: 'gus', stats: { runs: 3 } },
+      // Mae ya no está en el plantel: se quita.
+      survivors: { gus: { level: 4, implants: ['cortex'], upgrades: { hp: 1 } }, mae: { level: 9 }, fake: { level: 2 } },
       gacha: { pityCounter: { paramo: 12 } },
       settings: { musicVol: 2, language: 'en' },
     };
@@ -280,10 +289,10 @@ describe('guardado', () => {
     expect(s.version).toBe(SAVE.version);
     expect(s.settings.damageNumbers).toBe(true);
     expect(s.profile.credits).toBe(77);
-    expect(s.profile.active).toBe('mae');
-    expect(s.survivors.mae!.implant).toBe('cortex');
-    expect(s.survivors.mae!.upgrades.hp).toBe(1);
-    expect(Object.keys(s.survivors)).toEqual(['mae']);
+    expect(s.profile.active).toBe('gus');
+    expect(s.survivors.gus!.implant).toBe('cortex');
+    expect(s.survivors.gus!.upgrades.hp).toBe(1);
+    expect(Object.keys(s.survivors)).toEqual(['gus']);
     expect(s.gacha.pity.paramo).toBe(12);
     expect(s.settings.musicVol).toBe(1);
     expect(s.settings.language).toBe('en');

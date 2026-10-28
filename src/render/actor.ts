@@ -42,20 +42,26 @@ export class ActorView extends Container {
   }
 
   /**
-   * Muestra la primera animación de `anims` que tenga hoja (p. ej. idle → run).
+   * Muestra la primera animación de `anims` que tenga hoja (p. ej. idle → run). Una variante de fase sin hojas
+   * propias usa las de su base (rey_rata_dmg → rey_rata).
    * `t` son los segundos desde que empezó la animación; `dir` la fila 0–7.
    */
   show(anims: readonly AnimId[], dir: number, t: number, screenAngle: number): void {
     let tex: Texture | null = null;
     let anim: AnimId | undefined;
-    for (const a of anims) {
-      tex = this.lib.frame(this.def.id, a, dir, t);
-      if (tex) {
-        anim = a;
-        break;
+    let id: string = this.def.id;
+    for (const candidate of this.def.variantOf ? [this.def.id, this.def.variantOf] : [this.def.id]) {
+      for (const a of anims) {
+        tex = this.lib.frame(candidate, a, dir, t);
+        if (tex) {
+          anim = a;
+          id = candidate;
+          break;
+        }
       }
+      if (tex) break;
     }
-    const meta = anim ? this.lib.meta(this.def.id, anim) : null;
+    const meta = anim ? this.lib.meta(id, anim) : null;
     if (tex && meta) {
       this.sprite.texture = tex;
       this.sprite.anchor.set(meta.pivot[0] / meta.cell[0], meta.pivot[1] / meta.cell[1]);

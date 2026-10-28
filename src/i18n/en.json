@@ -483,7 +483,7 @@
   "supplies": {
     "zone": "{{zone}} crate",
     "rates": "Odds per pull",
-    "pity": "Legendary guaranteed within {{n}} pulls.",
+    "pity": "Best in the box ({{rarity}}) guaranteed within {{n}} pulls.",
     "rules": "×10: at least one rare or better per 10. In-game credits only; no real money. Duplicates give shards.",
     "pull": "×{{n}} · {{cost, number}} cr",
     "skip": "Skip",
@@ -578,38 +578,38 @@
     "q1": {
       "q": "The shelter radio breaks down. You…",
       "a0": "Take it apart with a wrench.",
-      "a1": "Comfort the frightened neighbours.",
-      "a2": "Go find another one out in the wastes."
+      "a1": "Cook a stew to calm the neighbours down.",
+      "a2": "Run for a new one across the wasteland."
     },
     "q2": {
       "q": "Your favourite food is…",
       "a0": "Whatever's in the can, with engine grease.",
-      "a1": "Hot soup for everyone.",
-      "a2": "Jerky of unknown origin."
+      "a1": "My stew of whatever there is. Everything goes in.",
+      "a2": "Whatever I can eat without stopping."
     },
     "q3": {
       "q": "You see a mushroom cloud on the horizon.",
       "a0": "I measure the blast with a ruler.",
-      "a1": "I hand out iodine pills.",
-      "a2": "I put on my sunglasses."
+      "a1": "Put the pot on: it is going to be a long day.",
+      "a2": "Start running the other way."
     },
     "q4": {
       "q": "A neighbour glows in the dark.",
       "a0": "I ask them to light my engine bay.",
-      "a1": "I take their temperature.",
-      "a2": "I ask where they went swimming."
+      "a1": "Ask if they are any good for slow cooking.",
+      "a2": "Ask them to light my way home."
     },
     "q5": {
       "q": "Your motto is…",
       "a0": "\"If it isn't broken, you haven't used it.\"",
-      "a1": "\"The wounded first.\"",
-      "a2": "\"The road is my home.\""
+      "a1": "“A full stomach fights better”.",
+      "a2": "“The parcel always gets there”."
     },
     "q6": {
       "q": "What would you take to a desert island?",
       "a0": "A toolbox.",
-      "a1": "A first-aid kit.",
-      "a2": "Nothing. The island is mine now."
+      "a1": "A frying pan and spices.",
+      "a2": "Running shoes. I will swim back."
     }
   },
   "reward": {

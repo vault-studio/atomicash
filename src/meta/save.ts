@@ -15,7 +15,7 @@ import {
   type UpgradeId,
   type ZoneId,
 } from '../config/meta';
-import { STAT_SURVIVOR_IDS, type StatSurvivorId } from '../config/survivors';
+import { ROSTER, type StatSurvivorId } from '../config/survivors';
 import { WEAPON_IDS, type WeaponId } from '../config/weapons';
 
 export type Language = 'es' | 'en';
@@ -170,9 +170,10 @@ export function normalize(raw: unknown): SaveData {
   const sh = isObj(raw.shop) ? raw.shop : {};
   const st = isObj(raw.settings) ? raw.settings : {};
   const survivors: SaveData['survivors'] = {};
-  for (const id of STAT_SURVIVOR_IDS) if (sv[id] !== undefined) survivors[id] = normSurvivor(sv[id]);
-  const starterChosen = oneOfOrNull(p.starterChosen, STAT_SURVIVOR_IDS);
-  const active = oneOfOrNull(p.active, STAT_SURVIVOR_IDS) ?? starterChosen;
+  // Los supervivientes que ya no están en el plantel se quitan; si era el inicial, se repite el test.
+  for (const id of ROSTER) if (sv[id] !== undefined) survivors[id] = normSurvivor(sv[id]);
+  const starterChosen = oneOfOrNull(p.starterChosen, ROSTER);
+  const active = oneOfOrNull(p.active, ROSTER) ?? starterChosen;
   return {
     version: SAVE.version,
     profile: {
@@ -215,7 +216,7 @@ export function normalize(raw: unknown): SaveData {
                     id,
                     progress: num(x.progress, 0, 0),
                     claimed: bool(x.claimed, false),
-                    char: oneOfOrNull(x.char, STAT_SURVIVOR_IDS),
+                    char: oneOfOrNull(x.char, ROSTER),
                   },
                 ]
               : [];

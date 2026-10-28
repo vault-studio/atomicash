@@ -1,7 +1,7 @@
 // Cajas de suministros (02_GAMEPLAY.md §9): solo con créditos, probabilidades siempre visibles y garantía.
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GACHA, PULL_SIZES, RARITIES, type PullSize } from '../../../config/meta';
+import { GACHA, PULL_SIZES, topRarity, zoneRarities, zoneRates, type PullSize } from '../../../config/meta';
 import { SURVIVORS, type StatSurvivorId } from '../../../config/survivors';
 import { audio } from '../../../audio/audio';
 import { pullBoxes, type Grant } from '../../../meta/actions';
@@ -10,6 +10,9 @@ import { RARITY_COLOR, Screen } from './common';
 
 const ZONE = 'paramo' as const;
 const OPEN_MS = 900;
+// Solo las rarezas que tiene la caja, con sus probabilidades reales.
+const RARITIES_HERE = zoneRarities(ZONE);
+const RATES = zoneRates(ZONE);
 
 export function Supplies({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
@@ -40,10 +43,10 @@ export function Supplies({ onBack }: { onBack: () => void }) {
       <table className="rates">
         <caption>{t('supplies.rates')}</caption>
         <tbody>
-          {RARITIES.map((r) => (
+          {RARITIES_HERE.map((r) => (
             <tr key={r}>
               <th style={{ color: RARITY_COLOR[r] }}>{t(`rarity.${r}`)}</th>
-              <td>{(GACHA.rates[r] * 100).toLocaleString()} %</td>
+              <td>{(RATES[r] * 100).toLocaleString()} %</td>
               <td>
                 {(GACHA.pool[ZONE] as readonly StatSurvivorId[])
                   .filter((id) => SURVIVORS[id].rarity === r)
@@ -54,7 +57,7 @@ export function Supplies({ onBack }: { onBack: () => void }) {
           ))}
         </tbody>
       </table>
-      <p>{t('supplies.pity', { n: pity })}</p>
+      <p>{t('supplies.pity', { n: pity, rarity: t(`rarity.${topRarity(ZONE)}`) })}</p>
       <p>
         <small>{t('supplies.rules')}</small>
       </p>

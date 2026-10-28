@@ -483,7 +483,7 @@
   "supplies": {
     "zone": "Caja de {{zone}}",
     "rates": "Probabilidades por tirada",
-    "pity": "Legendario garantizado en {{n}} tiradas como mucho.",
+    "pity": "Lo mejor de la caja ({{rarity}}) garantizado en {{n}} tiradas como mucho.",
     "rules": "×10: al menos un raro o mejor por cada 10. Solo créditos del juego; sin dinero real. Los repetidos dan fichas.",
     "pull": "×{{n}} · {{cost, number}} cr",
     "skip": "Saltar",
@@ -578,38 +578,38 @@
     "q1": {
       "q": "Se avería la radio del refugio. Usted…",
       "a0": "La desmonta con una llave inglesa.",
-      "a1": "Consuela a los vecinos asustados.",
-      "a2": "Sale a buscar otra al páramo."
+      "a1": "Prepara un guiso para calmar a los vecinos.",
+      "a2": "Corre a por una nueva al otro lado del páramo."
     },
     "q2": {
       "q": "Su comida favorita es…",
       "a0": "Lo que haya en la lata, con grasa de motor.",
-      "a1": "Sopa caliente para todos.",
-      "a2": "Cecina de origen desconocido."
+      "a1": "Mi guiso de lo que haya. Lleva de todo.",
+      "a2": "Lo que pueda comer sin dejar de correr."
     },
     "q3": {
       "q": "Ve un hongo atómico en el horizonte.",
       "a0": "Calculo la onda con una regla.",
-      "a1": "Reparto pastillas de yodo.",
-      "a2": "Me pongo las gafas de sol."
+      "a1": "Pongo la olla al fuego: va a ser un día largo.",
+      "a2": "Echo a correr en dirección contraria."
     },
     "q4": {
       "q": "Un vecino brilla en la oscuridad.",
       "a0": "Le pido que me alumbre el motor.",
-      "a1": "Le tomo la temperatura.",
-      "a2": "Le pregunto dónde se ha bañado."
+      "a1": "Le pregunto si sirve para cocinar a fuego lento.",
+      "a2": "Le pido que me alumbre el camino de vuelta."
     },
     "q5": {
       "q": "Su lema vital es…",
       "a0": "«Si no se rompe, no lo has usado».",
-      "a1": "«Primero los heridos».",
-      "a2": "«El camino es mi casa»."
+      "a1": "«Con el estómago lleno se lucha mejor».",
+      "a2": "«El paquete siempre llega»."
     },
     "q6": {
       "q": "¿Qué llevaría a una isla desierta?",
       "a0": "Una caja de herramientas.",
-      "a1": "Un botiquín.",
-      "a2": "Nada. La isla ya es mía."
+      "a1": "Una sartén y especias.",
+      "a2": "Unas zapatillas. Se sale nadando."
     }
   },
   "reward": {

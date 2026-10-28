@@ -1,15 +1,13 @@
 // Meta-progresión del Búnker (02_GAMEPLAY.md §8–9): colección, taller, mercader, cajas, misiones y logros.
 import type { ConsumableId } from './items';
 import type { StatKey } from './traits';
-import type { StatSurvivorId, SurvivorRarity } from './survivors';
+import { ROSTER, SURVIVORS, type StatSurvivorId, type SurvivorRarity } from './survivors';
 import type { WeaponId } from './weapons';
 
 export const RARITIES: readonly SurvivorRarity[] = ['common', 'rare', 'epic', 'legendary'];
 
-/** Supervivientes iniciales del perfil psicológico. */
-// DECISIÓN: 03_CONTENT.md propone mecánica, mensajero y enfermera; Benny aún no tiene arte, así que el
-// tercero es El Errante (jugable y con hojas de sprites).
-export const STARTERS = ['dot', 'mae', 'errante'] as const satisfies readonly StatSurvivorId[];
+/** Supervivientes iniciales del perfil psicológico: los tres del plantel (mecánica, cocinero y mensajero). */
+export const STARTERS = ROSTER;
 export type StarterId = (typeof STARTERS)[number];
 
 /** Test del Ministerio: la respuesta i de cada pregunta suma un punto a `STARTERS[i]`. Textos en `psych.q<n>`. */
@@ -125,10 +123,33 @@ export const GACHA = {
   cost: { 1: 100, 10: 900, 100: 8500 } as const,
   /** Personajes de la caja de cada zona. */
   pool: {
-    paramo: ['dot', 'mae', 'errante', 'benny', 'silas', 'gus', 'ilse', 'kip', 'rosalind'],
+    paramo: ROSTER,
   } satisfies Record<ZoneId, readonly StatSurvivorId[]>,
 } as const;
 export type PullSize = keyof typeof GACHA.cost;
+
+const poolOf = (zone: ZoneId): readonly StatSurvivorId[] => GACHA.pool[zone];
+
+/** Rarezas que tiene la caja de una zona, de menor a mayor. */
+export const zoneRarities = (zone: ZoneId): SurvivorRarity[] =>
+  RARITIES.filter((r) => poolOf(zone).some((id) => SURVIVORS[id].rarity === r));
+
+/** La mejor rareza de la caja: la que asegura la garantía. */
+export const topRarity = (zone: ZoneId): SurvivorRarity => zoneRarities(zone).at(-1) ?? 'common';
+
+/**
+ * Probabilidades reales de cada rareza en la caja de una zona: la de una rareza sin personajes pasa a la siguiente
+ * que haya por debajo, como al sacar (o a la más baja que haya si no hay ninguna por debajo).
+ */
+export function zoneRates(zone: ZoneId): Record<SurvivorRarity, number> {
+  const have = zoneRarities(zone);
+  const out: Record<SurvivorRarity, number> = { common: 0, rare: 0, epic: 0, legendary: 0 };
+  for (const r of RARITIES) {
+    const lower = have.filter((h) => RARITIES.indexOf(h) <= RARITIES.indexOf(r)).at(-1) ?? have[0] ?? 'common';
+    out[lower] += GACHA.rates[r];
+  }
+  return out;
+}
 export const PULL_SIZES: readonly PullSize[] = [1, 10, 100];
 
 /** Misiones diarias (3 al día, se reinician a medianoche local). */

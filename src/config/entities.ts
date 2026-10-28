@@ -35,19 +35,19 @@ interface EntityInput {
 const DEFS = {
   // ---------- Supervivientes (characters) ----------
   dot: { category: 'characters', size: 1.3, color: '#E8A33A', method: 'mixamo', act: 1, status: 'playable' },
-  mae: { category: 'characters', size: 1.3, color: '#F07FA8', method: 'mixamo', act: 1, status: 'playable' },
+  mae: { category: 'characters', size: 1.3, color: '#F07FA8', method: 'mixamo', act: 1, status: 'locked' },
   errante: {
     category: 'characters',
     size: 1.3,
     color: '#C9B27A',
     method: 'mixamo',
     act: 1,
-    status: 'playable',
+    status: 'locked',
   },
-  benny: { category: 'characters', size: 1.3, color: '#5FB0FF', method: 'mixamo', act: 1, status: 'later' },
+  benny: { category: 'characters', size: 1.3, color: '#5FB0FF', method: 'mixamo', act: 1, status: 'playable' },
   // DECISIÓN: la biblia da «negro / carmesí» para Silas; el color de firma es el carmesí.
   silas: { category: 'characters', size: 1.3, color: '#8B1E2D', method: 'mixamo', act: 1, status: 'locked' },
-  gus: { category: 'characters', size: 1.3, color: '#3FB7A9', method: 'mixamo', act: 1, status: 'locked' },
+  gus: { category: 'characters', size: 1.3, color: '#3FB7A9', method: 'mixamo', act: 1, status: 'playable' },
   ilse: { category: 'characters', size: 1.3, color: '#2EC4B6', method: 'mixamo', act: 1, status: 'locked' },
   kip: { category: 'characters', size: 1.0, color: '#8FE3B0', method: 'rigid', act: 1, status: 'locked' },
   rosalind: {
