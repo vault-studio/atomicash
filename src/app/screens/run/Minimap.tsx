@@ -1,5 +1,5 @@
-// Radar del HUD: lee el mundo cada frame (sin tocarlo) y pinta en un canvas propio los recogibles de campo y las
-// cajas de alrededor del jugador, cada tipo con su color. Lo que queda fuera del alcance sale como flecha en el
+// Radar del HUD: lee el mundo cada frame (sin tocarlo) y pinta en un canvas propio los edificios, los recogibles de
+// campo y las cajas de alrededor del jugador, cada tipo con su color. Lo que queda fuera del alcance sale como flecha en el
 // borde, apuntando hacia donde está. Estética de pantalla de fósforo: anillos, cruz y barrido.
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -96,9 +96,40 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
   ctx.arc(c, c, R, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Recogibles y cajas: dentro, un punto; fuera, una flecha en el borde.
   const p = w.player;
   const pulse = 0.65 + 0.35 * Math.sin(time * 6);
+
+  // Edificios: dentro, un rombo; fuera, una flecha en el borde.
+  const S = RADAR.buildingSize;
+  for (const b of w.buildings) {
+    const dx = b.x - p.x;
+    const dy = b.y - p.y;
+    const sx = isoX(dx, dy);
+    const sy = isoY(dx, dy);
+    const color = RADAR.buildings[b.kind];
+    ctx.fillStyle = color;
+    ctx.strokeStyle = RADAR.bg;
+    ctx.lineWidth = 1.5;
+    if (Math.hypot(sx, sy) <= RADAR.range) {
+      const x = c + sx * k;
+      const y = c + sy * k;
+      ctx.beginPath();
+      ctx.moveTo(x, y - S / 2);
+      ctx.lineTo(x + S, y);
+      ctx.lineTo(x, y + S / 2);
+      ctx.lineTo(x - S, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      const ang = Math.atan2(sy, sx);
+      ctx.globalAlpha = 0.6;
+      arrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // Recogibles y cajas: dentro, un punto; fuera, una flecha en el borde.
   for (let i = 0; i < w.pickups.count; i++) {
     const it = w.pickups.items[i]!;
     if (!isRadarKind(it.kind)) continue;

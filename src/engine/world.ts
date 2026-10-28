@@ -54,7 +54,7 @@ export interface WorldOptions {
   /** Huecos de consumible: cuántos de cada uno lleva al empezar. */
   consumables?: Partial<World['cons']>;
   extraRerolls?: number;
-  /** Charcos radiactivos en el mapa (los tests los quitan para aislar sistemas). */
+  /** Charcos radiactivos y objetos (obstáculos, edificios) en el mapa (los tests los quitan para aislar sistemas). */
   hazards?: boolean;
 }
 
@@ -166,6 +166,8 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     hazardCell: { i: Number.NaN, j: Number.NaN },
     obstacles: createObstacleGrid(),
     obstacleCell: { i: Number.NaN, j: Number.NaN },
+    buildings: [],
+    garrisoned: new Set(),
     start: { x: c, y: c },
     pickups: new Pool(createPickup, 400),
     gemCount: 0,

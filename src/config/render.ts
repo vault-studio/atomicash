@@ -1,5 +1,6 @@
 // Parámetros de render y contrato de sprite sheets (biblia de arte §4).
 import type { AnimId, Category } from './entities';
+import type { BuildingKind } from './props';
 
 export const DIRECTIONS = ['S', 'SW', 'W', 'NW', 'N', 'NE', 'E', 'SE'] as const;
 /** Alias en español que algunos JSON pueden traer (S, SO, O, NO…). */
@@ -82,6 +83,15 @@ export const RADAR = {
     crate: '#ffe14a',
     chest: '#c77dff',
   } as Readonly<Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest', string>>,
+  /** Edificios de 2×2: un rombo del color de lo que los rodea. */
+  buildings: {
+    raiders: '#ff6a3d',
+    robots: '#4de3ff',
+    necro: '#c9ff4d',
+    supply: '#ffe14a',
+  } as Readonly<Record<BuildingKind, string>>,
+  /** Medio lado del rombo de un edificio, en px CSS. */
+  buildingSize: 7,
 } as const;
 
 /** Colores de la run (placeholders de proyectiles, chatarra, charcos…). */

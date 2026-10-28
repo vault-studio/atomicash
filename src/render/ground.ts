@@ -2,11 +2,11 @@
 // Cada casilla elige su baldosa con un hash de la semilla, así que el mismo sitio se ve siempre igual.
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import { HAZARDS } from '../config/radiation';
-import { PROP_LIST, PROPS } from '../config/props';
+import { PROP_LIST, PROP_SCALE } from '../config/props';
 import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
 import { RUN } from '../config/run';
 import { cellRand, hazardAt } from '../engine/hazards';
-import { propAt } from '../engine/obstacles';
+import { createCellObject, objectAt } from '../engine/obstacles';
 import type { World } from '../engine/types';
 import { isoX, isoY } from './iso';
 
@@ -14,6 +14,7 @@ const T = RUN.groundCell;
 /** Casillas de más alrededor de la cámara, para que no se vea el borde al moverse. */
 const MARGIN = 2;
 const ISO = Math.SQRT1_2;
+const cell = createCellObject();
 
 interface GroundTile {
   readonly tex: Texture;
@@ -183,15 +184,17 @@ export class GroundView {
           const top = this.place(this.topSprite(), t, t.top, x, y);
           top.zIndex = wx + wy;
         }
-        const prop = this.tiles?.props[propAt(seed, i, j, start.x, start.y)];
+        // Los objetos de varias casillas se pintan una vez, desde su casilla de arriba a la izquierda.
+        const has = objectAt(seed, i, j, start.x, start.y, cell) && cell.i === i && cell.j === j;
+        const prop = has ? this.tiles?.props[cell.prop] : undefined;
         if (prop) {
           const s = this.topSprite();
           s.texture = prop.tex;
           s.anchor.set(prop.ax, prop.ay);
-          s.scale.set(this.scale * PROPS.scale);
-          s.position.set(x, y);
+          s.scale.set(this.scale * PROP_SCALE[cell.prop]!);
+          s.position.set(isoX(cell.x, cell.y), isoY(cell.x, cell.y));
           s.visible = true;
-          s.zIndex = wx + wy;
+          s.zIndex = cell.x + cell.y;
         }
       }
     }

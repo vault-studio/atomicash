@@ -1,5 +1,6 @@
 // Director de la run: oleadas fuera de cámara (F1-05), eventos y jefes (F2-05/F2-07).
 import { BOSSES, BOSS_IDS, ENEMY_RULES, type StatEnemyId } from '../../config/enemies';
+import { BUILDINGS } from '../../config/props';
 import { EVENTS, SPAWN, WAVES, type WaveDef } from '../../config/waves';
 import { banner } from '../fx';
 import { SFX, sfx } from '../sfx';
@@ -101,7 +102,45 @@ function fireEvent(w: World): void {
   }
 }
 
+/** Pone a `n` cosas repartidas en un anillo alrededor del edificio, cada una con su ángulo. */
+function aroundBuilding(w: World, x: number, y: number, k: number, n: number): void {
+  const a = ((k + w.rng() * 0.5) / n) * TAU;
+  const d = BUILDINGS.ring + (w.rng() * 2 - 1) * BUILDINGS.jitter;
+  spot.x = x + Math.cos(a) * d;
+  spot.y = y + Math.sin(a) * d;
+}
+
+/** La primera vez que el jugador se acerca a un edificio, aparece lo que lo rodea: su guarnición o cajas. */
+function updateGarrisons(w: World): void {
+  const p = w.player;
+  const D2 = BUILDINGS.trigger * BUILDINGS.trigger;
+  for (let b = 0; b < w.buildings.length; b++) {
+    const B = w.buildings[b]!;
+    if ((B.x - p.x) ** 2 + (B.y - p.y) ** 2 > D2 || w.garrisoned.has(B.key)) continue;
+    w.garrisoned.add(B.key);
+    if (B.kind === 'supply') {
+      const C = BUILDINGS.crates;
+      const n = C.min + Math.floor(w.rng() * (C.max - C.min + 1));
+      for (let k = 0; k < n; k++) {
+        aroundBuilding(w, B.x, B.y, k, n);
+        addPickup(w, 'crate', spot.x, spot.y, 16);
+      }
+      continue;
+    }
+    const groups = BUILDINGS.enemies[B.kind];
+    let n = 0;
+    for (const [, count] of groups) n += count;
+    let k = 0;
+    for (const [type, count] of groups)
+      for (let c = 0; c < count; c++) {
+        aroundBuilding(w, B.x, B.y, k++, n);
+        spawnEnemy(w, type, spot.x, spot.y);
+      }
+  }
+}
+
 export function updateSpawning(w: World, dt: number): void {
+  updateGarrisons(w);
   const waveIdx = currentWaveIndex(w.time);
   const wave = WAVES[waveIdx]!;
   const pool = w.enemies;

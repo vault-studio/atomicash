@@ -1,31 +1,91 @@
 // Objetos sueltos encima de la arena como obstáculos: el jugador y los enemigos de tierra los rodean y las balas
-// desaparecen al darles. TS puro: lo usan el motor (choques) y el render (qué objeto pintar en cada casilla).
-// DECISIÓN: como los charcos, cada casilla decide con un hash de la semilla si lleva objeto; el motor guarda los
-// radios de las casillas de alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
+// desaparecen al darles. TS puro: lo usan el motor (choques, edificios) y el render (qué objeto pintar y dónde).
+// DECISIÓN: como los charcos, el mapa no se genera de antemano: cada bloque de 2×2 casillas decide con un hash de
+// la semilla si lleva un edificio (las 4), un objeto de 2 casillas (una de sus filas) o, si no, objetos de una
+// casilla sueltos. Nunca sobre ácido ni junto a la salida. El motor guarda la forma de choque de las casillas de
+// alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
 import { HAZARDS } from '../config/radiation';
-import { PROP_LIST, PROP_RADII, PROPS } from '../config/props';
+import { PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
 import { RUN } from '../config/run';
 import { cellRand, hazardAt } from './hazards';
-import type { World } from './types';
+import type { Building, World } from './types';
 
 const T = RUN.groundCell;
 const R = HAZARDS.window;
 const SIDE = 2 * R + 1;
+/** Por casilla de la rejilla: centro de la huella (x, y), semilados del núcleo (hx, hy) y radio (0 = libre). */
+const STRIDE = 5;
 
 /** Rejilla vacía para `World.obstacles`. */
-export const createObstacleGrid = (): Float32Array => new Float32Array(SIDE * SIDE);
+export const createObstacleGrid = (): Float32Array => new Float32Array(SIDE * SIDE * STRIDE);
 
-/** Índice (en `PROP_LIST`) del objeto de la casilla (i, j), o −1. Nunca en charcos ni junto a la salida. */
-export function propAt(seed: number, i: number, j: number, startX: number, startY: number): number {
-  if (PROP_LIST.length === 0 || cellRand(seed, i, j, 6) >= PROPS.chance) return -1;
-  if (hazardAt(seed, i, j, startX, startY) >= 0) return -1;
-  const dx = (i + 0.5) * T - startX;
-  const dy = (j + 0.5) * T - startY;
-  if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) return -1;
-  return Math.floor(cellRand(seed, i, j, 7) * PROP_LIST.length);
+/** Lo que hay en una casilla: el objeto, su casilla de arriba a la izquierda y el centro de su huella. */
+export interface CellObject {
+  prop: number;
+  i: number;
+  j: number;
+  x: number;
+  y: number;
 }
 
-/** Renueva los radios de los obstáculos de alrededor del jugador si ha cambiado de casilla. */
+export const createCellObject = (): CellObject => ({ prop: -1, i: 0, j: 0, x: 0, y: 0 });
+
+function free(seed: number, i: number, j: number, sx: number, sy: number): boolean {
+  if (hazardAt(seed, i, j, sx, sy) >= 0) return false;
+  const dx = (i + 0.5) * T - sx;
+  const dy = (j + 0.5) * T - sy;
+  return dx * dx + dy * dy >= HAZARDS.safe * HAZARDS.safe;
+}
+
+const pick = (list: readonly number[], r: number): number => list[Math.floor(r * list.length)]!;
+
+/** Rellena `out` con el objeto que ocupa la casilla (i, j); false si no hay ninguno. */
+export function objectAt(seed: number, i: number, j: number, sx: number, sy: number, out: CellObject): boolean {
+  const bi = Math.floor(i / 2);
+  const bj = Math.floor(j / 2);
+  const i0 = bi * 2;
+  const j0 = bj * 2;
+  const r = cellRand(seed, bi, bj, 8);
+  const big = PROPS.chance4 * 4;
+  if (
+    r < big &&
+    PROPS_BY_CELLS[4].length > 0 &&
+    free(seed, i0, j0, sx, sy) &&
+    free(seed, i0 + 1, j0, sx, sy) &&
+    free(seed, i0, j0 + 1, sx, sy) &&
+    free(seed, i0 + 1, j0 + 1, sx, sy)
+  ) {
+    out.prop = pick(PROPS_BY_CELLS[4], cellRand(seed, bi, bj, 9));
+    out.i = i0;
+    out.j = j0;
+    out.x = (i0 + 1) * T;
+    out.y = (j0 + 1) * T;
+    return true;
+  }
+  if (r >= big && r < big + PROPS.chance2 * 4 && PROPS_BY_CELLS[2].length > 0) {
+    const row = j0 + (cellRand(seed, bi, bj, 10) < 0.5 ? 0 : 1);
+    if (j === row && free(seed, i0, row, sx, sy) && free(seed, i0 + 1, row, sx, sy)) {
+      out.prop = pick(PROPS_BY_CELLS[2], cellRand(seed, bi, bj, 11));
+      out.i = i0;
+      out.j = row;
+      out.x = (i0 + 1) * T;
+      out.y = (row + 0.5) * T;
+      return true;
+    }
+  }
+  if (PROPS_BY_CELLS[1].length === 0 || cellRand(seed, i, j, 6) >= PROPS.chance1) return false;
+  if (!free(seed, i, j, sx, sy)) return false;
+  out.prop = pick(PROPS_BY_CELLS[1], cellRand(seed, i, j, 7));
+  out.i = i;
+  out.j = j;
+  out.x = (i + 0.5) * T;
+  out.y = (j + 0.5) * T;
+  return true;
+}
+
+const cell = createCellObject();
+
+/** Renueva las formas de choque y los edificios de alrededor del jugador si ha cambiado de casilla. */
 export function refreshObstacles(w: World): void {
   if (!w.hazardsOn) return;
   const ci = Math.floor(w.player.x / T);
@@ -34,24 +94,45 @@ export function refreshObstacles(w: World): void {
   if (ci === c.i && cj === c.j) return;
   c.i = ci;
   c.j = cj;
+  const buildings: Building[] = [];
+  const g = w.obstacles;
   for (let dj = 0; dj < SIDE; dj++)
     for (let di = 0; di < SIDE; di++) {
-      const k = propAt(w.seed, ci - R + di, cj - R + dj, w.start.x, w.start.y);
-      w.obstacles[dj * SIDE + di] = k >= 0 ? PROP_RADII[k]! : 0;
+      const i = ci - R + di;
+      const j = cj - R + dj;
+      const o = (dj * SIDE + di) * STRIDE;
+      if (!objectAt(w.seed, i, j, w.start.x, w.start.y, cell)) {
+        g[o + 4] = 0;
+        continue;
+      }
+      const s = PROP_SHAPES[cell.prop]!;
+      g[o] = cell.x;
+      g[o + 1] = cell.y;
+      g[o + 2] = s.hx;
+      g[o + 3] = s.hy;
+      g[o + 4] = s.r;
+      const kind = PROP_BUILDING[cell.prop];
+      if (kind && i === cell.i && j === cell.j)
+        buildings.push({ x: cell.x, y: cell.y, kind, key: `${cell.i},${cell.j}` });
     }
+  w.buildings = buildings;
 }
 
-/** Radio del obstáculo de la casilla (i, j); 0 si no hay o queda fuera de la ventana. */
-function radiusAt(w: World, i: number, j: number): number {
+/** Desplazamiento en la rejilla de la casilla (i, j); −1 si está libre o fuera de la ventana. */
+function slot(w: World, i: number, j: number): number {
   const di = i - w.obstacleCell.i + R;
   const dj = j - w.obstacleCell.j + R;
-  if (di < 0 || dj < 0 || di >= SIDE || dj >= SIDE) return 0;
-  return w.obstacles[dj * SIDE + di]!;
+  if (di < 0 || dj < 0 || di >= SIDE || dj >= SIDE) return -1;
+  const o = (dj * SIDE + di) * STRIDE;
+  return w.obstacles[o + 4]! > 0 ? o : -1;
 }
+
+const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
 /**
  * Saca el círculo (o, r) de los obstáculos que pisa. Lo que el obstáculo le quita del avance (vx, vy) se convierte
  * en un paso de lado, hacia donde ya se desviaba o hacia `side` si va de frente, para que lo rodee.
+ * Un objeto de varias casillas está en todas ellas: tras el primer empujón ya no hay solape y los demás no hacen nada.
  */
 export function blockCircle(
   w: World,
@@ -62,30 +143,48 @@ export function blockCircle(
   side: number,
 ): void {
   if (!w.hazardsOn) return;
+  const g = w.obstacles;
   const ci = Math.floor(o.x / T);
   const cj = Math.floor(o.y / T);
   for (let j = cj - 1; j <= cj + 1; j++)
     for (let i = ci - 1; i <= ci + 1; i++) {
-      const ro = radiusAt(w, i, j);
-      if (ro === 0) continue;
-      let dx = o.x - (i + 0.5) * T;
-      let dy = o.y - (j + 0.5) * T;
-      let d = Math.sqrt(dx * dx + dy * dy);
-      const min = r + ro;
+      const s = slot(w, i, j);
+      if (s < 0) continue;
+      const cx = g[s]!;
+      const cy = g[s + 1]!;
+      const hx = g[s + 2]!;
+      const hy = g[s + 3]!;
+      const min = r + g[s + 4]!;
+      const dx = o.x - clamp(o.x, cx - hx, cx + hx);
+      const dy = o.y - clamp(o.y, cy - hy, cy + hy);
+      const d = Math.sqrt(dx * dx + dy * dy);
       if (d >= min) continue;
-      if (d < 1e-6) {
-        dx = 1;
-        dy = 0;
-        d = 1;
+      let nx: number;
+      let ny: number;
+      let pen: number;
+      if (d > 1e-6) {
+        nx = dx / d;
+        ny = dy / d;
+        pen = min - d;
+      } else {
+        // Dentro del núcleo: sale por el lado más cercano.
+        const px = hx - Math.abs(o.x - cx);
+        const py = hy - Math.abs(o.y - cy);
+        if (px < py) {
+          nx = o.x >= cx ? 1 : -1;
+          ny = 0;
+          pen = px + min;
+        } else {
+          nx = 0;
+          ny = o.y >= cy ? 1 : -1;
+          pen = py + min;
+        }
       }
-      const nx = dx / d;
-      const ny = dy / d;
-      const pen = min - d;
       o.x += nx * pen;
       o.y += ny * pen;
       if (vx * nx + vy * ny < 0) {
-        const s = vy * nx - vx * ny;
-        const sgn = Math.abs(s) > 1e-3 ? Math.sign(s) : side;
+        const t = vy * nx - vx * ny;
+        const sgn = Math.abs(t) > 1e-3 ? Math.sign(t) : side;
         o.x += -ny * sgn * pen;
         o.y += nx * sgn * pen;
       }
@@ -95,15 +194,17 @@ export function blockCircle(
 /** ¿El punto (x, y) cae dentro de algún obstáculo? */
 export function hitsObstacle(w: World, x: number, y: number): boolean {
   if (!w.hazardsOn) return false;
+  const g = w.obstacles;
   const ci = Math.floor(x / T);
   const cj = Math.floor(y / T);
   for (let j = cj - 1; j <= cj + 1; j++)
     for (let i = ci - 1; i <= ci + 1; i++) {
-      const ro = radiusAt(w, i, j);
-      if (ro === 0) continue;
-      const dx = x - (i + 0.5) * T;
-      const dy = y - (j + 0.5) * T;
-      if (dx * dx + dy * dy < ro * ro) return true;
+      const s = slot(w, i, j);
+      if (s < 0) continue;
+      const dx = x - clamp(x, g[s]! - g[s + 2]!, g[s]! + g[s + 2]!);
+      const dy = y - clamp(y, g[s + 1]! - g[s + 3]!, g[s + 1]! + g[s + 3]!);
+      const r = g[s + 4]!;
+      if (dx * dx + dy * dy < r * r) return true;
     }
   return false;
 }

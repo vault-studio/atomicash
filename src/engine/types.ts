@@ -1,6 +1,7 @@
 import type { EntityId } from '../config/entities';
 import type { StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
+import type { BuildingKind } from '../config/props';
 import type { StatSurvivorId } from '../config/survivors';
 import type { Rarity, StatKey, TraitId } from '../config/traits';
 import type { WeaponId } from '../config/weapons';
@@ -241,6 +242,16 @@ export interface Point {
   y: number;
 }
 
+/** Edificio de 2×2 casillas cerca del jugador (ver engine/obstacles.ts). */
+export interface Building {
+  /** Centro de la huella. */
+  readonly x: number;
+  readonly y: number;
+  readonly kind: BuildingKind;
+  /** Casilla de arriba a la izquierda, "i,j": identifica el edificio para no repetir su guarnición. */
+  readonly key: string;
+}
+
 export interface Hazard {
   readonly x: number;
   readonly y: number;
@@ -387,6 +398,10 @@ export interface World {
   readonly obstacles: Float32Array;
   /** Casilla del jugador cuando se calcularon `obstacles`. */
   readonly obstacleCell: { i: number; j: number };
+  /** Edificios alrededor del jugador (para el radar y sus guarniciones). */
+  buildings: readonly Building[];
+  /** Edificios (`Building.key`) cuya guarnición ya apareció. */
+  readonly garrisoned: Set<string>;
   /** Punto de inicio de la run (alrededor no hay charcos). */
   readonly start: { readonly x: number; readonly y: number };
   readonly pickups: Pool<Pickup>;

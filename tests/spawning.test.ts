@@ -66,12 +66,12 @@ describe('oleadas', () => {
   });
 
   it('solo aparecen tipos de la oleada vigente', () => {
-    const w = createWorld('dot', 7);
+    const w = createWorld('dot', 7, { hazards: false });
     const first = runCollecting(w, 59);
     expect(new Set(first.map((s) => s.type))).toEqual(new Set(Object.keys(WAVES[0]!.mix)));
 
     // Saltamos al minuto 4: la oleada de 200 s incluye tiradores e hinchados.
-    const w2 = createWorld('dot', 7);
+    const w2 = createWorld('dot', 7, { hazards: false });
     w2.time = 200;
     const later = runCollecting(w2, 30);
     const allowed = new Set(Object.keys(WAVES[3]!.mix));
