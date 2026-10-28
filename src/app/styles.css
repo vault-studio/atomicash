@@ -29,6 +29,235 @@ body,
   overscroll-behavior: none;
 }
 
+/* ---------- Pantalla del móvil y carcasa metálica ----------
+ * DECISIÓN: el juego se diseña para un móvil en horizontal. En el móvil ocupa toda la pantalla; en el navegador de
+ * escritorio la pantalla se queda en la proporción de un móvil apaisado (20:9) y el hueco que sobra se pinta como la
+ * carcasa de metal de un aparato de muñeca de los 50, con tornillos, placa, ruedas y rejilla. */
+:root {
+  --screen-ratio: 20 / 9;
+  --bezel: clamp(10px, 2.4vmin, 26px);
+  --metal-hi: #8d917f;
+  --metal: #5d6152;
+  --metal-lo: #34372d;
+  --metal-dark: #1d1f19;
+}
+
+.device {
+  height: 100%;
+}
+
+.device__screen {
+  position: relative;
+  height: 100%;
+  /* Los elementos fijos (aviso de giro, filtro CRT) se quedan dentro de la pantalla. */
+  contain: layout paint;
+}
+
+.device__top,
+.device__bottom,
+.device__left,
+.device__right {
+  display: none;
+}
+
+@media (pointer: fine) {
+  body {
+    background:
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 7px),
+      radial-gradient(ellipse at 30% 20%, var(--metal-hi), var(--metal) 45%, var(--metal-lo) 100%);
+  }
+
+  .device {
+    display: grid;
+    grid-template: 'tl top tr' 1fr 'left screen right' auto 'bl bottom br' 1fr / 1fr auto 1fr;
+    min-height: 100%;
+  }
+
+  .device__screen {
+    grid-area: screen;
+    width: min(calc(100vw - 4 * var(--bezel)), calc((100dvh - 4 * var(--bezel)) * var(--screen-ratio)));
+    height: auto;
+    aspect-ratio: var(--screen-ratio);
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--suelo);
+    /* Junta de goma, marco embutido y bisel de la chapa. */
+    box-shadow:
+      0 0 0 3px #0c0d0a,
+      0 0 0 var(--bezel) var(--metal-dark),
+      0 0 0 calc(var(--bezel) + 2px) var(--metal-lo),
+      0 0 0 calc(var(--bezel) + 3px) var(--metal-hi),
+      0 10px 30px calc(var(--bezel) + 4px) rgba(0, 0, 0, 0.45);
+  }
+
+  .device__top,
+  .device__bottom,
+  .device__left,
+  .device__right {
+    display: grid;
+    place-items: center;
+    container-type: size;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .device__top {
+    grid-area: top;
+  }
+
+  .device__bottom {
+    grid-area: bottom;
+  }
+
+  .device__left {
+    grid-area: left;
+  }
+
+  .device__right {
+    grid-area: right;
+  }
+
+  .device__top > *,
+  .device__bottom > *,
+  .device__left > *,
+  .device__right > * {
+    display: none;
+  }
+
+  /* Cada adorno sale solo si cabe en su hueco. */
+  @container (min-height: 64px) and (min-width: 260px) {
+    .device__top > *,
+    .device__bottom > * {
+      display: flex;
+    }
+  }
+
+  @container (min-width: 70px) and (min-height: 160px) {
+    .device__left > *,
+    .device__right > * {
+      display: flex;
+    }
+  }
+}
+
+.device__plate {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 34px;
+  border-radius: 6px;
+  color: #23251e;
+  background:
+    radial-gradient(
+      circle at 12px 50%,
+      var(--metal-dark) 0 3px,
+      var(--metal-hi) 3.5px 5px,
+      transparent 5.5px
+    ),
+    radial-gradient(
+      circle at calc(100% - 12px) 50%,
+      var(--metal-dark) 0 3px,
+      var(--metal-hi) 3.5px 5px,
+      transparent 5.5px
+    ),
+    linear-gradient(#c9b78f, var(--ocre) 55%, #9c7f4f);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.device__brand {
+  font-family: var(--title-font);
+  font-size: clamp(16px, 22cqh, 28px);
+  letter-spacing: 0.2em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.device__model {
+  font-size: clamp(11px, 12cqh, 16px);
+  letter-spacing: 0.15em;
+  opacity: 0.8;
+}
+
+.device__controls {
+  align-items: center;
+  gap: clamp(16px, 4vw, 48px);
+}
+
+.device__lamp {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c9ffd6, var(--crt) 45%, #136b2a);
+  box-shadow:
+    0 0 0 3px var(--metal-dark),
+    0 0 12px 2px rgba(60, 255, 107, 0.6);
+}
+
+.device__knobs {
+  gap: 18px;
+}
+
+.device__controls > .device__knobs {
+  display: flex;
+}
+
+.device__knobs i {
+  display: block;
+}
+
+.device__knobs--side {
+  flex-direction: column;
+}
+
+.device__knobs i {
+  width: clamp(30px, 34cqh, 52px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 46%, var(--metal-dark) 46% 54%, transparent 54%) center / 100% 45%
+      no-repeat,
+    repeating-conic-gradient(var(--metal-lo) 0 6deg, var(--metal-hi) 6deg 12deg),
+    var(--metal);
+  box-shadow:
+    inset 0 0 0 4px rgba(0, 0, 0, 0.25),
+    0 0 0 3px var(--metal-dark),
+    0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.device__knobs--side i {
+  width: clamp(30px, 50cqw, 52px);
+}
+
+.device__grille {
+  width: clamp(24px, 40cqw, 44px);
+  height: min(220px, 60cqh);
+  border-radius: 8px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--metal-dark) 0 4px,
+    var(--metal-hi) 4px 5px,
+    var(--metal-lo) 5px 9px
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.device__grille--wide {
+  width: min(180px, 30cqw);
+  height: clamp(24px, 30cqh, 44px);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--metal-dark) 0 4px,
+    var(--metal-hi) 4px 5px,
+    var(--metal-lo) 5px 9px
+  );
+}
+
 button,
 select {
   font: inherit;

@@ -15,7 +15,27 @@
     <title>Atomic Ash</title>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Carcasa de muñeca: solo se ve en el navegador de escritorio, alrededor de la pantalla apaisada. -->
+    <div class="device">
+      <div class="device__top" aria-hidden="true">
+        <div class="device__plate">
+          <span class="device__brand">ATOMIC ASH</span>
+          <span class="device__model">MOD. 50 · UNIDAD DE CAMPO</span>
+        </div>
+      </div>
+      <div class="device__left" aria-hidden="true"><div class="device__grille"></div></div>
+      <div class="device__screen"><div id="root"></div></div>
+      <div class="device__right" aria-hidden="true">
+        <div class="device__knobs device__knobs--side"><i></i><i></i></div>
+      </div>
+      <div class="device__bottom" aria-hidden="true">
+        <div class="device__controls">
+          <span class="device__lamp"></span>
+          <div class="device__knobs"><i></i><i></i><i></i></div>
+          <div class="device__grille device__grille--wide"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
