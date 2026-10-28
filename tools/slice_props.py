@@ -22,8 +22,8 @@ SOFT = 40  # desde BLACK hasta BLACK + SOFT el fondo pasa a opaco (sombras suave
 JOIN = 18  # px de dilatación para juntar los trozos sueltos de un objeto
 PAD = 2
 BAND = 0.5  # fracción de abajo del objeto que se toma como su base
-# Objetos descartados (nombre_índice): farola y carrito.
-SKIP = {'obj_b_01', 'obj_b_02'}
+# Objetos descartados (nombre_índice): farola, carrito y neumáticos.
+SKIP = {'obj_b_01', 'obj_b_02', 'obj_b_05'}
 SHEETS = {
     'obj_a': Path('ARTE/objetos_1x1_a.webp'),
     'obj_b': Path('ARTE/objetos_1x1_b.webp'),

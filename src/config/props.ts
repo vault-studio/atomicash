@@ -5,7 +5,7 @@ import { RUN } from './run';
 
 export const PROPS = {
   /** Probabilidad de que una casilla de arena lleve un objeto encima; en las de ácido nunca. */
-  chance: 0.07,
+  chance: 0.03,
   /**
    * Escala de los objetos respecto a las baldosas.
    * DECISIÓN: a la escala de la lámina un contenedor doblaba al personaje; a la mitad queda un bidón por la cintura.
