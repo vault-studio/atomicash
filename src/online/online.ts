@@ -119,6 +119,7 @@ export function toSubmission(r: RunResults): RunSubmission {
     timeSec: Math.floor(r.time),
     kills: r.kills,
     bossDmg: r.bossDmg,
+    dmgTotal: r.dmg,
     bosses: r.bosses,
     level: r.level,
     won: r.won,
@@ -132,38 +133,34 @@ export async function submitRun(sub: RunSubmission): Promise<boolean> {
   return !error;
 }
 
-export type BoardKind = 'time' | 'boss';
+/** `dmg`: más daño total; `finish`: menos tiempo en acabar la partida (solo victorias). */
+export type BoardKind = 'dmg' | 'finish';
+/** Hoy, esta semana (desde el lunes) o siempre; en UTC. */
+export type BoardPeriod = 'day' | 'week' | 'all';
 
 export interface BoardRow {
   id: number;
   nickname: string;
   charId: string;
   timeSec: number;
-  kills?: number;
-  bossDmg?: number;
-  won?: boolean;
+  kills: number;
+  dmgTotal: number;
+  won: boolean;
 }
 
-export async function fetchBoard(kind: BoardKind, limit = 50): Promise<BoardRow[]> {
+/** Mejor marca de cada jugador en el ranking y periodo pedidos (función `leaderboard` de la base de datos). */
+export async function fetchBoard(kind: BoardKind, period: BoardPeriod, limit = 50): Promise<BoardRow[]> {
   const sb = await client();
-  const q =
-    kind === 'time'
-      ? sb
-          .from('leaderboard_time')
-          .select('*')
-          .order('time_sec', { ascending: false })
-          .order('kills', { ascending: false })
-      : sb.from('leaderboard_boss').select('*').order('boss_dmg', { ascending: false });
-  const { data, error } = await q.limit(limit);
+  const { data, error } = await sb.rpc('leaderboard', { board: kind, period, max_rows: limit });
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  return ((data ?? []) as Record<string, unknown>[]).map((r) => ({
     id: r.id as number,
     nickname: r.nickname as string,
     charId: r.char_id as string,
     timeSec: r.time_sec as number,
-    kills: r.kills as number | undefined,
-    bossDmg: r.boss_dmg as number | undefined,
-    won: r.won as boolean | undefined,
+    kills: r.kills as number,
+    dmgTotal: Number(r.dmg_total),
+    won: r.won as boolean,
   }));
 }
 

@@ -122,12 +122,15 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               )}
             </div>
           ))}
-          <div
-            className={`slot slot--item ${hud.item ? '' : 'is-empty'}`}
-            title={hud.item ? t(`items.${hud.item}.desc`) : ''}
-          >
-            {hud.item && <span className="slot__name">{t(`items.${hud.item}.name`)}</span>}
-          </div>
+          {Array.from({ length: PLAYER.itemSlots }, (_, i) => hud.items[i] ?? null).map((it, i) => (
+            <div
+              key={`item${i}`}
+              className={`slot slot--item ${it ? '' : 'is-empty'}`}
+              title={it ? `${t(`items.${it}.name`)}: ${t(`items.${it}.desc`)}` : t('run.itemEmpty')}
+            >
+              {it && <span className="slot__name">{t(`items.${it}.name`)}</span>}
+            </div>
+          ))}
         </div>
         <span className="panel__label">{t('run.kit')}</span>
         <div className="slots slots--cons">

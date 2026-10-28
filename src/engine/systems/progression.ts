@@ -5,7 +5,7 @@ import { COUPONS, FX, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
 import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
-import { BOSS_WEAPON_IDS, FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
+import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
 import { addShake, banner, boom, textFx } from '../fx';
 import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
@@ -126,9 +126,9 @@ export function weaponOptions(w: World): Card[] {
     }
   for (const wp of w.weapons)
     if (!isFusion(wp.id) && wp.lvl < PLAYER.maxWeaponLevel) opts.push({ kind: 'up', id: wp.id });
-  if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots) + w.bonusSlots)
+  if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots))
     for (const id of WEAPON_IDS) {
-      if (isFusion(id) || owned.has(id) || blocked.has(id) || BOSS_WEAPON_IDS.has(id)) continue;
+      if (isFusion(id) || owned.has(id) || blocked.has(id)) continue;
       const owner = ownerOf(id);
       if (owner && owner !== w.charId) continue;
       opts.push({ kind: 'new', id });
@@ -204,13 +204,14 @@ export function openLevelChoice(w: World): void {
   w.choice = { type: 'level', cards };
 }
 
+/** Cofre de jefe: 3 objetos que aún no lleva, a elegir uno (si le queda hueco). */
 export function openItemChoice(w: World): void {
-  const ids = ITEM_IDS.filter((k) => k !== w.item);
+  if (w.items.length >= PLAYER.itemSlots) return;
+  const ids = ITEM_IDS.filter((k) => !w.items.includes(k));
   const cards: Card[] = [];
-  for (let i = 0; i < 2 && ids.length; i++)
+  for (let i = 0; i < 3 && ids.length; i++)
     cards.push({ kind: 'item', id: ids.splice((w.rng() * ids.length) | 0, 1)[0]! });
-  cards.push({ kind: 'keep' });
-  w.choice = { type: 'item', cards };
+  if (cards.length) w.choice = { type: 'item', cards };
 }
 
 export function reroll(w: World): boolean {
@@ -254,7 +255,7 @@ export function applyChoice(w: World, i: number): void {
       break;
     }
     case 'item':
-      w.item = c.id;
+      w.items.push(c.id);
       recalc(w);
       break;
     case 'heal':
@@ -262,8 +263,6 @@ export function applyChoice(w: World, i: number): void {
       break;
     case 'purge':
       w.player.rad = Math.max(0, w.player.rad - CARDS.fallbackPurge);
-      break;
-    case 'keep':
       break;
   }
   w.choice = null;

@@ -50,7 +50,7 @@ export interface HudSnapshot {
   /** Huecos de arma: los del personaje más los ganados con los minijefes. */
   slots: number;
   cons: Record<ConsumableId, number>;
-  item: ItemId | null;
+  items: ItemId[];
   rerolls: number;
   boss: { id: StatEnemyId; frac: number } | null;
   banners: Banner[];
@@ -127,9 +127,9 @@ function snapshot(w: World): HudSnapshot {
     kills: w.kills,
     dps: currentDps(w),
     weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
-    slots: weaponSlots(w.charId, PLAYER.weaponSlots) + w.bonusSlots,
+    slots: weaponSlots(w.charId, PLAYER.weaponSlots),
     cons: { ...w.cons },
-    item: w.item,
+    items: [...w.items],
     rerolls: w.rerolls,
     boss,
     banners: w.banners.slice(),

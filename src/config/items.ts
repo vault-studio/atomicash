@@ -1,4 +1,4 @@
-// Objetos equipables (1 hueco) y consumibles (4 huecos). Textos en i18n (`items.<id>`, `consumables.<id>`).
+// Objetos equipables (2 huecos, los dan los jefes) y consumibles (4 huecos). Textos en i18n (`items.<id>`, `consumables.<id>`).
 
 export interface ItemDef {
   readonly luck?: number;
@@ -11,13 +11,17 @@ export interface ItemDef {
   readonly hpMult?: number;
 }
 
+/**
+ * Objetos de jefe: el Rey Rata y el Dirigible sueltan un cofre con 3 a elegir.
+ * DECISIÓN: bonificaciones fuertes (el doble o más que un rasgo raro) porque solo hay dos en toda la partida.
+ */
 export const ITEMS = {
-  dice: { luck: 15 },
-  apron: { radGain: 0.6 },
-  skates: { speed: 0.2 },
-  fridge: { magnet: 0.6 },
-  belt: { cd: 0.15 },
-  bobble: { dmg: 0.25, hpMult: 0.85 },
+  dice: { luck: 40 },
+  apron: { radGain: 0.4 },
+  skates: { speed: 0.35 },
+  fridge: { magnet: 1.5 },
+  belt: { cd: 0.3 },
+  bobble: { dmg: 0.5, hpMult: 0.85 },
 } as const satisfies Record<string, ItemDef>;
 
 export type ItemId = keyof typeof ITEMS;

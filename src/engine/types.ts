@@ -343,7 +343,6 @@ export type Card =
   | { kind: 'up' | 'new' | 'fusion'; id: WeaponId }
   | { kind: 'trait'; id: TraitId; rarity: Rarity; value: number }
   | { kind: 'item'; id: ItemId }
-  | { kind: 'keep' }
   | { kind: 'heal' }
   | { kind: 'purge' };
 
@@ -375,7 +374,8 @@ export interface World {
   readonly traitPicks: Partial<Record<TraitId, number>>;
   /** Rasgo elegido en cada subida (null si fue otra cosa), para no repetir rachas. */
   readonly levelHistory: (TraitId | null)[];
-  item: ItemId | null;
+  /** Objetos de jefe (hasta PLAYER.itemSlots). */
+  items: ItemId[];
   weapons: Weapon[];
   readonly cons: Record<ConsumableId, number>;
   consUsed: number;
@@ -455,8 +455,6 @@ export interface World {
   storm: boolean;
   lastBossAt: number;
   readonly bossSpawned: Record<string, boolean>;
-  /** Huecos de arma de más ganados con los minijefes. */
-  bonusSlots: number;
   /** Jefes vivos (para bajar el ritmo de oleadas y la barra de jefe). */
   bossAlive: number;
   shake: number;

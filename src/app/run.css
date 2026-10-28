@@ -330,7 +330,10 @@
 }
 
 .slot--item {
+  width: 64px;
   border-color: #b06aff;
+  font-size: 13px;
+  text-align: center;
 }
 
 .slot__name {

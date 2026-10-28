@@ -37,11 +37,10 @@ export const PLAYER = {
   invuln: 0.45,
   /** Tiempo entre golpes de contacto del mismo enemigo, en s. */
   contactCd: 0.7,
-  /**
-   * Armas a la vez: la inicial y dos más. Cada minijefe da además un arma fija en un hueco extra (BOSS_WEAPONS).
-   * DECISIÓN: bajado de 4 a 3 para que las armas de los jefes se noten.
-   */
+  /** Armas a la vez: la inicial y dos más. */
   weaponSlots: 3,
+  /** Huecos de objeto: uno por cada jefe que suelta cofre (Rey Rata y Dirigible). */
+  itemSlots: 2,
   maxWeaponLevel: 5,
   /** Cambios de tarjetas gratis por run. */
   rerolls: 1,

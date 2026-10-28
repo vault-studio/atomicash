@@ -5,13 +5,14 @@ Sin las variables de entorno el juego no descarga el cliente de Supabase y funci
 
 ## Qué hay
 
-| Pieza                                                                   | Dónde                                           |
-| ----------------------------------------------------------------------- | ----------------------------------------------- |
-| Tablas, RLS, vistas del ranking y ocultación por reportes               | `supabase/migrations/20261028000000_init.sql`   |
-| Edge Function que valida y guarda runs (antitrampas, 1 run/min)         | `supabase/functions/submit-run/index.ts`        |
-| Reglas antitrampas y de apodos (compartidas con el cliente y los tests) | `supabase/functions/_shared/runCheck.ts`        |
-| Cliente (import dinámico), sesión y sincronización                      | `src/online/online.ts`, `src/online/session.ts` |
-| UI: «Cuenta y nube» en Ajustes, «Ranking» en el Tablón                  | `src/app/screens/bunker/Online.tsx`             |
+| Pieza                                                                   | Dónde                                             |
+| ----------------------------------------------------------------------- | ------------------------------------------------- |
+| Tablas, RLS, vistas del ranking y ocultación por reportes               | `supabase/migrations/20261028000000_init.sql`     |
+| Rankings de daño total y tiempo en acabar (diario, semanal, siempre)    | `supabase/migrations/20261029000000_rankings.sql` |
+| Edge Function que valida y guarda runs (antitrampas, 1 run/min)         | `supabase/functions/submit-run/index.ts`          |
+| Reglas antitrampas y de apodos (compartidas con el cliente y los tests) | `supabase/functions/_shared/runCheck.ts`          |
+| Cliente (import dinámico), sesión y sincronización                      | `src/online/online.ts`, `src/online/session.ts`   |
+| UI: «Cuenta y nube» en Ajustes, «Ranking» en el Tablón                  | `src/app/screens/bunker/Online.tsx`               |
 
 ### Flujo
 
@@ -19,14 +20,15 @@ Sin las variables de entorno el juego no descarga el cliente de Supabase y funci
    anónimo de Supabase Auth. Si en este dispositivo no hay partida empezada y en la nube sí, la baja.
 2. **Vincular con Google**: `linkIdentity` sobre el mismo usuario → el progreso no se pierde.
 3. Tras cada run se sube la partida y, si hay apodo y «Enviar al ranking» está activo, se llama a `submit-run`.
-4. **Ranking**: «Tiempo aguantado» y «Daño a jefes» (mejor marca de cada jugador). Cada entrada se puede
+4. **Ranking**: «Daño total» (más daño en una partida) y «Tiempo en acabar» (la victoria más rápida, al
+   matar al Coloso), cada uno de hoy, de la semana (desde el lunes, UTC) y de siempre; mejor marca de cada jugador. Cada entrada se puede
    **reportar** (apodo, trampas, otro) u **ocultar** solo para ti. Con 3 reportes de personas distintas la
    entrada se oculta para todos hasta que la revises.
 
 ## Puesta en marcha (≈15 min)
 
 1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. **Base de datos**: en _SQL Editor_ pega y ejecuta la migración, o con la CLI:
+2. **Base de datos**: en _SQL Editor_ pega y ejecuta las migraciones en orden, o con la CLI:
 
    ```bash
    npx supabase link --project-ref TU-REF
@@ -61,7 +63,7 @@ La clave `service_role` **no** va nunca en el cliente: la Edge Function la recib
 ## Antitrampas (lo que valida `submit-run`)
 
 Personaje existente, enteros no negativos, tiempo ≤ 1500 s, ≤ 3 jefes, daño a jefes ≤ 30 000 (la vida
-total de los tres) y > 0 si hubo jefes, ≤ 15 bajas/s, victoria solo con 3 jefes y ≥ 67 s (el Coloso sale a las 1000 bajas como pronto), apodo válido
+total de los tres) y > 0 si hubo jefes, ≤ 15 bajas/s, daño total ≤ 50 000 por segundo y no menor que el daño a jefes, victoria solo con 3 jefes y ≥ 67 s (el Coloso sale a las 1000 bajas como pronto), apodo válido
 y una run por minuto. `tests/online.test.ts` comprueba que esos límites siguen cuadrando con `src/config`.
 Es validación básica: un cliente modificado puede mandar runs verosímiles. Para más, haría falta repetir la
 run en el servidor con la semilla (ya se guarda `seed`).

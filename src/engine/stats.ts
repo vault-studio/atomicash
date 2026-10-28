@@ -5,7 +5,27 @@ import { CAPS, DMG_TAKEN, PLAYER, RUN } from '../config/run';
 import { survivorStats, type SurvivorStats } from '../config/survivors';
 import type { PlayerStats, World } from './types';
 
-const NO_ITEM: ItemDef = {};
+/** Junta los objetos equipados: suerte y enfriamiento suman; el resto multiplica. */
+function itemBonus(w: World): Required<ItemDef> {
+  const b = { luck: 0, radGain: 1, speed: 0, magnet: 0, cd: 0, dmg: 0, hpMult: 1 };
+  let speed = 1;
+  let magnet = 1;
+  let dmg = 1;
+  for (const id of w.items) {
+    const it: ItemDef = ITEMS[id];
+    b.luck += it.luck ?? 0;
+    b.radGain *= it.radGain ?? 1;
+    speed *= 1 + (it.speed ?? 0);
+    magnet *= 1 + (it.magnet ?? 0);
+    b.cd += it.cd ?? 0;
+    dmg *= 1 + (it.dmg ?? 0);
+    b.hpMult *= it.hpMult ?? 1;
+  }
+  b.speed = speed - 1;
+  b.magnet = magnet - 1;
+  b.dmg = dmg - 1;
+  return b;
+}
 
 export function createStats(): PlayerStats {
   return {
@@ -36,20 +56,20 @@ export function recalc(w: World): void {
   const p = w.player;
   const ch: SurvivorStats = survivorStats(w.charId);
   const tr = w.tr;
-  const it: ItemDef = w.item ? ITEMS[w.item] : NO_ITEM;
+  const it = itemBonus(w);
   const tier = radTier(p.rad);
   const turbo = p.turbo > 0 ? CONSUMABLES.turbo.mult : 1;
   const st = w.st;
 
-  const maxHp = Math.max(1, Math.round((ch.hp + tr.hp) * (1 - tier.hpPen) * (it.hpMult ?? 1)));
-  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + (it.speed ?? 0)) * turbo;
-  st.magnet = PLAYER.magnetBase * (1 + (ch.magnetPct ?? 0) + tr.mag / 100) * (1 + (it.magnet ?? 0));
+  const maxHp = Math.max(1, Math.round((ch.hp + tr.hp) * (1 - tier.hpPen) * it.hpMult));
+  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + it.speed) * turbo;
+  st.magnet = PLAYER.magnetBase * (1 + (ch.magnetPct ?? 0) + tr.mag / 100) * (1 + it.magnet);
   st.armor = tr.armor;
-  st.luck = tr.luck + (it.luck ?? 0);
-  let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg * (ch.radDmgMult ?? 1)) * (1 + (it.dmg ?? 0)) * turbo;
+  st.luck = tr.luck + it.luck;
+  let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg * (ch.radDmgMult ?? 1)) * (1 + it.dmg) * turbo;
   if (p.hp < 0.4 * p.maxHp) dmg *= 1 + tr.adren / 100;
   st.dmgMult = dmg;
-  st.cdMult = 1 - Math.min(CAPS.cdReduction, tr.cd / 100 + (it.cd ?? 0));
+  st.cdMult = 1 - Math.min(CAPS.cdReduction, tr.cd / 100 + it.cd);
   st.regen = (ch.regen ?? 0) + tr.regen;
   st.xpMult = 1 + tr.xp / 100;
   st.red = Math.min(CAPS.dmgReduction, tr.red / 100);
@@ -58,7 +78,7 @@ export function recalc(w: World): void {
   st.area = 1 + tr.area / 100;
   st.pierce = tr.pierce;
   st.kb = 1 + tr.kb / 100;
-  st.radGain = (ch.radGain ?? 1) * (it.radGain ?? 1);
+  st.radGain = (ch.radGain ?? 1) * it.radGain;
   st.radDecayBonus = tr.radDecay;
   st.meleeMult = 1 + (ch.meleePct ?? 0);
   st.bossMult = 1 + (ch.bossPct ?? 0);

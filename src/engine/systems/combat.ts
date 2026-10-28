@@ -6,14 +6,13 @@ import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
 import { CAPS, COUPONS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
 import { EVENTS } from '../../config/waves';
-import { BOSS_WEAPONS, SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponId } from '../../config/weapons';
+import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { banner, boom, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
-import { createWeapon } from './weapons';
 
 /** Opciones de `hitEnemy` como bits para no crear objetos en cada golpe. */
 export const HIT_DIRECT = 1;
@@ -271,8 +270,6 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
       addPickup(w, 'chest', e.x, e.y, 14);
       banner(w, 'banner.chest');
     }
-    const reward = BOSS_WEAPONS[e.type];
-    if (reward) grantBossWeapon(w, reward);
     if (e.type === 'dirigible') dropGems(w, e.x, e.y, AI.dirigible.dropXp);
     if (e.type === 'coloso') {
       w.over = true;
@@ -314,15 +311,6 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (w.rng() < DROPS.stimChance * (1 + w.st.luck / 50)) addPickup(w, 'stim', e.x, e.y, 7);
   else if (w.rng() < FIELD_PICKUPS.chance * (1 + w.st.luck / 50))
     addPickup(w, rollFieldPickup(w.rng()), e.x, e.y, FIELD_PICKUPS.r);
-}
-
-/** Arma de minijefe: va a un hueco extra; si ya la tuviera (no debería), sube un nivel. */
-export function grantBossWeapon(w: World, id: WeaponId): void {
-  w.bonusSlots++;
-  const have = w.weapons.find((x) => x.id === id);
-  if (have) have.lvl = Math.min(PLAYER.maxWeaponLevel, have.lvl + 1);
-  else w.weapons.push(createWeapon(id));
-  banner(w, 'banner.bossWeapon', { weapon: id });
 }
 
 /** Elige botiquín, imán o bomba según sus pesos; `u` ∈ [0, 1). */

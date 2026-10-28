@@ -26,6 +26,7 @@
     "hp": "HP",
     "radar": "RADAR",
     "weapons": "WEAPONS",
+    "itemEmpty": "Item slot: filled by a boss chest",
     "kit": "KIT"
   },
   "pauseStats": {
@@ -122,9 +123,6 @@
     "fusionDesc": "{{a}} + {{b}}: {{desc}} Frees a slot.",
     "trait": "TRAIT",
     "item": "ITEM",
-    "keep": "KEEP",
-    "nothing": "Nothing",
-    "emptySlot": "Leave the slot empty.",
     "supply": "SUPPLY",
     "heal": "First-aid kit",
     "healDesc": "Heals 30% HP.",
@@ -298,27 +296,27 @@
   "items": {
     "dice": {
       "name": "Fuzzy dice",
-      "desc": "+15 luck"
+      "desc": "+40 luck"
     },
     "apron": {
       "name": "Lead apron",
-      "desc": "Radiation builds 40% slower"
+      "desc": "Radiation builds 60% slower"
     },
     "skates": {
       "name": "Roller skates",
-      "desc": "+20% speed"
+      "desc": "+35% speed"
     },
     "fridge": {
       "name": "Giant fridge magnet",
-      "desc": "+60% magnet"
+      "desc": "+150% magnet"
     },
     "belt": {
       "name": "Tool belt",
-      "desc": "−15% cooldown"
+      "desc": "−30% cooldown"
     },
     "bobble": {
       "name": "Athlete bobblehead",
-      "desc": "+25% damage, −15% max HP"
+      "desc": "+50% damage, −15% max HP"
     }
   },
   "consumables": {
@@ -362,8 +360,7 @@
     "swarm": "Drone swarm!",
     "rain": "Radioactive rain",
     "fusion": "Jury-rigged! {{name}}",
-    "storm": "THE STORM IS COMING!",
-    "bossWeapon": "Boss weapon: {{name}}!"
+    "storm": "THE STORM IS COMING!"
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",
@@ -680,12 +677,17 @@
     "noCloud": "No save in the cloud.",
     "signOut": "Disconnect",
     "board": {
-      "time": "Time survived",
-      "boss": "Boss damage"
+      "dmg": "Total damage",
+      "finish": "Fastest finish"
+    },
+    "period": {
+      "day": "Today",
+      "week": "This week",
+      "all": "All time"
     },
     "empty": "No records yet. Be the first!",
     "kills": "{{n}} kills",
-    "bossDmg": "{{n, number}} damage",
+    "dmg": "{{n, number}} damage",
     "report": "Report",
     "reported": "Reported",
     "hide": "Hide",

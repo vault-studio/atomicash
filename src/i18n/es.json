@@ -26,6 +26,7 @@
     "hp": "PV",
     "radar": "RADAR",
     "weapons": "ARMAS",
+    "itemEmpty": "Hueco de objeto: lo llena el cofre de un jefe",
     "kit": "EQUIPO"
   },
   "pauseStats": {
@@ -122,9 +123,6 @@
     "fusionDesc": "{{a}} + {{b}}: {{desc}} Libera un hueco.",
     "trait": "RASGO",
     "item": "OBJETO",
-    "keep": "CONSERVAR",
-    "nothing": "Nada",
-    "emptySlot": "Dejar el hueco vacío.",
     "supply": "SUMINISTRO",
     "heal": "Botiquín",
     "healDesc": "Cura el 30 % de los PV.",
@@ -298,27 +296,27 @@
   "items": {
     "dice": {
       "name": "Dados de peluche",
-      "desc": "+15 suerte"
+      "desc": "+40 suerte"
     },
     "apron": {
       "name": "Delantal de plomo",
-      "desc": "La radiación sube un 40 % menos"
+      "desc": "La radiación sube un 60 % menos"
     },
     "skates": {
       "name": "Patines",
-      "desc": "+20 % velocidad"
+      "desc": "+35 % velocidad"
     },
     "fridge": {
       "name": "Imán de nevera gigante",
-      "desc": "+60 % imán"
+      "desc": "+150 % imán"
     },
     "belt": {
       "name": "Cinturón de herramientas",
-      "desc": "−15 % enfriamiento"
+      "desc": "−30 % enfriamiento"
     },
     "bobble": {
       "name": "Cabezón del atleta",
-      "desc": "+25 % daño, −15 % PV máx."
+      "desc": "+50 % daño, −15 % PV máx."
     }
   },
   "consumables": {
@@ -362,8 +360,7 @@
     "swarm": "¡Enjambre de drones!",
     "rain": "Lluvia radiactiva",
     "fusion": "¡Apaño! {{name}}",
-    "storm": "¡LLEGA LA TORMENTA!",
-    "bossWeapon": "¡Arma de jefe: {{name}}!"
+    "storm": "¡LLEGA LA TORMENTA!"
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",
@@ -680,12 +677,17 @@
     "noCloud": "No hay partida en la nube.",
     "signOut": "Desconectar",
     "board": {
-      "time": "Tiempo aguantado",
-      "boss": "Daño a jefes"
+      "dmg": "Daño total",
+      "finish": "Tiempo en acabar"
+    },
+    "period": {
+      "day": "Hoy",
+      "week": "Semana",
+      "all": "Siempre"
     },
     "empty": "Aún no hay marcas. ¡Sé el primero!",
     "kills": "{{n}} bajas",
-    "bossDmg": "{{n, number}} de daño",
+    "dmg": "{{n, number}} de daño",
     "report": "Reportar",
     "reported": "Reportado",
     "hide": "Ocultar",

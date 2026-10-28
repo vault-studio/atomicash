@@ -16,6 +16,11 @@ export const LIMITS = {
   /** Bajas por segundo sostenidas: muy por encima de lo que permite el ritmo de aparición. */
   maxKillsPerSec: 15,
   killsSlack: 100,
+  /**
+   * Daño total por segundo de partida: muy por encima de lo que hace un personaje a tope (unos miles de DPS al
+   * final, contando el daño que se pasa de la vida de cada enemigo).
+   */
+  maxDmgPerSec: 50000,
   maxLevel: 300,
 } as const;
 
@@ -36,6 +41,8 @@ export interface RunSubmission {
   timeSec: number;
   kills: number;
   bossDmg: number;
+  /** Daño total de la partida (ranking «Daño total»). */
+  dmgTotal: number;
   bosses: number;
   level: number;
   won: boolean;
@@ -50,7 +57,7 @@ export function checkRun(r: unknown): string[] {
   const x = r as Record<string, unknown>;
   const errs: string[] = [];
   if (typeof x.charId !== 'string' || !(CHAR_IDS as readonly string[]).includes(x.charId)) errs.push('char');
-  for (const k of ['timeSec', 'kills', 'bossDmg', 'bosses', 'level', 'seed'] as const)
+  for (const k of ['timeSec', 'kills', 'bossDmg', 'dmgTotal', 'bosses', 'level', 'seed'] as const)
     if (!isInt(x[k]) || (k !== 'seed' && (x[k] as number) < 0)) errs.push(`int:${k}`);
   if (typeof x.won !== 'boolean') errs.push('won');
   if (errs.length) return errs;
@@ -61,6 +68,8 @@ export function checkRun(r: unknown): string[] {
   if (s.bossDmg === 0 && s.bosses > 0) errs.push('bossDmg-zero');
   if (s.kills > s.timeSec * LIMITS.maxKillsPerSec + LIMITS.killsSlack) errs.push('kills');
   if (s.level > LIMITS.maxLevel) errs.push('level');
+  if (s.dmgTotal > Math.max(1, s.timeSec) * LIMITS.maxDmgPerSec) errs.push('dmgTotal');
+  if (s.dmgTotal < s.bossDmg) errs.push('dmgTotal-boss');
   if (s.won && (s.bosses < LIMITS.bosses || s.timeSec < LIMITS.minWinSec)) errs.push('won');
   return errs;
 }

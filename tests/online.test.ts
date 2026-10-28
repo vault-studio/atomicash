@@ -13,6 +13,7 @@ const ok = {
   timeSec: 900,
   kills: 4000,
   bossDmg: 30000,
+  dmgTotal: 900000,
   bosses: 3,
   level: 60,
   won: true,
@@ -32,6 +33,8 @@ describe('antitrampas del ranking', () => {
     expect(checkRun({ ...ok, timeSec: 60 })).toContain('won');
     expect(checkRun({ ...ok, bossDmg: 0 })).toContain('bossDmg-zero');
     expect(checkRun({ ...ok, charId: 'hacker' })).toContain('char');
+    expect(checkRun({ ...ok, dmgTotal: 900 * LIMITS.maxDmgPerSec + 1 })).toContain('dmgTotal');
+    expect(checkRun({ ...ok, dmgTotal: 100 })).toContain('dmgTotal-boss');
     expect(checkRun({ ...ok, kills: 1.5 })).toContain('int:kills');
     expect(checkRun({ ...ok, kills: -1 })).toContain('int:kills');
     expect(checkRun(null)).toEqual(['not-object']);

@@ -61,6 +61,7 @@ Deno.serve(async (req: Request) => {
       time_sec: run.timeSec,
       kills: run.kills,
       boss_dmg: run.bossDmg,
+      dmg_total: run.dmgTotal,
       bosses: run.bosses,
       level: run.level,
       won: run.won,

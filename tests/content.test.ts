@@ -243,19 +243,28 @@ describe('jefes y Tormenta (F2-05)', () => {
 });
 
 describe('objetos y eventos (F2-06/F2-07)', () => {
-  it('el cofre ofrece 2 objetos y conservar; el objeto se aplica', () => {
+  it('el cofre de jefe ofrece 3 objetos que no lleva; caben 2 y se suman', () => {
     const w = quiet();
     openItemChoice(w);
     const cards = w.choice!.cards;
     expect(cards).toHaveLength(3);
-    expect(cards[2]).toEqual({ kind: 'keep' });
+    expect(cards.every((c) => c.kind === 'item')).toBe(true);
     const speed = w.st.speed;
-    const card = cards.find((c) => c.kind === 'item' && c.id === 'skates');
-    w.choice = { type: 'item', cards: [{ kind: 'item', id: 'skates' }, { kind: 'keep' }] };
+    w.choice = { type: 'item', cards: [{ kind: 'item', id: 'skates' }] };
     applyChoice(w, 0);
-    expect(w.item).toBe('skates');
+    expect(w.items).toEqual(['skates']);
     expect(w.st.speed).toBeCloseTo(speed * (1 + ITEMS.skates.speed));
-    void card;
+    openItemChoice(w);
+    expect(w.choice!.cards.some((c) => c.kind === 'item' && c.id === 'skates')).toBe(false);
+    const dmg = w.st.dmgMult;
+    w.choice = { type: 'item', cards: [{ kind: 'item', id: 'bobble' }] };
+    applyChoice(w, 0);
+    expect(w.items).toEqual(['skates', 'bobble']);
+    expect(w.st.dmgMult).toBeCloseTo(dmg * (1 + ITEMS.bobble.dmg));
+    expect(w.st.speed).toBeCloseTo(speed * (1 + ITEMS.skates.speed));
+    // Sin hueco libre no se abre otro cofre.
+    openItemChoice(w);
+    expect(w.choice).toBeNull();
   });
 
   it('rotan suministros, enjambre y lluvia', () => {

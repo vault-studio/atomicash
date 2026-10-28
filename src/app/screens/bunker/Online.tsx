@@ -9,6 +9,7 @@ import {
   setNickname,
   signOut,
   type BoardKind,
+  type BoardPeriod,
   type BoardRow,
   type ReportReason,
 } from '../../../online/online';
@@ -114,7 +115,8 @@ export function Leaderboard() {
   const { t } = useTranslation();
   const hidden = useOnline((s) => s.hiddenRuns);
   const hide = useOnline((s) => s.hide);
-  const [kind, setKind] = useState<BoardKind>('time');
+  const [kind, setKind] = useState<BoardKind>('dmg');
+  const [period, setPeriod] = useState<BoardPeriod>('day');
   const [rows, setRows] = useState<BoardRow[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [reporting, setReporting] = useState<number | null>(null);
@@ -123,7 +125,7 @@ export function Leaderboard() {
   useEffect(() => {
     if (!ONLINE_ENABLED) return;
     let alive = true;
-    fetchBoard(kind)
+    fetchBoard(kind, period)
       .then((r) => {
         if (alive) {
           setRows(r);
@@ -136,9 +138,16 @@ export function Leaderboard() {
     return () => {
       alive = false;
     };
-  }, [kind]);
+  }, [kind, period]);
 
   if (!ONLINE_ENABLED) return <p>{t('online.disabled')}</p>;
+
+  const pick = (k: BoardKind, p: BoardPeriod): void => {
+    if (k === kind && p === period) return;
+    setRows(null);
+    setKind(k);
+    setPeriod(p);
+  };
 
   const report = (id: number, reason: ReportReason): void => {
     setReporting(null);
@@ -150,9 +159,28 @@ export function Leaderboard() {
   return (
     <>
       <div className="chips" role="tablist">
-        {(['time', 'boss'] as const).map((k) => (
-          <button key={k} role="tab" aria-selected={k === kind} className="chip" onClick={() => setKind(k)}>
+        {(['dmg', 'finish'] as const).map((k) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={k === kind}
+            className="chip"
+            onClick={() => pick(k, period)}
+          >
             {t(`online.board.${k}`)}
+          </button>
+        ))}
+      </div>
+      <div className="chips" role="tablist">
+        {(['day', 'week', 'all'] as const).map((p) => (
+          <button
+            key={p}
+            role="tab"
+            aria-selected={p === period}
+            className="chip"
+            onClick={() => pick(kind, p)}
+          >
+            {t(`online.period.${p}`)}
           </button>
         ))}
       </div>
@@ -172,9 +200,9 @@ export function Leaderboard() {
                   <small>{t(`entities.${r.charId}`, { defaultValue: r.charId })}</small>
                 </span>
                 <span>
-                  {kind === 'time'
-                    ? `${fmtTime(r.timeSec)} · ${t('online.kills', { n: r.kills ?? 0 })}${r.won ? ' ★' : ''}`
-                    : t('online.bossDmg', { n: r.bossDmg ?? 0 })}
+                  {kind === 'finish'
+                    ? `${fmtTime(r.timeSec)} · ${t('online.kills', { n: r.kills })}`
+                    : `${t('online.dmg', { n: r.dmgTotal })} · ${fmtTime(r.timeSec)}${r.won ? ' ★' : ''}`}
                 </span>
                 {reporting === r.id ? (
                   <span className="row">
