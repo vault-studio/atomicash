@@ -38,8 +38,8 @@ describe('obstáculos', () => {
   it('nunca pisan ácido, y los de varias casillas ocupan todas las suyas sin pisarse', () => {
     for (let seed = 1; seed < 6; seed++) {
       const owner = new Map<string, string>();
-      for (let j = 0; j < 80; j++)
-        for (let i = 0; i < 80; i++) {
+      for (let j = 0; j < 81; j++)
+        for (let i = 0; i < 81; i++) {
           if (!objectAt(seed, i, j, 0, 0, cell)) continue;
           expect(hazardAt(seed, i, j, 0, 0)).toBe(-1);
           owner.set(`${i},${j}`, `${cell.i},${cell.j},${cell.prop}`);
@@ -47,8 +47,9 @@ describe('obstáculos', () => {
       for (const [, v] of owner) {
         const [ai, aj, prop] = v.split(',').map(Number) as [number, number, number];
         const cells = PROP_LIST[prop]!.cells;
-        const covered = cells === 1 ? [[0, 0]] : cells === 2 ? [[0, 0], [1, 0]] : [[0, 0], [1, 0], [0, 1], [1, 1]];
-        for (const [di, dj] of covered) expect(owner.get(`${ai + di!},${aj + dj!}`)).toBe(v);
+        const [n, m] = cells === 1 ? [1, 1] : cells === 2 ? [2, 1] : [3, 3];
+        for (let dj = 0; dj < m; dj++)
+          for (let di = 0; di < n; di++) expect(owner.get(`${ai + di},${aj + dj}`)).toBe(v);
       }
     }
   });
@@ -69,11 +70,11 @@ describe('obstáculos', () => {
   it('el jugador no entra en un edificio', () => {
     const { w, x, y } = worldWithBuilding('necro');
     const p = w.player;
-    p.x = x - 2 * T;
+    p.x = x - 2.5 * T;
     p.y = y;
     for (let t = 0; t < 3 / STEP; t++) {
       tick(w, { moveX: 1, moveY: 0 }, STEP);
-      const inside = Math.abs(p.x - x) < 0.8 * T && Math.abs(p.y - y) < 0.8 * T;
+      const inside = Math.abs(p.x - x) < 1.2 * T && Math.abs(p.y - y) < 1.2 * T;
       expect(inside).toBe(false);
     }
   });

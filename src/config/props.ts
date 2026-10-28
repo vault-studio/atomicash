@@ -8,12 +8,14 @@ const T = RUN.groundCell;
 
 export const PROPS = {
   /**
-   * Probabilidad, por casilla, de que empiece en ella un objeto de 1, 2 o 4 casillas. Los de 2 y 4 se deciden por
-   * bloques de 2×2 casillas (×4), para que no se pisen.
+   * Probabilidad, por casilla, de que empiece en ella un objeto de 1 casilla, de 2 o un edificio de 3×3. Los de 2 y
+   * los edificios se deciden por bloques de 3×3 casillas (×9), para que no se pisen.
    */
   chance1: 0.02,
   chance2: 0.01,
-  chance4: 0.005,
+  chance9: 0.005,
+  /** Lado, en casillas, de los bloques en los que se reparten los objetos grandes. */
+  block: 3,
   /**
    * Escala de los objetos de una casilla respecto a las baldosas; los de varias ya vienen al tamaño de su huella.
    * DECISIÓN: a la escala de la lámina un contenedor doblaba al personaje; a la mitad queda un bidón por la cintura.
@@ -23,9 +25,13 @@ export const PROPS = {
   hit: 0.8,
   /** Medio grosor de los de 2 casillas, en fracción de la casilla. */
   longR: 0.25,
-  /** Los de 2×2: medio lado del núcleo y redondeo, en fracción de la casilla (llega a 0,8 de cada lado). */
-  bigHalf: 0.65,
-  bigR: 0.15,
+  /**
+   * Edificios de 3×3: medio lado del núcleo y redondeo, en fracción de la casilla (llega a 1,2 de los 1,5 de cada
+   * lado). DECISIÓN: de 3×3 y no de 2×2 para que impongan al lado del personaje; además la lámina se usa casi a su
+   * resolución.
+   */
+  bigHalf: 1,
+  bigR: 0.2,
   /** Solape de las baldosas (TILES.overlap): los objetos se escalan igual que el suelo. */
   overlap: 1.03,
   /** Ancho del rombo de una baldosa en la imagen, en px. */
@@ -34,7 +40,7 @@ export const PROPS = {
 
 export type BuildingKind = 'raiders' | 'robots' | 'necro' | 'supply';
 
-/** Edificios de 2×2 (por archivo) y lo que los rodea la primera vez que el jugador se acerca. */
+/** Edificios de 3×3 (por archivo) y lo que los rodea la primera vez que el jugador se acerca. */
 export const BUILDINGS = {
   byFile: {
     'big_00.png': 'raiders',
@@ -44,8 +50,8 @@ export const BUILDINGS = {
   } as Readonly<Record<string, BuildingKind>>,
   /** Distancia del jugador al centro a la que aparece la guarnición (por debajo de SPAWN.relocateDist). */
   trigger: 1000,
-  /** Anillo alrededor del centro donde aparecen (el núcleo llega a 0,8 casillas). */
-  ring: 1.4 * T,
+  /** Anillo alrededor del centro donde aparecen (el edificio llega a 1,2 casillas, 1,7 en las esquinas). */
+  ring: 2 * T,
   jitter: 0.3 * T,
   enemies: {
     raiders: [
@@ -68,7 +74,7 @@ export const BUILDINGS = {
 /** Lo que escribe tools/slice_props.py en `props.json`. */
 export interface PropInfo {
   readonly file: string;
-  /** Casillas que ocupa: 1, 2 en fila (eje x del mundo) o 4 (2×2). */
+  /** Casillas que ocupa: 1, 2 en fila (eje x del mundo) o 9 (3×3). */
   readonly cells: number;
   /** Punto de apoyo (centro de la huella), en fracción del ancho y del alto de la imagen. */
   readonly ax: number;
@@ -88,7 +94,7 @@ export const PROP_LIST: readonly PropInfo[] = index.props;
 
 const indicesWith = (cells: number): number[] =>
   PROP_LIST.flatMap((p, k) => (p.cells === cells ? [k] : []));
-export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 4: indicesWith(4) } as const;
+export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indicesWith(9) } as const;
 
 /** Escala de cada objeto respecto a una baldosa. */
 export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) => (p.cells === 1 ? PROPS.scale : 1));
@@ -103,7 +109,7 @@ export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map((p)
  */
 export const PROP_SHAPES: readonly PropShape[] = PROP_LIST.map((p, k) => {
   if (p.cells === 2) return { hx: T / 2, hy: 0, r: T * PROPS.longR };
-  if (p.cells === 4) return { hx: T * PROPS.bigHalf, hy: T * PROPS.bigHalf, r: T * PROPS.bigR };
+  if (p.cells === 9) return { hx: T * PROPS.bigHalf, hy: T * PROPS.bigHalf, r: T * PROPS.bigR };
   const r = ((p.fw / PROPS.tileWidth) * T * Math.SQRT2 * PROPS.overlap * PROP_SCALE[k]! * PROPS.hit) / 2;
   return { hx: 0, hy: 0, r };
 });

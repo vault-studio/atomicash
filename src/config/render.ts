@@ -83,7 +83,7 @@ export const RADAR = {
     crate: '#ffe14a',
     chest: '#c77dff',
   } as Readonly<Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest', string>>,
-  /** Edificios de 2×2: un rombo del color de lo que los rodea. */
+  /** Edificios de 3×3: un rombo del color de lo que los rodea. */
   buildings: {
     raiders: '#ff6a3d',
     robots: '#4de3ff',

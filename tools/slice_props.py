@@ -2,10 +2,10 @@
 # assets/props/ y escribe assets/props/props.json con su tamaño, su punto de apoyo y el ancho de su base.
 # Uso: python tools/slice_props.py
 #
-# Las láminas son rejillas (3×2 o 2×2) con un objeto por celda: cada trozo suelto (piedrecillas, matojos) va al
+# Las láminas son rejillas de objetos (3×2 o 2×2) con un objeto por celda: cada trozo suelto (piedrecillas, matojos) va al
 # objeto de la celda donde cae su centro, aunque el dibujo se salga un poco de ella. Los de una casilla se escalan con el mismo factor que las baldosas para
-# que guarden su tamaño relativo (el juego los encoge después); los de 2 casillas en fila y los de 2×2 se escalan
-# para que su base llene su huella (384 y 512 px de ancho). El punto de apoyo es el centro de la huella: el centro
+# que guarden su tamaño relativo (el juego los encoge después); los de 2 casillas en fila y los edificios de 3×3 se
+# escalan para que su base llene su huella (384 y 768 px de ancho). El punto de apoyo es el centro de la huella: el centro
 # de la base, subido un cuarto de su ancho (vale también para la fila de dos rombos).
 import json
 from pathlib import Path
@@ -24,7 +24,7 @@ MIN_PIECE = 20  # px de un trozo suelto para no tomarlo por ruido del fondo
 PAD = 2
 FILL = 0.9  # fracción del ancho de la huella que ocupa la base de los objetos de varias casillas
 # Ancho de la huella en px de baldosa según las casillas que ocupa.
-FOOT = {1: TILE, 2: TILE * 1.5, 4: TILE * 2}
+FOOT = {1: TILE, 2: TILE * 1.5, 9: TILE * 3}
 BAND = 0.5  # fracción de abajo de un objeto de una casilla que se toma como su base (los demás, entero)
 # Objetos descartados (nombre_índice): farola, carrito y neumáticos.
 SKIP = {'obj_b_01', 'obj_b_02', 'obj_b_05'}
@@ -34,7 +34,7 @@ SHEETS = {
     'obj_a': (Path('ARTE/objetos_1x1_a.webp'), 1, 3, 2),
     'obj_b': (Path('ARTE/objetos_1x1_b.webp'), 1, 3, 2),
     'long': (Path('ARTE/objetos_2x1.webp'), 2, 3, 2),
-    'big': (Path('ARTE/objetos_2x2.webp'), 4, 2, 2),
+    'big': (Path('ARTE/objetos_2x2.webp'), 9, 2, 2),
 }
 
 

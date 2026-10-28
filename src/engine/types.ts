@@ -242,7 +242,7 @@ export interface Point {
   y: number;
 }
 
-/** Edificio de 2×2 casillas cerca del jugador (ver engine/obstacles.ts). */
+/** Edificio de 3×3 casillas cerca del jugador (ver engine/obstacles.ts). */
 export interface Building {
   /** Centro de la huella. */
   readonly x: number;

@@ -1,7 +1,7 @@
 // Objetos sueltos encima de la arena como obstáculos: el jugador y los enemigos de tierra los rodean y las balas
 // desaparecen al darles. TS puro: lo usan el motor (choques, edificios) y el render (qué objeto pintar y dónde).
-// DECISIÓN: como los charcos, el mapa no se genera de antemano: cada bloque de 2×2 casillas decide con un hash de
-// la semilla si lleva un edificio (las 4), un objeto de 2 casillas (una de sus filas) o, si no, objetos de una
+// DECISIÓN: como los charcos, el mapa no se genera de antemano: cada bloque de 3×3 casillas decide con un hash de
+// la semilla si lleva un edificio (las 9), un objeto de 2 casillas (en una de sus filas) o, si no, objetos de una
 // casilla sueltos. Nunca sobre ácido ni junto a la salida. El motor guarda la forma de choque de las casillas de
 // alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
 import { HAZARDS } from '../config/radiation';
@@ -38,37 +38,38 @@ function free(seed: number, i: number, j: number, sx: number, sy: number): boole
 }
 
 const pick = (list: readonly number[], r: number): number => list[Math.floor(r * list.length)]!;
+const B = PROPS.block;
+
+/** ¿Están libres las casillas [i0, i0 + n) × [j0, j0 + m)? */
+function allFree(seed: number, i0: number, j0: number, n: number, m: number, sx: number, sy: number): boolean {
+  for (let j = j0; j < j0 + m; j++) for (let i = i0; i < i0 + n; i++) if (!free(seed, i, j, sx, sy)) return false;
+  return true;
+}
 
 /** Rellena `out` con el objeto que ocupa la casilla (i, j); false si no hay ninguno. */
 export function objectAt(seed: number, i: number, j: number, sx: number, sy: number, out: CellObject): boolean {
-  const bi = Math.floor(i / 2);
-  const bj = Math.floor(j / 2);
-  const i0 = bi * 2;
-  const j0 = bj * 2;
+  const bi = Math.floor(i / B);
+  const bj = Math.floor(j / B);
+  const i0 = bi * B;
+  const j0 = bj * B;
   const r = cellRand(seed, bi, bj, 8);
-  const big = PROPS.chance4 * 4;
-  if (
-    r < big &&
-    PROPS_BY_CELLS[4].length > 0 &&
-    free(seed, i0, j0, sx, sy) &&
-    free(seed, i0 + 1, j0, sx, sy) &&
-    free(seed, i0, j0 + 1, sx, sy) &&
-    free(seed, i0 + 1, j0 + 1, sx, sy)
-  ) {
-    out.prop = pick(PROPS_BY_CELLS[4], cellRand(seed, bi, bj, 9));
+  const big = PROPS.chance9 * B * B;
+  if (r < big && PROPS_BY_CELLS[9].length > 0 && allFree(seed, i0, j0, B, B, sx, sy)) {
+    out.prop = pick(PROPS_BY_CELLS[9], cellRand(seed, bi, bj, 9));
     out.i = i0;
     out.j = j0;
-    out.x = (i0 + 1) * T;
-    out.y = (j0 + 1) * T;
+    out.x = (i0 + B / 2) * T;
+    out.y = (j0 + B / 2) * T;
     return true;
   }
-  if (r >= big && r < big + PROPS.chance2 * 4 && PROPS_BY_CELLS[2].length > 0) {
-    const row = j0 + (cellRand(seed, bi, bj, 10) < 0.5 ? 0 : 1);
-    if (j === row && free(seed, i0, row, sx, sy) && free(seed, i0 + 1, row, sx, sy)) {
+  if (r >= big && r < big + PROPS.chance2 * B * B && PROPS_BY_CELLS[2].length > 0) {
+    const row = j0 + Math.floor(cellRand(seed, bi, bj, 10) * B);
+    const col = i0 + Math.floor(cellRand(seed, bi, bj, 12) * (B - 1));
+    if (j === row && i >= col && i < col + 2 && allFree(seed, col, row, 2, 1, sx, sy)) {
       out.prop = pick(PROPS_BY_CELLS[2], cellRand(seed, bi, bj, 11));
-      out.i = i0;
+      out.i = col;
       out.j = row;
-      out.x = (i0 + 1) * T;
+      out.x = (col + 1) * T;
       out.y = (row + 0.5) * T;
       return true;
     }
