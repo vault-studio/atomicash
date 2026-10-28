@@ -6,6 +6,7 @@ import type { RunResults, WorldOptions } from '../../engine/world';
 import { startRun, type HudSnapshot, type RunSession, type RunSettings } from '../runSession';
 import { Cards } from './run/Cards';
 import { Hud } from './run/Hud';
+import { PauseStats } from './run/PauseStats';
 import { Results } from './run/Results';
 import { Weld } from './run/Weld';
 import type { WeaponId } from '../../config/weapons';
@@ -141,9 +142,10 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
         <Cards choice={choice} world={world} onPick={pick} onReroll={doReroll} />
       )}
       {paused && !result && (
-        <div className="overlay" role="dialog" aria-modal="true">
+        <div className="overlay overlay--pause" role="dialog" aria-modal="true">
           <h2 className="overlay__title">{t('run.paused')}</h2>
-          <div className="overlay__actions overlay__actions--col">
+          {world && <PauseStats world={world} />}
+          <div className="overlay__actions">
             <button className="btn btn--primary" autoFocus onClick={() => setPaused(false)}>
               {t('run.resume')}
             </button>
