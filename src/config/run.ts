@@ -82,7 +82,8 @@ export const XP = {
   pullSpeed: 250,
   pullAccel: 900,
   /** Multiplicador de la experiencia que suelta cada enemigo (ver SPAWN.rateMult). */
-  killMult: 2.5,
+  // DECISIÓN: ×1,25 sobre el 2,5 anterior para subir de nivel un 25 % más rápido.
+  killMult: 3.125,
   /**
    * Bolitas que suelta un enemigo normal y uno irradiado (los raros); se reparten toda su experiencia.
    * DECISIÓN: una sola bolita por baja, que vale lo que antes varias: menos ruido en el suelo y más fácil de leer.

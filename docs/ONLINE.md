@@ -61,7 +61,7 @@ La clave `service_role` **no** va nunca en el cliente: la Edge Function la recib
 ## Antitrampas (lo que valida `submit-run`)
 
 Personaje existente, enteros no negativos, tiempo ≤ 1500 s, ≤ 3 jefes, daño a jefes ≤ 30 000 (la vida
-total de los tres) y > 0 si hubo jefes, ≤ 15 bajas/s, victoria solo con 3 jefes y ≥ 840 s, apodo válido
+total de los tres) y > 0 si hubo jefes, ≤ 15 bajas/s, victoria solo con 3 jefes y ≥ 67 s (el Coloso sale a las 1000 bajas como pronto), apodo válido
 y una run por minuto. `tests/online.test.ts` comprueba que esos límites siguen cuadrando con `src/config`.
 Es validación básica: un cliente modificado puede mandar runs verosímiles. Para más, haría falta repetir la
 run en el servidor con la semilla (ya se guarda `seed`).

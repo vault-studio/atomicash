@@ -5,8 +5,11 @@
 export const LIMITS = {
   /** RUN.duration (900) + margen de la Tormenta, que mata en pocos minutos. */
   maxTimeSec: 1500,
-  /** Minuto del jefe final (BOSSES.coloso.at); ganar antes es imposible. */
-  minWinSec: 840,
+  /**
+   * Lo antes que puede salir el jefe final: a su minuto (BOSSES.coloso.at) o, si llega antes a sus bajas, al ritmo
+   * máximo de bajas (BOSSES.coloso.kills / maxKillsPerSec, redondeado arriba). Ganar antes es imposible.
+   */
+  minWinSec: 67,
   bosses: 3,
   /** Suma de la vida de los 3 jefes (rey_rata 3000 + dirigible 7000 + coloso 20000). */
   maxBossDmg: 30000,

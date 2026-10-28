@@ -108,10 +108,14 @@ export const BOSS_VARIANTS: Readonly<
   ],
 };
 
-export const BOSSES: Readonly<Record<BossKind, { at: number }>> = {
-  rey_rata: { at: 300 },
-  dirigible: { at: 600 },
-  coloso: { at: 840 },
+/**
+ * Cada jefe sale al llegar a su minuto (`at`, en s) o a su número de bajas (`kills`), lo que pase antes.
+ * DECISIÓN: quien mata rápido no espera al reloj; quien va lento tiene el jefe a su hora igualmente.
+ */
+export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> = {
+  rey_rata: { at: 180, kills: 200 },
+  dirigible: { at: 360, kills: 500 },
+  coloso: { at: 600, kills: 1000 },
 };
 
 export const ENEMY_RULES = {

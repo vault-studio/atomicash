@@ -96,7 +96,8 @@ describe('irradiados', () => {
     expect(i.maxHp).toBeCloseTo(n.maxHp * IRRADIATED.hp);
     killEnemy(w, i, 'llave');
     const xp = w.pickups.items.slice(0, w.pickups.count).reduce((s, k) => s + k.val, 0);
-    expect(xp).toBe(ENEMY_STATS.saqueador.xp * XP.killMult * IRRADIATED.xp);
+    // Las bolitas valen enteros: el total se redondea.
+    expect(xp).toBe(Math.round(ENEMY_STATS.saqueador.xp * XP.killMult * IRRADIATED.xp));
     expect(w.pickups.count).toBe(XP.rareGems);
     const r = spawnEnemy(w, 'necrofago', w.player.x + 5, w.player.y, true);
     r.atkCd = 0;
@@ -171,7 +172,7 @@ describe('IA de enemigos (03_CONTENT.md)', () => {
 });
 
 describe('jefes y Tormenta (F2-05)', () => {
-  it('aparecen en los minutos 5, 10 y 14', () => {
+  it('aparecen en los minutos 3, 6 y 10', () => {
     const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
     w.player.god = true;
     w.nextEvent = Infinity;
@@ -181,6 +182,21 @@ describe('jefes y Tormenta (F2-05)', () => {
       expect(alive(w).some((e) => e.type === k)).toBe(true);
     }
     expect(w.bossAlive).toBe(3);
+  });
+
+  it('o antes, al llegar a sus bajas', () => {
+    const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
+    w.player.god = true;
+    w.nextEvent = Infinity;
+    for (const k of ['rey_rata', 'dirigible', 'coloso'] as const) {
+      w.kills = BOSSES[k].kills - 1;
+      tick(w, STILL, STEP);
+      expect(alive(w).some((e) => e.type === k)).toBe(false);
+      w.kills = BOSSES[k].kills;
+      tick(w, STILL, STEP);
+      expect(alive(w).some((e) => e.type === k)).toBe(true);
+    }
+    expect(w.time).toBeLessThan(BOSSES.rey_rata.at);
   });
 
   it('el Rey Rata invoca drones y suelta un cofre', () => {

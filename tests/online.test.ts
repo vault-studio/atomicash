@@ -29,7 +29,7 @@ describe('antitrampas del ranking', () => {
     expect(checkRun({ ...ok, kills: 999999 })).toContain('kills');
     expect(checkRun({ ...ok, bossDmg: 30001 })).toContain('bossDmg');
     expect(checkRun({ ...ok, bosses: 4 })).toContain('bosses');
-    expect(checkRun({ ...ok, timeSec: 300 })).toContain('won');
+    expect(checkRun({ ...ok, timeSec: 60 })).toContain('won');
     expect(checkRun({ ...ok, bossDmg: 0 })).toContain('bossDmg-zero');
     expect(checkRun({ ...ok, charId: 'hacker' })).toContain('char');
     expect(checkRun({ ...ok, kills: 1.5 })).toContain('int:kills');
@@ -43,7 +43,8 @@ describe('antitrampas del ranking', () => {
       .reduce((a, s) => a + s.hp, 0);
     expect(LIMITS.maxBossDmg).toBe(bossHp);
     expect(LIMITS.bosses).toBe(Object.keys(BOSSES).length);
-    expect(LIMITS.minWinSec).toBe(Math.max(...Object.values(BOSSES).map((b) => b.at)));
+    const last = BOSSES.coloso;
+    expect(LIMITS.minWinSec).toBe(Math.ceil(Math.min(last.at, last.kills / LIMITS.maxKillsPerSec)));
     expect(LIMITS.maxTimeSec).toBeGreaterThan(RUN.duration);
     expect([...CHAR_IDS].sort()).toEqual([...STAT_SURVIVOR_IDS].sort());
   });

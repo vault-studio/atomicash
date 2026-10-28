@@ -190,5 +190,6 @@ export function updateSpawning(w: World, dt: number): void {
     }
   }
   if (w.rain > 0) w.rain -= dt;
-  for (const k of BOSS_IDS) if (!w.bossSpawned[k] && w.time >= BOSSES[k].at) spawnBoss(w, k);
+  for (const k of BOSS_IDS)
+    if (!w.bossSpawned[k] && (w.time >= BOSSES[k].at || w.kills >= BOSSES[k].kills)) spawnBoss(w, k);
 }
