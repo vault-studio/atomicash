@@ -38,3 +38,23 @@ export const DROPS = {
   /** Probabilidad de que un enemigo suelte un estimulante (la suerte la sube: × (1 + suerte/50)). */
   stimChance: 0.004,
 } as const;
+
+export type FieldPickupId = 'medkit' | 'magnet' | 'bomb';
+
+/**
+ * Recogibles de campo: los suelta al azar un enemigo al morir y se usan al tocarlos.
+ * DECISIÓN: botiquín el más frecuente, luego imán y la bomba la más rara (pesos 6 : 3 : 1).
+ */
+export const FIELD_PICKUPS = {
+  /** Probabilidad de que una baja suelte uno (la suerte la sube como a los estimulantes). */
+  chance: 0.006,
+  weights: { medkit: 6, magnet: 3, bomb: 1 } as Readonly<Record<FieldPickupId, number>>,
+  /** Radio del objeto en el suelo. */
+  r: 9,
+  /** Fracción de la vida máxima que cura el botiquín. */
+  medkitHeal: 0.3,
+  /** Daño de la bomba a los jefes (al resto los mata). */
+  bombBossDmg: 400,
+} as const;
+
+export const FIELD_PICKUP_IDS: readonly FieldPickupId[] = ['medkit', 'magnet', 'bomb'];

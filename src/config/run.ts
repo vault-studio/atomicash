@@ -45,8 +45,11 @@ export const PLAYER = {
   deathDelay: 1.6,
 } as const;
 
-/** El daño recibido escala con el tiempo: de `start` a `max` al llegar a `reachAtFrac` de la run. */
-export const DMG_TAKEN = { start: 0.55, max: 1.3, reachAtFrac: 0.75 } as const;
+/**
+ * El daño recibido escala con el tiempo: de `start` a `max` al llegar a `reachAtFrac` de la run.
+ * DECISIÓN: subido de 0,55→1,3 a 0,7→1,6 (~25 % más) a cambio de los recogibles de campo (botiquín, imán y bomba).
+ */
+export const DMG_TAKEN = { start: 0.7, max: 1.6, reachAtFrac: 0.75 } as const;
 
 export const CAPS = {
   cdReduction: 0.6,

@@ -247,7 +247,7 @@ export interface Hazard {
   readonly r: number;
 }
 
-export type PickupKind = 'gem' | 'stim' | 'chest' | 'crate';
+export type PickupKind = 'gem' | 'stim' | 'chest' | 'crate' | 'medkit' | 'magnet' | 'bomb';
 
 export interface Pickup {
   kind: PickupKind;

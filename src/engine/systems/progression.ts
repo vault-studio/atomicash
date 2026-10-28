@@ -1,5 +1,5 @@
 // Recogida de chatarra, XP, subidas de nivel y tarjetas (F1-07), cofres de objeto y consumibles.
-import { CONSUMABLES, CONSUMABLE_IDS, ITEM_IDS, type ConsumableId } from '../../config/items';
+import { CONSUMABLES, CONSUMABLE_IDS, FIELD_PICKUPS, ITEM_IDS, type ConsumableId } from '../../config/items';
 import { RAD } from '../../config/radiation';
 import { FX, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
@@ -10,7 +10,8 @@ import { addShake, banner, boom, textFx } from '../fx';
 import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Card, World } from '../types';
-import { addPickup, heal, hitEnemy, nearest, queryEnemies } from './combat';
+import { isOnScreen } from '../view';
+import { addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies } from './combat';
 import { compactEnemies } from './enemies';
 import { createWeapon } from './weapons';
 
@@ -59,7 +60,16 @@ export function updatePickups(w: World, dt: number): void {
       w.cons.stim = Math.min(PLAYER.consumableMax, w.cons.stim + 1);
       textFx(w, 'pickup', p.x, p.y, 0, 'consumables.stim.name');
     } else if (kind === 'chest') openItemChoice(w);
-    else {
+    else if (kind === 'medkit') {
+      heal(w, p.maxHp * FIELD_PICKUPS.medkitHeal);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.medkit');
+    } else if (kind === 'magnet') {
+      magnetPull(w);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.magnet');
+    } else if (kind === 'bomb') {
+      screenBomb(w);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.bomb');
+    } else {
       const S = EVENTS.supply;
       for (let g = 0; g < S.gems; g++)
         addPickup(
@@ -254,6 +264,31 @@ export function applyChoice(w: World, i: number): void {
     w.pendingLevels--;
     if (w.pendingLevels > 0) openLevelChoice(w);
   }
+}
+
+// ---------- recogibles de campo ----------
+
+/** Imán: la chatarra y los estimulantes que se ven en pantalla vuelan hacia el jugador. */
+function magnetPull(w: World): void {
+  for (let i = 0; i < w.pickups.count; i++) {
+    const k = w.pickups.items[i]!;
+    if ((k.kind === 'gem' || k.kind === 'stim') && isOnScreen(w, k.x, k.y)) k.pull = true;
+  }
+}
+
+/** Bomba: mata a todo enemigo que se vea en pantalla; a los jefes solo les hace daño. */
+function screenBomb(w: World): void {
+  const n = w.enemies.count;
+  for (let i = 0; i < n; i++) {
+    const e = w.enemies.items[i]!;
+    if (e.dead || !isOnScreen(w, e.x, e.y, e.r)) continue;
+    if (e.boss) hitEnemy(w, e, FIELD_PICKUPS.bombBossDmg, 'bomba', 0);
+    else killEnemy(w, e, 'bomba');
+  }
+  compactEnemies(w);
+  const p = w.player;
+  boom(w, p.x, p.y, w.view.halfW * 1.4, 0.5, FX.colors.grenade);
+  addShake(w, 10, 20);
 }
 
 // ---------- consumibles ----------

@@ -2,6 +2,7 @@
 
 ## 0.1.0 — 2026-10-27
 
+- feat(run): recogibles de campo que sueltan al azar los enemigos al morir (0,6 % por baja, más con suerte): botiquín (cura 30 % de la vida, el más frecuente), imán (atrae la chatarra y estimulantes de la pantalla) y bomba (mata todo lo que se ve; a los jefes, 400 de daño; la más rara). A cambio, el daño recibido sube ~25 % (de 0,55→1,3 a 0,7→1,6 con el tiempo).
 - feat(arte): sprites del necrófago (move, attack y death en 8 direcciones).
 - fix(suelo): sin espejo al azar en las baldosas; las ondas de la arena van todas en el mismo sentido.
 - feat(suelo): suelos nuevos de arena (casi siempre la lisa) con decoración salpicada (poste, trinchera, bidones, valla, barrera, señales, árbol, surtidor, coche) y lagos de ácido en dos tamaños según el charco (60 charcos); lo que sobresale de las baldosas va en la capa de actores para que los personajes pasen por detrás. Fuera las láminas de yermo, limpio y deco anteriores.

@@ -75,6 +75,39 @@ export class FxLayer {
         g.rect(sx - 4, sy - 8, 8, 12)
           .fill({ color: RUN_COLORS.stim })
           .stroke({ width: 1, color: 0xffffff });
+      } else if (k.kind === 'medkit' || k.kind === 'magnet' || k.kind === 'bomb') {
+        // Placeholders hasta tener sprites: flotan y laten un poco para que se vean entre la chatarra.
+        const bob = Math.sin(t * 4) * 2;
+        const r = k.r;
+        const y = sy - r + bob;
+        groundCircle(g, k.x, k.y, r * 1.6).fill({ color: 0xffffff, alpha: 0.12 + 0.08 * Math.sin(t * 6) });
+        if (k.kind === 'medkit') {
+          g.rect(sx - r, y - r * 0.8, r * 2, r * 1.6)
+            .fill({ color: RUN_COLORS.medkit })
+            .stroke({ width: 1.5, color: 0x000000, alpha: 0.6 });
+          g.rect(sx - r * 0.2, y - r * 0.6, r * 0.4, r * 1.2).fill({ color: RUN_COLORS.medkitCross });
+          g.rect(sx - r * 0.6, y - r * 0.2, r * 1.2, r * 0.4).fill({ color: RUN_COLORS.medkitCross });
+        } else if (k.kind === 'magnet') {
+          g.moveTo(sx - r * 0.85, y)
+            .arc(sx, y, r * 0.85, Math.PI, 0)
+            .stroke({ width: r * 0.6, color: RUN_COLORS.magnet })
+            .rect(sx - r * 1.15, y, r * 0.6, r * 0.8)
+            .rect(sx + r * 0.55, y, r * 0.6, r * 0.8)
+            .fill({ color: RUN_COLORS.magnet });
+          g.rect(sx - r * 1.15, y + r * 0.8, r * 0.6, r * 0.4)
+            .rect(sx + r * 0.55, y + r * 0.8, r * 0.6, r * 0.4)
+            .fill({ color: RUN_COLORS.magnetTip });
+        } else {
+          g.circle(sx, y + r * 0.2, r)
+            .fill({ color: RUN_COLORS.bomb })
+            .stroke({ width: 1.5, color: 0xffffff, alpha: 0.4 });
+          g.moveTo(sx + r * 0.5, y - r * 0.6)
+            .lineTo(sx + r * 0.9, y - r * 1.2)
+            .stroke({ width: 2, color: 0x8a7a5a });
+          g.circle(sx + r * 0.9, y - r * 1.25, 2 + Math.abs(Math.sin(t * 12)) * 1.5).fill({
+            color: RUN_COLORS.bombFuse,
+          });
+        }
       } else {
         const bob = Math.sin(t * 3) * 2;
         const c = k.kind === 'chest' ? RUN_COLORS.chest : RUN_COLORS.crate;

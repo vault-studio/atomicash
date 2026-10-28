@@ -311,6 +311,11 @@
       "desc": "+40 % velocidad y daño durante 8 s"
     }
   },
+  "pickups": {
+    "medkit": "Botiquín",
+    "magnet": "Imán",
+    "bomb": "¡Bomba!"
+  },
   "banner": {
     "chest": "¡Cofre de objeto!",
     "blimpDown": "El dirigible pierde altura",
@@ -348,7 +353,8 @@
   },
   "sources": {
     "granada": "Granada",
-    "hinchado": "Hinchado"
+    "hinchado": "Hinchado",
+    "bomba": "Bomba"
   },
   "bunker": {
     "expedition": {

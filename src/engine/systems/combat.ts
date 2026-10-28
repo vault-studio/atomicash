@@ -1,7 +1,7 @@
 // Daño a enemigos y al jugador, bajas, chatarra (XP) y radiación. Sin allocations en el camino caliente.
 import { AI, ENEMY_STATS, MAX_ENEMY_RADIUS, type EnemyStats } from '../../config/enemies';
 import { BOSS_VARIANTS } from '../../config/enemies';
-import { DROPS } from '../../config/items';
+import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { CAPS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
 import { EVENTS } from '../../config/waves';
@@ -279,6 +279,21 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     }
   }
   if (w.rng() < DROPS.stimChance * (1 + w.st.luck / 50)) addPickup(w, 'stim', e.x, e.y, 7);
+  else if (w.rng() < FIELD_PICKUPS.chance * (1 + w.st.luck / 50))
+    addPickup(w, rollFieldPickup(w.rng()), e.x, e.y, FIELD_PICKUPS.r);
+}
+
+/** Elige botiquín, imán o bomba según sus pesos; `u` ∈ [0, 1). */
+export function rollFieldPickup(u: number): FieldPickupId {
+  const W = FIELD_PICKUPS.weights;
+  let total = 0;
+  for (const id of FIELD_PICKUP_IDS) total += W[id];
+  let r = u * total;
+  for (const id of FIELD_PICKUP_IDS) {
+    if (r < W[id]) return id;
+    r -= W[id];
+  }
+  return FIELD_PICKUP_IDS[FIELD_PICKUP_IDS.length - 1]!;
 }
 
 /** Daño al jugador. Devuelve el daño hecho, −1 si lo esquivó y 0 si era invulnerable. */

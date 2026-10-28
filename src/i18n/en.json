@@ -311,6 +311,11 @@
       "desc": "+40% speed and damage for 8 s"
     }
   },
+  "pickups": {
+    "medkit": "Medkit",
+    "magnet": "Magnet",
+    "bomb": "Bomb!"
+  },
   "banner": {
     "chest": "Item chest!",
     "blimpDown": "The blimp is losing altitude",
@@ -348,7 +353,8 @@
   },
   "sources": {
     "granada": "Grenade",
-    "hinchado": "Bloater"
+    "hinchado": "Bloater",
+    "bomba": "Bomb"
   },
   "bunker": {
     "expedition": {
