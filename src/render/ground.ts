@@ -2,7 +2,7 @@
 // Cada casilla elige su baldosa con un hash de la semilla, así que el mismo sitio se ve siempre igual.
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import { HAZARDS } from '../config/radiation';
-import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
+import { RUN_COLORS, TILES, type PropIndex, type TileIndex, type TileInfo } from '../config/render';
 import { RUN } from '../config/run';
 import { cellRand, hazardAt } from '../engine/hazards';
 import type { World } from '../engine/types';
@@ -22,11 +22,38 @@ interface GroundTile {
   readonly weight: number;
 }
 
+interface Prop {
+  readonly tex: Texture;
+  readonly ax: number;
+  readonly ay: number;
+}
+
 export interface GroundTiles {
   readonly sand: readonly GroundTile[];
   readonly deco: readonly GroundTile[];
   /** Lagos de ácido, de menor a mayor. */
   readonly acid: readonly GroundTile[];
+  /** Objetos sueltos que van encima de la arena. */
+  readonly props: readonly Prop[];
+}
+
+/** Carga `props.json` y sus texturas; si falta, no hay objetos. */
+async function loadProps(): Promise<Prop[]> {
+  try {
+    const index = await Assets.load<PropIndex>(TILES.propsIndex);
+    const out = await Promise.all(
+      index.props.map(async (p) => {
+        try {
+          return { tex: await Assets.load<Texture>(TILES.propsDir + p.file), ax: p.ax, ay: p.ay };
+        } catch {
+          return null;
+        }
+      }),
+    );
+    return out.filter((p) => p !== null);
+  } catch {
+    return [];
+  }
 }
 
 /** Carga `tiles.json` y sus texturas; las que fallen se saltan. */
@@ -48,7 +75,8 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
     );
     return out.filter((t) => t !== null && t.weight > 0) as GroundTile[];
   };
-  const [sand, ...decoSets] = await Promise.all([
+  const [props, sand, ...decoSets] = await Promise.all([
+    loadProps(),
     load(index.sets[TILES.sand] ?? [], TILES.sandWeights),
     ...TILES.deco.map((name) => load(index.sets[name] ?? [])),
   ]);
@@ -57,13 +85,14 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
     sand: (sand ?? []).filter((t) => t.acid === 0),
     deco: deco.filter((t) => t.acid === 0),
     acid: [...(sand ?? []), ...deco].filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
+    props,
   };
 }
 
 /**
  * Arena casi siempre, decoración de vez en cuando y lago de ácido, del tamaño del charco, en las casillas con charco
- * radiactivo. Lo que sobresale de una baldosa (árbol, poste, señales) va a la capa de actores, ordenado por
- * profundidad, para que los personajes puedan pasar por detrás.
+ * radiactivo. Lo que sobresale de una baldosa y los objetos sueltos que van encima de la arena (nunca del ácido) van
+ * a la capa de actores, ordenados por profundidad, para que los personajes puedan pasar por detrás.
  */
 export class GroundView {
   readonly layer = new Container();
@@ -158,6 +187,16 @@ export class GroundView {
           const top = this.place(this.topSprite(), t, t.top, x, y);
           top.zIndex = wx + wy;
         }
+        const prop = hz < 0 && t.acid === 0 ? this.pickProp(i, j) : undefined;
+        if (prop) {
+          const s = this.topSprite();
+          s.texture = prop.tex;
+          s.anchor.set(prop.ax, prop.ay);
+          s.scale.set(this.scale * TILES.propScale);
+          s.position.set(x, y);
+          s.visible = true;
+          s.zIndex = wx + wy;
+        }
       }
     }
     for (let k = this.used; k < this.sprites.length; k++) this.sprites[k]!.visible = false;
@@ -179,6 +218,18 @@ export class GroundView {
     let k = 0;
     while (k < tiles.sand.length - 1 && r >= tiles.sand[k]!.weight) r -= tiles.sand[k++]!.weight;
     return tiles.sand[k];
+  }
+
+  private pickProp(i: number, j: number): Prop | undefined {
+    const props = this.tiles?.props;
+    const seed = this.world.seed;
+    if (!props || props.length === 0 || cellRand(seed, i, j, 6) >= TILES.propChance) return undefined;
+    // Como los charcos, ninguno junto a la salida.
+    const { start } = this.world;
+    const dx = (i + 0.5) * T - start.x;
+    const dy = (j + 0.5) * T - start.y;
+    if (dx * dx + dy * dy < HAZARDS.safe * HAZARDS.safe) return undefined;
+    return props[Math.floor(cellRand(seed, i, j, 7) * props.length)];
   }
 
   private sprite(): Sprite {
