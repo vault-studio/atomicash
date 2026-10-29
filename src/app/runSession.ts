@@ -304,6 +304,12 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   };
   window.addEventListener('keydown', onKey);
 
+  /**
+   * La elección se enseña cuando no hay cinemática de victoria pendiente ni en marcha, o cuando su animación ya
+   * terminó: la máquina de cupones sale después de verla entera, no en el mismo fotograma en que se recoge.
+   */
+  const choiceReady = (): boolean => !world.victory && (victoryLeft <= 0 || renderer.victoryHolding);
+
   let fps = 60;
   const onTick = (ticker: Ticker): void => {
     const frameSec = ticker.deltaMS / 1000;
@@ -321,7 +327,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       fs.acc = 0;
       renderer.render(world, 1, { fps, steps });
       sound(world, frameSec);
-      if (renderer.victoryHolding || victoryLeft <= 0) syncChoice();
+      if (choiceReady()) syncChoice();
       return;
     }
     const frozen = portrait.matches || paused || world.choice !== null || ended;
@@ -337,8 +343,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       if (portrait.matches) controls.release();
       fs.acc = 0;
       renderer.render(world, 1, { fps, steps });
-      // En pausa a media cinemática, la máquina de cupones espera a que acabe la animación.
-      if (victoryLeft <= 0 || renderer.victoryHolding) syncChoice();
+      if (choiceReady()) syncChoice();
       return;
     }
     const view = renderer.viewHalfExtent();
@@ -354,7 +359,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     if (frameSec > 0) fps += (1 / frameSec - fps) * 0.1;
     renderer.render(world, world.choice ? 1 : alpha, { fps, steps });
     sound(world, frameSec);
-    syncChoice();
+    if (choiceReady()) syncChoice();
     hudAcc += frameSec;
     if (hudAcc >= 0.1) {
       hudAcc = 0;
