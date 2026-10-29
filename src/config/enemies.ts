@@ -222,7 +222,7 @@ export const ELITES = {
   barTime: 4,
   blindado: { color: 0xc8ccd0, dmgTaken: 0.5 },
   veloz: { color: 0x7fd8ff, speed: 1.7 },
-  radiactivo: { color: 0x9dff00, auraR: 120, auraRad: 7 },
+  radiactivo: { color: 0x9dff00, auraR: 140, auraRad: 14 },
   divisor: { color: 0xff8a2a, split: 4, splitDist: 26 },
   vampirico: { color: 0xd7263d, healOnHit: 0.15, regen: 0.01 },
 } as const;

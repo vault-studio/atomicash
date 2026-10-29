@@ -582,6 +582,7 @@ export function updateEnemies(w: World, dt: number): void {
       e.stun -= dt;
     } else if (alive) think(w, e, d, ux, uy, dt);
     if (e.elite && alive) eliteTick(w, e, d, dt);
+    if (e.irr && alive && d < IRRADIATED.auraR) addRad(w, IRRADIATED.auraRad * dt);
     // Si ya está encima del jugador, no lo empuja (solo se separa).
     if (e.mode === MODE_CHASE && e.march <= 0 && d <= e.r + p.r && e.type !== 'dirigible') {
       vx = 0;

@@ -14,9 +14,10 @@ export interface RadTier {
 }
 
 export const RAD = {
+  /** Al llegar aquí se muere por radiación (salvo inmunes). */
   max: 100,
-  /** RAD/s dentro de un charco. */
-  puddle: 7,
+  /** RAD/s dentro de un charco. DECISIÓN: de 7 a 15; quedarse en un charco unos 7 s mata. */
+  puddle: 15,
   /** RAD/s durante la lluvia radiactiva. */
   rain: 2.4,
   /** RAD/s que bajan solos tras `decayDelay` s sin recibir radiación. */
@@ -49,13 +50,18 @@ export const HAZARDS = {
   safe: 350,
 } as const;
 
-/** Variante irradiada de cualquier enemigo normal: más PV, golpe con RAD y doble chatarra. */
+/**
+ * Variante irradiada (cuerpo verde) de cualquier enemigo normal: más PV, golpe con RAD, doble chatarra y un aura
+ * que irradia al jugador si se le acerca (`auraR` px, `auraRad` RAD/s por cada uno, se suman).
+ */
 export const IRRADIATED = {
   base: 0.04,
   perSec: 1 / 9000,
   hp: 1.5,
-  rad: 3,
+  rad: 6,
   xp: 2,
+  auraR: 90,
+  auraRad: 5,
 } as const;
 
 export function radTier(rad: number): RadTier {

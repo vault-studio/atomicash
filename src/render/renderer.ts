@@ -1,7 +1,7 @@
 // Render de la run con PixiJS v8. Lee el World y dibuja; nunca lo modifica.
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
-import { PALETTE, RUN_COLORS, VIEW } from '../config/render';
+import { PALETTE, RAD_FOG, RUN_COLORS, VIEW } from '../config/render';
 import { JUICE } from '../config/run';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
@@ -272,6 +272,7 @@ export class GameRenderer {
       });
     if (!this.reduceMotion && hurt && this.victoryT < 0)
       o.rect(0, 0, width, height).fill({ color: 0xff0000, alpha: 0.12 });
+    this.drawRadFog(p.rad, isoX(px, py), isoY(px, py), k, w.time);
     if (this.victoryT >= 0) this.drawVictory(isoX(px, py), isoY(px, py), cine, k);
 
     if (this.debugOn) {
@@ -345,6 +346,32 @@ export class GameRenderer {
         .cut();
     if (t < 0.18 && !this.reduceMotion)
       o.rect(0, 0, width, height).fill({ color: 0xffffff, alpha: 0.5 * (1 - t / 0.18) });
+  }
+
+  /**
+   * Niebla verde de radiación con un hueco alrededor del personaje (pies en (x, y) de mundo) que se cierra según sube
+   * la RAD. Anillos concéntricos con el centro recortado: se suman hacia fuera y dan un borde suave.
+   */
+  private drawRadFog(rad: number, x: number, y: number, k: number, time: number): void {
+    const F = RAD_FOG;
+    const f = clamp((rad - F.from) / (F.full - F.from), 0, 1);
+    if (f <= 0) return;
+    const { width, height } = this.app.screen;
+    const ox = this.worldLayer.position.x + x * k;
+    const oy = this.worldLayer.position.y + (y - F.lift) * k;
+    const far = Math.hypot(width, height) / 2;
+    const near = F.hole * k;
+    // El hueco se cierra a ritmo constante con la RAD; late un poco cuando ya aprieta.
+    const beat = this.reduceMotion ? 0 : 0.04 * f * Math.sin(time * 5);
+    const hole = (far + (near - far) * f) * (1 + beat);
+    const total = F.maxAlpha * Math.pow(f, 0.7);
+    const per = 1 - Math.pow(1 - total, 1 / F.rings);
+    const o = this.overlay;
+    for (let i = 0; i < F.rings; i++)
+      o.rect(0, 0, width, height)
+        .fill({ color: F.color, alpha: per })
+        .circle(ox, oy, hole * (1 + i * 0.14))
+        .cut();
   }
 
   destroy(): void {

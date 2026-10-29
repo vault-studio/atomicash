@@ -77,6 +77,21 @@ export const PALETTE = {
  */
 export const OLD_SCREEN = { curve: 0.12, aberration: 3.2, roll: 0.07, flicker: 0.03 } as const;
 
+/**
+ * Niebla de radiación: desde `from` de RAD la pantalla se tiñe de verde nuclear y se cierra hacia el personaje; en
+ * `full` solo queda un hueco de `hole` px de mundo alrededor de él (a 100 se muere). `lift` sube el centro del pie
+ * al cuerpo.
+ */
+export const RAD_FOG = {
+  from: 20,
+  full: 95,
+  color: 0x5cff1f,
+  maxAlpha: 0.97,
+  hole: 36,
+  lift: 30,
+  rings: 6,
+} as const;
+
 export const RADAR = {
   range: 1500,
   /** Lado del radar en px CSS (el HUD lo encoge en pantallas bajas). */

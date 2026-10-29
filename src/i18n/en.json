@@ -392,6 +392,7 @@
     "eliteDown": "Elite down! Special chest",
     "ratPhase": "The Rat King is enraged",
     "streak": "{{n}} streak! XP ×{{mult}}",
+    "radDeath": "Killed by radiation!",
     "streakLost": "Streak lost",
     "horde": {
       "ring": "You're surrounded!",

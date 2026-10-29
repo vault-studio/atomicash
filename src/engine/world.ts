@@ -305,8 +305,13 @@ function updateRadiation(w: World, dt: number): void {
   if (p.radIdle > RAD.decayDelay) p.rad -= RAD.decay * dt;
   if (w.st.radDecayBonus) p.rad -= w.st.radDecayBonus * dt;
   p.rad = clamp(p.rad, 0, RAD.max);
+  const immune = p.god || !!(survivorStats(w.charId) as SurvivorStats).radImmune;
   const tier = radTier(p.rad);
-  if (tier.drain && !p.god && !(survivorStats(w.charId) as SurvivorStats).radImmune) p.hp -= tier.drain * dt;
+  if (tier.drain && !immune) p.hp -= tier.drain * dt;
+  if (p.rad >= RAD.max && !immune) {
+    banner(w, 'banner.radDeath');
+    killPlayer(w);
+  }
 }
 
 /** Orden de sistemas (05_TECH.md §3): input → jugador → director → armas → proyectiles → IA → recogida. */

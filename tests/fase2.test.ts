@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { AI, ELITES, ENEMY_STATS } from '../src/config/enemies';
 import { RUN, STREAK, XP, streakMult } from '../src/config/run';
 import { HORDES } from '../src/config/waves';
-import { addPickup, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
+import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
+import { IRRADIATED, RAD } from '../src/config/radiation';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { announceHorde, spawnElite } from '../src/engine/systems/spawning';
 import type { Enemy, InputState, World } from '../src/engine/types';
@@ -171,5 +172,32 @@ describe('racha de bajas', () => {
     hurtPlayer(w, 5);
     expect(w.streak).toBe(0);
     expect(w.bestStreak).toBe(STREAK.tiers[1]!.at + 1);
+  });
+});
+
+describe('radiación', () => {
+  it('los enemigos irradiados irradian al acercarse, sin tocarte', () => {
+    const w = quiet();
+    const e = spawnEnemy(w, 'torreta', w.player.x + IRRADIATED.auraR * 0.5, w.player.y, false);
+    e.irr = true;
+    run(w, 1);
+    expect(w.player.rad).toBeCloseTo(IRRADIATED.auraRad, 0);
+    e.irr = false;
+    const before = w.player.rad;
+    run(w, 1);
+    expect(w.player.rad).toBeLessThanOrEqual(before);
+  });
+
+  it('al 100 % de RAD se muere, salvo inmortal', () => {
+    const w = quiet();
+    w.player.rad = RAD.max - 0.5;
+    run(w, STEP);
+    expect(w.player.deadAt).toBeNull();
+    w.player.god = false;
+    w.player.rad = RAD.max - 0.01;
+    w.player.radIdle = 0;
+    addRad(w, 1);
+    run(w, STEP);
+    expect(w.player.deadAt).not.toBeNull();
   });
 });

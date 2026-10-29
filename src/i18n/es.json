@@ -392,6 +392,7 @@
     "eliteDown": "¡Élite abatido! Cofre especial",
     "ratPhase": "El Rey Rata se enfurece",
     "streak": "¡Racha de {{n}}! Experiencia ×{{mult}}",
+    "radDeath": "¡Muerte por radiación!",
     "streakLost": "Racha perdida",
     "horde": {
       "ring": "¡Te rodean!",
