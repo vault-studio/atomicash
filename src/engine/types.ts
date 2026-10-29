@@ -63,8 +63,6 @@ export interface Player {
   /** Radiación 0–100. */
   rad: number;
   radPeak: number;
-  /** Segundos sin recibir radiación. */
-  radIdle: number;
   /** Batido turbo restante, en s. */
   turbo: number;
   /** Nuka-pila restante (cadencia doble), en s. */

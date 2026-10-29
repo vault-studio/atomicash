@@ -43,7 +43,6 @@ describe('radiación (02_GAMEPLAY.md §6)', () => {
     const w = quiet();
     const base = { dmg: w.st.dmgMult, hp: w.st.maxHp };
     w.player.rad = 65;
-    w.player.radIdle = 0;
     tick(w, STILL, STEP);
     expect(w.st.dmgMult).toBeCloseTo(base.dmg * 1.25);
     expect(w.st.maxHp).toBe(Math.round(base.hp * 0.85));
@@ -53,7 +52,7 @@ describe('radiación (02_GAMEPLAY.md §6)', () => {
     expect(hp - w.player.hp).toBeCloseTo(1, 0);
   });
 
-  it('sube en los charcos, baja sola tras unos segundos y con yodo', () => {
+  it('sube en los charcos, no baja sola y solo la quitan el yodo o los rasgos', () => {
     const w = createWorld('dot', 1, { startWeapon: null });
     w.nextEvent = Infinity;
     w.spawnAcc = -1e9;
@@ -64,8 +63,11 @@ describe('radiación (02_GAMEPLAY.md §6)', () => {
     expect(w.player.rad).toBeCloseTo(RAD.puddle * 2, 0);
     w.player.x = w.player.y = RUN.mapSize / 2;
     const peak = w.player.rad;
-    run(w, RAD.decayDelay + 2);
-    expect(w.player.rad).toBeLessThan(peak);
+    run(w, 10);
+    expect(w.player.rad).toBe(peak);
+    w.tr.radDecay = 1;
+    run(w, 2);
+    expect(w.player.rad).toBeCloseTo(peak - 2, 0);
     expect(consumeItem(w, 1)).toBe(true);
     expect(w.player.rad).toBe(0);
   });

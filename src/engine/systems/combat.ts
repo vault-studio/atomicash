@@ -84,7 +84,6 @@ export function addRad(w: World, amount: number): void {
   if (amount <= 0) return;
   const p = w.player;
   p.rad = clamp(p.rad + amount * w.st.radGain, 0, RAD.max);
-  p.radIdle = 0;
   if (p.rad > p.radPeak) p.radPeak = p.rad;
 }
 

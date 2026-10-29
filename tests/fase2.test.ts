@@ -195,7 +195,6 @@ describe('radiación', () => {
     expect(w.player.deadAt).toBeNull();
     w.player.god = false;
     w.player.rad = RAD.max - 0.01;
-    w.player.radIdle = 0;
     addRad(w, 1);
     run(w, STEP);
     expect(w.player.deadAt).not.toBeNull();

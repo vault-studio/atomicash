@@ -131,7 +131,6 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
       inv: 0,
       rad: 0,
       radPeak: 0,
-      radIdle: 99,
       turbo: 0,
       nuka: 0,
       healBudget: 0,
@@ -283,7 +282,6 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
 function updateRadiation(w: World, dt: number): void {
   const p = w.player;
   if (p.deadAt !== null) return;
-  p.radIdle += dt;
   for (const h of w.hazards) {
     const dx = p.x - h.x;
     const dy = p.y - h.y;
@@ -302,7 +300,6 @@ function updateRadiation(w: World, dt: number): void {
     }
   }
   if (w.rain > 0) addRad(w, RAD.rain * dt);
-  if (p.radIdle > RAD.decayDelay) p.rad -= RAD.decay * dt;
   if (w.st.radDecayBonus) p.rad -= w.st.radDecayBonus * dt;
   p.rad = clamp(p.rad, 0, RAD.max);
   const immune = p.god || !!(survivorStats(w.charId) as SurvivorStats).radImmune;

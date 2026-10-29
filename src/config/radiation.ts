@@ -20,9 +20,7 @@ export const RAD = {
   puddle: 15,
   /** RAD/s durante la lluvia radiactiva. */
   rain: 2.4,
-  /** RAD/s que bajan solos tras `decayDelay` s sin recibir radiación. */
-  decay: 1.5,
-  decayDelay: 3,
+  // DECISIÓN: la RAD ya no baja sola; solo el yodo (consumible) o rasgos como Yodo la quitan.
   tiers: [
     { min: 0, dmg: 0, hpPen: 0, irr: 0, drain: 0, color: '#7a8a6a' },
     { min: 30, dmg: 0.1, hpPen: 0.05, irr: 0, drain: 0, color: '#b6d64a' },
