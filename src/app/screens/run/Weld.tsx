@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { FUSIONS, WEAPONS, type WeaponId } from '../../../config/weapons';
 import { weaponParams } from '../../cardText';
 import { PLAYER } from '../../../config/run';
+import { weaponIcon } from '../../icons';
 
 interface Props {
   result: WeaponId;
@@ -34,6 +35,7 @@ export function Weld({ result, onDone }: Props) {
       <h2 className="overlay__title">{t('cards.fusion')}!</h2>
       <div className="weld__bench">
         <span className="weld__part weld__part--a" style={{ borderColor: WEAPONS[f.a].color }}>
+          <img className="weld__icon" src={weaponIcon(f.a)} alt="" />
           {t(`weapons.${f.a}.short`)}
         </span>
         <span className="weld__torch" aria-hidden="true">
@@ -47,10 +49,12 @@ export function Weld({ result, onDone }: Props) {
           ))}
         </span>
         <span className="weld__part weld__part--b" style={{ borderColor: WEAPONS[f.b].color }}>
+          <img className="weld__icon" src={weaponIcon(f.b)} alt="" />
           {t(`weapons.${f.b}.short`)}
         </span>
       </div>
       <div className="weld__result" style={{ borderColor: WEAPONS[result].color }}>
+        <img className="weld__icon weld__icon--big" src={weaponIcon(result)} alt="" />
         <strong>{t(`weapons.${result}.name`)}</strong>
         <span>{t(`weapons.${result}.desc`, weaponParams(result, PLAYER.maxWeaponLevel))}</span>
       </div>

@@ -2,6 +2,7 @@
 // de la partida con una gráfica del daño a lo largo de la run (dossier §20).
 import { useTranslation } from 'react-i18next';
 import type { RunResults } from '../../../engine/world';
+import { sourceIcon } from '../../icons';
 import { fmtTime } from './Hud';
 
 interface Props {
@@ -54,7 +55,10 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
             <ul className="ticket__sources">
               {top.map((s) => (
                 <li key={s.src}>
-                  <span>{sourceName(s.src)}</span>
+                  <span>
+                    {sourceIcon(s.src) && <img className="wicon" src={sourceIcon(s.src)} alt="" />}
+                    {sourceName(s.src)}
+                  </span>
                   <span className="ticket__bar" style={{ width: `${(s.dmg / max) * 100}%` }} />
                   <span>{s.dmg.toLocaleString()}</span>
                 </li>

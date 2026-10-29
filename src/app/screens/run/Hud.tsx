@@ -7,6 +7,7 @@ import { RAD } from '../../../config/radiation';
 import { PLAYER, STREAK } from '../../../config/run';
 import { WEAPONS } from '../../../config/weapons';
 import type { Banner, World } from '../../../engine/types';
+import { weaponIcon } from '../../icons';
 import type { HudSnapshot } from '../../runSession';
 import { Minimap } from './Minimap';
 
@@ -187,7 +188,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
             >
               {w && (
                 <>
-                  <span className="slot__name">{t(`weapons.${w.id}.short`)}</span>
+                  <img className="slot__icon" src={weaponIcon(w.id)} alt={t(`weapons.${w.id}.short`)} />
                   <span className="slot__pips" aria-label={t('run.level', { n: w.lvl })}>
                     {Array.from({ length: PLAYER.maxWeaponLevel }, (_, k) => (
                       <i key={k} className={k < w.lvl ? 'is-on' : ''} />

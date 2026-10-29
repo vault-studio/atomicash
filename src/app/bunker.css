@@ -375,7 +375,7 @@ button.card--survivor {
 }
 
 .ticket__reward {
-  border-top: 2px dashed #6b5a40;
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
   margin-top: 8px;
   padding-top: 6px;
 }

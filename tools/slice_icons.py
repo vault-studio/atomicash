@@ -1,0 +1,64 @@
+# Recorta las hojas de iconos de ARTE/ (rejilla 6×3 de fichas sobre fondo negro) a PNG de 128×128 en assets/icons/.
+# Uso: python tools/slice_icons.py
+#
+# Cada ficha se localiza por su caja de píxeles claros dentro de su celda; se quita el borde de chapa y se recorta el
+# cuadrado central (las fichas de rasgos son algo más altas que anchas). El orden de las fichas es el de las listas de
+# abajo, de izquierda a derecha y de arriba abajo; coincide con el orden de WEAPONS y TRAITS en src/config.
+from pathlib import Path
+
+import numpy as np
+from PIL import Image
+
+SIZE = 128
+DARK = 45  # luminancia por debajo de la cual es fondo
+LINE = 0.15  # fracción mínima de píxeles claros para que una fila o columna sea parte de una ficha
+INSET = 0.035  # fracción de la ficha que se recorta por cada lado para quitar el borde
+
+SHEETS = {
+    'ARTE/iconos_armas.webp': (
+        Path('assets/icons'),
+        [
+            'llave', 'pistola_clavos', 'jeringa', 'coctel', 'tesla', 'geiger',
+            'escopeta_chatarra', 'megafono', 'rifle_cerrojo', 'martillo_pilon', 'petardos', 'desfibrilador',
+            'nucleo_cobalto', 'dinamo', 'remachadora', 'nucleo_inestable', 'dardos_incendiarios',
+        ],
+    ),
+    'ARTE/iconos_rasgos.webp': (
+        Path('assets/icons/traits'),
+        [
+            'ammo', 'boots', 'manual', 'helmet', 'plate', 'suture',
+            'magnet', 'cat', 'scope', 'ration', 'oil', 'iodine',
+            'fuse', 'tips', 'adren', 'rabbit', 'stock',
+        ],
+    ),
+}
+
+
+def runs(a: np.ndarray) -> list[tuple[int, int]]:
+    """Tramos consecutivos de `a` por encima de LINE."""
+    out, start = [], None
+    for i, v in enumerate(a):
+        if v > LINE and start is None:
+            start = i
+        elif v <= LINE and start is not None:
+            out.append((start, i))
+            start = None
+    if start is not None:
+        out.append((start, len(a)))
+    return out
+
+
+for src, (out_dir, names) in SHEETS.items():
+    img = Image.open(src).convert('RGB')
+    light = np.asarray(img.convert('L')) > DARK
+    cols, rows = runs(light.mean(0)), runs(light.mean(1))
+    cells = [(x, y) for y in rows for x in cols]
+    assert len(cells) >= len(names), f'{src}: {len(cells)} celdas para {len(names)} iconos'
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for name, ((x0, x1), (y0, y1)) in zip(names, cells):
+        w, h = x1 - x0, y1 - y0
+        side = min(w, h) * (1 - 2 * INSET)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        box = tuple(round(v) for v in (cx - side / 2, cy - side / 2, cx + side / 2, cy + side / 2))
+        img.crop(box).resize((SIZE, SIZE), Image.LANCZOS).save(out_dir / f'{name}.png', optimize=True)
+    print(f'{src}: {len(names)} iconos en {out_dir}')

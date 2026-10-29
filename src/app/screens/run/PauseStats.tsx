@@ -5,6 +5,7 @@ import { survivorStats } from '../../../config/survivors';
 import { SOURCE_INDEX } from '../../../config/weapons';
 import type { World } from '../../../engine/types';
 import { currentDps } from '../../../engine/world';
+import { weaponIcon } from '../../icons';
 import { headOf } from '../bunker/Portraits';
 import { fmtTime } from './Hud';
 
@@ -83,6 +84,7 @@ export function PauseStats({ world: w }: { world: World }) {
               {w.weapons.map((wp) => (
                 <tr key={wp.id}>
                   <th scope="row">
+                    <img className="wicon" src={weaponIcon(wp.id)} alt="" />
                     {t(`weapons.${wp.id}.name`)} <small>{t('run.level', { n: wp.lvl })}</small>
                   </th>
                   <td>{Math.round(w.dmgBy[SOURCE_INDEX[wp.id]!]!).toLocaleString()}</td>

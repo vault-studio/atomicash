@@ -486,3 +486,12 @@ select {
 .reduce-motion .terminal {
   animation: none !important;
 }
+
+/* Icono pequeño de arma junto a su nombre (pausa, resumen, selección). */
+.wicon {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  margin-right: 0.35em;
+  vertical-align: middle;
+}

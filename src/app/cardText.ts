@@ -4,6 +4,7 @@ import { PLAYER } from '../config/run';
 import { FUSIONS, WEAPONS, scaled, type WeaponId } from '../config/weapons';
 import { TRAITS } from '../config/traits';
 import type { Card, World } from '../engine/types';
+import { traitIcon, weaponIcon } from './icons';
 
 const f1 = (x: number): number => Math.round(x * 10) / 10;
 
@@ -111,6 +112,7 @@ export interface CardView {
   tag: string;
   title: string;
   desc: string;
+  icon?: string;
 }
 
 export function cardView(t: TFunction, w: World, c: Card): CardView {
@@ -123,6 +125,7 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         tag: t('cards.upgrade'),
         title: `${t(`weapons.${c.id}.name`)} ${l - 1}→${l}`,
         desc: t(`weapons.${c.id}.desc`, weaponParams(c.id, l)),
+        icon: weaponIcon(c.id),
       };
     }
     case 'new': {
@@ -132,6 +135,7 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         tag: t(owner ? 'cards.exclusive' : 'cards.newWeapon'),
         title: t(`weapons.${c.id}.name`),
         desc: t(`weapons.${c.id}.desc`, weaponParams(c.id, 1)),
+        icon: weaponIcon(c.id),
       };
     }
     case 'fusion': {
@@ -145,6 +149,7 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
           b: t(`weapons.${f.b}.short`),
           desc: t(`weapons.${c.id}.desc`, weaponParams(c.id, PLAYER.maxWeaponLevel)),
         }),
+        icon: weaponIcon(c.id),
       };
     }
     case 'trait': {
@@ -154,6 +159,7 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         tag: `${t('cards.trait')} · ${t(`rarity.${c.rarity}`)}`,
         title: t(`traits.${c.id}.name`) + (picks ? ` ×${picks + 1}` : ''),
         desc: t(`traits.${c.id}.desc`, { v: c.value, max: TRAITS[c.id].max }),
+        icon: traitIcon(c.id),
       };
     }
     case 'item':

@@ -158,6 +158,7 @@ export function Cards({ choice, world, onPick, onReroll, onBanish, onLock }: Pro
                   {locked && '🔒 '}
                   {v.tag}
                 </span>
+                {v.icon && <img className="choice__icon" src={v.icon} alt="" />}
                 <strong className="choice__title">{v.title}</strong>
                 <span className="choice__desc">{v.desc}</span>
                 <kbd className="choice__key">{i + 1}</kbd>
