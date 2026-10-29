@@ -52,6 +52,12 @@ function fakeRun(over: Partial<RunResults> = {}): RunResults {
     consStart: { stim: 2, iodine: 0, grenade: 0, turbo: 0 },
     dmgBy: [],
     weapons: [],
+    items: [],
+    maxHit: 0,
+    peakDps: 0,
+    peakKills5: 0,
+    timeDmg: [],
+    timeKills: [],
     ...over,
   };
 }

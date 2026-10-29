@@ -1,11 +1,11 @@
 // Recogibles de campo: botiquín, imán y bomba, que sueltan al azar los enemigos al morir.
 import { describe, expect, it } from 'vitest';
-import { FIELD_PICKUPS } from '../src/config/items';
-import { addPickup, rollFieldPickup } from '../src/engine/systems/combat';
+import { FIELD_PICKUPS, type FieldPickupId } from '../src/config/items';
+import { HIT_RAW, addPickup, hitEnemy, rollFieldPickup } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { updatePickups } from '../src/engine/systems/progression';
 import type { World } from '../src/engine/types';
-import { createWorld } from '../src/engine/world';
+import { createWorld, results, tick } from '../src/engine/world';
 
 function quiet(): World {
   const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
@@ -15,7 +15,7 @@ function quiet(): World {
 }
 
 /** Deja el recogible justo debajo del jugador y lo recoge. */
-function pickUp(w: World, kind: 'medkit' | 'magnet' | 'bomb'): void {
+function pickUp(w: World, kind: FieldPickupId): void {
   addPickup(w, kind, w.player.x, w.player.y, FIELD_PICKUPS.r);
   updatePickups(w, 1 / 60);
 }
@@ -57,6 +57,59 @@ describe('recogibles de campo', () => {
     expect(w.kills - kills).toBe(5);
     expect(w.enemies.count).toBe(1);
     expect(w.enemies.items[0]).toBe(far);
+  });
+
+  it('la crio-granada congela lo que se ve: no se mueve hasta que se le pasa', () => {
+    const w = quiet();
+    const p = w.player;
+    const e = spawnEnemy(w, 'necrofago', p.x + 200, p.y, false);
+    const far = spawnEnemy(w, 'necrofago', p.x + 2500, p.y + 2500, false);
+    pickUp(w, 'freeze');
+    expect(e.frozen).toBe(FIELD_PICKUPS.freeze);
+    expect(far.frozen).toBe(0);
+    const x = e.x;
+    for (let i = 0; i < 60; i++) tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(e.x).toBe(x);
+    for (let i = 0; i < 60 * FIELD_PICKUPS.freeze; i++) tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(e.x).toBeLessThan(x);
+  });
+
+  it('la nuka-pila dobla la cadencia un rato', () => {
+    const w = quiet();
+    tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    const cd = w.st.cdMult;
+    pickUp(w, 'nuka');
+    tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(w.st.cdMult).toBeCloseTo(cd * FIELD_PICKUPS.nukaCd);
+    for (let i = 0; i < 60 * FIELD_PICKUPS.nuka; i++) tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(w.st.cdMult).toBeCloseTo(cd);
+  });
+
+  it('el imán también atrae los cupones', () => {
+    const w = quiet();
+    const p = w.player;
+    const c = addPickup(w, 'coupon', p.x + 300, p.y, 6, 5);
+    pickUp(w, 'magnet');
+    expect(c.pull).toBe(true);
+  });
+});
+
+describe('resumen final', () => {
+  it('cuenta el golpe más fuerte, las bajas en 5 s y el daño por tramo', () => {
+    const w = quiet();
+    const p = w.player;
+    for (let i = 0; i < 4; i++) {
+      const e = spawnEnemy(w, 'dron', p.x + 300, p.y, false);
+      hitEnemy(w, e, 100 + i, 'llave', HIT_RAW);
+    }
+    w.time = 40;
+    const e = spawnEnemy(w, 'dron', p.x + 300, p.y, false);
+    hitEnemy(w, e, 50, 'llave', HIT_RAW);
+    const r = results(w);
+    expect(r.maxHit).toBe(103);
+    expect(r.peakKills5).toBe(4);
+    expect(r.timeKills).toEqual([4, 1]);
+    expect(r.timeDmg[1]).toBe(50);
   });
 });
 

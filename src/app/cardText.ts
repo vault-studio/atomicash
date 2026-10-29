@@ -163,6 +163,13 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         title: t(`items.${c.id}.name`),
         desc: t(`items.${c.id}.desc`),
       };
+    case 'coupons':
+      return {
+        cls: 'rare',
+        tag: t('cards.cache'),
+        title: t('cards.coupons', { n: c.n }),
+        desc: t('cards.cacheDesc'),
+      };
     case 'heal':
       return { cls: '', tag: t('cards.supply'), title: t('cards.heal'), desc: t('cards.healDesc') };
     case 'purge':

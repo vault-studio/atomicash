@@ -64,6 +64,8 @@ export interface Player {
   radIdle: number;
   /** Batido turbo restante, en s. */
   turbo: number;
+  /** Nuka-pila restante (cadencia doble), en s. */
+  nuka: number;
   /** Curación por bajas disponible (tope por segundo). */
   healBudget: number;
   /** Tiempo de la run del último golpe recibido. */
@@ -126,6 +128,8 @@ export interface Enemy {
   burst: number;
   bt: number;
   stun: number;
+  /** Congelado por la crio-granada: ni se mueve ni ataca, en s. */
+  frozen: number;
   /** Contador de rotación de ataques del jefe. */
   act: number;
   alt: boolean;
@@ -269,6 +273,10 @@ export type PickupKind =
   | 'magnet'
   | 'bomb'
   | 'coupon'
+  /** Crio-granada: congela a los enemigos en pantalla. */
+  | 'freeze'
+  /** Nuka-pila: cadencia doble durante unos segundos. */
+  | 'nuka'
   /** Cofre especial de un edificio con la guarnición eliminada. */
   | 'cache';
 
@@ -320,6 +328,20 @@ export interface Corpse {
   irr: boolean;
 }
 
+/** Esquirla de un golpe o una baja (solo visual): vuela con gravedad en `z` y se apaga. */
+export interface Particle {
+  x: number;
+  y: number;
+  z: number;
+  vx: number;
+  vy: number;
+  vz: number;
+  life: number;
+  max: number;
+  color: number;
+  size: number;
+}
+
 export type FxKind = 'dmg' | 'crit' | 'hurt' | 'dodge' | 'pickup' | 'slogan';
 
 /** Texto flotante. `value` es el número (daño) o el índice del eslogan; `key`, la clave i18n. */
@@ -343,17 +365,21 @@ export type Card =
   | { kind: 'up' | 'new' | 'fusion'; id: WeaponId }
   | { kind: 'trait'; id: TraitId; rarity: Rarity; value: number }
   | { kind: 'item'; id: ItemId }
+  | { kind: 'coupons'; n: number }
   | { kind: 'heal' }
   | { kind: 'purge' };
 
 export interface Choice {
-  type: 'level' | 'item';
+  /** `cache`: tragaperras del cofre especial (una tarjeta de cupones y un nivel). */
+  type: 'level' | 'item' | 'cache';
   cards: Card[];
 }
 
 export interface World {
   readonly seed: number;
   readonly rng: Rng;
+  /** Azar solo para efectos visuales: no altera la secuencia de `rng` de la simulación. */
+  readonly fxRng: Rng;
   readonly charId: StatSurvivorId;
   /** Segundos de run simulados. */
   time: number;
@@ -430,6 +456,9 @@ export interface World {
   readonly booms: Pool<Boom>;
   readonly corpses: Pool<Corpse>;
   readonly texts: Pool<FxText>;
+  readonly parts: Pool<Particle>;
+  /** Congelación breve del juego tras un golpe gordo (la aplica la sesión, no el tick), en s. */
+  hitStop: number;
   readonly banners: Banner[];
 
   xp: number;
@@ -439,6 +468,16 @@ export interface World {
   /** Cupones recogidos en la partida. */
   coupons: number;
   dmgTotal: number;
+  /** Para el resumen final: golpe más fuerte, pico de DPS y más bajas en 5 s. */
+  maxHit: number;
+  peakDps: number;
+  peakKills5: number;
+  /** Bajas por segundo de los últimos 5 s (anillo) y el segundo del último hueco. */
+  readonly killRing: Int32Array;
+  killSec: number;
+  /** Daño y bajas por tramo de `SUMMARY.bucket` segundos. */
+  readonly timeDmg: number[];
+  readonly timeKills: number[];
   /** Daño hecho a jefes (ranking «daño al jefe», F4). */
   bossDmg: number;
   /** Daño por fuente (índices de DAMAGE_SOURCES). */

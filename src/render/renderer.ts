@@ -2,6 +2,7 @@
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, RUN_COLORS, VIEW } from '../config/render';
+import { JUICE } from '../config/run';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { World } from '../engine/types';
 import { ActorView } from './actor';
@@ -30,6 +31,9 @@ export class GameRenderer {
   private readonly overlay = new Graphics();
   private readonly debugText: Text;
   private debugOn = false;
+  /** Zoom extra de la cámara: se aleja un poco con la pantalla llena de enemigos. */
+  private zoom = 1;
+  private lastFrame = 0;
   /** Ajustes de accesibilidad (F3-08). */
   showDamage = true;
   reduceMotion = false;
@@ -95,7 +99,9 @@ export class GameRenderer {
   /** Zoom de la cámara: encaja la vista de referencia en la pantalla. */
   private cameraScale(): number {
     const { width, height } = this.app.screen;
-    return clamp(Math.min(width / VIEW.width, height / VIEW.height), VIEW.minScale, VIEW.maxScale);
+    return (
+      clamp(Math.min(width / VIEW.width, height / VIEW.height), VIEW.minScale, VIEW.maxScale) * this.zoom
+    );
   }
 
   /** Lo que ve la cámara en unidades isométricas de mundo (para que el motor spawnee fuera de ella). */
@@ -107,6 +113,13 @@ export class GameRenderer {
   /** `alpha` ∈ [0, 1) interpola entre el paso anterior y el actual del motor. */
   render(w: World, alpha: number, dbg: DebugInfo): void {
     const { width, height } = this.app.screen;
+    const now = performance.now();
+    const dt = Math.min(0.1, (now - (this.lastFrame || now)) / 1000);
+    this.lastFrame = now;
+    const Z = JUICE.zoom;
+    const crowd = clamp((w.enemies.count - Z.from) / (Z.to - Z.from), 0, 1);
+    const target = this.reduceMotion ? 1 : 1 - (1 - Z.minZoom) * crowd;
+    this.zoom += (target - this.zoom) * Math.min(1, Z.lerp * dt);
     const k = this.cameraScale();
     const p = w.player;
     const px = p.prevX + (p.x - p.prevX) * alpha;

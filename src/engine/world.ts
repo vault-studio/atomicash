@@ -1,15 +1,15 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
-import type { ConsumableId } from '../config/items';
+import type { ConsumableId, ItemId } from '../config/items';
 import { ENEMY_RULES } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
-import { CAPS, CREDITS, PLAYER, RUN, xpForLevel } from '../config/run';
+import { CAPS, CREDITS, JUICE, PLAYER, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS } from '../config/waves';
 import { refreshHazards } from './hazards';
 import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
-import { banner, createBeam, createBoom, createText, updateFx } from './fx';
+import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
 import { SpatialHash } from './spatialHash';
@@ -102,6 +102,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   const w: World = {
     seed,
     rng,
+    fxRng: createRng(seed ^ 0x5bd1e995),
     charId,
     time: 0,
     ticks: 0,
@@ -125,6 +126,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
       radPeak: 0,
       radIdle: 99,
       turbo: 0,
+      nuka: 0,
       healBudget: 0,
       lastHit: -9,
       god: false,
@@ -176,6 +178,8 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     booms: new Pool(createBoom, 80),
     corpses: new Pool(createCorpse, 150),
     texts: new Pool(createText, 120),
+    parts: new Pool(createParticle, JUICE.parts.max),
+    hitStop: 0,
     banners: [],
     xp: 0,
     level: 1,
@@ -183,6 +187,13 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     kills: 0,
     coupons: 0,
     dmgTotal: 0,
+    maxHit: 0,
+    peakDps: 0,
+    peakKills5: 0,
+    killRing: new Int32Array(SUMMARY.window),
+    killSec: 0,
+    timeDmg: [],
+    timeKills: [],
     bossDmg: 0,
     dmgBy: new Float64Array(DAMAGE_SOURCES.length),
     dpsB: new Float64Array(16),
@@ -230,6 +241,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   }
   p.inv -= dt;
   p.turbo -= dt;
+  p.nuka -= dt;
   p.healBudget = Math.min(CAPS.killHealPerSec, p.healBudget + CAPS.killHealPerSec * dt);
   if (w.st.regen > 0) heal(w, w.st.regen * dt);
 }
@@ -296,6 +308,11 @@ export function tick(w: World, input: InputState, dt: number): void {
   updatePickups(w, dt);
   updateSlimes(w, dt);
   updateFx(w, dt);
+  // Pico de DPS para el resumen (cada 0,25 s basta).
+  if (w.ticks % 15 === 0) {
+    const dps = currentDps(w);
+    if (dps > w.peakDps) w.peakDps = dps;
+  }
 
   // La Tormenta: al acabar el tiempo, daño creciente hasta morir.
   if (w.time >= RUN.stormStart && !w.won) {
@@ -348,6 +365,13 @@ export interface RunResults {
   /** Daño por fuente, de mayor a menor (solo las que hicieron daño). */
   dmgBy: { src: string; dmg: number }[];
   weapons: { id: WeaponId; lvl: number }[];
+  items: ItemId[];
+  maxHit: number;
+  peakDps: number;
+  peakKills5: number;
+  /** Daño y bajas por tramo de `SUMMARY.bucket` s (gráfica del ticket). */
+  timeDmg: number[];
+  timeKills: number[];
 }
 
 export function results(w: World): RunResults {
@@ -374,5 +398,11 @@ export function results(w: World): RunResults {
     consStart: { ...w.consStart },
     dmgBy,
     weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
+    items: [...w.items],
+    maxHit: Math.round(w.maxHit),
+    peakDps: Math.round(w.peakDps),
+    peakKills5: w.peakKills5,
+    timeDmg: w.timeDmg.map(Math.round),
+    timeKills: [...w.timeKills],
   };
 }

@@ -1,14 +1,14 @@
 // Daño a enemigos y al jugador, bajas, chatarra (XP) y radiación. Sin allocations en el camino caliente.
-import { AI, ENEMY_STATS, MAX_ENEMY_RADIUS, type EnemyStats } from '../../config/enemies';
+import { AI, ENEMY_STATS, GORE, GORE_IRR, MAX_ENEMY_RADIUS, type EnemyStats } from '../../config/enemies';
 import { BOSS_VARIANTS } from '../../config/enemies';
 import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
-import { CAPS, COUPONS, FX, KNOCKBACK, PLAYER, XP } from '../../config/run';
+import { CAPS, COUPONS, FX, JUICE, KNOCKBACK, PLAYER, SUMMARY, XP } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
-import { banner, boom, textFx } from '../fx';
+import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
@@ -124,6 +124,11 @@ export function hitEnemy(
   e.flash = 0.08;
   sfx(w, SFX.hit);
   w.dmgTotal += d;
+  if (d > w.maxHit) w.maxHit = d;
+  const tb = Math.floor(w.time / SUMMARY.bucket);
+  while (w.timeDmg.length <= tb) w.timeDmg.push(0);
+  w.timeDmg[tb] = w.timeDmg[tb]! + d;
+  if (flags & HIT_DIRECT) burst(w, e.x, e.y, JUICE.parts.perHit, e.irr ? GORE_IRR : GORE[e.type], 0.6);
   const si = SOURCE_INDEX[src];
   if (si !== undefined) w.dmgBy[si] = w.dmgBy[si]! + d;
   const b = Math.floor(w.time * 4);
@@ -243,12 +248,36 @@ function addCorpse(w: World, e: Enemy): void {
   c.irr = e.irr;
 }
 
+/** Bajas por segundo en un anillo de `SUMMARY.window` s (para «más bajas en 5 s») y por tramo de la gráfica. */
+function countKill(w: World): void {
+  const sec = Math.floor(w.time);
+  const W = SUMMARY.window;
+  if (sec !== w.killSec) {
+    for (let s = w.killSec + 1; s <= sec && s - w.killSec <= W; s++) w.killRing[s % W] = 0;
+    w.killSec = sec;
+  }
+  w.killRing[sec % W] = w.killRing[sec % W]! + 1;
+  let sum = 0;
+  for (let i = 0; i < W; i++) sum += w.killRing[i]!;
+  if (sum > w.peakKills5) w.peakKills5 = sum;
+  const tb = Math.floor(w.time / SUMMARY.bucket);
+  while (w.timeKills.length <= tb) w.timeKills.push(0);
+  w.timeKills[tb] = w.timeKills[tb]! + 1;
+}
+
 export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (e.dead) return;
   e.dead = true;
   w.kills++;
+  countKill(w);
   sfx(w, SFX.kill);
   addCorpse(w, e);
+  const gore = e.irr ? GORE_IRR : GORE[e.type];
+  if (e.boss) {
+    burst(w, e.x, e.y, JUICE.parts.perBossKill, gore, 2);
+    hitStop(w, JUICE.hitStop.boss);
+    addShake(w, 14, 20);
+  } else burst(w, e.x, e.y, JUICE.parts.perKill, gore, e.irr ? 1.4 : 1);
   const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
   if (xp > 0) {
     if (e.boss) dropGems(w, e.x, e.y, xp);
@@ -344,6 +373,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   p.lastHit = w.time;
   sfx(w, SFX.hurt);
   w.shake = Math.min(FX.shakeMax, w.shake + 3);
+  hitStop(w, JUICE.hitStop.hurt);
   if (rad > 0) addRad(w, rad);
   textFx(w, 'hurt', p.x, p.y, Math.round(d));
   return d;

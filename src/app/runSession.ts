@@ -164,7 +164,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const syncChoice = (): void => {
     if (world.choice !== lastChoice) {
       lastChoice = world.choice;
-      if (world.choice) audio.play(world.choice.type === 'item' ? 'chest' : 'level');
+      if (world.choice) audio.play(world.choice.type === 'level' ? 'level' : 'chest');
       cb.onChoice(world.choice);
       hudAcc = 1;
     }
@@ -208,6 +208,14 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     const frameSec = ticker.deltaMS / 1000;
     let steps = 0;
     const frozen = portrait.matches || paused || world.choice !== null || ended;
+    // Congelación de impacto (golpe gordo, jefe abatido): el mundo se para un instante pero se sigue dibujando.
+    if (!frozen && world.hitStop > 0) {
+      world.hitStop -= frameSec;
+      fs.acc = 0;
+      renderer.render(world, 1, { fps, steps });
+      sound(world, frameSec);
+      return;
+    }
     if (frozen) {
       if (portrait.matches) controls.release();
       fs.acc = 0;

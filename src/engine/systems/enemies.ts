@@ -68,6 +68,7 @@ export function createEnemy(): Enemy {
     burst: 0,
     bt: 0,
     stun: 0,
+    frozen: 0,
     act: 0,
     alt: false,
     phase: 1,
@@ -159,6 +160,7 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.burst = 0;
   e.bt = 0;
   e.stun = 0;
+  e.frozen = 0;
   e.act = 0;
   e.alt = false;
   e.phase = 1;
@@ -475,6 +477,12 @@ export function updateEnemies(w: World, dt: number): void {
     e.prevY = e.y;
     e.flash -= dt;
     e.atkCd -= dt;
+    // Congelado por la crio-granada: ni se mueve ni ataca.
+    if (e.frozen > 0) {
+      e.frozen -= dt;
+      e.moving = false;
+      continue;
+    }
 
     const dx = p.x - e.x;
     const dy = p.y - e.y;

@@ -1,5 +1,5 @@
 // Stats derivados del jugador: base del superviviente × rasgos × objeto × RAD × turbo.
-import { ITEMS, type ItemDef, CONSUMABLES } from '../config/items';
+import { ITEMS, type ItemDef, CONSUMABLES, FIELD_PICKUPS } from '../config/items';
 import { radTier } from '../config/radiation';
 import { CAPS, DMG_TAKEN, PLAYER, RUN } from '../config/run';
 import { survivorStats, type SurvivorStats } from '../config/survivors';
@@ -69,7 +69,7 @@ export function recalc(w: World): void {
   let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg * (ch.radDmgMult ?? 1)) * (1 + it.dmg) * turbo;
   if (p.hp < 0.4 * p.maxHp) dmg *= 1 + tr.adren / 100;
   st.dmgMult = dmg;
-  st.cdMult = 1 - Math.min(CAPS.cdReduction, tr.cd / 100 + it.cd);
+  st.cdMult = (1 - Math.min(CAPS.cdReduction, tr.cd / 100 + it.cd)) * (p.nuka > 0 ? FIELD_PICKUPS.nukaCd : 1);
   st.regen = (ch.regen ?? 0) + tr.regen;
   st.xpMult = 1 + tr.xp / 100;
   st.red = Math.min(CAPS.dmgReduction, tr.red / 100);

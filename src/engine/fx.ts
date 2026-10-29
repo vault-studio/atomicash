@@ -1,8 +1,16 @@
 // Efectos que el motor deja para el render y la UI: textos, avisos, explosiones y rayos.
 // Todos usan pools con tope; si se llena, el efecto se descarta (no afecta a la simulación).
-import { FX } from '../config/run';
+import { FX, JUICE } from '../config/run';
 import { SFX, sfx } from './sfx';
-import { BEAM_POINTS, type Beam, type Boom, type FxKind, type FxText, type World } from './types';
+import {
+  BEAM_POINTS,
+  type Beam,
+  type Boom,
+  type FxKind,
+  type FxText,
+  type Particle,
+  type World,
+} from './types';
 
 export const createText = (): FxText => ({ kind: 'dmg', x: 0, y: 0, value: 0, key: '', life: 0 });
 export const createBoom = (): Boom => ({ x: 0, y: 0, r: 0, life: 0, max: 0, color: 0 });
@@ -13,6 +21,44 @@ export const createBeam = (): Beam => ({
   max: 0,
   color: 0,
 });
+
+export const createParticle = (): Particle => ({
+  x: 0,
+  y: 0,
+  z: 0,
+  vx: 0,
+  vy: 0,
+  vz: 0,
+  life: 0,
+  max: 0,
+  color: 0,
+  size: 0,
+});
+
+/** Esquirlas saltando desde (x, y) con colores al azar de `colors`. Solo visual. */
+export function burst(w: World, x: number, y: number, n: number, colors: readonly number[], power = 1): void {
+  const P = JUICE.parts;
+  const r = w.fxRng;
+  for (let i = 0; i < n && w.parts.count < P.max; i++) {
+    const q = w.parts.acquire();
+    const a = r() * Math.PI * 2;
+    const sp = P.speed * power * (0.4 + r() * 0.8);
+    q.x = x;
+    q.y = y;
+    q.z = 10 + r() * 10;
+    q.vx = Math.cos(a) * sp;
+    q.vy = Math.sin(a) * sp;
+    q.vz = P.up * power * (0.5 + r() * 0.7);
+    q.life = q.max = P.life * (0.7 + r() * 0.6);
+    q.color = colors[(r() * colors.length) | 0] ?? 0xffffff;
+    q.size = 1.5 + r() * 2 * Math.min(2, power);
+  }
+}
+
+/** Congela el juego `s` segundos (se queda con la más larga; tope `JUICE.hitStop.max`). */
+export function hitStop(w: World, s: number): void {
+  w.hitStop = Math.min(JUICE.hitStop.max, Math.max(w.hitStop, s));
+}
 
 export function textFx(w: World, kind: FxKind, x: number, y: number, value: number, key = ''): void {
   if (w.texts.count >= FX.maxTexts) return;
@@ -86,6 +132,26 @@ export function updateFx(w: World, dt: number): void {
     const b = w.banners[i]!;
     b.life -= dt;
     if (b.life <= 0) w.banners.splice(i, 1);
+  }
+  const g = JUICE.parts.gravity;
+  for (let i = w.parts.count - 1; i >= 0; i--) {
+    const q = w.parts.items[i]!;
+    q.life -= dt;
+    if (q.life <= 0) {
+      w.parts.releaseAt(i);
+      continue;
+    }
+    q.vz -= g * dt;
+    q.z += q.vz * dt;
+    if (q.z <= 0) {
+      // Rebota una vez sin fuerza y se arrastra por el suelo.
+      q.z = 0;
+      q.vz = -q.vz * 0.3;
+      q.vx *= 0.5;
+      q.vy *= 0.5;
+    }
+    q.x += q.vx * dt;
+    q.y += q.vy * dt;
   }
   const ct = w.time - FX.corpseTime;
   for (let i = w.corpses.count - 1; i >= 0; i--) if (w.corpses.items[i]!.t < ct) w.corpses.releaseAt(i);

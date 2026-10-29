@@ -1,12 +1,12 @@
 // Recogida de chatarra, XP, subidas de nivel y tarjetas (F1-07), cofres de objeto y consumibles.
 import { CONSUMABLES, CONSUMABLE_IDS, FIELD_PICKUPS, ITEM_IDS, type ConsumableId } from '../../config/items';
 import { RAD } from '../../config/radiation';
-import { COUPONS, FX, PLAYER, XP, xpForLevel } from '../../config/run';
+import { CACHE_ROLL, FX, JUICE, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
 import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
 import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
-import { addShake, banner, boom, textFx } from '../fx';
+import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Card, World } from '../types';
@@ -62,12 +62,8 @@ export function updatePickups(w: World, dt: number): void {
     } else if (kind === 'coupon') {
       w.coupons += val;
       textFx(w, 'pickup', p.x, p.y, val, 'pickups.coupons');
-    } else if (kind === 'cache') {
-      // Un nivel justo: la experiencia que falta para el siguiente, sin multiplicadores.
-      w.coupons += COUPONS.cache;
-      textFx(w, 'pickup', p.x, p.y, COUPONS.cache, 'pickups.coupons');
-      gainXp(w, w.xpNext - w.xp, true);
-    } else if (kind === 'chest') openItemChoice(w);
+    } else if (kind === 'cache') openCacheChoice(w);
+    else if (kind === 'chest') openItemChoice(w);
     else if (kind === 'medkit') {
       heal(w, p.maxHp * FIELD_PICKUPS.medkitHeal);
       textFx(w, 'pickup', p.x, p.y, 0, 'pickups.medkit');
@@ -77,6 +73,13 @@ export function updatePickups(w: World, dt: number): void {
     } else if (kind === 'bomb') {
       screenBomb(w);
       textFx(w, 'pickup', p.x, p.y, 0, 'pickups.bomb');
+    } else if (kind === 'freeze') {
+      screenFreeze(w);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.freeze');
+    } else if (kind === 'nuka') {
+      p.nuka = FIELD_PICKUPS.nuka;
+      burst(w, p.x, p.y, 16, NUKA_SPARKS, 0.8);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.nuka');
     } else {
       const S = EVENTS.supply;
       for (let g = 0; g < S.gems; g++)
@@ -214,6 +217,20 @@ export function openItemChoice(w: World): void {
   if (cards.length) w.choice = { type: 'item', cards };
 }
 
+/** Cofre especial: tragaperras de cupones. La UI hace girar los rodillos y al cobrar se suma un nivel. */
+export function openCacheChoice(w: World): void {
+  const C = CACHE_ROLL;
+  const u = w.rng();
+  const range = (r: readonly [number, number]): number => r[0] + Math.round(w.rng() * (r[1] - r[0]));
+  const n =
+    u < C.jackpotChance
+      ? C.jackpot
+      : u < C.jackpotChance + C.doubleChance
+        ? range(C.double)
+        : range(C.normal);
+  w.choice = { type: 'cache', cards: [{ kind: 'coupons', n }] };
+}
+
 export function reroll(w: World): boolean {
   if (w.rerolls > 0 && w.choice && w.choice.type === 'level') {
     w.rerolls--;
@@ -258,6 +275,10 @@ export function applyChoice(w: World, i: number): void {
       w.items.push(c.id);
       recalc(w);
       break;
+    case 'coupons':
+      w.coupons += c.n;
+      textFx(w, 'pickup', w.player.x, w.player.y, c.n, 'pickups.coupons');
+      break;
     case 'heal':
       heal(w, w.player.maxHp * CARDS.fallbackHeal);
       break;
@@ -270,6 +291,9 @@ export function applyChoice(w: World, i: number): void {
     w.levelHistory.push(c.kind === 'trait' ? c.id : null);
     w.pendingLevels--;
     if (w.pendingLevels > 0) openLevelChoice(w);
+  } else if (ch.type === 'cache') {
+    // Un nivel justo: la experiencia que falta para el siguiente, sin multiplicadores.
+    gainXp(w, w.xpNext - w.xp, true);
   }
 }
 
@@ -279,7 +303,8 @@ export function applyChoice(w: World, i: number): void {
 function magnetPull(w: World): void {
   for (let i = 0; i < w.pickups.count; i++) {
     const k = w.pickups.items[i]!;
-    if ((k.kind === 'gem' || k.kind === 'stim') && isOnScreen(w, k.x, k.y)) k.pull = true;
+    if ((k.kind === 'gem' || k.kind === 'stim' || k.kind === 'coupon') && isOnScreen(w, k.x, k.y))
+      k.pull = true;
   }
 }
 
@@ -296,6 +321,24 @@ function screenBomb(w: World): void {
   const p = w.player;
   boom(w, p.x, p.y, w.view.halfW * 1.4, 0.5, FX.colors.grenade);
   addShake(w, 10, 20);
+  hitStop(w, JUICE.hitStop.bomb);
+}
+
+const NUKA_SPARKS = [0xff3d6a, 0xffe14a, 0xffffff] as const;
+const ICE = [0xbfefff, 0x7fd8ff, 0xffffff] as const;
+
+/** Crio-granada: congela a todo enemigo que se vea en pantalla (a los jefes, menos rato). */
+function screenFreeze(w: World): void {
+  const F = FIELD_PICKUPS;
+  for (let i = 0; i < w.enemies.count; i++) {
+    const e = w.enemies.items[i]!;
+    if (e.dead || !isOnScreen(w, e.x, e.y, e.r)) continue;
+    e.frozen = e.boss ? F.freezeBoss : F.freeze;
+    burst(w, e.x, e.y, 2, ICE, 0.5);
+  }
+  const p = w.player;
+  boom(w, p.x, p.y, w.view.halfW * 1.4, 0.45, FX.colors.freeze);
+  hitStop(w, JUICE.hitStop.grenade);
 }
 
 // ---------- consumibles ----------
@@ -330,6 +373,7 @@ export function consumeItem(w: World, i: number): boolean {
     compactEnemies(w);
     boom(w, tx, ty, R, 0.35, FX.colors.grenade);
     addShake(w, 6, 12);
+    hitStop(w, JUICE.hitStop.grenade);
   } else {
     p.turbo = CONSUMABLES.turbo.dur * (1 + ((survivorStats(w.charId) as SurvivorStats).consDurPct ?? 0));
   }

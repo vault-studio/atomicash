@@ -2,6 +2,7 @@
 // Dos Graphics que se redibujan cada frame: suelo (bajo los actores) y aire (encima).
 import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
 import { RUN_COLORS } from '../config/render';
+import { FX, JUICE } from '../config/run';
 import { WEAPONS } from '../config/weapons';
 import { ENEMY_RULES } from '../config/enemies';
 import type { World } from '../engine/types';
@@ -49,6 +50,15 @@ export class FxLayer {
     }
     // Auras del jugador.
     const p = w.player;
+    if (p.nuka > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 14);
+      const fade = Math.min(1, p.nuka);
+      groundCircle(g, p.x, p.y, 26 + pulse * 4).stroke({
+        width: 2.5,
+        color: RUN_COLORS.nuka,
+        alpha: (0.5 + 0.3 * pulse) * fade,
+      });
+    }
     for (const wp of w.weapons) {
       if ((wp.id === 'geiger' || wp.id === 'nucleo_inestable') && wp.r > 0) {
         const pulse = 0.5 + 0.5 * Math.sin(t * 6);
@@ -106,6 +116,33 @@ export class FxLayer {
           .stroke({ width: 2, color: 0x000000, alpha: 0.7 });
         g.rect(sx - r * 1.2, top + r * 0.45, r * 2.4, r * 0.18).fill({ color: RUN_COLORS.cacheTrim });
         g.rect(sx - r * 0.2, top + r * 0.3, r * 0.4, r * 0.5).fill({ color: RUN_COLORS.cacheTrim });
+      } else if (k.kind === 'freeze' || k.kind === 'nuka') {
+        const bob = Math.sin(t * 4) * 2;
+        const r = k.r;
+        const y = sy - r + bob;
+        const c = k.kind === 'freeze' ? RUN_COLORS.freeze : RUN_COLORS.nuka;
+        groundCircle(g, k.x, k.y, r * 1.6).fill({ color: c, alpha: 0.18 + 0.1 * Math.sin(t * 6) });
+        if (k.kind === 'freeze') {
+          // Granada de cristal escarchado con su anilla.
+          g.roundRect(sx - r * 0.7, y - r, r * 1.4, r * 2, r * 0.5)
+            .fill({ color: RUN_COLORS.freeze })
+            .stroke({ width: 1.5, color: 0x000000, alpha: 0.6 });
+          g.rect(sx - r * 0.25, y - r * 0.6, r * 0.5, r * 1.2).fill({
+            color: RUN_COLORS.freezeCore,
+            alpha: 0.8,
+          });
+          g.circle(sx + r * 0.5, y - r * 1.15, r * 0.3).stroke({ width: 1.5, color: 0xc8ccd0 });
+        } else {
+          // Pila con el borne brillante.
+          g.rect(sx - r * 0.6, y - r * 0.9, r * 1.2, r * 1.9)
+            .fill({ color: RUN_COLORS.nuka })
+            .stroke({ width: 1.5, color: 0x000000, alpha: 0.6 });
+          g.rect(sx - r * 0.25, y - r * 1.2, r * 0.5, r * 0.3).fill({ color: 0xc8ccd0 });
+          g.rect(sx - r * 0.6, y - r * 0.1, r * 1.2, r * 0.3).fill({
+            color: RUN_COLORS.nukaGlow,
+            alpha: 0.6 + 0.4 * Math.sin(t * 10),
+          });
+        }
       } else if (k.kind === 'medkit' || k.kind === 'magnet' || k.kind === 'bomb') {
         // Placeholders hasta tener sprites: flotan y laten un poco para que se vean entre la chatarra.
         const bob = Math.sin(t * 4) * 2;
@@ -153,8 +190,16 @@ export class FxLayer {
       groundCircle(g, b.x, b.y, b.r * (1.1 - 0.3 * f)).fill({ color: b.color, alpha: 0.45 * f });
     }
 
-    // Aire: proyectiles, rayos, armas orbitales y cócteles en vuelo.
+    // Aire: esquirlas, proyectiles, rayos, armas orbitales y cócteles en vuelo.
     const lift = 22;
+    for (let i = 0; i < w.parts.count; i++) {
+      const q = w.parts.items[i]!;
+      const s = q.size;
+      a.rect(isoX(q.x, q.y) - s / 2, isoY(q.x, q.y) - q.z - s / 2, s, s).fill({
+        color: q.color,
+        alpha: Math.min(1, (q.life / q.max) * 2),
+      });
+    }
     for (let i = 0; i < w.shots.count; i++) {
       const s = w.shots.items[i]!;
       const sx = isoX(s.x, s.y);
@@ -265,8 +310,16 @@ export class TextLayer extends Container {
         tx.style.fill = RUN_COLORS.text[ft.kind];
         tx.style.fontSize = ft.kind === 'crit' ? 24 : ft.kind === 'dmg' ? 10 : 13;
       }
-      const rise = (1 - ft.life / 0.8) * 30;
+      const age = FX.textLife - ft.life;
+      const rise = (age / FX.textLife) * 30;
       tx.position.set(isoX(ft.x, ft.y), isoY(ft.x, ft.y) - 40 - rise);
+      // Más grande cuanto más daño, y un rebote al aparecer.
+      const D = JUICE.dmgScale;
+      let k = 1;
+      if (ft.kind === 'dmg' || ft.kind === 'crit')
+        k = Math.min(D.max, D.base + D.perDigit * Math.log10(Math.max(1, ft.value)));
+      if (age < D.popTime) k *= 1 + D.pop * (1 - age / D.popTime);
+      tx.scale.set(k);
       tx.alpha = Math.min(1, ft.life * 3);
       tx.visible = true;
     }

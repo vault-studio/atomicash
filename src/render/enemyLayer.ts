@@ -3,6 +3,7 @@
 import type { Container } from 'pixi.js';
 import { ENTITIES, type AnimId, type EntityId } from '../config/entities';
 import { RUN_COLORS } from '../config/render';
+import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
 import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
@@ -19,6 +20,8 @@ const ATTACK_ANIMS: Record<string, readonly AnimId[]> = {
   attack_1: ['attack_1', 'attack', 'move', 'run', 'idle'],
   attack_2: ['attack_2', 'attack', 'move', 'run', 'idle'],
 };
+/** Duración del destello de golpe que pone el motor (`hitEnemy`). */
+const HIT_FLASH = 0.08;
 /** Duración de la animación de ataque si la hoja no existe. */
 const ATTACK_FALLBACK = 0.35;
 
@@ -81,8 +84,9 @@ export class EnemyLayer {
       const atkDur = atkMeta ? atkMeta.frames / atkMeta.fps : ATTACK_FALLBACK;
       if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
       else v.show(e.moving ? MOVE_ANIMS : IDLE_ANIMS, dir, w.time - e.born, 0);
-      const tint = e.flash > 0 ? RUN_COLORS.flash : e.irr ? RUN_COLORS.irradiated : 0xffffff;
-      v.style(e.flying ? FLY_HEIGHT : 0, tint, 1);
+      const tint = e.frozen > 0 ? RUN_COLORS.frozen : e.irr ? RUN_COLORS.irradiated : 0xffffff;
+      const flash = e.flash > 0 ? Math.min(1, e.flash / HIT_FLASH) : 0;
+      v.style(e.flying ? FLY_HEIGHT : 0, tint, 1, flash, e.boss ? JUICE.squash * 0.3 : JUICE.squash);
     }
     this.alive.hideFrom(shown);
 

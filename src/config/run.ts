@@ -102,6 +102,36 @@ export const CREDITS = { perMin: 10, perKills: 20, perBoss: 50 } as const;
  */
 export const COUPONS = { dropChance: 0.01, drop: 5, r: 6, cache: 100 } as const;
 
+/**
+ * Tragaperras del cofre especial: cupones al azar en vez de una cantidad fija (y siempre un nivel).
+ * DECISIÓN: la media (~125) queda algo por encima de los 100 fijos de antes para compensar la espera de la animación.
+ * `chance` se reparte en orden: premio gordo, doble y normal (el resto).
+ */
+export const CACHE_ROLL = {
+  normal: [70, 130],
+  double: [180, 260],
+  jackpot: 500,
+  doubleChance: 0.15,
+  jackpotChance: 0.03,
+} as const;
+
+/**
+ * Sensación de impacto (dossier §1). Congelaciones en s, esquirlas por baja y zoom de cámara con la pantalla llena.
+ */
+export const JUICE = {
+  hitStop: { boss: 0.28, bomb: 0.09, grenade: 0.05, hurt: 0.035, max: 0.3 },
+  parts: { max: 420, perKill: 5, perBossKill: 40, perHit: 1, speed: 140, up: 160, gravity: 520, life: 0.55 },
+  /** Aplastado del sprite al recibir un golpe (fracción). */
+  squash: 0.16,
+  /** Zoom de cámara: con `from` enemigos vivos empieza a alejarse, hasta `minZoom` con `to`. */
+  zoom: { from: 90, to: 260, minZoom: 0.86, lerp: 1.5 },
+  /** Número de daño: escala por cifra (log10) y rebote al aparecer. */
+  dmgScale: { base: 0.8, perDigit: 0.22, max: 1.9, pop: 0.45, popTime: 0.12 },
+} as const;
+
+/** Resumen final: tramos de la gráfica de daño, en s. */
+export const SUMMARY = { bucket: 30, window: 5 } as const;
+
 export const FX = {
   maxTexts: 120,
   textLife: 0.8,
@@ -123,6 +153,7 @@ export const FX = {
     zap: 0xffe14a,
     unstable: 0xb6ff3a,
     cone: 0xf3e9d2,
+    freeze: 0x7fd8ff,
   },
 } as const;
 

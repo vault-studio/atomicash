@@ -128,7 +128,15 @@
     "healDesc": "Heals 30% HP.",
     "purge": "Chemical wash",
     "purgeDesc": "−30 RAD.",
-    "pick": "Press {{n}}"
+    "pick": "Press {{n}}",
+    "cache": "SPECIAL CHEST",
+    "cacheTitle": "COUPON MACHINE",
+    "coupons": "+{{n}} coupons",
+    "cacheDesc": "And gain 1 level.",
+    "collect": "Collect (1)",
+    "spinning": "Spinning…",
+    "jackpot": "JACKPOT!",
+    "double": "DOUBLE!"
   },
   "rarity": {
     "common": "COMMON",
@@ -348,7 +356,9 @@
     "crate": "Supplies",
     "chest": "Chest",
     "cache": "Special chest",
-    "coupons": "coupons"
+    "coupons": "coupons",
+    "freeze": "Cryo grenade",
+    "nuka": "Nuka cell"
   },
   "banner": {
     "chest": "Item chest!",
@@ -383,9 +393,15 @@
     "credits": "Coupons",
     "coupons": "Coupons picked up",
     "bySource": "Damage by weapon",
-    "again": "Play again",
+    "again": "Rematch",
     "menu": "Back to bunker",
-    "thanks": "THANK YOU FOR YOUR VISIT"
+    "thanks": "THANK YOU FOR YOUR VISIT",
+    "highlights": "Run highlights",
+    "epic": "Most kills in 5 s",
+    "maxHit": "Biggest hit",
+    "peakDps": "Peak DPS",
+    "items": "Items",
+    "timeline": "Damage every 30 s"
   },
   "sources": {
     "granada": "Grenade",

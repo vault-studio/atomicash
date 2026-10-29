@@ -4,8 +4,9 @@ import { BUILDINGS, PROP_LIST, PROP_SHAPES } from '../src/config/props';
 import { RUN } from '../src/config/run';
 import { hazardAt } from '../src/engine/hazards';
 import { createCellObject, objectAt } from '../src/engine/obstacles';
-import { COUPONS } from '../src/config/run';
+import { CACHE_ROLL, COUPONS } from '../src/config/run';
 import { killEnemy } from '../src/engine/systems/combat';
+import { applyChoice } from '../src/engine/systems/progression';
 import { compactEnemies, spawnEnemy } from '../src/engine/systems/enemies';
 import type { World } from '../src/engine/types';
 import { createWorld, results, tick } from '../src/engine/world';
@@ -175,7 +176,14 @@ describe('edificios', () => {
       p.x = c!.x;
       p.y = c!.y;
       tick(w, { moveX: 0, moveY: 0 }, STEP);
-      expect(w.coupons - coupons).toBeGreaterThanOrEqual(COUPONS.cache);
+      // Abre la tragaperras de cupones; al cobrar suma los cupones y un nivel.
+      expect(w.choice?.type).toBe('cache');
+      const card = w.choice!.cards[0]!;
+      expect(card.kind).toBe('coupons');
+      const n = card.kind === 'coupons' ? card.n : 0;
+      expect(n).toBeGreaterThanOrEqual(CACHE_ROLL.normal[0]);
+      applyChoice(w, 0);
+      expect(w.coupons - coupons).toBe(n);
       expect(w.level).toBe(level + 1);
       expect(caches()).toHaveLength(0);
     },

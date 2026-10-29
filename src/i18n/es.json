@@ -128,7 +128,15 @@
     "healDesc": "Cura el 30 % de los PV.",
     "purge": "Lavado químico",
     "purgeDesc": "−30 RAD.",
-    "pick": "Pulsa {{n}}"
+    "pick": "Pulsa {{n}}",
+    "cache": "COFRE ESPECIAL",
+    "cacheTitle": "MÁQUINA DE CUPONES",
+    "coupons": "+{{n}} cupones",
+    "cacheDesc": "Y sube 1 nivel.",
+    "collect": "Cobrar (1)",
+    "spinning": "Girando…",
+    "jackpot": "¡PREMIO GORDO!",
+    "double": "¡DOBLE!"
   },
   "rarity": {
     "common": "COMÚN",
@@ -348,7 +356,9 @@
     "crate": "Suministros",
     "chest": "Cofre",
     "cache": "Cofre especial",
-    "coupons": "cupones"
+    "coupons": "cupones",
+    "freeze": "Crio-granada",
+    "nuka": "Nuka-pila"
   },
   "banner": {
     "chest": "¡Cofre de objeto!",
@@ -383,9 +393,15 @@
     "credits": "Cupones",
     "coupons": "Cupones recogidos",
     "bySource": "Daño por arma",
-    "again": "Volver a jugar",
+    "again": "Revancha",
     "menu": "Volver al búnker",
-    "thanks": "GRACIAS POR SU VISITA"
+    "thanks": "GRACIAS POR SU VISITA",
+    "highlights": "Lo mejor de la partida",
+    "epic": "Más bajas en 5 s",
+    "maxHit": "Golpe más fuerte",
+    "peakDps": "Pico de DPS",
+    "items": "Objetos",
+    "timeline": "Daño cada 30 s"
   },
   "sources": {
     "granada": "Granada",

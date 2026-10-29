@@ -30,6 +30,8 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const [ready, setReady] = useState(false);
   const [hud, setHud] = useState<HudSnapshot | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
+  // Cada elección nueva remonta las tarjetas (la tragaperras de los cofres vuelve a girar).
+  const [choiceKey, setChoiceKey] = useState(0);
   const [weld, setWeld] = useState<WeaponId | null>(null);
   const [paused, setPaused] = useState(false);
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
@@ -61,7 +63,10 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
       { charId, seed, settings: settingsRef.current, ...optionsRef.current },
       {
         onHud: setHud,
-        onChoice: setChoice,
+        onChoice: (c) => {
+          setChoice(c);
+          setChoiceKey((k) => k + 1);
+        },
         onEnd: (r) => setResult({ r, extra: finishRef.current?.(r) ?? null }),
       },
     ).then((s) => {
@@ -139,7 +144,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
       )}
       {weld && !result && <Weld result={weld} onDone={endWeld} />}
       {choice && world && !result && !weld && (
-        <Cards choice={choice} world={world} onPick={pick} onReroll={doReroll} />
+        <Cards key={choiceKey} choice={choice} world={world} onPick={pick} onReroll={doReroll} />
       )}
       {paused && !result && (
         <div className="overlay overlay--pause" role="dialog" aria-modal="true">

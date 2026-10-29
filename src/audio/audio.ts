@@ -20,6 +20,8 @@ class AudioEngine {
   private timer: number | null = null;
   private readonly lastPlay = new Map<string, number>();
   private focused = true;
+  private chain = 0;
+  private lastPickup = -1;
 
   /** Crea el contexto en el primer gesto del usuario (los navegadores lo exigen). */
   unlock(): void {
@@ -89,9 +91,15 @@ class AudioEngine {
         this.blip(now, 'triangle', 300, 90, 0.08, 0.18 * v);
         this.burst(now, 0.06, 900, 0.12 * v);
         break;
-      case 'pickup':
-        this.blip(now, 'sine', 1200 + Math.random() * 300, 1800, 0.06, 0.1);
+      case 'pickup': {
+        // Cadena de recogidas: cada una medio tono más aguda (hasta dos octavas) si llega seguida de la anterior.
+        this.chain =
+          now - this.lastPickup < AUDIO.pickupChain.gap ? Math.min(AUDIO.pickupChain.max, this.chain + 1) : 0;
+        this.lastPickup = now;
+        const f = AUDIO.pickupChain.base * Math.pow(2, this.chain / 12);
+        this.blip(now, 'sine', f, f * 1.5, 0.06, 0.1);
         break;
+      }
       case 'hurt':
         this.blip(now, 'sawtooth', 220, 80, 0.18, 0.25);
         break;

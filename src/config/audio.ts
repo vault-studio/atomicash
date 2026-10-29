@@ -30,6 +30,8 @@ export const AUDIO = {
     zap: 0.08,
     geiger: 0.02,
   } as Readonly<Record<string, number>>,
+  /** Tono de la chatarra: sube medio tono por recogida seguida (separadas menos de `gap` s), hasta `max`. */
+  pickupChain: { base: 900, gap: 0.35, max: 24 },
   /** Chasquidos del Geiger por segundo a RAD 100. */
   geigerRate: 14,
   music: {

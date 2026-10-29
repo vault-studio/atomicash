@@ -1,4 +1,5 @@
-// Resultados (04_ART_UI.md §2): ticket de caja registradora con tiempo, bajas, créditos y daño por arma.
+// Resultados (04_ART_UI.md §2): ticket de caja registradora con tiempo, bajas, créditos y daño por arma, y lo mejor
+// de la partida con una gráfica del daño a lo largo de la run (dossier §20).
 import { useTranslation } from 'react-i18next';
 import type { RunResults } from '../../../engine/world';
 import { fmtTime } from './Hud';
@@ -18,6 +19,7 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
     src === 'granada' || src === 'hinchado' ? t(`sources.${src}`) : t(`weapons.${src}.name`);
   const top = r.dmgBy.slice(0, 6);
   const max = top[0]?.dmg ?? 1;
+  const peak = Math.max(1, ...r.timeDmg);
 
   return (
     <div className="overlay overlay--dark" role="dialog" aria-modal="true">
@@ -56,6 +58,38 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
                 </li>
               ))}
             </ul>
+          </>
+        )}
+        <h3>{t('results.highlights')}</h3>
+        <dl>
+          <dt>{t('results.epic')}</dt>
+          <dd>{r.peakKills5}</dd>
+          <dt>{t('results.maxHit')}</dt>
+          <dd>{r.maxHit.toLocaleString()}</dd>
+          <dt>{t('results.peakDps')}</dt>
+          <dd>{r.peakDps.toLocaleString()}</dd>
+          {r.items.length > 0 && (
+            <>
+              <dt>{t('results.items')}</dt>
+              <dd>{r.items.map((id) => t(`items.${id}.name`)).join(', ')}</dd>
+            </>
+          )}
+        </dl>
+        {r.timeDmg.length > 1 && (
+          <>
+            <h3>{t('results.timeline')}</h3>
+            <svg
+              className="ticket__chart"
+              viewBox={`0 0 ${r.timeDmg.length * 10} 40`}
+              preserveAspectRatio="none"
+              role="img"
+              aria-label={t('results.timeline')}
+            >
+              {r.timeDmg.map((d, i) => {
+                const h = Math.max(1, (d / peak) * 38);
+                return <rect key={i} x={i * 10 + 1} y={40 - h} width={8} height={h} />;
+              })}
+            </svg>
           </>
         )}
         {extra}

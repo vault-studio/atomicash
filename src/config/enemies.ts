@@ -148,3 +148,25 @@ export function enemyRadius(id: StatEnemyId): number {
 
 /** Radio del enemigo más grande, para que las consultas del spatial hash no pierdan vecinos. */
 export const MAX_ENEMY_RADIUS = Math.max(...STAT_ENEMY_IDS.map(enemyRadius));
+
+/** Colores de las esquirlas al golpear o matar (solo visual): chispas de chatarra o vísceras del páramo. */
+const SPARKS = [0xffd34a, 0xff8a2a, 0xb8bec6, 0x6c7178] as const;
+const GUTS = [0x8bc34a, 0x5e8a2c, 0x7a3b2a, 0xc0d860] as const;
+export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
+  dron: SPARKS,
+  necrofago: GUTS,
+  saqueador: [0xa8382a, 0x6a2a20, 0xc8a070],
+  tirador: [0xa8382a, 0x6a2a20, 0xc8a070],
+  reptador: GUTS,
+  hinchado: [0xc8dc50, 0x9dff00, 0x5e8a2c],
+  cortacesped: SPARKS,
+  torreta: SPARKS,
+  babosa: [0x7dff3a, 0x4ac02a, 0xc0ff8a],
+  aspiradora: SPARKS,
+  aspiradora_cria: SPARKS,
+  rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
+  dirigible: SPARKS,
+  coloso: SPARKS,
+};
+/** Esquirlas de los irradiados. */
+export const GORE_IRR: readonly number[] = [0xa8ff70, 0x9dff00, 0xe8ffb0];
