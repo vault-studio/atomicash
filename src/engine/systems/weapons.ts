@@ -46,10 +46,10 @@ export const createFirePool = (): FirePool => ({
   dmg: 0,
   src: 'coctel',
 });
-export const createMine = (): Mine => ({ x: 0, y: 0, t: 0, r: 0, dmg: 0 });
+export const createMine = (): Mine => ({ x: 0, y: 0, sx: 0, sy: 0, fly: 0, flyDur: 0, t: 0, r: 0, dmg: 0 });
 
 export function createWeapon(id: WeaponId, lvl = 1): Weapon {
-  return { id, lvl, cd: 0.3, a: 0, r: 0, dist: 0, lx: NaN, ly: NaN, cd2: 0 };
+  return { id, lvl, cd: 0.3, a: 0, r: 0, cd2: 0 };
 }
 
 function addShot(
@@ -184,6 +184,25 @@ function toughestInRange(w: World, range: number): Enemy | null {
   return best;
 }
 
+/**
+ * El centro del grupo más denso a `range`: compara `samples` enemigos de tierra al azar por cuántos tienen a `crowdR`.
+ * DECISIÓN: muestrear en vez de recorrer todos los pares, que con cientos de enemigos sería cuadrático.
+ */
+function densestInRange(w: World, range: number, samples: number, crowdR: number): Enemy | null {
+  let best: Enemy | null = null;
+  let bestN = -1;
+  for (let s = 0; s < samples; s++) {
+    const e = randomInRange(w, range);
+    if (!e) return best;
+    const k = queryEnemies(w, e.x, e.y, crowdR, w.qWeapon);
+    if (k > bestN) {
+      best = e;
+      bestN = k;
+    }
+  }
+  return best;
+}
+
 const nearIdx = new Int32Array(16);
 const nearD = new Float64Array(16);
 
@@ -293,30 +312,6 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
           beamPoint(beam, e.x, e.y);
           hitEnemy(w, e, dmg, wp.id, HIT_DIRECT);
         }
-      }
-      return;
-    }
-    case 'petardos': {
-      const W = WEAPONS.petardos;
-      if (Number.isNaN(wp.lx)) {
-        wp.lx = p.x;
-        wp.ly = p.y;
-      }
-      const mx = p.x - wp.lx;
-      const my = p.y - wp.ly;
-      wp.dist += Math.sqrt(mx * mx + my * my);
-      wp.lx = p.x;
-      wp.ly = p.y;
-      const step = Math.max(20, (W.step + W.stepPerLvl * (lvl - 1)) * st.cdMult);
-      while (wp.dist >= step) {
-        wp.dist -= step;
-        if (w.mines.count >= W.maxMines) continue;
-        const m = w.mines.acquire();
-        m.x = p.x;
-        m.y = p.y;
-        m.t = W.fuse;
-        m.r = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
-        m.dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
       }
       return;
     }
@@ -436,6 +431,35 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
         thrown++;
       }
       wp.cd = thrown === 0 ? 0.1 : W.cd * st.cdMult;
+      return;
+    }
+    case 'petardos': {
+      const W = WEAPONS.petardos;
+      const t = densestInRange(w, W.range, W.samples, W.crowdR);
+      if (!t) {
+        wp.cd = 0.1;
+        return;
+      }
+      const n = W.count[Math.min(lvl, W.count.length) - 1]!;
+      const r = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
+      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
+      const spread = W.spread * st.area;
+      for (let i = 0; i < n && w.mines.count < W.maxMines; i++) {
+        // Reparto uniforme en el disco: raíz del radio.
+        const a = w.rng() * Math.PI * 2;
+        const d = Math.sqrt(w.rng()) * spread;
+        const m = w.mines.acquire();
+        m.sx = p.x;
+        m.sy = p.y;
+        m.x = t.x + Math.cos(a) * d;
+        m.y = t.y + Math.sin(a) * d;
+        // Los de atrás vuelan un poco más: la ristra cae estirada.
+        m.flyDur = m.fly = W.flight * (1 + 0.25 * (i / n));
+        m.t = W.chain * i;
+        m.r = r;
+        m.dmg = dmg;
+      }
+      wp.cd = Math.max(0.3, W.cd + W.cdPerLvl * (lvl - 1)) * st.cdMult;
       return;
     }
     case 'tesla': {
@@ -634,15 +658,22 @@ export function updateFirePools(w: World, dt: number): void {
 }
 
 export function updateMines(w: World, dt: number): void {
+  const W = WEAPONS.petardos;
   const out = w.qWeapon;
   for (let i = w.mines.count - 1; i >= 0; i--) {
     const m = w.mines.items[i]!;
+    if (m.fly > 0) {
+      m.fly -= dt;
+      continue;
+    }
     m.t -= dt;
     if (m.t > 0) continue;
     const k = queryEnemies(w, m.x, m.y, m.r, out);
     for (let q = 0; q < k; q++) {
       const e = w.enemies.items[out[q]!]!;
-      if (!e.flying) hitEnemy(w, e, m.dmg, 'petardos', 0, 1, m.x, m.y);
+      if (e.flying || e.dead) continue;
+      hitEnemy(w, e, m.dmg, 'petardos', 0, W.kb, m.x, m.y);
+      if (!e.boss) e.stun = Math.max(e.stun, W.stun);
     }
     boom(w, m.x, m.y, m.r, 0.18, FX.colors.mine);
     w.mines.releaseAt(i);

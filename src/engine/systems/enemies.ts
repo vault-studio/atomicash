@@ -582,6 +582,9 @@ export function updateEnemies(w: World, dt: number): void {
       e.march -= dt;
       vx = e.dx * e.speed;
       vy = e.dy * e.speed;
+    } else if (!e.boss && e.stun > 0) {
+      // Aturdido por los petardos: no avanza ni ataca, pero el empuje sigue.
+      e.stun -= dt;
     } else if (alive) think(w, e, d, ux, uy, dt);
     if (e.elite && alive) eliteTick(w, e, d, dt);
     // Si ya está encima del jugador, no lo empuja (solo se separa).

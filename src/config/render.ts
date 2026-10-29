@@ -219,7 +219,9 @@ export const PICKUP_ART = {
     barrel: 1.7,
     barrel_lit: 2.2,
   } as Readonly<Record<string, number>>,
-  fixed: { mine: 26, beacon: 46 } as Readonly<Record<string, number>>,
+  fixed: { beacon: 46 } as Readonly<Record<string, number>>,
+  /** Petardos de la ristra: ancho, altura del arco, altura de salida (la mano) y vueltas en el aire, en radianes. */
+  mine: { w: 18, arc: 70, lift: 22, spin: 9 },
   bob: [
     'stim',
     'coupon',

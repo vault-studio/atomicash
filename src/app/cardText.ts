@@ -67,7 +67,8 @@ export function weaponParams(id: WeaponId, l: number): Record<string, number> {
     case 'petardos': {
       const W = WEAPONS.petardos;
       return {
-        step: W.step + W.stepPerLvl * (l - 1),
+        n: W.count[Math.min(l, W.count.length) - 1]!,
+        cd: f1(W.cd + W.cdPerLvl * (l - 1)),
         dmg: f1(scaled(W.dmg, W.dmgPerLvl, l)),
         r: W.r + W.rPerLvl * (l - 1),
       };

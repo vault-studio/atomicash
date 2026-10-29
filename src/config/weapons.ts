@@ -145,16 +145,31 @@ export const WEAPONS = {
     kb: 2.2,
     color: '#e8a33a',
   },
+  /**
+   * Ristra lanzada: cada `cd` s lanza en arco una ristra al grupo más denso a `range`; los petardos caen desperdigados
+   * en `spread` y revientan en cadena, uno cada `chain` s, con empuje y un aturdimiento breve (no a los jefes).
+   * DECISIÓN: muchos estallidos pequeños que se solapan en vez de uno grande, para que suene y se vea a traca.
+   */
   petardos: {
     kind: 'mines',
     owner: 'benny',
-    step: 70,
-    stepPerLvl: -8,
-    fuse: 0.5,
-    r: 45,
-    rPerLvl: 5,
-    dmg: 14,
+    cd: 1.6,
+    cdPerLvl: -0.06,
+    range: 360,
+    /** Petardos por ristra en cada nivel (1–5). */
+    count: [4, 5, 6, 7, 9] as readonly number[],
+    flight: 0.45,
+    spread: 55,
+    chain: 0.07,
+    r: 34,
+    rPerLvl: 2,
+    dmg: 9,
     dmgPerLvl: 0.15,
+    kb: 0.6,
+    stun: 0.3,
+    /** Candidatos que se comparan para elegir el grupo más denso, y radio en que se cuentan vecinos. */
+    samples: 6,
+    crowdR: 90,
     maxMines: 80,
     color: '#ff5a5a',
   },

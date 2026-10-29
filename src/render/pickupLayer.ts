@@ -47,7 +47,7 @@ export class PickupLayer {
   ) {}
 
   /** Dibuja `name` apoyado en (x, y) del mundo con su cuerpo de ancho `width`; sin dibujo no pone nada. */
-  private put(name: string, x: number, y: number, width: number, lift = 0): void {
+  private put(name: string, x: number, y: number, width: number, lift = 0, rot = 0): void {
     const a = this.art.get(name);
     if (!a) return;
     let s = this.pool[this.used];
@@ -61,6 +61,7 @@ export class PickupLayer {
     s.anchor.set(0.5, a.ay);
     s.scale.set(width / a.bw);
     s.position.set(isoX(x, y), isoY(x, y) - lift);
+    s.rotation = rot;
     s.zIndex = x + y;
     s.visible = true;
   }
@@ -82,9 +83,18 @@ export class PickupLayer {
       const jx = lit ? Math.sin(t * 70) * 1.5 : 0;
       this.put(lit ? 'barrel_lit' : 'barrel', b.x + jx, b.y - jx, (lit ? W.barrel_lit! : W.barrel!) * b.r);
     }
+    // Petardos de la ristra: en vuelo siguen un arco dando vueltas; en el suelo tiemblan con la mecha encendida.
+    const M = PICKUP_ART.mine;
     for (let i = 0; i < w.mines.count; i++) {
       const m = w.mines.items[i]!;
-      this.put('mine', m.x, m.y, PICKUP_ART.fixed.mine!);
+      if (m.fly > 0) {
+        const f = 1 - m.fly / m.flyDur;
+        const x = m.sx + (m.x - m.sx) * f;
+        const y = m.sy + (m.y - m.sy) * f;
+        this.put('mine', x, y, M.w, Math.sin(f * Math.PI) * M.arc + M.lift * (1 - f), f * M.spin + i);
+      } else {
+        this.put('mine', m.x, m.y, M.w, 0, Math.sin(t * 50 + i) * 0.15);
+      }
     }
     if (w.objective) this.put('beacon', w.objective.x, w.objective.y, PICKUP_ART.fixed.beacon!);
     for (let i = this.used; i < this.pool.length; i++) this.pool[i]!.visible = false;

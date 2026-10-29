@@ -175,7 +175,6 @@ describe('daño y bajas', () => {
 
   it('cada arma hace daño a un grupo cercano', () => {
     for (const id of WEAPON_IDS) {
-      if (id === 'petardos') continue; // se prueba aparte: necesita moverse
       const w = quiet(1, id);
       const p = w.player;
       for (let i = 0; i < 12; i++) {
@@ -190,10 +189,26 @@ describe('daño y bajas', () => {
     }
   });
 
-  it('los petardos se dejan al andar', () => {
+  it('la ristra de petardos cae sobre el grupo más denso y aturde', () => {
     const w = quiet(1, 'petardos');
-    run(w, 1, { moveX: 1, moveY: 0 });
-    expect(w.mines.count + w.booms.count).toBeGreaterThan(0);
+    const p = w.player;
+    // Un enemigo suelto a un lado y un grupo de seis al otro.
+    const lone = spawnEnemy(w, 'babosa', p.x - 200, p.y, false);
+    const pack = Array.from({ length: 6 }, (_, i) =>
+      spawnEnemy(w, 'babosa', p.x + 200 + (i % 3) * 12, p.y + Math.floor(i / 3) * 12, false),
+    );
+    for (const e of [lone, ...pack]) {
+      e.speed = 0;
+      e.hp = e.maxHp = 1e6;
+    }
+    w.player.god = true;
+    run(w, 0.5);
+    expect(w.mines.count).toBeGreaterThan(0);
+    for (let i = 0; i < w.mines.count; i++) expect(w.mines.items[i]!.x).toBeGreaterThan(p.x + 100);
+    run(w, 1);
+    expect(pack.some((e) => e.hp < e.maxHp)).toBe(true);
+    expect(lone.hp).toBe(lone.maxHp);
+    expect(pack.some((e) => e.stun > 0 || e.kbx !== 0)).toBe(true);
   });
 
   it('las armas no reservan estado fuera de sus pools tras muchas bajas', () => {

@@ -215,7 +215,7 @@
     "petardos": {
       "name": "Ristra de petardos",
       "short": "Petardos",
-      "desc": "Un petardo cada {{step}} px recorridos: {{dmg, number}} de daño en radio {{r}}."
+      "desc": "Cada {{cd, number}} s lanza una ristra de {{n}} petardos al grupo más denso. Revientan en cadena: {{dmg, number}} de daño en radio {{r}}, empuje y aturdimiento breve."
     },
     "desfibrilador": {
       "name": "Desfibrilador",

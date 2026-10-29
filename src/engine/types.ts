@@ -160,10 +160,6 @@ export interface Weapon {
   a: number;
   /** Radio actual de auras (para el render). */
   r: number;
-  /** Petardos: distancia recorrida desde la última mecha. */
-  dist: number;
-  lx: number;
-  ly: number;
   /** Segundo temporizador (rayos del núcleo inestable). */
   cd2: number;
 }
@@ -221,9 +217,15 @@ export interface FirePool {
   src: WeaponId;
 }
 
+/** Petardo de la ristra: vuela en arco de (sx, sy) a (x, y) y, ya en el suelo, revienta cuando `t` llega a 0. */
 export interface Mine {
   x: number;
   y: number;
+  sx: number;
+  sy: number;
+  /** Vuelo restante y total, en s (0 = en el suelo). */
+  fly: number;
+  flyDur: number;
   t: number;
   r: number;
   dmg: number;

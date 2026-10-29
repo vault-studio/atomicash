@@ -215,7 +215,7 @@
     "petardos": {
       "name": "Firecracker string",
       "short": "Firecrackers",
-      "desc": "A firecracker every {{step}} px travelled: {{dmg, number}} damage in radius {{r}}."
+      "desc": "Every {{cd, number}} s throws a string of {{n}} firecrackers at the thickest crowd. They pop in a chain: {{dmg, number}} damage in radius {{r}}, knockback and a brief stun."
     },
     "desfibrilador": {
       "name": "Defibrillator",

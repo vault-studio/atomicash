@@ -141,8 +141,14 @@ export class FxLayer {
         .stroke({ width: 2.5, color: E.color, alpha: 0.55 + 0.35 * pulse });
     }
     for (let i = 0; i < w.mines.count; i++) {
-      if (this.art?.has('mine')) break;
       const m = w.mines.items[i]!;
+      // Sombra del petardo en vuelo o en el suelo; sin dibujo, también su cuerpo cuando ya ha caído.
+      const f = m.fly > 0 ? 1 - m.fly / m.flyDur : 1;
+      groundCircle(g, m.sx + (m.x - m.sx) * f, m.sy + (m.y - m.sy) * f, 5).fill({
+        color: 0x000000,
+        alpha: 0.3,
+      });
+      if (this.art?.has('mine') || m.fly > 0) continue;
       const sx = isoX(m.x, m.y);
       const sy = isoY(m.x, m.y);
       g.rect(sx - 3, sy - 5, 6, 8).fill({ color: RUN_COLORS.mine });
