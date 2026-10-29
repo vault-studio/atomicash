@@ -18,7 +18,14 @@ import type { HordeKind } from '../config/waves';
 import type { WeaponId } from '../config/weapons';
 import { advance, createFixedStep } from '../engine/loop';
 import { spawnEnemy } from '../engine/systems/enemies';
-import { applyChoice, gainXp, reroll, consumeItem } from '../engine/systems/progression';
+import {
+  applyChoice,
+  banishCard,
+  consumeItem,
+  gainXp,
+  lockCard,
+  reroll,
+} from '../engine/systems/progression';
 import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
 import type { Banner, Choice, InputState, World } from '../engine/types';
 import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
@@ -109,6 +116,8 @@ export interface RunSession {
   readonly world: World;
   choose(i: number): void;
   reroll(): void;
+  banish(i: number): void;
+  lock(i: number): void;
   consume(i: number): void;
   setPaused(p: boolean): void;
   apply(settings: RunSettings): void;
@@ -304,6 +313,14 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     reroll() {
       reroll(world);
       lastChoice = null;
+      syncChoice();
+    },
+    banish(i) {
+      banishCard(world, i);
+      syncChoice();
+    },
+    lock(i) {
+      lockCard(world, i);
       syncChoice();
     },
     consume(i) {

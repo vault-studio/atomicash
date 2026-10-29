@@ -16,6 +16,7 @@ import {
   type ZoneId,
 } from '../config/meta';
 import { ROSTER, type StatSurvivorId } from '../config/survivors';
+import { TREE_IDS, TREE_ROOT, treeNeighbors, type TreeNodeId } from '../config/tree';
 import { WEAPON_IDS, type WeaponId } from '../config/weapons';
 
 export type Language = 'es' | 'en';
@@ -64,6 +65,8 @@ export interface SaveData {
   gacha: { pity: Record<ZoneId, number>; pulls: number };
   missions: { day: string; daily: MissionProgress[]; achievements: Partial<Record<AchievementId, boolean>> };
   shop: { day: string; bought: string[] };
+  /** Árbol de pasivas: nodos comprados (sin el centro) y cupones gastados en ellos. */
+  tree: { nodes: TreeNodeId[]; spent: number };
   settings: Settings;
 }
 
@@ -112,6 +115,7 @@ export function defaultSave(): SaveData {
     gacha: { pity: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) as Record<ZoneId, number>, pulls: 0 },
     missions: { day: '', daily: [], achievements: {} },
     shop: { day: '', bought: [] },
+    tree: { nodes: [], spent: 0 },
     settings: defaultSettings(),
   };
 }
@@ -169,6 +173,7 @@ export function normalize(raw: unknown): SaveData {
   const ach = isObj(m.achievements) ? m.achievements : {};
   const sh = isObj(raw.shop) ? raw.shop : {};
   const st = isObj(raw.settings) ? raw.settings : {};
+  const tr = isObj(raw.tree) ? raw.tree : {};
   const survivors: SaveData['survivors'] = {};
   // Los supervivientes que ya no están en el plantel se quitan; si era el inicial, se repite el test.
   for (const id of ROSTER) if (sv[id] !== undefined) survivors[id] = normSurvivor(sv[id]);
@@ -232,6 +237,7 @@ export function normalize(raw: unknown): SaveData {
       day: str(sh.day, ''),
       bought: Array.isArray(sh.bought) ? sh.bought.filter((x): x is string => typeof x === 'string') : [],
     },
+    tree: { nodes: connectedNodes(tr.nodes), spent: Math.floor(num(tr.spent, 0, 0)) },
     settings: {
       musicVol: num(st.musicVol, d.settings.musicVol, 0, 1),
       sfxVol: num(st.sfxVol, d.settings.sfxVol, 0, 1),
@@ -243,7 +249,26 @@ export function normalize(raw: unknown): SaveData {
   };
 }
 
-/** Migración del store persistido: de cualquier versión anterior a la actual. */
+/** Nodos válidos del árbol que siguen unidos al centro (lo suelto o desconocido se descarta). */
+function connectedNodes(raw: unknown): TreeNodeId[] {
+  if (!Array.isArray(raw)) return [];
+  const want = new Set(raw.filter((x): x is TreeNodeId => (TREE_IDS as string[]).includes(x as string)));
+  const out: TreeNodeId[] = [];
+  const queue: TreeNodeId[] = [TREE_ROOT];
+  const seen = new Set<TreeNodeId>(queue);
+  while (queue.length) {
+    for (const n of treeNeighbors(queue.shift()!))
+      if (!seen.has(n) && want.has(n)) {
+        seen.add(n);
+        out.push(n);
+        queue.push(n);
+      }
+  }
+  return out;
+}
+
+/** Migración del store persistido
+: de cualquier versión anterior a la actual. */
 export function migrate(persisted: unknown, fromVersion: number): SaveData {
   // v0 (prototipo) → v1: mismos campos con otros nombres; `normalize` los recoge.
   const s = normalize(persisted);

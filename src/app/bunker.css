@@ -544,3 +544,127 @@ button.card--survivor {
   color: #ffe14a;
   text-shadow: 0 2px 0 #000;
 }
+
+/* ---------- Árbol de pasivas (dossier §8) ---------- */
+.tree {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
+  gap: 14px;
+  align-items: start;
+}
+
+.tree__map {
+  width: 100%;
+  max-height: 68vh;
+  aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 50%, rgba(60, 255, 107, 0.08), transparent 70%);
+  border: 1px solid rgba(60, 255, 107, 0.25);
+}
+
+.tree__edge {
+  stroke: rgba(60, 255, 107, 0.15);
+  stroke-width: 0.5;
+}
+
+.tree__edge.is-near {
+  stroke: rgba(60, 255, 107, 0.4);
+  stroke-dasharray: 1 1;
+}
+
+.tree__edge.is-on {
+  stroke: var(--crt);
+  stroke-width: 0.9;
+}
+
+.tree__node {
+  cursor: pointer;
+  outline: none;
+}
+
+.tree__node > * {
+  fill: #0b140d;
+  stroke: rgba(60, 255, 107, 0.35);
+  stroke-width: 0.5;
+  transition: fill 0.15s;
+}
+
+.tree__node.is-big > * {
+  stroke: #4a8cff;
+}
+
+.tree__node.is-unique > * {
+  stroke: #ffc83a;
+}
+
+.tree__node.is-open > * {
+  stroke: var(--crt);
+  stroke-width: 0.8;
+  animation: tree-pulse 1.2s ease-in-out infinite;
+}
+
+.tree__node.is-poor > * {
+  stroke: rgba(243, 233, 210, 0.5);
+}
+
+.tree__node.is-owned > * {
+  fill: var(--crt);
+}
+
+.tree__node.is-owned.is-big > * {
+  fill: #4a8cff;
+}
+
+.tree__node.is-owned.is-unique > * {
+  fill: #ffc83a;
+}
+
+.tree__node.is-sel > *,
+.tree__node:focus-visible > * {
+  stroke: #fff;
+  stroke-width: 1;
+}
+
+@keyframes tree-pulse {
+  50% {
+    stroke-opacity: 0.35;
+  }
+}
+
+.tree__info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(60, 255, 107, 0.35);
+  background: rgba(5, 16, 8, 0.6);
+}
+
+.tree__info hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px dashed rgba(60, 255, 107, 0.3);
+}
+
+.tree__size.is-big {
+  color: #4a8cff;
+}
+
+.tree__size.is-unique {
+  color: #ffc83a;
+}
+
+.tree__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+@media (max-width: 760px), (max-height: 520px) {
+  .tree {
+    grid-template-columns: 1fr 200px;
+  }
+  .tree__map {
+    max-height: 58vh;
+  }
+}

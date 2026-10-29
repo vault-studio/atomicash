@@ -34,6 +34,15 @@ import {
   type SurvivorRarity,
 } from '../config/survivors';
 import type { StatKey } from '../config/traits';
+import {
+  TREE,
+  TREE_ROOT,
+  nodeCost,
+  treeNeighbors,
+  type TreeMod,
+  type TreeNode,
+  type TreeNodeId,
+} from '../config/tree';
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
 import type { RunResults, WorldOptions } from '../engine/world';
@@ -180,10 +189,17 @@ export function runOptionsFor(s: SaveData, id: StatSurvivorId): WorldOptions {
     add(im.up, im.upVal);
     add(im.down, im.downVal);
   }
+  const mods: Partial<Record<TreeMod, number>> = {};
+  for (const n of s.tree.nodes) {
+    const def: TreeNode = TREE[n];
+    if (def.stat) add(def.stat, def.v);
+    if (def.mod) mods[def.mod] = (mods[def.mod] ?? 0) + def.v;
+  }
   for (const k of Object.keys(bonus) as StatKey[]) if (bonus[k] === 0) delete bonus[k];
   return {
     bonus,
-    extraRerolls: o.upgrades.reroll * UPGRADES.reroll.per,
+    mods,
+    extraRerolls: o.upgrades.reroll * UPGRADES.reroll.per + (mods.reroll ?? 0),
     consumables: backpackFor(s, o),
     ...(o.starter && o.starter !== SURVIVORS[id].weapon ? { startWeapon: o.starter } : {}),
   };
@@ -195,6 +211,33 @@ function backpackFor(s: SaveData, o: OwnedSurvivor): Record<ConsumableId, number
   return Object.fromEntries(
     CONSUMABLE_IDS.map((c) => [c, Math.min(cap, s.inventory.consumables[c])]),
   ) as Record<ConsumableId, number>;
+}
+
+// ---------- árbol de pasivas ----------
+
+/** Se puede comprar si no lo tiene y toca el centro o un nodo comprado. */
+export function canAllocate(s: SaveData, id: TreeNodeId): boolean {
+  if (id === TREE_ROOT || s.tree.nodes.includes(id)) return false;
+  return treeNeighbors(id).some((n) => n === TREE_ROOT || s.tree.nodes.includes(n));
+}
+
+export const treeCost = (s: SaveData, id: TreeNodeId): number => nodeCost(id, s.tree.nodes.length);
+
+export function allocateNode(s: SaveData, id: TreeNodeId): boolean {
+  if (!canAllocate(s, id)) return false;
+  const cost = treeCost(s, id);
+  if (!spend(s, cost)) return false;
+  s.tree.nodes.push(id);
+  s.tree.spent += cost;
+  return true;
+}
+
+/** Desaprende todo el árbol y devuelve los cupones gastados. */
+export function resetTree(s: SaveData): number {
+  const back = s.tree.spent;
+  s.profile.credits += back;
+  s.tree = { nodes: [], spent: 0 };
+  return back;
 }
 
 // ---------- recompensas de la run ----------

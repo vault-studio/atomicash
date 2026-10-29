@@ -11,7 +11,7 @@ import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Card, World } from '../types';
 import { isOnScreen } from '../view';
-import { addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies } from './combat';
+import { addCoupons, addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies } from './combat';
 import { compactEnemies } from './enemies';
 import { createWeapon } from './weapons';
 
@@ -60,8 +60,7 @@ export function updatePickups(w: World, dt: number): void {
       w.cons.stim = Math.min(PLAYER.consumableMax, w.cons.stim + 1);
       textFx(w, 'pickup', p.x, p.y, 0, 'consumables.stim.name');
     } else if (kind === 'coupon') {
-      w.coupons += val;
-      textFx(w, 'pickup', p.x, p.y, val, 'pickups.coupons');
+      textFx(w, 'pickup', p.x, p.y, addCoupons(w, val), 'pickups.coupons');
     } else if (kind === 'cache') openCacheChoice(w);
     else if (kind === 'chest') openItemChoice(w);
     else if (kind === 'medkit') {
@@ -128,10 +127,11 @@ export function weaponOptions(w: World): Card[] {
       blocked.add(f.b);
     }
   for (const wp of w.weapons)
-    if (!isFusion(wp.id) && wp.lvl < PLAYER.maxWeaponLevel) opts.push({ kind: 'up', id: wp.id });
+    if (!isFusion(wp.id) && wp.lvl < PLAYER.maxWeaponLevel && !w.banished.has(`w:${wp.id}`))
+      opts.push({ kind: 'up', id: wp.id });
   if (w.weapons.length < weaponSlots(w.charId, PLAYER.weaponSlots))
     for (const id of WEAPON_IDS) {
-      if (isFusion(id) || owned.has(id) || blocked.has(id)) continue;
+      if (isFusion(id) || owned.has(id) || blocked.has(id) || w.banished.has(`w:${id}`)) continue;
       const owner = ownerOf(id);
       if (owner && owner !== w.charId) continue;
       opts.push({ kind: 'new', id });
@@ -164,7 +164,26 @@ function streakBlocked(w: World): TraitId | null {
 
 export function traitOptions(w: World): TraitId[] {
   const blocked = streakBlocked(w);
-  return TRAIT_IDS.filter((id) => id !== blocked && w.tr[TRAITS[id].stat] < TRAITS[id].max);
+  return TRAIT_IDS.filter(
+    (id) => id !== blocked && w.tr[TRAITS[id].stat] < TRAITS[id].max && !w.banished.has(`t:${id}`),
+  );
+}
+
+/** Lo que identifica a una tarjeta para desterrarla o no repetirla: el arma (mejora o nueva) o el rasgo. */
+export function cardKey(c: Card): string {
+  if (c.kind === 'up' || c.kind === 'new' || c.kind === 'fusion') return `w:${c.id}`;
+  if (c.kind === 'trait') return `t:${c.id}`;
+  return c.kind;
+}
+
+/** ¿La tarjeta bloqueada sigue valiendo (el arma no está al máximo, el rasgo no tiene tope…)? */
+function stillValid(w: World, c: Card): boolean {
+  const k = cardKey(c);
+  if (c.kind === 'trait') return traitOptions(w).some((id) => `t:${id}` === k);
+  if (c.kind === 'up' || c.kind === 'new')
+    return weaponOptions(w).some((o) => o.kind === c.kind && cardKey(o) === k);
+  if (c.kind === 'fusion') return fusionOptions(w).some((o) => cardKey(o) === k);
+  return false;
 }
 
 function rollRarity(w: World): 'common' | 'rare' | 'epic' {
@@ -181,12 +200,15 @@ function makeTraitCard(w: World, id: TraitId): Card {
   return { kind: 'trait', id, rarity, value };
 }
 
-export function openLevelChoice(w: World): void {
-  const cards: Card[] = [];
-  const fus = fusionOptions(w);
-  if (fus.length) cards.push(fus[(w.rng() * fus.length) | 0]!);
-  const wpool = weaponOptions(w);
-  const tpool = traitOptions(w);
+/** Tarjetas de subida de nivel; `keep` va primero y no se repite. */
+function rollLevelCards(w: World, keep: Card | null): Card[] {
+  const cards: Card[] = keep ? [keep] : [];
+  const used = new Set(cards.map(cardKey));
+  const fus = fusionOptions(w).filter((c) => !used.has(cardKey(c)));
+  if (fus.length && cards.length < CARDS.count) cards.push(fus[(w.rng() * fus.length) | 0]!);
+  for (const c of cards) used.add(cardKey(c));
+  const wpool = weaponOptions(w).filter((c) => !used.has(cardKey(c)));
+  const tpool = traitOptions(w).filter((id) => !used.has(`t:${id}`));
   while (cards.length < CARDS.count && (wpool.length || tpool.length)) {
     const useW = wpool.length > 0 && (tpool.length === 0 || w.rng() < CARDS.weaponChance);
     if (useW) {
@@ -203,8 +225,55 @@ export function openLevelChoice(w: World): void {
       cards.push(makeTraitCard(w, tpool.splice(i, 1)[0]!));
     }
   }
+  return cards;
+}
+
+export function openLevelChoice(w: World): void {
+  if (w.locked && !stillValid(w, w.locked)) w.locked = null;
+  const cards = rollLevelCards(w, w.locked);
   if (!cards.length) cards.push({ kind: 'heal' }, { kind: 'purge' });
   w.choice = { type: 'level', cards };
+}
+
+/**
+ * Destierra la tarjeta `i` (gasta un destierro): esa arma o rasgo no vuelve a salir en la run y en su hueco sale otra.
+ */
+export function banishCard(w: World, i: number): boolean {
+  const ch = w.choice;
+  const c = ch?.cards[i];
+  if (!ch || ch.type !== 'level' || !c || w.banishes <= 0) return false;
+  if (c.kind !== 'up' && c.kind !== 'new' && c.kind !== 'trait') return false;
+  w.banishes--;
+  const k = cardKey(c);
+  w.banished.add(k);
+  if (w.locked && cardKey(w.locked) === k) w.locked = null;
+  const others = new Set(ch.cards.map(cardKey));
+  const fresh = rollLevelCards(w, null).find((x) => !others.has(cardKey(x)));
+  const cards = ch.cards.slice();
+  if (fresh) cards[i] = fresh;
+  else cards.splice(i, 1);
+  if (!cards.length) cards.push({ kind: 'heal' }, { kind: 'purge' });
+  w.choice = { type: 'level', cards };
+  return true;
+}
+
+/**
+ * Bloquea la tarjeta `i` (gasta un candado): se queda al cambiar las tarjetas y, si eliges otra, vuelve en la
+ * próxima subida. Bloquear la que ya lo está la suelta (sin devolver el candado).
+ */
+export function lockCard(w: World, i: number): boolean {
+  const ch = w.choice;
+  const c = ch?.cards[i];
+  if (!ch || ch.type !== 'level' || !c) return false;
+  if (w.locked && cardKey(w.locked) === cardKey(c)) w.locked = null;
+  else {
+    if (w.locks <= 0 || c.kind === 'heal' || c.kind === 'purge') return false;
+    w.locks--;
+    w.locked = c;
+  }
+  // Elección nueva (misma mano) para que la UI se entere.
+  w.choice = { ...ch };
+  return true;
 }
 
 /** Cofre de jefe: 3 objetos que aún no lleva, a elegir uno (si le queda hueco). */
@@ -222,12 +291,15 @@ export function openCacheChoice(w: World): void {
   const C = CACHE_ROLL;
   const u = w.rng();
   const range = (r: readonly [number, number]): number => r[0] + Math.round(w.rng() * (r[1] - r[0]));
-  const n =
-    u < C.jackpotChance
+  const roll = (x: number): number =>
+    x < C.jackpotChance
       ? C.jackpot
-      : u < C.jackpotChance + C.doubleChance
+      : x < C.jackpotChance + C.doubleChance
         ? range(C.double)
         : range(C.normal);
+  let n = roll(u);
+  // Único «Contrabandista»: tira dos veces y se queda con la mejor.
+  if (w.mods.smuggler) n = Math.max(n, roll(w.rng()));
   w.choice = { type: 'cache', cards: [{ kind: 'coupons', n }] };
 }
 
@@ -276,8 +348,7 @@ export function applyChoice(w: World, i: number): void {
       recalc(w);
       break;
     case 'coupons':
-      w.coupons += c.n;
-      textFx(w, 'pickup', w.player.x, w.player.y, c.n, 'pickups.coupons');
+      textFx(w, 'pickup', w.player.x, w.player.y, addCoupons(w, c.n), 'pickups.coupons');
       break;
     case 'heal':
       heal(w, w.player.maxHp * CARDS.fallbackHeal);
@@ -287,6 +358,7 @@ export function applyChoice(w: World, i: number): void {
       break;
   }
   w.choice = null;
+  if (ch.type === 'level' && w.locked && cardKey(w.locked) === cardKey(c)) w.locked = null;
   if (ch.type === 'level') {
     w.levelHistory.push(c.kind === 'trait' ? c.id : null);
     w.pendingLevels--;

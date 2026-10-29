@@ -3,6 +3,7 @@ import type { EliteId, StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import type { BuildingKind } from '../config/props';
 import type { StatSurvivorId } from '../config/survivors';
+import type { TreeMod } from '../config/tree';
 import type { Rarity, StatKey, TraitId } from '../config/traits';
 import type { HordeKind } from '../config/waves';
 import type { WeaponId } from '../config/weapons';
@@ -413,6 +414,15 @@ export interface World {
   choice: Choice | null;
   pendingLevels: number;
   rerolls: number;
+  /** Mejoras del árbol de pasivas que no son rasgos (cupones extra, únicos…). */
+  readonly mods: Readonly<Partial<Record<TreeMod, number>>>;
+  /** Destierros y candados que quedan en la run (del árbol). */
+  banishes: number;
+  locks: number;
+  /** Tarjetas desterradas (`cardKey`): no vuelven a salir en la run. */
+  readonly banished: Set<string>;
+  /** Tarjeta bloqueada: se guarda para la próxima subida (y sobrevive a los cambios). */
+  locked: Card | null;
   /** Rasgos acumulados por stat. */
   readonly tr: Record<StatKey, number>;
   readonly traitPicks: Partial<Record<TraitId, number>>;

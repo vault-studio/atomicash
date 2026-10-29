@@ -727,6 +727,23 @@
   max-width: 1000px;
 }
 
+/* Hueco de una tarjeta: la carta y debajo desterrar / bloquear (árbol de pasivas). */
+.choice__slot {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.choice__tools {
+  display: flex;
+  gap: 6px;
+}
+
+.choice .choice__card.is-locked {
+  border-color: #ffc83a;
+  box-shadow: 0 0 0 3px rgba(255, 200, 58, 0.5);
+}
+
 /* Carta de menú de diner */
 .choice__card {
   position: relative;

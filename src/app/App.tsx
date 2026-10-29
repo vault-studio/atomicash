@@ -16,6 +16,7 @@ import { Merchant } from './screens/bunker/Merchant';
 import { Psych } from './screens/bunker/Psych';
 import { Settings } from './screens/bunker/Settings';
 import { Supplies } from './screens/bunker/Supplies';
+import { Tree } from './screens/bunker/Tree';
 import { Survivors } from './screens/bunker/Survivors';
 import { Workshop } from './screens/bunker/Workshop';
 import { RunReward } from './screens/run/RunReward';
@@ -94,6 +95,7 @@ export function App() {
     );
   else if (view === 'survivors') screen = <Survivors onBack={back} />;
   else if (view === 'workshop') screen = <Workshop onBack={back} />;
+  else if (view === 'tree') screen = <Tree onBack={back} />;
   else if (view === 'merchant') screen = <Merchant onBack={back} />;
   else if (view === 'backpack') screen = <Backpack onBack={back} />;
   else if (view === 'supplies') screen = <Supplies onBack={back} />;

@@ -139,7 +139,12 @@
     "collect": "Collect (1)",
     "spinning": "Spinning…",
     "jackpot": "JACKPOT!",
-    "double": "DOUBLE!"
+    "double": "DOUBLE!",
+    "banish": "Banish ({{n}})",
+    "banishHint": "It won't show up again this run",
+    "lock": "Lock ({{n}})",
+    "unlock": "Unlock 🔒",
+    "lockHint": "Kept for the next level-up and survives rerolls"
   },
   "rarity": {
     "common": "COMMON",
@@ -458,7 +463,11 @@
     "back": "← Bunker",
     "credits": "{{n, number}} coupons",
     "price": "{{n, number}} cp",
-    "active": "Active survivor: {{name}}"
+    "active": "Active survivor: {{name}}",
+    "tree": {
+      "cmd": "TREE",
+      "desc": "Passives for the whole roster"
+    }
   },
   "expedition": {
     "pick": "Who heads into the wasteland?",
@@ -739,5 +748,52 @@
     "radiactivo": "RADIOACTIVE",
     "divisor": "SPLITTER",
     "vampirico": "VAMPIRIC"
+  },
+  "tree": {
+    "intro": "Buy passives with coupons, always next to one you own. They apply to every survivor. Nodes: {{n}}.",
+    "root": "Shelter",
+    "rootDesc": "The centre of the tree. Everything grows from here.",
+    "small": "Minor passive",
+    "owned": "Learned",
+    "locked": "Locked",
+    "needs": "Buy a node linked to this one first.",
+    "pick": "Tap a node to see what it does.",
+    "spent": "Spent on the tree: {{n}} coupons",
+    "reset": "Unlearn all",
+    "resetAsk": "Unlearn everything and get {{n}} coupons back?",
+    "resetYes": "Yes, unlearn",
+    "resetNo": "No",
+    "size": {
+      "small": "MINOR",
+      "big": "MAJOR",
+      "unique": "UNIQUE"
+    },
+    "name": {
+      "banish": "Banishment",
+      "lock": "Padlock",
+      "reroll": "Second hand",
+      "hunter": "Monster hunter",
+      "coldBlood": "Cold blood",
+      "smuggler": "Smuggler"
+    },
+    "stat": {
+      "dmg": "+{{v}}% damage",
+      "hp": "+{{v}} max HP",
+      "crit": "+{{v}}% crit",
+      "armor": "+{{v}} armor",
+      "mag": "+{{v}}% magnet",
+      "regen": "+{{v}} HP/s regen",
+      "spd": "+{{v}}% speed",
+      "xp": "+{{v}}% experience"
+    },
+    "mod": {
+      "coupons": "+{{v}}% coupons during the run",
+      "banish": "+{{v}} banish per run: removes a level-up card for the rest of the run.",
+      "lock": "+{{v}} lock per run: keeps a card for the next level-up.",
+      "reroll": "+{{v}} card reroll per run.",
+      "hunter": "+{{v}}% damage to bosses and elites.",
+      "coldBlood": "When hit you keep {{v}}% of your streak.",
+      "smuggler": "Special chest slot machines roll twice and keep the best."
+    }
   }
 }

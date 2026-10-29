@@ -126,6 +126,8 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const consume = useCallback((i: number) => sessionRef.current?.consume(i), []);
   const pause = useCallback(() => setPaused(true), []);
   const doReroll = useCallback(() => sessionRef.current?.reroll(), []);
+  const banish = useCallback((i: number) => sessionRef.current?.banish(i), []);
+  const lock = useCallback((i: number) => sessionRef.current?.lock(i), []);
   const again = (): void => {
     setSeed((Math.random() * 2 ** 31) | 0);
     setRunKey((k) => k + 1);
@@ -144,7 +146,15 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
       )}
       {weld && !result && <Weld result={weld} onDone={endWeld} />}
       {choice && world && !result && !weld && (
-        <Cards key={choiceKey} choice={choice} world={world} onPick={pick} onReroll={doReroll} />
+        <Cards
+          key={choiceKey}
+          choice={choice}
+          world={world}
+          onPick={pick}
+          onReroll={doReroll}
+          onBanish={banish}
+          onLock={lock}
+        />
       )}
       {paused && !result && (
         <div className="overlay overlay--pause" role="dialog" aria-modal="true">

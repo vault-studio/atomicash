@@ -66,6 +66,13 @@ export function addPickup(
   return k;
 }
 
+/** Suma cupones de la partida con el extra del árbol. Devuelve los sumados. */
+export function addCoupons(w: World, n: number): number {
+  const v = Math.round(n * (1 + (w.mods.coupons ?? 0) / 100));
+  w.coupons += v;
+  return v;
+}
+
 export function heal(w: World, amount: number): void {
   const p = w.player;
   p.hp = Math.min(p.maxHp, p.hp + amount);
@@ -132,6 +139,8 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
+  // Único «Cazador» del árbol: más daño a jefes y élites.
+  if ((e.boss || e.elite) && w.mods.hunter) d *= 1 + w.mods.hunter / 100;
   if (e.elite) {
     if (e.elite === 'blindado') d *= ELITES.blindado.dmgTaken;
     w.eliteFocus = e.id;
@@ -416,7 +425,8 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   p.inv = PLAYER.invuln;
   // Un golpe recibido corta la racha (si ya multiplicaba, se avisa).
   if (w.streak >= STREAK.tiers[STREAK.tiers.length - 1]!.at) banner(w, 'banner.streakLost');
-  w.streak = 0;
+  // Único «Sangre fría»: conserva parte de la racha.
+  w.streak = Math.floor((w.streak * (w.mods.coldBlood ?? 0)) / 100);
 
   p.lastHit = w.time;
   sfx(w, SFX.hurt);

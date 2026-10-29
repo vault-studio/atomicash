@@ -139,7 +139,12 @@
     "collect": "Cobrar (1)",
     "spinning": "Girando…",
     "jackpot": "¡PREMIO GORDO!",
-    "double": "¡DOBLE!"
+    "double": "¡DOBLE!",
+    "banish": "Desterrar ({{n}})",
+    "banishHint": "No volverá a salir en esta partida",
+    "lock": "Bloquear ({{n}})",
+    "unlock": "Soltar 🔒",
+    "lockHint": "Se guarda para la próxima subida y aguanta los cambios"
   },
   "rarity": {
     "common": "COMÚN",
@@ -458,7 +463,11 @@
     "back": "← Búnker",
     "credits": "{{n, number}} cupones",
     "price": "{{n, number}} cup.",
-    "active": "Superviviente activo: {{name}}"
+    "active": "Superviviente activo: {{name}}",
+    "tree": {
+      "cmd": "ÁRBOL",
+      "desc": "Pasivas para todo el plantel"
+    }
   },
   "expedition": {
     "pick": "¿Quién sale al páramo?",
@@ -739,5 +748,52 @@
     "radiactivo": "RADIACTIVO",
     "divisor": "DIVISOR",
     "vampirico": "VAMPÍRICO"
+  },
+  "tree": {
+    "intro": "Compra pasivas con cupones, siempre junto a una que ya tengas. Valen para todos los supervivientes. Nodos: {{n}}.",
+    "root": "Refugio",
+    "rootDesc": "El centro del árbol. Todo sale de aquí.",
+    "small": "Pasiva menor",
+    "owned": "Aprendida",
+    "locked": "Bloqueada",
+    "needs": "Compra antes un nodo unido a este.",
+    "pick": "Toca un nodo para ver qué hace.",
+    "spent": "Gastado en el árbol: {{n}} cupones",
+    "reset": "Desaprender todo",
+    "resetAsk": "¿Desaprender todo y recuperar {{n}} cupones?",
+    "resetYes": "Sí, desaprender",
+    "resetNo": "No",
+    "size": {
+      "small": "MENOR",
+      "big": "MAYOR",
+      "unique": "ÚNICA"
+    },
+    "name": {
+      "banish": "Destierro",
+      "lock": "Candado",
+      "reroll": "Segunda mano",
+      "hunter": "Cazador de monstruos",
+      "coldBlood": "Sangre fría",
+      "smuggler": "Contrabandista"
+    },
+    "stat": {
+      "dmg": "+{{v}} % de daño",
+      "hp": "+{{v}} PV máximos",
+      "crit": "+{{v}} % de crítico",
+      "armor": "+{{v}} de armadura",
+      "mag": "+{{v}} % de imán",
+      "regen": "+{{v}} PV/s de regeneración",
+      "spd": "+{{v}} % de velocidad",
+      "xp": "+{{v}} % de experiencia"
+    },
+    "mod": {
+      "coupons": "+{{v}} % de cupones en la partida",
+      "banish": "+{{v}} destierro por partida: quita una tarjeta de subida para el resto de la partida.",
+      "lock": "+{{v}} candado por partida: guarda una tarjeta para la próxima subida.",
+      "reroll": "+{{v}} cambio de tarjetas por partida.",
+      "hunter": "+{{v}} % de daño a jefes y élites.",
+      "coldBlood": "Al recibir un golpe conservas el {{v}} % de la racha.",
+      "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor."
+    }
   }
 }

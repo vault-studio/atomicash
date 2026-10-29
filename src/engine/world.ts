@@ -5,6 +5,7 @@ import { RAD, radTier } from '../config/radiation';
 import { CAPS, CREDITS, JUICE, PLAYER, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
+import type { TreeMod } from '../config/tree';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS, HORDES } from '../config/waves';
 import { refreshHazards } from './hazards';
@@ -54,6 +55,8 @@ export interface WorldOptions {
   /** Huecos de consumible: cuántos de cada uno lleva al empezar. */
   consumables?: Partial<World['cons']>;
   extraRerolls?: number;
+  /** Mejoras del árbol de pasivas que no son rasgos. */
+  mods?: Partial<Record<TreeMod, number>>;
   /** Charcos radiactivos y objetos (obstáculos, edificios) en el mapa (los tests los quitan para aislar sistemas). */
   hazards?: boolean;
 }
@@ -137,6 +140,11 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     choice: null,
     pendingLevels: 0,
     rerolls: PLAYER.rerolls + (opts.extraRerolls ?? 0),
+    mods: { ...opts.mods },
+    banishes: opts.mods?.banish ?? 0,
+    locks: opts.mods?.lock ?? 0,
+    banished: new Set(),
+    locked: null,
     tr,
     traitPicks: {},
     levelHistory: [],

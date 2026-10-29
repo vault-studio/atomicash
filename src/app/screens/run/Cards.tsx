@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { audio } from '../../../audio/audio';
 import { ITEM_IDS } from '../../../config/items';
 import { CACHE_ROLL } from '../../../config/run';
+import { cardKey } from '../../../engine/systems/progression';
 import type { Choice, World } from '../../../engine/types';
 import { cardView } from '../../cardText';
 
@@ -17,6 +18,8 @@ interface Props {
   world: World;
   onPick: (i: number) => void;
   onReroll: () => void;
+  onBanish: (i: number) => void;
+  onLock: (i: number) => void;
 }
 
 /** Rodillos que se paran uno tras otro; devuelve cuántos han parado y un contador que avanza mientras giran. */
@@ -48,9 +51,11 @@ function useSpin(reels: number, active: boolean): { landed: number; frame: numbe
   return { landed, frame };
 }
 
-export function Cards({ choice, world, onPick, onReroll }: Props) {
+export function Cards({ choice, world, onPick, onReroll, onBanish, onLock }: Props) {
   const { t } = useTranslation();
   const canReroll = choice.type === 'level' && world.rerolls > 0;
+  const level = choice.type === 'level';
+  const lockedKey = world.locked ? cardKey(world.locked) : null;
   const slot = choice.type !== 'level';
   const reels = choice.type === 'cache' ? 3 : choice.cards.length;
   const { landed, frame } = useSpin(reels, slot);
@@ -123,18 +128,38 @@ export function Cards({ choice, world, onPick, onReroll }: Props) {
             );
           }
           const v = cardView(t, world, c);
+          const locked = level && cardKey(c) === lockedKey;
+          const pickable = c.kind === 'up' || c.kind === 'new' || c.kind === 'trait';
           return (
-            <button
-              key={i}
-              className={`choice__card ${v.cls} ${slot ? 'is-landed' : ''}`}
-              disabled={!ready}
-              onClick={() => onPick(i)}
-            >
-              <span className="choice__tag">{v.tag}</span>
-              <strong className="choice__title">{v.title}</strong>
-              <span className="choice__desc">{v.desc}</span>
-              <kbd className="choice__key">{i + 1}</kbd>
-            </button>
+            <div key={i} className="choice__slot">
+              <button
+                className={`choice__card ${v.cls} ${slot ? 'is-landed' : ''} ${locked ? 'is-locked' : ''}`}
+                disabled={!ready}
+                onClick={() => onPick(i)}
+              >
+                <span className="choice__tag">
+                  {locked && '🔒 '}
+                  {v.tag}
+                </span>
+                <strong className="choice__title">{v.title}</strong>
+                <span className="choice__desc">{v.desc}</span>
+                <kbd className="choice__key">{i + 1}</kbd>
+              </button>
+              {level && (world.banishes > 0 || world.locks > 0 || locked) && (
+                <div className="choice__tools">
+                  {world.banishes > 0 && pickable && (
+                    <button className="term-btn" onClick={() => onBanish(i)} title={t('cards.banishHint')}>
+                      {t('cards.banish', { n: world.banishes })}
+                    </button>
+                  )}
+                  {(locked || (world.locks > 0 && c.kind !== 'heal' && c.kind !== 'purge')) && (
+                    <button className="term-btn" onClick={() => onLock(i)} title={t('cards.lockHint')}>
+                      {locked ? t('cards.unlock') : t('cards.lock', { n: world.locks })}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           );
         })}
       </div>

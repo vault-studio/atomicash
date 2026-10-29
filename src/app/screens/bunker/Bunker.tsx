@@ -8,6 +8,7 @@ export const BUNKER_VIEWS = [
   'expedition',
   'survivors',
   'workshop',
+  'tree',
   'merchant',
   'backpack',
   'supplies',
