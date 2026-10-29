@@ -32,7 +32,9 @@ export const SPRITES = {
   oneShot: ['death', 'hit', 'attack', 'attack_1', 'attack_2', 'victory'] as readonly AnimId[],
   /** Corrige el pivote de un JSON sin tocar el archivo: { id: [x, y] } o { 'id_anim': [x, y] }. */
   // Las hojas viejas de Dot (prototipo) traen el pivote mal; las de idle y victory ya vienen bien.
-  pivotOverride: { dot_run: [128, 213], dot_hit: [128, 213], dot_death: [128, 213] } as Readonly<Record<string, readonly [number, number]>>,
+  pivotOverride: { dot_run: [128, 213], dot_hit: [128, 213], dot_death: [128, 213] } as Readonly<
+    Record<string, readonly [number, number]>
+  >,
 } as const;
 
 export const VIEW = {

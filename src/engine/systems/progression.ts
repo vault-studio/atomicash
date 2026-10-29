@@ -2,7 +2,7 @@
 import { CONSUMABLES, CONSUMABLE_IDS, FIELD_PICKUPS, ITEM_IDS, type ConsumableId } from '../../config/items';
 import { RAD } from '../../config/radiation';
 import { CACHE_ROLL, FX, JUICE, PLAYER, XP, xpForLevel } from '../../config/run';
-import { CARDS, TRAITS, TRAIT_IDS, type TraitId } from '../../config/traits';
+import { CARDS, TRAITS, TRAIT_IDS, type TraitDef, type TraitId } from '../../config/traits';
 import { survivorStats, weaponSlots, type SurvivorStats } from '../../config/survivors';
 import { EVENTS } from '../../config/waves';
 import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapons';
@@ -221,7 +221,11 @@ function rollLevelCards(w: World, keep: Card | null): Card[] {
     } else {
       const i = wpick(
         w,
-        tpool.map((id) => CARDS.traitBaseWeight + CARDS.traitPickBonus * (w.traitPicks[id] ?? 0)),
+        tpool.map(
+          (id) =>
+            ((TRAITS[id] as TraitDef).weight ?? CARDS.traitBaseWeight) +
+            CARDS.traitPickBonus * (w.traitPicks[id] ?? 0),
+        ),
       );
       cards.push(makeTraitCard(w, tpool.splice(i, 1)[0]!));
     }

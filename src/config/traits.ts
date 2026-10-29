@@ -30,15 +30,18 @@ export interface TraitDef {
   /** Stats enteros: el valor sale de `intVals` según la rareza. */
   readonly int?: boolean;
   readonly intVals?: Readonly<Record<Rarity, number>>;
+  /** Peso al sortear las tarjetas de rasgo (por defecto `CARDS.traitBaseWeight`). */
+  readonly weight?: number;
 }
 
 export const TRAITS = {
   ammo: { stat: 'dmg', base: 8, max: 120 },
   boots: { stat: 'spd', base: 6, max: 40 },
   manual: { stat: 'xp', base: 10, max: 60 },
-  helmet: { stat: 'red', base: 5, max: 40 },
-  plate: { stat: 'armor', base: 1, max: 8, int: true },
-  suture: { stat: 'regen', base: 0.3, max: 3 },
+  // Defensas: con golpes de 16–20 PV son las que deciden si aguantas; salen el triple de a menudo que el resto.
+  helmet: { stat: 'red', base: 8, max: 40, weight: 3 },
+  plate: { stat: 'armor', base: 2, max: 8, int: true, intVals: { common: 2, rare: 3, epic: 4 }, weight: 3 },
+  suture: { stat: 'regen', base: 0.5, max: 2.5, weight: 3 },
   magnet: { stat: 'mag', base: 25, max: 150 },
   cat: { stat: 'dodge', base: 4, max: 35 },
   scope: { stat: 'crit', base: 5, max: 50 },
@@ -58,7 +61,7 @@ export const TRAIT_IDS = Object.keys(TRAITS) as TraitId[];
 export const CARDS = {
   count: 3,
   /** Probabilidad de que un hueco de tarjeta sea de arma (si hay armas disponibles). */
-  weaponChance: 0.8,
+  weaponChance: 0.75,
   upWeight: 3,
   newWeight: 2.2,
   /** Umbrales de rareza sobre una tirada 0–100 (la suerte acorta la tirada). */

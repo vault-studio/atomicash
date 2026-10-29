@@ -53,9 +53,11 @@ export const PLAYER = {
 
 /**
  * El daño recibido escala con el tiempo: de `start` a `max` al llegar a `reachAtFrac` de la run.
- * DECISIÓN: subido de 0,55→1,3 a 0,7→1,6 (~25 % más) a cambio de los recogibles de campo (botiquín, imán y bomba).
+ * DECISIÓN: de 0,7→1,6 a 2→3. Con 0,7 un necrófago quitaba 6 PV y quedarse quieto salía gratis; ahora, sin
+ * defensas, un superviviente de 100 PV aguanta 5–6 golpes de los normales (necrófago 16, saqueador 20). Casco,
+ * chaleco y sutura son los que lo compensan.
  */
-export const DMG_TAKEN = { start: 0.7, max: 1.6, reachAtFrac: 0.75 } as const;
+export const DMG_TAKEN = { start: 2, max: 3, reachAtFrac: 0.75 } as const;
 
 export const CAPS = {
   cdReduction: 0.6,
