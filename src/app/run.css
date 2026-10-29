@@ -500,12 +500,13 @@
 .pstats__head {
   position: absolute;
   left: 0;
-  bottom: 0;
+  /* Centrado en alto, con aire arriba y abajo para no tocar el borde. */
+  top: 50%;
+  transform: translateY(-50%);
   width: clamp(150px, 22%, 220px);
   height: auto;
-  max-height: calc(100% + 30px);
+  max-height: calc(100% - 16px);
   object-fit: contain;
-  object-position: bottom;
   filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.6));
   pointer-events: none;
 }
