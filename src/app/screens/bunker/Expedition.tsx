@@ -2,15 +2,45 @@
 // El último usado sale marcado.
 import { useTranslation } from 'react-i18next';
 import { ROSTER, type StatSurvivorId } from '../../../config/survivors';
+import { DAILY } from '../../../config/modes';
+import { dailyChallenge } from '../../../meta/daily';
 import { useSaveData } from '../../../store/save';
 import { PortraitCard } from './Portraits';
 
 interface Props {
   onStart: (id: StatSurvivorId) => void;
+  onDaily: () => void;
   onBack: () => void;
 }
 
-export function Expedition({ onStart, onBack }: Props) {
+/** Reto del día: superviviente, modificador, tu mejor marca de hoy y el premio del primer intento. */
+function DailyCard({ onPlay }: { onPlay: () => void }) {
+  const { t } = useTranslation();
+  const saved = useSaveData((d) => d.daily);
+  const c = dailyChallenge(new Date());
+  const today = saved.day === c.day ? saved : null;
+  return (
+    <section className="daily">
+      <div className="daily__text">
+        <strong>{t('daily.title', { day: c.day })}</strong>
+        <span>
+          {t(`entities.${c.charId}`)} · <b>{t(`daily.mod.${c.mod}.name`)}</b>: {t(`daily.mod.${c.mod}.desc`)}
+        </span>
+        <small>
+          {t('daily.rules')}{' '}
+          {today?.best
+            ? t('daily.best', { dmg: today.best.dmg.toLocaleString(), kills: today.best.kills })
+            : t('daily.reward', { n: DAILY.reward })}
+        </small>
+      </div>
+      <button className="btn btn--primary" onClick={onPlay}>
+        {t('daily.play')}
+      </button>
+    </section>
+  );
+}
+
+export function Expedition({ onStart, onDaily, onBack }: Props) {
   const { t } = useTranslation();
   const survivors = useSaveData((d) => d.survivors);
   const active = useSaveData((d) => d.profile.active);
@@ -23,6 +53,7 @@ export function Expedition({ onStart, onBack }: Props) {
         </button>
         <h1>{t('expedition.pick')}</h1>
       </header>
+      <DailyCard onPlay={onDaily} />
       <ul className="pick__list">
         {ROSTER.map((id, i) => {
           const o = survivors[id];

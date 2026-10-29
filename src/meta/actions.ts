@@ -46,6 +46,7 @@ import {
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
 import type { RunResults, WorldOptions } from '../engine/world';
+import { DAILY } from '../config/modes';
 import { newSurvivor, type OwnedSurvivor, type SaveData } from './save';
 
 // ---------- utilidades ----------
@@ -244,6 +245,8 @@ export function resetTree(s: SaveData): number {
 
 export interface RunReward {
   credits: number;
+  /** Premio del primer reto diario del día (incluido en `credits`). */
+  dailyBonus: number;
   xp: number;
   levelUps: number;
   achievements: AchievementId[];
@@ -253,15 +256,17 @@ export interface RunReward {
 export function applyRun(s: SaveData, r: RunResults, now: Date): RunReward {
   refreshDaily(s, now);
   s.profile.credits += r.credits;
+  const dailyBonus = r.daily ? recordDaily(s, r) : 0;
   const st = s.profile.stats;
   st.runs++;
   st.kills += r.kills;
   st.bossesKilled += r.bosses;
   st.bestTimeSec = Math.max(st.bestTimeSec, Math.floor(r.time));
   if (r.won) st.wins++;
-  // La Mochila se descuenta al cerrar la run (así abandonar o recargar no pierde nada).
-  for (const c of CONSUMABLE_IDS)
-    s.inventory.consumables[c] = Math.max(0, s.inventory.consumables[c] - r.consStart[c] + r.consLeft[c]);
+  // La Mochila se descuenta al cerrar la run (así abandonar o recargar no pierde nada). El reto diario no la usa.
+  if (!r.daily)
+    for (const c of CONSUMABLE_IDS)
+      s.inventory.consumables[c] = Math.max(0, s.inventory.consumables[c] - r.consStart[c] + r.consLeft[c]);
   const xp = Math.round(
     r.time * SURVIVOR_LEVEL.perSec + r.kills * SURVIVOR_LEVEL.perKill + r.bosses * SURVIVOR_LEVEL.perBoss,
   );
@@ -292,7 +297,22 @@ export function applyRun(s: SaveData, r: RunResults, now: Date): RunReward {
     }
     m.progress = Math.min(m.progress, def.goal);
   }
-  return { credits: r.credits, xp, levelUps, achievements: checkAchievements(s) };
+  return { credits: r.credits + dailyBonus, dailyBonus, xp, levelUps, achievements: checkAchievements(s) };
+}
+
+/** Guarda la marca del reto diario (la mejor del día) y da el premio del primer intento. */
+function recordDaily(s: SaveData, r: RunResults): number {
+  const d = s.daily;
+  if (d.day !== r.daily) {
+    d.day = r.daily!;
+    d.best = null;
+    d.rewarded = false;
+  }
+  if (!d.best || r.dmg > d.best.dmg) d.best = { dmg: r.dmg, time: Math.floor(r.time), kills: r.kills };
+  if (d.rewarded) return 0;
+  d.rewarded = true;
+  s.profile.credits += DAILY.reward;
+  return DAILY.reward;
 }
 
 // ---------- misiones y logros ----------

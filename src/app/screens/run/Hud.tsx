@@ -22,16 +22,21 @@ export const fmtTime = (s: number): string => {
  */
 function HordeWarning({ horde }: { horde: NonNullable<HudSnapshot['horde']> }) {
   if (horde.kind === 'ring') return <div className="hud__edge-ring" />;
-  const k = 1 / Math.max(Math.abs(horde.sx), Math.abs(horde.sy));
-  const left = 50 + horde.sx * k * 44;
-  const top = 50 + horde.sy * k * 40;
-  const deg = (Math.atan2(horde.sy, horde.sx) * 180) / Math.PI;
+  return <EdgeArrow sx={horde.sx} sy={horde.sy} kind="horde" />;
+}
+
+/** Flecha pegada al borde de la pantalla en la dirección (sx, sy): roja para hordas, amarilla para objetivos. */
+function EdgeArrow({ sx, sy, kind }: { sx: number; sy: number; kind: 'horde' | 'objective' }) {
+  const k = 1 / Math.max(Math.abs(sx), Math.abs(sy));
+  const left = 50 + sx * k * 44;
+  const top = 50 + sy * k * 40;
+  const deg = (Math.atan2(sy, sx) * 180) / Math.PI;
   return (
-    <div className="hud__edge" style={{ left: `${left}%`, top: `${top}%` }}>
+    <div className={`hud__edge is-${kind}`} style={{ left: `${left}%`, top: `${top}%` }}>
       <span className="hud__edge-arrow" style={{ transform: `rotate(${deg}deg)` }}>
         ➤
       </span>
-      <span className="hud__edge-sign">!</span>
+      <span className="hud__edge-sign">{kind === 'horde' ? '!' : '◎'}</span>
     </div>
   );
 }
@@ -121,6 +126,29 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
           </div>
         )}
         {hud.rain && <div className="hud__status">{t('run.rain')}</div>}
+        {hud.endless !== null && (
+          <div className="hud__status hud__status--endless">
+            {t('run.endless', { n: Math.floor(hud.endless) })}
+          </div>
+        )}
+        {hud.dailyMod && <div className="hud__daily">{t(`daily.mod.${hud.dailyMod}.name`)}</div>}
+        {hud.objective && (
+          <div className="hud__objective">
+            <span>{t(`run.objective.${hud.objective.kind}`)}</span>
+            <div className="meter__bar">
+              <div
+                className="meter__fill"
+                style={{ width: `${Math.min(1, hud.objective.progress / hud.objective.goal) * 100}%` }}
+              />
+              <span className="meter__over">
+                {hud.objective.kind === 'hold'
+                  ? `${Math.floor(hud.objective.progress)}/${hud.objective.goal} s`
+                  : `${hud.objective.progress}/${hud.objective.goal}`}{' '}
+                · {Math.ceil(hud.objective.left)} s
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="hud__tr">
@@ -198,6 +226,9 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
       </div>
 
       {hud.horde && <HordeWarning horde={hud.horde} />}
+      {hud.objective?.dir && (
+        <EdgeArrow sx={hud.objective.dir.sx} sy={hud.objective.dir.sy} kind="objective" />
+      )}
     </div>
   );
 }

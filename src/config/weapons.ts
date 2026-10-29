@@ -260,7 +260,7 @@ export const FUSIONS: readonly FusionDef[] = [
 export const scaled = (base: number, perLvl: number, lvl: number): number => base * (1 + perLvl * (lvl - 1));
 
 /** Fuentes de daño para las estadísticas: armas, consumibles y efectos. */
-export const DAMAGE_SOURCES = [...WEAPON_IDS, 'granada', 'hinchado', 'bomba'] as const;
+export const DAMAGE_SOURCES = [...WEAPON_IDS, 'granada', 'hinchado', 'bomba', 'barril'] as const;
 export type DamageSource = (typeof DAMAGE_SOURCES)[number];
 export const SOURCE_INDEX: Readonly<Record<string, number>> = Object.fromEntries(
   DAMAGE_SOURCES.map((s, i) => [s, i]),

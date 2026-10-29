@@ -22,7 +22,26 @@ export const LIMITS = {
    */
   maxDmgPerSec: 50000,
   maxLevel: 300,
+  /** Modo infinito tras el Coloso (src/config/modes.ts): segundos extra como mucho y un jefe cada `bossEvery`. */
+  maxEndlessSec: 7200,
+  endlessBossEvery: 150,
+  /** Vida extra de los jefes del infinito por vuelta de la rueda (ENDLESS.bossHpPerLoop). */
+  endlessBossHpPerLoop: 0.5,
 } as const;
+
+/** Día UTC `AAAA-MM-DD` del reto diario. */
+export const DAILY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Semilla del reto diario de un día (FNV-1a de `daily:<día>`): la misma para todos. */
+export function dailySeed(day: string): number {
+  let h = 0x811c9dc5;
+  const s = 'daily:' + day;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h | 0;
+}
 
 export const CHAR_IDS = [
   'dot',
@@ -47,6 +66,10 @@ export interface RunSubmission {
   level: number;
   won: boolean;
   seed: number;
+  /** Reto diario (día UTC) o null. */
+  daily?: string | null;
+  /** Segundos jugados en el modo infinito tras ganar (`timeSec` es lo que tardó en ganar). */
+  endlessSec?: number;
 }
 
 const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v);
@@ -60,15 +83,26 @@ export function checkRun(r: unknown): string[] {
   for (const k of ['timeSec', 'kills', 'bossDmg', 'dmgTotal', 'bosses', 'level', 'seed'] as const)
     if (!isInt(x[k]) || (k !== 'seed' && (x[k] as number) < 0)) errs.push(`int:${k}`);
   if (typeof x.won !== 'boolean') errs.push('won');
+  if (x.endlessSec !== undefined && (!isInt(x.endlessSec) || x.endlessSec < 0)) errs.push('int:endlessSec');
+  if (x.daily !== undefined && x.daily !== null && (typeof x.daily !== 'string' || !DAILY_RE.test(x.daily)))
+    errs.push('daily');
   if (errs.length) return errs;
   const s = x as unknown as RunSubmission;
+  const extra = s.endlessSec ?? 0;
+  const total = s.timeSec + extra;
+  // Jefes del infinito: uno cada `endlessBossEvery` s, cada vuelta de tres con más vida.
+  const extraBosses = Math.ceil(extra / LIMITS.endlessBossEvery);
+  const loops = Math.ceil(extraBosses / LIMITS.bosses);
+  const maxBossDmg = LIMITS.maxBossDmg * (1 + loops * (1 + loops * LIMITS.endlessBossHpPerLoop));
   if (s.timeSec > LIMITS.maxTimeSec) errs.push('time');
-  if (s.bosses > LIMITS.bosses) errs.push('bosses');
-  if (s.bossDmg > LIMITS.maxBossDmg) errs.push('bossDmg');
+  if (extra > LIMITS.maxEndlessSec || (extra > 0 && !s.won)) errs.push('endless');
+  if (s.bosses > LIMITS.bosses + extraBosses) errs.push('bosses');
+  if (s.bossDmg > maxBossDmg) errs.push('bossDmg');
   if (s.bossDmg === 0 && s.bosses > 0) errs.push('bossDmg-zero');
-  if (s.kills > s.timeSec * LIMITS.maxKillsPerSec + LIMITS.killsSlack) errs.push('kills');
+  if (s.kills > total * LIMITS.maxKillsPerSec + LIMITS.killsSlack) errs.push('kills');
   if (s.level > LIMITS.maxLevel) errs.push('level');
-  if (s.dmgTotal > Math.max(1, s.timeSec) * LIMITS.maxDmgPerSec) errs.push('dmgTotal');
+  if (s.dmgTotal > Math.max(1, total) * LIMITS.maxDmgPerSec) errs.push('dmgTotal');
+  if (s.daily && s.seed !== dailySeed(s.daily)) errs.push('daily-seed');
   if (s.dmgTotal < s.bossDmg) errs.push('dmgTotal-boss');
   if (s.won && (s.bosses < LIMITS.bosses || s.timeSec < LIMITS.minWinSec)) errs.push('won');
   return errs;

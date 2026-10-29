@@ -32,6 +32,26 @@ export const AUDIO = {
   } as Readonly<Record<string, number>>,
   /** Tono de la chatarra: sube medio tono por recogida seguida (separadas menos de `gap` s), hasta `max`. */
   pickupChain: { base: 900, gap: 0.35, max: 24 },
+  /**
+   * Música por capas (dossier §13): el bajo suena siempre; batería, acordes y arpegio entran según la intensidad
+   * (0–1: enemigos en pantalla, hordas, élites); la melodía, con la racha multiplicando; con poca vida se apaga el
+   * brillo (filtro de paso bajo). Con un jefe suena todo.
+   */
+  layers: {
+    drums: 0.12,
+    chords: 0.35,
+    arp: 0.6,
+    /** Enemigos en pantalla que cuentan como intensidad 1. */
+    fullAt: 110,
+    /** Lo que suma una horda avisada o un élite vivo. */
+    horde: 0.35,
+    elite: 0.2,
+    /** Segundos de fundido al entrar o salir una capa. */
+    fade: 0.8,
+    lowHp: 0.3,
+    lowpass: { open: 18000, closed: 900 },
+    lead: [12, 15, 19, 22, 24, 22, 19, 15, 17, 19, 22, 19],
+  },
   /** Chasquidos del Geiger por segundo a RAD 100. */
   geigerRate: 14,
   music: {

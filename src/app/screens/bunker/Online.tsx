@@ -159,7 +159,7 @@ export function Leaderboard() {
   return (
     <>
       <div className="chips" role="tablist">
-        {(['dmg', 'finish'] as const).map((k) => (
+        {(['dmg', 'finish', 'daily'] as const).map((k) => (
           <button
             key={k}
             role="tab"
@@ -171,7 +171,7 @@ export function Leaderboard() {
           </button>
         ))}
       </div>
-      <div className="chips" role="tablist">
+      <div className="chips" role="tablist" hidden={kind === 'daily'}>
         {(['day', 'week', 'all'] as const).map((p) => (
           <button
             key={p}

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { audio } from '../audio/audio';
 import { applyRun, refreshDaily, runOptionsFor, setActive } from '../meta/actions';
+import { dailyChallenge, dailyOptions, type DailyChallenge } from '../meta/daily';
 import { useSave } from '../store/save';
 import { useOnline } from '../store/online';
 import { connect, afterRun } from '../online/session';
@@ -30,6 +31,8 @@ export function App() {
   const [view, setView] = useState<View>('bunker');
   /** Superviviente elegido al salir de expedición; null mientras se elige. */
   const [runChar, setRunChar] = useState<StatSurvivorId | null>(null);
+  /** Reto diario en curso (null en una expedición normal). */
+  const [daily, setDaily] = useState<DailyChallenge | null>(null);
   const st = data.settings;
   const active = data.profile.active;
 
@@ -59,18 +62,28 @@ export function App() {
     () => ({ showDamage: st.damageNumbers, reduceMotion: st.reduceMotion }),
     [st.damageNumbers, st.reduceMotion],
   );
-  const worldOptions = useMemo(() => (active ? runOptionsFor(data, active) : undefined), [data, active]);
+  const worldOptions = useMemo(
+    () => (daily ? dailyOptions(daily) : active ? runOptionsFor(data, active) : undefined),
+    [data, active, daily],
+  );
   const back = useCallback(() => {
     setRunChar(null);
+    setDaily(null);
     setView('bunker');
   }, []);
   const start = useCallback(
     (id: StatSurvivorId) => {
       act((d) => setActive(d, id));
+      setDaily(null);
       setRunChar(id);
     },
     [act],
   );
+  const startDaily = useCallback(() => {
+    const c = dailyChallenge(new Date());
+    setDaily(c);
+    setRunChar(c.charId);
+  }, []);
   const finish = useCallback(
     (r: RunResults) => {
       const reward = act((d) => applyRun(d, r, new Date()));
@@ -82,11 +95,13 @@ export function App() {
 
   let screen: React.ReactNode;
   if (!data.profile.starterChosen) screen = <Psych />;
-  else if (view === 'expedition' && !runChar) screen = <Expedition onStart={start} onBack={back} />;
+  else if (view === 'expedition' && !runChar)
+    screen = <Expedition onStart={start} onDaily={startDaily} onBack={back} />;
   else if (view === 'expedition' && runChar)
     screen = (
       <RunScreen
         charId={runChar}
+        fixedSeed={daily?.seed}
         settings={runSettings}
         worldOptions={worldOptions}
         onExit={back}

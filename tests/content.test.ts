@@ -224,6 +224,9 @@ describe('jefes y Tormenta (F2-05)', () => {
     expect(c.phase).toBe(3);
     hitEnemy(w, c, 1e9, 'llave', 0x4);
     expect(w.won).toBe(true);
+    // Antes de terminar pregunta si seguir en el modo infinito.
+    expect(w.choice?.type).toBe('endless');
+    applyChoice(w, 1);
     expect(w.over).toBe(true);
   });
 

@@ -30,7 +30,12 @@
     "kit": "KIT",
     "streak": "STREAK {{n}}",
     "elitePrefix": "{{prefix}} · {{name}}",
-    "bossPhase": "PHASE {{n}}"
+    "bossPhase": "PHASE {{n}}",
+    "endless": "ENDLESS +{{n}} min",
+    "objective": {
+      "hold": "OBJECTIVE: hold the zone",
+      "purge": "OBJECTIVE: clear the zone"
+    }
   },
   "pauseStats": {
     "attributes": "Attributes",
@@ -144,7 +149,11 @@
     "banishHint": "It won't show up again this run",
     "lock": "Lock ({{n}})",
     "unlock": "Unlock 🔒",
-    "lockHint": "Kept for the next level-up and survives rerolls"
+    "lockHint": "Kept for the next level-up and survives rerolls",
+    "endlessTitle": "THE COLOSSUS HAS FALLEN!",
+    "endlessDesc": "You won the expedition. Head back to the bunker or keep going in endless mode: every minute brings more, tougher enemies, and the bosses come back in turn.",
+    "endlessGo": "Keep going (endless)",
+    "endlessStop": "Return victorious"
   },
   "rarity": {
     "common": "COMMON",
@@ -388,7 +397,14 @@
       "ring": "You're surrounded!",
       "stampede": "Stampede!",
       "wall": "A wall is coming!"
-    }
+    },
+    "objective": {
+      "hold": "Objective! Hold the marked zone",
+      "purge": "Objective! Clear the marked zone"
+    },
+    "objectiveDone": "Objective complete! Special chest",
+    "objectiveFail": "Objective lost",
+    "endless": "ENDLESS MODE!"
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",
@@ -420,12 +436,16 @@
     "peakDps": "Peak DPS",
     "items": "Items",
     "timeline": "Damage every 30 s",
-    "bestStreak": "Best no-hit streak"
+    "bestStreak": "Best no-hit streak",
+    "objectives": "Objectives completed",
+    "endless": "Time in endless",
+    "daily": "Daily challenge"
   },
   "sources": {
     "granada": "Grenade",
     "hinchado": "Bloater",
-    "bomba": "Bomb"
+    "bomba": "Bomb",
+    "barril": "Barrel"
   },
   "bunker": {
     "expedition": {
@@ -689,7 +709,8 @@
   "reward": {
     "xp": "+{{n}} survivor XP",
     "levelUp": "+{{n}} level!",
-    "achievement": "ACHIEVEMENT: {{name}}"
+    "achievement": "ACHIEVEMENT: {{name}}",
+    "daily": "+{{n}} coupons for today's challenge"
   },
   "online": {
     "title": "ACCOUNT & CLOUD",
@@ -723,7 +744,8 @@
     "signOut": "Disconnect",
     "board": {
       "dmg": "Total damage",
-      "finish": "Fastest finish"
+      "finish": "Fastest finish",
+      "daily": "Today's challenge"
     },
     "period": {
       "day": "Today",
@@ -794,6 +816,35 @@
       "hunter": "+{{v}}% damage to bosses and elites.",
       "coldBlood": "When hit you keep {{v}}% of your streak.",
       "smuggler": "Special chest slot machines roll twice and keep the best."
+    }
+  },
+  "daily": {
+    "title": "DAILY CHALLENGE · {{day}}",
+    "play": "Play the challenge",
+    "rules": "Same seed for everyone and no bunker upgrades.",
+    "reward": "First attempt: +{{n}} coupons.",
+    "best": "Your best today: {{dmg}} damage, {{kills}} kills.",
+    "mod": {
+      "elites": {
+        "name": "Hunt",
+        "desc": "elites twice as often."
+      },
+      "hordes": {
+        "name": "Swarm season",
+        "desc": "hordes twice as often."
+      },
+      "glass": {
+        "name": "Glass cannon",
+        "desc": "you deal and take double damage."
+      },
+      "irradiated": {
+        "name": "Green rain",
+        "desc": "many more irradiated enemies."
+      },
+      "barrels": {
+        "name": "Powder keg",
+        "desc": "the wasteland is full of explosive barrels."
+      }
     }
   }
 }

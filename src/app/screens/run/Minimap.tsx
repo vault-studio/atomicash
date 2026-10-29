@@ -154,6 +154,32 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     ctx.shadowBlur = 0;
   }
 
+  // Barriles: puntitos rojos (solo los del alcance).
+  ctx.fillStyle = RADAR.barrel;
+  for (let i = 0; i < w.barrels.count; i++) {
+    const b = w.barrels.items[i]!;
+    const sx = isoX(b.x - p.x, b.y - p.y);
+    const sy = isoY(b.x - p.x, b.y - p.y);
+    if (Math.hypot(sx, sy) <= RADAR.range) ctx.fillRect(c + sx * k - 2, c + sy * k - 2, 4, 4);
+  }
+
+  // Objetivo: anillo amarillo que late; fuera, flecha en el borde.
+  const ob = w.objective;
+  if (ob) {
+    const sx = isoX(ob.x - p.x, ob.y - p.y);
+    const sy = isoY(ob.x - p.x, ob.y - p.y);
+    ctx.strokeStyle = ctx.fillStyle = RADAR.objective;
+    ctx.lineWidth = 2;
+    if (Math.hypot(sx, sy) <= RADAR.range) {
+      ctx.beginPath();
+      ctx.arc(c + sx * k, c + sy * k, 5 + 3 * pulse, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      const ang = Math.atan2(sy, sx);
+      arrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
+    }
+  }
+
   // El jugador, en el centro.
   ctx.fillStyle = RADAR.phosphor;
   ctx.beginPath();

@@ -82,6 +82,23 @@ export function Cards({ choice, world, onPick, onReroll, onBanish, onLock }: Pro
     return () => window.removeEventListener('keydown', onKey);
   }, [choice, canReroll, ready, onPick, onReroll]);
 
+  if (choice.type === 'endless') {
+    return (
+      <div className="overlay" role="dialog" aria-modal="true">
+        <h2 className="overlay__title">{t('cards.endlessTitle')}</h2>
+        <p className="endless__text">{t('cards.endlessDesc')}</p>
+        <div className="overlay__actions">
+          <button className="btn btn--primary" autoFocus onClick={() => onPick(0)}>
+            {t('cards.endlessGo')}
+          </button>
+          <button className="btn" onClick={() => onPick(1)}>
+            {t('cards.endlessStop')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (choice.type === 'cache') {
     const digits = String(coupons).padStart(3, '0').split('');
     return (

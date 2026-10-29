@@ -15,6 +15,7 @@ import {
 import { IRRADIATED } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
+import { ENDLESS } from '../../config/modes';
 import { addShake, banner, boom, hitStop, textFx } from '../fx';
 import {
   MODE_AIM,
@@ -146,7 +147,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   const s: EnemyStats = ENEMY_STATS[type];
   const boss = s.boss === true;
   const isIrr = boss ? false : (irr ?? w.rng() < irradiatedChance(w));
-  const hp = s.hp * (boss ? 1 : 1 + w.time * ENEMY_RULES.hpPerSec) * (isIrr ? IRRADIATED.hp : 1);
+  const endless = w.endless ? 1 + ((w.time - w.endlessAt) / 60) * ENDLESS.hpPerMin : 1;
+  const hp = s.hp * (boss ? 1 : (1 + w.time * ENEMY_RULES.hpPerSec) * endless) * (isIrr ? IRRADIATED.hp : 1);
   e.id = w.nextId++;
   e.type = type;
   e.x = e.prevX = x;

@@ -65,6 +65,8 @@ export interface SaveData {
   gacha: { pity: Record<ZoneId, number>; pulls: number };
   missions: { day: string; daily: MissionProgress[]; achievements: Partial<Record<AchievementId, boolean>> };
   shop: { day: string; bought: string[] };
+  /** Reto diario: día UTC del último intento, mejor marca de ese día y si ya se cobró el premio. */
+  daily: { day: string; best: { dmg: number; time: number; kills: number } | null; rewarded: boolean };
   /** Árbol de pasivas: nodos comprados (sin el centro) y cupones gastados en ellos. */
   tree: { nodes: TreeNodeId[]; spent: number };
   settings: Settings;
@@ -115,6 +117,7 @@ export function defaultSave(): SaveData {
     gacha: { pity: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) as Record<ZoneId, number>, pulls: 0 },
     missions: { day: '', daily: [], achievements: {} },
     shop: { day: '', bought: [] },
+    daily: { day: '', best: null, rewarded: false },
     tree: { nodes: [], spent: 0 },
     settings: defaultSettings(),
   };
@@ -174,6 +177,8 @@ export function normalize(raw: unknown): SaveData {
   const sh = isObj(raw.shop) ? raw.shop : {};
   const st = isObj(raw.settings) ? raw.settings : {};
   const tr = isObj(raw.tree) ? raw.tree : {};
+  const dl = isObj(raw.daily) ? raw.daily : {};
+  const db = isObj(dl.best) ? dl.best : null;
   const survivors: SaveData['survivors'] = {};
   // Los supervivientes que ya no están en el plantel se quitan; si era el inicial, se repite el test.
   for (const id of ROSTER) if (sv[id] !== undefined) survivors[id] = normSurvivor(sv[id]);
@@ -236,6 +241,11 @@ export function normalize(raw: unknown): SaveData {
     shop: {
       day: str(sh.day, ''),
       bought: Array.isArray(sh.bought) ? sh.bought.filter((x): x is string => typeof x === 'string') : [],
+    },
+    daily: {
+      day: str(dl.day, ''),
+      best: db ? { dmg: num(db.dmg, 0, 0), time: num(db.time, 0, 0), kills: num(db.kills, 0, 0) } : null,
+      rewarded: bool(dl.rewarded, false),
     },
     tree: { nodes: connectedNodes(tr.nodes), spent: Math.floor(num(tr.spent, 0, 0)) },
     settings: {

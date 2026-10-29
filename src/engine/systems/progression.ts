@@ -13,6 +13,7 @@ import type { Card, World } from '../types';
 import { isOnScreen } from '../view';
 import { addCoupons, addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies } from './combat';
 import { compactEnemies } from './enemies';
+import { chooseEndless } from './modes';
 import { createWeapon } from './weapons';
 
 // ---------- XP ----------
@@ -315,6 +316,8 @@ export function reroll(w: World): boolean {
 export function applyChoice(w: World, i: number): void {
   const ch = w.choice;
   if (!ch) return;
+  // Tras el Coloso: 0 = seguir en infinito, 1 = terminar.
+  if (ch.type === 'endless') return chooseEndless(w, i === 0);
   const c = ch.cards[i];
   if (!c) return;
   switch (c.kind) {

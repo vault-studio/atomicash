@@ -76,6 +76,8 @@ export const RADAR = {
   phosphor: '#3cff6b',
   dim: 'rgba(60, 255, 107, 0.28)',
   bg: 'rgba(6, 20, 9, 0.88)',
+  barrel: '#ff5a3c',
+  objective: '#ffe14a',
   kinds: {
     medkit: '#ff4d4d',
     magnet: '#4db8ff',
@@ -121,6 +123,9 @@ export const RUN_COLORS = {
   slime: 0x7dff3a,
   pool: 0xff7a2a,
   tele: 0xff3c28,
+  objective: 0xffe14a,
+  barrel: 0xc0321e,
+  barrelBand: 0xffd34a,
   mine: 0xff5a5a,
   ebullet: 0xff6a3a,
   shadow: 0x000000,

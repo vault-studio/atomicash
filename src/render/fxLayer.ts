@@ -84,6 +84,30 @@ export class FxLayer {
       groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: RUN_COLORS.tele, alpha: 0.8 * blink });
       groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: RUN_COLORS.tele, alpha: 0.25 * blink });
     }
+    // Zona del objetivo: anillo amarillo que late y se llena con el progreso.
+    const ob = w.objective;
+    if (ob) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 4);
+      const f = Math.min(1, ob.progress / ob.goal);
+      groundCircle(g, ob.x, ob.y, ob.r)
+        .fill({ color: RUN_COLORS.objective, alpha: 0.06 + 0.05 * pulse })
+        .stroke({ width: 3, color: RUN_COLORS.objective, alpha: 0.6 + 0.3 * pulse });
+      if (f > 0) groundCircle(g, ob.x, ob.y, ob.r * f).fill({ color: RUN_COLORS.objective, alpha: 0.18 });
+    }
+    // Barriles explosivos: rojos con la franja amarilla; con la mecha encendida parpadean.
+    for (let i = 0; i < w.barrels.count; i++) {
+      const b = w.barrels.items[i]!;
+      const sx = isoX(b.x, b.y);
+      const sy = isoY(b.x, b.y);
+      const r = b.r;
+      const lit = b.fuse >= 0 && Math.sin(t * 60) > 0;
+      groundCircle(g, b.x, b.y, r).fill({ color: 0x000000, alpha: 0.35 });
+      g.rect(sx - r * 0.8, sy - r * 2.2, r * 1.6, r * 2.2)
+        .fill({ color: lit ? 0xffffff : RUN_COLORS.barrel })
+        .stroke({ width: 1.5, color: 0x000000, alpha: 0.7 });
+      g.rect(sx - r * 0.8, sy - r * 1.35, r * 1.6, r * 0.4).fill({ color: RUN_COLORS.barrelBand });
+      g.ellipse(sx, sy - r * 2.2, r * 0.8, r * 0.3).fill({ color: 0x5a1a10 });
+    }
     // Aura de los élites: anillo del color de su prefijo que late (la del radiactivo marca su alcance).
     for (let i = 0; i < w.enemies.count; i++) {
       const e = w.enemies.items[i]!;

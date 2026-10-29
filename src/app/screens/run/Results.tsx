@@ -16,7 +16,9 @@ interface Props {
 export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
   const { t } = useTranslation();
   const sourceName = (src: string): string =>
-    src === 'granada' || src === 'hinchado' ? t(`sources.${src}`) : t(`weapons.${src}.name`);
+    src === 'granada' || src === 'hinchado' || src === 'bomba' || src === 'barril'
+      ? t(`sources.${src}`)
+      : t(`weapons.${src}.name`);
   const top = r.dmgBy.slice(0, 6);
   const max = top[0]?.dmg ?? 1;
   const peak = Math.max(1, ...r.timeDmg);
@@ -66,6 +68,22 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
           <dd>{r.peakKills5}</dd>
           <dt>{t('results.bestStreak')}</dt>
           <dd>{r.bestStreak ?? 0}</dd>
+          <dt>{t('results.objectives')}</dt>
+          <dd>{r.objectives ?? 0}</dd>
+          {r.endless && (
+            <>
+              <dt>{t('results.endless')}</dt>
+              <dd>{fmtTime(r.time - r.winTime)}</dd>
+            </>
+          )}
+          {r.daily && r.dailyMod && (
+            <>
+              <dt>{t('results.daily')}</dt>
+              <dd>
+                {r.daily} · {t(`daily.mod.${r.dailyMod}.name`)}
+              </dd>
+            </>
+          )}
           <dt>{t('results.maxHit')}</dt>
           <dd>{r.maxHit.toLocaleString()}</dd>
           <dt>{t('results.peakDps')}</dt>

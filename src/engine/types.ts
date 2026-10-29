@@ -1,6 +1,7 @@
 import type { EntityId } from '../config/entities';
 import type { EliteId, StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
+import type { DailyMod, ObjectiveKind } from '../config/modes';
 import type { BuildingKind } from '../config/props';
 import type { StatSurvivorId } from '../config/survivors';
 import type { TreeMod } from '../config/tree';
@@ -262,6 +263,25 @@ export interface Horde {
   ay: number;
 }
 
+/** Barril explosivo; `fuse` ≥ 0 es la mecha encendida (en s) por otra explosión, −1 si está quieto. */
+export interface Barrel {
+  x: number;
+  y: number;
+  r: number;
+  fuse: number;
+}
+
+/** Objetivo del mapa en curso: zona, progreso hacia `goal` y tiempo que queda. */
+export interface Objective {
+  kind: ObjectiveKind;
+  x: number;
+  y: number;
+  r: number;
+  progress: number;
+  goal: number;
+  left: number;
+}
+
 export interface Point {
   x: number;
   y: number;
@@ -389,8 +409,11 @@ export type Card =
   | { kind: 'purge' };
 
 export interface Choice {
-  /** `cache`: tragaperras del cofre especial (una tarjeta de cupones y un nivel). */
-  type: 'level' | 'item' | 'cache';
+  /**
+   * `cache`: tragaperras del cofre especial (una tarjeta de cupones y un nivel). `endless`: ha caído el Coloso y se
+   * pregunta si seguir en el modo infinito (sin tarjetas).
+   */
+  type: 'level' | 'item' | 'cache' | 'endless';
   cards: Card[];
 }
 
@@ -528,6 +551,23 @@ export interface World {
   hordeIdx: number;
   /** Horda avisada que aún no ha llegado. */
   horde: Horde | null;
+  readonly barrels: Pool<Barrel>;
+  /** Tiempo hasta intentar poner más barriles. */
+  barrelT: number;
+  objective: Objective | null;
+  nextObjective: number;
+  objectiveIdx: number;
+  objectivesDone: number;
+  /** Modo infinito tras el Coloso: desde cuándo, próximo jefe y vueltas de la rueda de jefes. */
+  endless: boolean;
+  endlessAt: number;
+  nextEndlessBoss: number;
+  endlessLoop: number;
+  /** Segundo en que cayó el Coloso (0 si no). */
+  winTime: number;
+  /** Reto diario: día (UTC, `AAAA-MM-DD`) y modificador; null en una partida normal. */
+  readonly daily: string | null;
+  readonly dailyMod: DailyMod | null;
   /** Último élite golpeado (id) y cuándo, para su barra en el HUD. */
   eliteFocus: number;
   eliteFocusAt: number;

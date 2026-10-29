@@ -15,6 +15,8 @@ const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
 
 interface Props {
   charId: StatSurvivorId;
+  /** Semilla fija (reto diario): «Revancha» repite la misma. */
+  fixedSeed?: number;
   settings: RunSettings;
   /** Bonus del taller, mochila y mercader (F3). */
   worldOptions?: WorldOptions;
@@ -23,7 +25,7 @@ interface Props {
   onFinish?: (r: RunResults) => React.ReactNode;
 }
 
-export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: Props) {
+export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, onFinish }: Props) {
   const { t } = useTranslation();
   const hostRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<RunSession | null>(null);
@@ -37,7 +39,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
   // Cambiar la clave reinicia la run sin recargar la página (F1-09).
   const [runKey, setRunKey] = useState(0);
-  const [seed, setSeed] = useState(() => (Math.random() * 2 ** 31) | 0);
+  const [seed, setSeed] = useState(() => fixedSeed ?? (Math.random() * 2 ** 31) | 0);
   const [world, setWorld] = useState<World | null>(null);
   const settingsRef = useRef(settings);
   const optionsRef = useRef(worldOptions);
@@ -129,7 +131,7 @@ export function RunScreen({ charId, settings, worldOptions, onExit, onFinish }: 
   const banish = useCallback((i: number) => sessionRef.current?.banish(i), []);
   const lock = useCallback((i: number) => sessionRef.current?.lock(i), []);
   const again = (): void => {
-    setSeed((Math.random() * 2 ** 31) | 0);
+    setSeed(fixedSeed ?? (Math.random() * 2 ** 31) | 0);
     setRunKey((k) => k + 1);
   };
 

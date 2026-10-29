@@ -1,7 +1,7 @@
 // Une motor, entrada y render: paso fijo a 60 Hz y render a la tasa del monitor con interpolación.
 // La UI (React) recibe una foto del estado 10 veces por segundo y las elecciones al abrirse.
 import type { Ticker } from 'pixi.js';
-import { audio } from '../audio/audio';
+import { audio, type MusicState } from '../audio/audio';
 import { AUDIO } from '../config/audio';
 import {
   BOSS_PHASES,
@@ -15,6 +15,7 @@ import type { ConsumableId, ItemId } from '../config/items';
 import { radTier } from '../config/radiation';
 import { PLAYER, RUN, streakMult } from '../config/run';
 import type { HordeKind } from '../config/waves';
+import type { DailyMod, ObjectiveKind } from '../config/modes';
 import type { WeaponId } from '../config/weapons';
 import { advance, createFixedStep } from '../engine/loop';
 import { spawnEnemy } from '../engine/systems/enemies';
@@ -29,7 +30,7 @@ import {
 import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
 import type { Banner, Choice, InputState, World } from '../engine/types';
 import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
-import { isoX, isoY, setView } from '../engine/view';
+import { isOnScreen, isoX, isoY, setView } from '../engine/view';
 import {
   createWorld,
   currentDps,
@@ -75,6 +76,17 @@ export interface HudSnapshot {
   horde: { kind: HordeKind; sx: number; sy: number; left: number } | null;
   streak: number;
   streakMult: number;
+  /** Objetivo del mapa: progreso, tiempo que queda y dirección de pantalla si está fuera de la vista. */
+  objective: {
+    kind: ObjectiveKind;
+    progress: number;
+    goal: number;
+    left: number;
+    dir: { sx: number; sy: number } | null;
+  } | null;
+  /** Minutos jugados en el modo infinito, o null. */
+  endless: number | null;
+  dailyMod: DailyMod | null;
   banners: Banner[];
   rain: boolean;
   storm: boolean;
@@ -93,6 +105,25 @@ export interface RunSettings {
 
 const SFX_NAMES = Object.keys(SFX) as SfxId[];
 
+/** Intensidad de la partida para la música por capas: enemigos en pantalla, hordas y élites. */
+function musicState(w: World): MusicState {
+  const L = AUDIO.layers;
+  let onScreen = 0;
+  let elite = false;
+  for (let i = 0; i < w.enemies.count; i++) {
+    const e = w.enemies.items[i]!;
+    if (e.dead) continue;
+    if (e.elite) elite = true;
+    if (isOnScreen(w, e.x, e.y)) onScreen++;
+  }
+  const intensity = Math.min(1, onScreen / L.fullAt + (w.horde ? L.horde : 0) + (elite ? L.elite : 0));
+  return {
+    intensity,
+    streak: streakMult(w.streak) > 1,
+    lowHp: w.player.hp < w.player.maxHp * L.lowHp && w.player.deadAt === null,
+  };
+}
+
 /** Hace sonar lo que el motor contó desde el último fotograma y el chasquido del Geiger según la RAD. */
 function createSoundTap(): (w: World, frameSec: number) => void {
   const prev = new Int32Array(SFX_COUNT);
@@ -109,6 +140,7 @@ function createSoundTap(): (w: World, frameSec: number) => void {
       audio.play('geiger');
     }
     audio.setMusic(w.bossAlive > 0 ? 'boss' : 'run');
+    audio.setMusicState(musicState(w));
   };
 }
 
@@ -128,6 +160,19 @@ export interface RunOptions extends WorldOptions {
   charId: StatSurvivorId;
   seed: number;
   settings: RunSettings;
+}
+
+function objectiveSnap(w: World): HudSnapshot['objective'] {
+  const o = w.objective;
+  if (!o) return null;
+  let dir: { sx: number; sy: number } | null = null;
+  if (!isOnScreen(w, o.x, o.y, -o.r * 0.5)) {
+    const sx = isoX(o.x - w.player.x, o.y - w.player.y);
+    const sy = isoY(o.x - w.player.x, o.y - w.player.y);
+    const l = Math.hypot(sx, sy) || 1;
+    dir = { sx: sx / l, sy: sy / l };
+  }
+  return { kind: o.kind, progress: o.progress, goal: o.goal, left: o.left, dir };
 }
 
 function snapshot(w: World): HudSnapshot {
@@ -176,6 +221,9 @@ function snapshot(w: World): HudSnapshot {
     boss,
     elite,
     horde,
+    objective: objectiveSnap(w),
+    endless: w.endless ? (w.time - w.endlessAt) / 60 : null,
+    dailyMod: w.dailyMod,
     streak: w.streak,
     streakMult: streakMult(w.streak),
     banners: w.banners.slice(),
@@ -210,7 +258,10 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const syncChoice = (): void => {
     if (world.choice !== lastChoice) {
       lastChoice = world.choice;
-      if (world.choice) audio.play(world.choice.type === 'level' ? 'level' : 'chest');
+      if (world.choice)
+        audio.play(
+          world.choice.type === 'level' ? 'level' : world.choice.type === 'endless' ? 'win' : 'chest',
+        );
       cb.onChoice(world.choice);
       hudAcc = 1;
     }

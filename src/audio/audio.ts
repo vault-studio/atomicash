@@ -6,10 +6,25 @@ import { AUDIO, type MusicMood } from '../config/audio';
 
 type Ctx = AudioContext;
 
+/** Capas de la música de la run (ver AUDIO.layers). */
+type Layer = 'bass' | 'drums' | 'chords' | 'arp' | 'lead';
+const LAYERS: readonly Layer[] = ['bass', 'drums', 'chords', 'arp', 'lead'];
+
+/** Estado de la partida que decide qué capas suenan. */
+export interface MusicState {
+  /** 0–1. */
+  intensity: number;
+  streak: boolean;
+  lowHp: boolean;
+}
+
 class AudioEngine {
   private ctx: Ctx | null = null;
   private master!: GainNode;
   private music!: GainNode;
+  private lowpass!: BiquadFilterNode;
+  private readonly layer = {} as Record<Layer, GainNode>;
+  private state: MusicState = { intensity: 1, streak: false, lowHp: false };
   private fx!: GainNode;
   private noise!: AudioBuffer;
   private musicVol: number = AUDIO.defaultMusic;
@@ -39,7 +54,15 @@ class AudioEngine {
     this.master.connect(ctx.destination);
     this.music = ctx.createGain();
     this.fx = ctx.createGain();
-    this.music.connect(this.master);
+    this.lowpass = ctx.createBiquadFilter();
+    this.lowpass.type = 'lowpass';
+    this.lowpass.frequency.value = AUDIO.layers.lowpass.open;
+    this.music.connect(this.lowpass).connect(this.master);
+    for (const l of LAYERS) {
+      this.layer[l] = ctx.createGain();
+      this.layer[l].connect(this.music);
+    }
+    this.applyLayers(true);
     this.fx.connect(this.master);
     this.applyVolumes();
     const len = ctx.sampleRate;
@@ -170,11 +193,42 @@ class AudioEngine {
 
   // ---------- música ----------
 
+  /** La run informa de su estado; las capas entran y salen con un fundido. */
+  setMusicState(s: MusicState): void {
+    const changed =
+      s.streak !== this.state.streak ||
+      s.lowHp !== this.state.lowHp ||
+      Math.abs(s.intensity - this.state.intensity) > 0.05;
+    this.state = s;
+    if (changed) this.applyLayers(false);
+  }
+
+  private applyLayers(now: boolean): void {
+    if (!this.ctx) return;
+    const L = AUDIO.layers;
+    // Fuera de la run (menú) o con un jefe: todas las capas.
+    const all = this.mood !== 'run';
+    const i = this.state.intensity;
+    const on: Record<Layer, boolean> = {
+      bass: true,
+      drums: all || i >= L.drums,
+      chords: all || i >= L.chords,
+      arp: all || i >= L.arp,
+      lead: this.mood === 'run' && this.state.streak,
+    };
+    const t = this.ctx.currentTime;
+    const tc = now ? 0.001 : L.fade / 3;
+    for (const l of LAYERS) this.layer[l].gain.setTargetAtTime(on[l] ? 1 : 0, t, tc);
+    const low = this.mood === 'run' && this.state.lowHp;
+    this.lowpass.frequency.setTargetAtTime(low ? L.lowpass.closed : L.lowpass.open, t, tc);
+  }
+
   /** Menús: swing de bajo y acordes; run: arpegio menor con más tensión. null = silencio. */
   setMusic(mood: MusicMood | null): void {
     if (mood === this.mood) return;
     this.mood = mood;
     this.step = 0;
+    this.applyLayers(false);
     if (!mood) this.stopScheduler();
     else if (this.ctx) this.startScheduler();
   }
@@ -202,13 +256,26 @@ class AudioEngine {
       const root = M.prog[bar]!;
       // Swing: las corcheas impares llegan tarde.
       const t = this.nextNote + (s % 2 === 1 ? beat * M.swing : 0);
+      const Ly = this.layer;
       if (s % 2 === 0)
-        this.note(t, 'triangle', midi(root - 12 + M.bass[(s / 2) % M.bass.length]!), beat * 1.6, 0.22);
+        this.note(
+          t,
+          'triangle',
+          midi(root - 12 + M.bass[(s / 2) % M.bass.length]!),
+          beat * 1.6,
+          0.22,
+          Ly.bass,
+        );
       if (s % 8 === 2 || s % 8 === 6)
-        for (const iv of M.chord) this.note(t, 'square', midi(root + iv), beat * 0.6, 0.035);
+        for (const iv of M.chord) this.note(t, 'square', midi(root + iv), beat * 0.6, 0.035, Ly.chords);
       if (M.arp.length)
-        this.note(t, 'sawtooth', midi(root + 12 + M.arp[s % M.arp.length]!), beat * 0.5, 0.03);
-      if (s % 4 === 0) this.burst(t, 0.04, 6000, 0.05, this.music);
+        this.note(t, 'sawtooth', midi(root + 12 + M.arp[s % M.arp.length]!), beat * 0.5, 0.03, Ly.arp);
+      // Melodía de la racha: pentatónica por encima del arpegio.
+      if (this.mood === 'run' && s % 2 === 0) {
+        const lead = AUDIO.layers.lead;
+        this.note(t, 'square', midi(root + lead[(s / 2) % lead.length]!), beat * 0.9, 0.04, Ly.lead);
+      }
+      if (s % 4 === 0) this.burst(t, 0.04, 6000, 0.05, Ly.drums);
       if (M.kick && s % 4 === 0) {
         const o = ctx.createOscillator();
         const g = ctx.createGain();
@@ -216,7 +283,7 @@ class AudioEngine {
         o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
         g.gain.setValueAtTime(0.35, t);
         g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-        o.connect(g).connect(this.music);
+        o.connect(g).connect(Ly.drums);
         o.start(t);
         o.stop(t + 0.2);
       }
@@ -225,7 +292,14 @@ class AudioEngine {
     }
   }
 
-  private note(t: number, type: OscillatorType, f: number, dur: number, vol: number): void {
+  private note(
+    t: number,
+    type: OscillatorType,
+    f: number,
+    dur: number,
+    vol: number,
+    out: AudioNode = this.music,
+  ): void {
     const ctx = this.ctx!;
     const o = ctx.createOscillator();
     const g = ctx.createGain();
@@ -234,7 +308,7 @@ class AudioEngine {
     g.gain.setValueAtTime(0, t);
     g.gain.linearRampToValueAtTime(vol, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(this.music);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + dur + 0.05);
   }

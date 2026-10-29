@@ -25,6 +25,7 @@ import {
   streakMult,
 } from '../../config/run';
 import { EVENTS } from '../../config/waves';
+import { DAILY } from '../../config/modes';
 import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
@@ -32,6 +33,7 @@ import { timeDmgMult } from '../stats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
+import { colossusDown, objectiveKill } from './modes';
 
 /** Opciones de `hitEnemy` como bits para no crear objetos en cada golpe. */
 export const HIT_DIRECT = 1;
@@ -87,7 +89,12 @@ export function addRad(w: World, amount: number): void {
 }
 
 export function irradiatedChance(w: World): number {
-  return IRRADIATED.base + w.time * IRRADIATED.perSec + radTier(w.player.rad).irr;
+  return (
+    IRRADIATED.base +
+    w.time * IRRADIATED.perSec +
+    radTier(w.player.rad).irr +
+    (w.dailyMod === 'irradiated' ? DAILY.irradiated.chance : 0)
+  );
 }
 
 /** Sprite que corresponde a un enemigo según su fase (variantes de la biblia de arte). */
@@ -139,6 +146,7 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
+  if (w.dailyMod === 'glass' && !(flags & HIT_RAW)) d *= DAILY.glass.dealt;
   // Único «Cazador» del árbol: más daño a jefes y élites.
   if ((e.boss || e.elite) && w.mods.hunter) d *= 1 + w.mods.hunter / 100;
   if (e.elite) {
@@ -303,6 +311,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   e.dead = true;
   w.kills++;
   countKill(w);
+  objectiveKill(w, e.x, e.y);
   const before = streakMult(w.streak);
   w.streak++;
   if (w.streak > w.bestStreak) w.bestStreak = w.streak;
@@ -353,10 +362,8 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
       banner(w, 'banner.chest');
     }
     if (e.type === 'dirigible') dropGems(w, e.x, e.y, AI.dirigible.dropXp);
-    if (e.type === 'coloso') {
-      w.over = true;
-      w.won = true;
-    }
+    // El Coloso gana la run (y pregunta si seguir en infinito); en infinito solo es un jefe más.
+    if (e.type === 'coloso' && !w.endless) colossusDown(w);
   }
   if (e.type === 'hinchado' && w.blasts.count < w.blasts.items.length) {
     // Se resuelve después (resolveBlasts): puede morir dentro de un bucle que ya recorre una consulta.
@@ -420,7 +427,8 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
     return -1;
   }
   const tm = noScale ? 1 : timeDmgMult(w.time);
-  const d = Math.max(1, raw * tm - st.armor) * (1 - st.red);
+  const d =
+    Math.max(1, raw * tm - st.armor) * (1 - st.red) * (w.dailyMod === 'glass' ? DAILY.glass.taken : 1);
   p.hp -= d;
   p.inv = PLAYER.invuln;
   // Un golpe recibido corta la racha (si ya multiplicaba, se avisa).

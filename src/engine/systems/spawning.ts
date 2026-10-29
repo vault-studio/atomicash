@@ -1,6 +1,7 @@
 // Director de la run: oleadas fuera de cámara (F1-05), eventos, jefes (F2-05/F2-07), élites y hordas en formación.
 import { BOSSES, BOSS_IDS, ELITES, ELITE_IDS, ENEMY_RULES, type StatEnemyId } from '../../config/enemies';
 import { BUILDINGS } from '../../config/props';
+import { DAILY, ENDLESS } from '../../config/modes';
 import { EVENTS, HORDES, SPAWN, WAVES, type HordeKind, type WaveDef } from '../../config/waves';
 import { banner } from '../fx';
 import { SFX, sfx } from '../sfx';
@@ -203,16 +204,19 @@ function updateSpecials(w: World, dt: number): void {
     if (w.nextElite < w.time + 10) w.nextElite = w.time + 10;
     if (!w.horde && w.nextHorde < w.time + 10) w.nextHorde = w.time + 10;
   }
+  const often = w.endless ? ENDLESS.specialsMult : 1;
   if (w.time >= w.nextElite) {
     spawnElite(w);
-    w.nextElite = w.time + ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin);
+    const k = often * (w.dailyMod === 'elites' ? DAILY.elites.every : 1);
+    w.nextElite = w.time + (ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin)) * k;
   }
   if (w.horde) {
     w.horde.t -= dt;
     if (w.horde.t <= 0) releaseHorde(w);
   } else if (w.time >= w.nextHorde) {
     announceHorde(w);
-    w.nextHorde = w.time + HORDES.everyMin + w.rng() * (HORDES.everyMax - HORDES.everyMin);
+    const k = often * (w.dailyMod === 'hordes' ? DAILY.hordes.every : 1);
+    w.nextHorde = w.time + (HORDES.everyMin + w.rng() * (HORDES.everyMax - HORDES.everyMin)) * k;
   }
 }
 
@@ -278,7 +282,11 @@ export function updateSpawning(w: World, dt: number): void {
     }
   }
 
+  // Infinito: cada minuto, más ritmo y más tope (hasta el máximo de enemigos del mundo).
+  const em = w.endless ? (w.time - w.endlessAt) / 60 : 0;
+  const maxAlive = Math.min(w.maxEnemies, wave.max * (1 + em * ENDLESS.maxPerMin));
   const rate =
+    (1 + em * ENDLESS.ratePerMin) *
     wave.rate *
     SPAWN.rateMult *
     (w.rain > 0 ? EVENTS.rain.spawnMult : 1) *
@@ -287,7 +295,7 @@ export function updateSpawning(w: World, dt: number): void {
   let alive = pool.count - w.bossAlive;
   while (w.spawnAcc >= 1) {
     w.spawnAcc -= 1;
-    if (alive >= wave.max) {
+    if (alive >= maxAlive) {
       // Al tope: no se acumulan apariciones pendientes para cuando mueran.
       w.spawnAcc = 0;
       break;

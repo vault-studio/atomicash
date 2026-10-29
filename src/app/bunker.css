@@ -668,3 +668,36 @@ button.card--survivor {
     max-height: 58vh;
   }
 }
+
+/* ---------- Reto diario (dossier §14) ---------- */
+.daily {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #4a8cff;
+  background: rgba(20, 30, 60, 0.55);
+  color: var(--crema);
+}
+
+.daily__text {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  font-size: clamp(14px, 2.2vh, 18px);
+}
+
+.daily__text strong {
+  color: #8ab6ff;
+  font-family: var(--hud-font);
+  letter-spacing: 0.06em;
+}
+
+.daily__text b {
+  color: #ffe14a;
+  font-weight: normal;
+}
+
+.daily__text small {
+  opacity: 0.8;
+}

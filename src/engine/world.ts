@@ -6,6 +6,7 @@ import { CAPS, CREDITS, JUICE, PLAYER, RUN, SUMMARY, xpForLevel } from '../confi
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import type { TreeMod } from '../config/tree';
+import { OBJECTIVES, type DailyMod } from '../config/modes';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS, HORDES } from '../config/waves';
 import { refreshHazards } from './hazards';
@@ -27,6 +28,7 @@ import {
   updateSlimes,
   updateTelegraphs,
 } from './systems/enemies';
+import { createBarrel, updateBarrels, updateEndless, updateObjective } from './systems/modes';
 import { updatePickups } from './systems/progression';
 import { updateSpawning } from './systems/spawning';
 import {
@@ -57,6 +59,8 @@ export interface WorldOptions {
   extraRerolls?: number;
   /** Mejoras del árbol de pasivas que no son rasgos. */
   mods?: Partial<Record<TreeMod, number>>;
+  /** Reto diario: día UTC y modificador. */
+  daily?: { day: string; mod: DailyMod };
   /** Charcos radiactivos y objetos (obstáculos, edificios) en el mapa (los tests los quitan para aislar sistemas). */
   hazards?: boolean;
 }
@@ -216,6 +220,19 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     bossAlive: 0,
     nextElite: ELITES.first,
     nextHorde: HORDES.first,
+    barrels: new Pool(createBarrel, 24),
+    barrelT: 3,
+    objective: null,
+    nextObjective: OBJECTIVES.first,
+    objectiveIdx: 0,
+    objectivesDone: 0,
+    endless: false,
+    endlessAt: 0,
+    nextEndlessBoss: Infinity,
+    endlessLoop: 0,
+    winTime: 0,
+    daily: opts.daily?.day ?? null,
+    dailyMod: opts.daily?.mod ?? null,
     hordeIdx: 0,
     horde: null,
     eliteFocus: -1,
@@ -309,7 +326,11 @@ export function tick(w: World, input: InputState, dt: number): void {
   updateRadiation(w, dt);
 
   w.enemyGrid.build(w.enemies.items, w.enemies.count);
-  if (p.deadAt === null) updateSpawning(w, dt);
+  if (p.deadAt === null) {
+    updateSpawning(w, dt);
+    updateObjective(w, dt);
+    updateEndless(w);
+  }
   updateWeapons(w, dt);
   updateShots(w, dt);
   updateLobs(w, dt);
@@ -319,6 +340,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   updateEnemies(w, dt);
   updateEnemyBullets(w, dt);
   updateTelegraphs(w, dt);
+  updateBarrels(w, dt);
   resolveBlasts(w);
   compactEnemies(w);
   updatePickups(w, dt);
@@ -386,6 +408,12 @@ export interface RunResults {
   peakDps: number;
   peakKills5: number;
   bestStreak: number;
+  objectives: number;
+  /** Siguió en el modo infinito tras el Coloso; `winTime` es cuándo cayó. */
+  endless: boolean;
+  winTime: number;
+  daily: string | null;
+  dailyMod: DailyMod | null;
   /** Daño y bajas por tramo de `SUMMARY.bucket` s (gráfica del ticket). */
   timeDmg: number[];
   timeKills: number[];
@@ -420,6 +448,11 @@ export function results(w: World): RunResults {
     peakDps: Math.round(w.peakDps),
     peakKills5: w.peakKills5,
     bestStreak: w.bestStreak,
+    objectives: w.objectivesDone,
+    endless: w.endless,
+    winTime: w.winTime,
+    daily: w.daily,
+    dailyMod: w.dailyMod,
     timeDmg: w.timeDmg.map(Math.round),
     timeKills: [...w.timeKills],
   };

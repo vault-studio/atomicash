@@ -30,7 +30,12 @@
     "kit": "EQUIPO",
     "streak": "RACHA {{n}}",
     "elitePrefix": "{{prefix}} · {{name}}",
-    "bossPhase": "FASE {{n}}"
+    "bossPhase": "FASE {{n}}",
+    "endless": "INFINITO +{{n}} min",
+    "objective": {
+      "hold": "OBJETIVO: aguanta en la zona",
+      "purge": "OBJETIVO: limpia la zona"
+    }
   },
   "pauseStats": {
     "attributes": "Atributos",
@@ -144,7 +149,11 @@
     "banishHint": "No volverá a salir en esta partida",
     "lock": "Bloquear ({{n}})",
     "unlock": "Soltar 🔒",
-    "lockHint": "Se guarda para la próxima subida y aguanta los cambios"
+    "lockHint": "Se guarda para la próxima subida y aguanta los cambios",
+    "endlessTitle": "¡EL COLOSO HA CAÍDO!",
+    "endlessDesc": "Has ganado la expedición. Puedes volver al búnker o seguir en el modo infinito: cada minuto más enemigos, más duros, y los jefes vuelven en rueda.",
+    "endlessGo": "Seguir (infinito)",
+    "endlessStop": "Volver con la victoria"
   },
   "rarity": {
     "common": "COMÚN",
@@ -388,7 +397,14 @@
       "ring": "¡Te rodean!",
       "stampede": "¡Estampida!",
       "wall": "¡Se acerca un muro!"
-    }
+    },
+    "objective": {
+      "hold": "¡Objetivo! Aguanta en la zona marcada",
+      "purge": "¡Objetivo! Limpia la zona marcada"
+    },
+    "objectiveDone": "¡Objetivo cumplido! Cofre especial",
+    "objectiveFail": "Objetivo perdido",
+    "endless": "¡MODO INFINITO!"
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",
@@ -420,12 +436,16 @@
     "peakDps": "Pico de DPS",
     "items": "Objetos",
     "timeline": "Daño cada 30 s",
-    "bestStreak": "Mejor racha sin daño"
+    "bestStreak": "Mejor racha sin daño",
+    "objectives": "Objetivos cumplidos",
+    "endless": "Tiempo en infinito",
+    "daily": "Reto diario"
   },
   "sources": {
     "granada": "Granada",
     "hinchado": "Hinchado",
-    "bomba": "Bomba"
+    "bomba": "Bomba",
+    "barril": "Barril"
   },
   "bunker": {
     "expedition": {
@@ -689,7 +709,8 @@
   "reward": {
     "xp": "+{{n}} XP de superviviente",
     "levelUp": "¡+{{n}} nivel!",
-    "achievement": "LOGRO: {{name}}"
+    "achievement": "LOGRO: {{name}}",
+    "daily": "+{{n}} cupones por el reto del día"
   },
   "online": {
     "title": "CUENTA Y NUBE",
@@ -723,7 +744,8 @@
     "signOut": "Desconectar",
     "board": {
       "dmg": "Daño total",
-      "finish": "Tiempo en acabar"
+      "finish": "Tiempo en acabar",
+      "daily": "Reto de hoy"
     },
     "period": {
       "day": "Hoy",
@@ -794,6 +816,35 @@
       "hunter": "+{{v}} % de daño a jefes y élites.",
       "coldBlood": "Al recibir un golpe conservas el {{v}} % de la racha.",
       "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor."
+    }
+  },
+  "daily": {
+    "title": "RETO DIARIO · {{day}}",
+    "play": "Jugar el reto",
+    "rules": "Misma semilla para todos y sin mejoras del búnker.",
+    "reward": "Primer intento: +{{n}} cupones.",
+    "best": "Tu mejor hoy: {{dmg}} de daño, {{kills}} bajas.",
+    "mod": {
+      "elites": {
+        "name": "Cacería",
+        "desc": "élites el doble de a menudo."
+      },
+      "hordes": {
+        "name": "Marabunta",
+        "desc": "hordas el doble de a menudo."
+      },
+      "glass": {
+        "name": "Cañón de cristal",
+        "desc": "haces y recibes el doble de daño."
+      },
+      "irradiated": {
+        "name": "Lluvia verde",
+        "desc": "muchos más enemigos irradiados."
+      },
+      "barrels": {
+        "name": "Polvorín",
+        "desc": "el páramo está lleno de barriles explosivos."
+      }
     }
   }
 }

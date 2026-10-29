@@ -116,7 +116,7 @@ export async function downloadSave(userId: string): Promise<CloudSave | null> {
 export function toSubmission(r: RunResults): RunSubmission {
   return {
     charId: r.charId,
-    timeSec: Math.floor(r.time),
+    timeSec: Math.floor(r.endless ? r.winTime : r.time),
     kills: r.kills,
     bossDmg: r.bossDmg,
     dmgTotal: r.dmg,
@@ -124,6 +124,9 @@ export function toSubmission(r: RunResults): RunSubmission {
     level: r.level,
     won: r.won,
     seed: r.seed | 0,
+    daily: r.daily,
+    // En infinito, el ranking «Tiempo en acabar» mira lo que tardó en ganar; el resto va aparte.
+    endlessSec: r.endless ? Math.floor(r.time - r.winTime) : 0,
   };
 }
 
@@ -133,8 +136,11 @@ export async function submitRun(sub: RunSubmission): Promise<boolean> {
   return !error;
 }
 
-/** `dmg`: más daño total; `finish`: menos tiempo en acabar la partida (solo victorias). */
-export type BoardKind = 'dmg' | 'finish';
+/**
+ * `dmg`: más daño total; `finish`: menos tiempo en acabar la partida (solo victorias); `daily`: reto diario de hoy
+ * (más daño total, sin periodo).
+ */
+export type BoardKind = 'dmg' | 'finish' | 'daily';
 /** Hoy, esta semana (desde el lunes) o siempre; en UTC. */
 export type BoardPeriod = 'day' | 'week' | 'all';
 

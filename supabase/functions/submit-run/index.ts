@@ -36,6 +36,11 @@ Deno.serve(async (req: Request) => {
   const errs = checkRun(body);
   if (errs.length) return json({ error: 'invalid', details: errs }, 422);
   const run = body as RunSubmission;
+  // El reto diario solo se acepta el mismo día (UTC), con un día de margen por el cambio de fecha.
+  if (run.daily) {
+    const diff = Math.abs(Date.parse(run.daily + 'T00:00:00Z') - Date.now());
+    if (!(diff < 2 * 86400 * 1000)) return json({ error: 'daily-day' }, 422);
+  }
 
   const { data: prof } = await service
     .from('profiles')
@@ -66,6 +71,8 @@ Deno.serve(async (req: Request) => {
       level: run.level,
       won: run.won,
       seed: run.seed,
+      daily: run.daily ?? null,
+      endless_sec: run.endlessSec ?? 0,
     })
     .select('id')
     .single();

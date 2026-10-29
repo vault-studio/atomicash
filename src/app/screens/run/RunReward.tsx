@@ -7,6 +7,7 @@ export function RunReward({ reward }: { reward: Reward }) {
   return (
     <div className="ticket__reward">
       <p>{t('reward.xp', { n: reward.xp })}</p>
+      {reward.dailyBonus > 0 && <p className="ticket__ach">{t('reward.daily', { n: reward.dailyBonus })}</p>}
       {reward.levelUps > 0 && <p>{t('reward.levelUp', { n: reward.levelUps })}</p>}
       {reward.achievements.map((a) => (
         <p key={a} className="ticket__ach">
