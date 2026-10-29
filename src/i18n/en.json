@@ -602,6 +602,7 @@
     "resetConfirm": "Delete the whole save? This cannot be undone."
   },
   "psych": {
+    "back": "← Back",
     "title": "MINISTRY OF CIVIL APTITUDE",
     "form": "Form 27-B · question {{n}} of {{total}}",
     "fine": "Tick one box only. The Ministry takes no responsibility for your answers.",

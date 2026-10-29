@@ -1,13 +1,9 @@
 // Antes de salir de expedición: elegir con quién, a pantalla completa con los retratos del plantel.
 // El último usado sale marcado.
 import { useTranslation } from 'react-i18next';
-import benny from '../../../../assets/portraits/benny.webp';
-import dot from '../../../../assets/portraits/dot.webp';
-import gus from '../../../../assets/portraits/gus.webp';
-import { ROSTER, SURVIVORS, type StatSurvivorId } from '../../../config/survivors';
+import { ROSTER, type StatSurvivorId } from '../../../config/survivors';
 import { useSaveData } from '../../../store/save';
-
-const PORTRAITS: Readonly<Record<(typeof ROSTER)[number], string>> = { dot, gus, benny };
+import { PortraitCard } from './Portraits';
 
 interface Props {
   onStart: (id: StatSurvivorId) => void;
@@ -32,24 +28,14 @@ export function Expedition({ onStart, onBack }: Props) {
           const o = survivors[id];
           return (
             <li key={id}>
-              <button
-                className={`pick__card ${active === id ? 'is-active' : ''}`}
+              <PortraitCard
+                id={id}
+                level={o?.level ?? 1}
+                weapon={o?.starter ?? undefined}
+                active={active === id}
                 autoFocus={active ? active === id : i === 0}
                 onClick={() => onStart(id)}
-              >
-                <img className="pick__img" src={PORTRAITS[id]} alt="" />
-                <span className="pick__info">
-                  <strong className="pick__name">{t(`entities.${id}`)}</strong>
-                  <span className="pick__level">{t('collection.level', { n: o?.level ?? 1 })}</span>
-                  <span className="pick__row">
-                    <em>{t('expedition.passive')}</em> {t(`passives.${id}`)}
-                  </span>
-                  <span className="pick__row">
-                    <em>{t('expedition.weapon')}</em>{' '}
-                    {t(`weapons.${o?.starter ?? SURVIVORS[id].weapon}.name`)}
-                  </span>
-                </span>
-              </button>
+              />
             </li>
           );
         })}

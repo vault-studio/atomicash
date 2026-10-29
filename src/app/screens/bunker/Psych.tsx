@@ -2,11 +2,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PSYCH, STARTERS, type StarterId } from '../../../config/meta';
-import { SURVIVORS } from '../../../config/survivors';
 import { chooseStarter, psychResult } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
-import { SurvivorCard } from './common';
-import { newSurvivor } from '../../../meta/save';
+import { PortraitCard } from './Portraits';
 
 export function Psych() {
   const { t } = useTranslation();
@@ -49,42 +47,45 @@ export function Psych() {
   }
 
   const res = psychResult(answers);
-  return (
-    <main className="terminal psych">
-      <header className="terminal__head">
-        <h1>{t('psych.title')}</h1>
-      </header>
-      <h2>{t('psych.verdict')}</h2>
-      {!other ? (
-        <>
-          <ul className="cards">
-            <li>
-              <SurvivorCard id={res} owned={newSurvivor()}>
-                <small>{t(`passives.${res}`)}</small>
-                <small>{t('psych.why', { weapon: t(`weapons.${SURVIVORS[res].weapon}.name`) })}</small>
-              </SurvivorCard>
-            </li>
-          </ul>
-          <div className="row">
-            <button className="btn btn--primary" autoFocus onClick={() => pick(res)}>
-              {t('psych.accept')}
-            </button>
-            <button className="btn" onClick={() => setOther(true)}>
-              {t('psych.other')}
-            </button>
+  // Veredicto a pantalla completa con el retrato grande, como al salir de expedición.
+  if (!other)
+    return (
+      <main className="pick psych-verdict">
+        <header className="pick__head">
+          <h1>{t('psych.verdict')}</h1>
+        </header>
+        <div className="psych-verdict__body">
+          <PortraitCard id={res} level={1} active />
+          <div className="psych-verdict__text">
+            <p>{t('psych.title')}</p>
+            <p className="psych-verdict__name">{t(`entities.${res}`)}</p>
+            <div className="row">
+              <button className="btn btn--primary" autoFocus onClick={() => pick(res)}>
+                {t('psych.accept')}
+              </button>
+              <button className="btn" onClick={() => setOther(true)}>
+                {t('psych.other')}
+              </button>
+            </div>
           </div>
-        </>
-      ) : (
-        <ul className="cards">
-          {STARTERS.map((id) => (
-            <li key={id}>
-              <SurvivorCard id={id} owned={newSurvivor()} onClick={() => pick(id)}>
-                <small>{t(`passives.${id}`)}</small>
-              </SurvivorCard>
-            </li>
-          ))}
-        </ul>
-      )}
+        </div>
+      </main>
+    );
+  return (
+    <main className="pick">
+      <header className="pick__head">
+        <button className="term-btn" onClick={() => setOther(false)}>
+          {t('psych.back')}
+        </button>
+        <h1>{t('psych.other')}</h1>
+      </header>
+      <ul className="pick__list">
+        {STARTERS.map((id, i) => (
+          <li key={id}>
+            <PortraitCard id={id} level={1} autoFocus={i === 0} onClick={() => pick(id)} />
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }

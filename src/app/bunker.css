@@ -509,3 +509,38 @@ button.card--survivor {
   font-size: 0.85em;
   letter-spacing: 0.08em;
 }
+
+/* Veredicto del test inicial: retrato grande a la izquierda y el texto con los botones a la derecha. */
+.psych-verdict__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: clamp(12px, 3vw, 40px);
+  align-items: stretch;
+}
+
+.psych-verdict__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+  font-size: clamp(16px, 2.6vh, 22px);
+  color: var(--crema);
+}
+
+.psych-verdict__text p {
+  margin: 0;
+}
+
+.psych-verdict__text p:first-child {
+  color: var(--crt);
+  letter-spacing: 0.08em;
+}
+
+.psych-verdict__name {
+  font-family: var(--title-font);
+  font-size: clamp(22px, 5vh, 44px);
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}

@@ -5,6 +5,7 @@ import { survivorStats } from '../../../config/survivors';
 import { SOURCE_INDEX } from '../../../config/weapons';
 import type { World } from '../../../engine/types';
 import { currentDps } from '../../../engine/world';
+import { headOf } from '../bunker/Portraits';
 import { fmtTime } from './Hud';
 
 const pct = (v: number): string => `${v > 0 ? '+' : ''}${Math.round(v * 100)} %`;
@@ -55,8 +56,10 @@ export function PauseStats({ world: w }: { world: World }) {
       </tr>
     ));
 
+  const head = headOf(w.charId);
   return (
-    <div className="pstats">
+    <div className={`pstats ${head ? 'pstats--head' : ''}`}>
+      {head && <img className="pstats__head" src={head} alt="" />}
       <h3 className="pstats__name">
         {t(`entities.${w.charId}`)} · {t('run.level', { n: w.level })}
       </h3>

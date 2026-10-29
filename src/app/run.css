@@ -491,6 +491,25 @@
   box-shadow: 0 0 18px rgba(60, 255, 107, 0.2);
 }
 
+/* Con retrato: el busto del personaje a la izquierda, saliendo un poco por encima de la ficha. */
+.pstats--head {
+  position: relative;
+  padding-left: clamp(150px, 22%, 220px);
+}
+
+.pstats__head {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(150px, 22%, 220px);
+  height: auto;
+  max-height: calc(100% + 30px);
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
 .pstats__name {
   margin: 0 0 6px;
   font-size: 22px;
@@ -561,6 +580,14 @@
 
   .pstats {
     padding: 6px 12px 8px;
+  }
+
+  .pstats--head {
+    padding-left: 130px;
+  }
+
+  .pstats__head {
+    width: 125px;
   }
 
   .pstats__name {

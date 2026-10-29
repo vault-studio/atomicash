@@ -602,6 +602,7 @@
     "resetConfirm": "¿Borrar toda la partida? No se puede deshacer."
   },
   "psych": {
+    "back": "← Volver",
     "title": "MINISTERIO DE APTITUD CIVIL",
     "form": "Formulario 27-B · pregunta {{n}} de {{total}}",
     "fine": "Marque una sola casilla. El Ministerio no se hace responsable de sus respuestas.",
