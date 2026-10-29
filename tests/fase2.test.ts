@@ -99,27 +99,45 @@ describe('hordas en formación', () => {
 });
 
 describe('avisos de los jefes', () => {
-  it('el Rey Rata marca el pasillo de su embestida y en fase 2 embiste dos veces', () => {
+  it('el Rey Rata llama a las ratas parado y luego encadena embestidas avisadas, más en fase 2', () => {
+    const R = AI.rey_rata;
+    // Cuenta los pasillos de embestida nuevos (los avisos sin daño con dirección) durante `sec` segundos.
+    const lanes = (w: World, sec: number): number => {
+      let n = 0;
+      let before = 0;
+      for (let i = 0; i < Math.round(sec * RUN.tickHz); i++) {
+        w.spawnAcc = -1e9;
+        tick(w, STILL, STEP);
+        const now = w.tele.items.slice(0, w.tele.count).filter((t) => t.lx !== 0 || t.ly !== 0).length;
+        if (now > before) n += now - before;
+        before = now;
+      }
+      return n;
+    };
+    const charge = (aim: number, gap: number): number => aim + R.dash + gap;
+
     const w = quiet();
-    const e = spawnEnemy(w, 'rey_rata', w.player.x + 200, w.player.y);
-    e.alt = true;
+    const e = spawnEnemy(w, 'rey_rata', w.player.x + 600, w.player.y);
     e.timer = 0;
     run(w, STEP);
-    const lane = w.tele.items.slice(0, w.tele.count).find((t) => t.lx !== 0 || t.ly !== 0);
-    expect(lane).toBeDefined();
-    expect(lane!.dmg).toBe(0);
+    // Primero se para a llamar a las ratas.
+    expect(alive(w).filter((x) => x.type === R.summonType)).toHaveLength(R.summon);
+    expect(e.burst).toBe(R.chain);
+    const x0 = e.x;
+    run(w, R.summonStop / 2);
+    expect(e.x).toBe(x0);
+    // Luego, `chain` embestidas casi seguidas, cada una con su pasillo sin daño.
+    expect(lanes(w, R.summonStop / 2 + charge(R.aim, R.gap) * R.chain)).toBe(R.chain);
+    expect(w.tele.items.slice(0, w.tele.count).every((t) => t.dmg === 0)).toBe(true);
 
-    e.hp = e.maxHp * 0.4;
-    e.mode = 0;
-    e.alt = true;
-    e.timer = 0;
-    w.tele.clear();
-    run(w, STEP * 2);
-    expect(e.phase).toBe(2);
-    expect(e.burst).toBe(1);
-    run(w, AI.rey_rata.aimP2 + AI.rey_rata.dash + STEP * 2);
-    // Segunda embestida: otro pasillo.
-    expect(w.tele.count).toBeGreaterThan(0);
+    const w2 = quiet();
+    const b = spawnEnemy(w2, 'rey_rata', w2.player.x + 600, w2.player.y);
+    b.hp = b.maxHp * 0.4;
+    b.timer = 0;
+    run(w2, STEP * 2);
+    expect(b.phase).toBe(2);
+    expect(b.burst).toBe(R.chainP2);
+    expect(lanes(w2, R.summonStop + charge(R.aimP2, R.gapP2) * R.chainP2)).toBe(R.chainP2);
   });
 });
 

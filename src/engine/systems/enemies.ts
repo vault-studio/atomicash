@@ -328,21 +328,26 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             ring(w, 'necrofago', e.x, e.y, 4, R.summonDist + 30);
           }
           const p2 = e.phase >= 2;
-          if (e.timer <= 0) {
-            e.timer = p2 ? R.everyP2 : R.every;
-            if (e.alt) {
+          // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
+          if (e.mt > 0) {
+            vx = vy = 0;
+            e.mt -= dt;
+          } else if (e.timer <= 0) {
+            if (e.burst > 0) {
+              e.burst--;
               e.mode = MODE_AIM;
               e.mt = p2 ? R.aimP2 : R.aim;
               e.dx = ux;
               e.dy = uy;
-              e.burst = p2 ? 1 : 0;
               dashLane(w, e, e.mt, R.dashSpd, R.dash);
               markAttack(w, e, 'attack_1');
             } else {
               markAttack(w, e, 'attack_2');
               ring(w, R.summonType, e.x, e.y, p2 ? R.summonP2 : R.summon, R.summonDist);
+              e.mt = R.summonStop;
+              e.timer = R.summonStop;
+              e.burst = p2 ? R.chainP2 : R.chain;
             }
-            e.alt = !e.alt;
           }
         }
       } else if (e.mode === MODE_AIM) {
@@ -357,20 +362,10 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         vy = e.dy * A.dashSpd;
         e.mt -= dt;
         if (e.mt <= 0) {
-          if (e.type === 'rey_rata' && e.burst > 0) {
-            // Fase 2: segunda embestida encadenada, apuntando de nuevo.
-            const R = AI.rey_rata;
-            e.burst--;
-            e.mode = MODE_AIM;
-            e.mt = R.aimP2;
-            e.dx = ux;
-            e.dy = uy;
-            dashLane(w, e, e.mt, R.dashSpd, R.dash);
-            markAttack(w, e, 'attack_1');
-          } else {
-            e.mode = MODE_CHASE;
-            if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
-          }
+          e.mode = MODE_CHASE;
+          if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
+          // El Rey Rata enlaza la siguiente embestida casi sin pausa.
+          else e.timer = e.phase >= 2 ? AI.rey_rata.gapP2 : AI.rey_rata.gap;
         }
       }
       break;

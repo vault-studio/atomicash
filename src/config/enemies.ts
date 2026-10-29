@@ -54,19 +54,28 @@ export const AI = {
   torreta: { every: 2.6, burst: 3, burstGap: 0.15, bulletSpd: 260, range: 700, sloganChance: 0.3 },
   babosa: { trailEvery: 0.4, trailR: 26, trailLife: 4, trailRad: 5 },
   aspiradora: { children: 4, childType: 'aspiradora_cria', childDist: 18 },
+  /**
+   * Ciclo: se para a llamar a las ratas (`summonStop` s) y luego encadena `chain` embestidas, cada una con su aviso
+   * (`aim`) y separadas solo `gap` s. `every` es lo que tarda en actuar al aparecer.
+   * DECISIÓN: antes alternaba una embestida y una llamada cada 3,8 s y pasaba casi todo el combate persiguiendo.
+   */
   rey_rata: {
-    every: 3.8,
+    every: 1.2,
     summon: 7,
     summonType: 'dron',
     summonDist: 70,
-    aim: 0.75,
+    summonStop: 1,
+    chain: 3,
+    aim: 0.55,
+    gap: 0.25,
     dashSpd: 440,
     dash: 0.7,
-    /** Fase 2 (por debajo de `p2`): ataca más a menudo, embiste dos veces seguidas y llama a más ratas. */
+    /** Fase 2 (por debajo de `p2`): más embestidas por ciclo, avisos más cortos y más ratas. */
     p2: 0.5,
-    everyP2: 2.8,
+    chainP2: 4,
+    aimP2: 0.4,
+    gapP2: 0.12,
     summonP2: 10,
-    aimP2: 0.55,
   },
   dirigible: {
     orbitR: 320,
