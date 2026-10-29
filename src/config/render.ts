@@ -203,8 +203,8 @@ export const PICKUP_ART = {
   dir: 'assets/pickups/',
   index: 'assets/pickups/pickups.json',
   w: {
-    gem1: 4.2,
-    gem5: 4,
+    gem1: 2.8,
+    gem5: 2.8,
     gem25: 4,
     stim: 3.6,
     coupon: 4.4,
