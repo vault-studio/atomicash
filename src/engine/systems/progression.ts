@@ -62,8 +62,11 @@ export function updatePickups(w: World, dt: number): void {
       textFx(w, 'pickup', p.x, p.y, 0, 'consumables.stim.name');
     } else if (kind === 'coupon') {
       textFx(w, 'pickup', p.x, p.y, addCoupons(w, val), 'pickups.coupons');
-    } else if (kind === 'cache') openCacheChoice(w);
-    else if (kind === 'chest') openItemChoice(w);
+    } else if (kind === 'cache') {
+      // La máquina de cupones sale tras la cinemática de victoria, que mantiene el zoom hasta cobrarla.
+      openCacheChoice(w);
+      w.victory = true;
+    } else if (kind === 'chest') openItemChoice(w);
     else if (kind === 'medkit') {
       heal(w, p.maxHp * FIELD_PICKUPS.medkitHeal);
       textFx(w, 'pickup', p.x, p.y, 0, 'pickups.medkit');

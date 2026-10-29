@@ -39,6 +39,9 @@ export class GameRenderer {
   /** Segundos de cinemática transcurridos (-1 = no hay) y su duración. */
   private victoryT = -1;
   private victoryDur = 0;
+  /** Cuándo acaba la animación (ahí se espera si hace falta) y reloj de las luces, que no se para al esperar. */
+  private victoryHoldAt = 0;
+  private victoryClock = 0;
   /** Momento en que el jugador se paró: el idle empieza desde su primer fotograma. */
   private stillSince = -1;
   private readonly debugText: Text;
@@ -122,14 +125,26 @@ export class GameRenderer {
     const V = JUICE.victory;
     const meta = this.lib.meta(charId, 'victory');
     this.victoryT = 0;
-    this.victoryDur = (meta ? animDuration(meta) : V.fallback) + V.hold + V.zoomOut;
+    this.victoryClock = 0;
+    this.victoryHoldAt = (meta ? animDuration(meta) : V.fallback) + V.hold;
+    this.victoryDur = this.victoryHoldAt + V.zoomOut;
     return this.victoryDur;
   }
 
-  /** Avanza la cinemática `dt` s. Devuelve los segundos que le quedan (0 = terminada). */
-  stepVictory(dt: number): number {
+  /** La animación ya terminó y la cámara sigue cerca: momento de enseñar la máquina de cupones. */
+  get victoryHolding(): boolean {
+    return this.victoryT >= this.victoryHoldAt;
+  }
+
+  /**
+   * Avanza la cinemática `dt` s. Con `hold` se queda en primer plano al acabar la animación (la máquina de cupones
+   * sigue abierta); sin él, vuelve al zoom normal. Devuelve los segundos que le quedan (0 = terminada).
+   */
+  stepVictory(dt: number, hold: boolean): number {
     if (this.victoryT < 0) return 0;
+    this.victoryClock += dt;
     this.victoryT += dt;
+    if (hold) this.victoryT = Math.min(this.victoryT, this.victoryHoldAt);
     if (this.victoryT < this.victoryDur) return this.victoryDur - this.victoryT;
     this.victoryT = -1;
     this.cineBack.clear();
@@ -257,7 +272,7 @@ export class GameRenderer {
    */
   private drawVictory(x: number, y: number, level: number, k: number): void {
     const V = JUICE.victory;
-    const t = this.victoryT;
+    const t = this.victoryClock;
     const cy = y - V.lift;
     const back = this.cineBack;
     const front = this.cineFront;

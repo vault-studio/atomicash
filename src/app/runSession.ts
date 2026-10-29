@@ -308,8 +308,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const onTick = (ticker: Ticker): void => {
     const frameSec = ticker.deltaMS / 1000;
     let steps = 0;
-    // Cinemática de victoria (jefe o élite abatido): el mundo se para mientras el personaje la hace. Va antes que la
-    // elección para que, si el Coloso abre la pregunta del modo infinito, esta salga al terminar.
+    // Cinemática de victoria (máquina de cupones recogida): el mundo se para mientras el personaje la hace. Al acabar
+    // la animación sale la máquina y la cámara sigue cerca hasta cobrarla; luego vuelve al zoom normal.
     if (!portrait.matches && !paused && !ended && (victoryLeft > 0 || world.victory)) {
       if (world.victory) {
         world.victory = false;
@@ -317,10 +317,11 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
         victoryLeft = renderer.startVictory(world.charId);
         audio.play('victory');
       }
-      victoryLeft = renderer.stepVictory(frameSec);
+      victoryLeft = renderer.stepVictory(frameSec, world.choice?.type === 'cache');
       fs.acc = 0;
       renderer.render(world, 1, { fps, steps });
       sound(world, frameSec);
+      if (renderer.victoryHolding || victoryLeft <= 0) syncChoice();
       return;
     }
     const frozen = portrait.matches || paused || world.choice !== null || ended;
@@ -336,7 +337,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       if (portrait.matches) controls.release();
       fs.acc = 0;
       renderer.render(world, 1, { fps, steps });
-      syncChoice();
+      // En pausa a media cinemática, la máquina de cupones espera a que acabe la animación.
+      if (victoryLeft <= 0 || renderer.victoryHolding) syncChoice();
       return;
     }
     const view = renderer.viewHalfExtent();

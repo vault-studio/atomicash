@@ -512,7 +512,7 @@ export interface World {
   readonly parts: Pool<Particle>;
   /** Congelación breve del juego tras un golpe gordo (la aplica la sesión, no el tick), en s. */
   hitStop: number;
-  /** Jefe o élite abatido: la sesión para el juego y el render hace la cinemática de victoria. */
+  /** Máquina de cupones recogida: la sesión para el juego y el render hace la cinemática de victoria. */
   victory: boolean;
   readonly banners: Banner[];
 

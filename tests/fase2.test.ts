@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { AI, ELITES, ENEMY_STATS } from '../src/config/enemies';
 import { RUN, STREAK, XP, streakMult } from '../src/config/run';
 import { HORDES } from '../src/config/waves';
-import { hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
+import { addPickup, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { announceHorde, spawnElite } from '../src/engine/systems/spawning';
 import type { Enemy, InputState, World } from '../src/engine/types';
@@ -124,22 +124,15 @@ describe('avisos de los jefes', () => {
 });
 
 describe('cinemática de victoria', () => {
-  it('la piden los jefes y los élites abatidos, no los enemigos normales', () => {
+  it('la pide la máquina de cupones al recogerla, no las bajas de élites ni de jefes', () => {
     const w = quiet();
-    killEnemy(w, spawnEnemy(w, 'saqueador', w.player.x + 300, w.player.y), 'llave');
-    expect(w.victory).toBe(false);
     killEnemy(w, spawnElite(w), 'llave');
-    expect(w.victory).toBe(true);
-    w.victory = false;
     killEnemy(w, spawnEnemy(w, 'rey_rata', w.player.x + 300, w.player.y), 'llave');
-    expect(w.victory).toBe(true);
-  });
-
-  it('no la pide si el jugador ya ha muerto', () => {
-    const w = quiet();
-    w.player.deadAt = w.time;
-    killEnemy(w, spawnElite(w), 'llave');
     expect(w.victory).toBe(false);
+    addPickup(w, 'cache', w.player.x, w.player.y, 10);
+    tick(w, STILL, STEP);
+    expect(w.victory).toBe(true);
+    expect(w.choice?.type).toBe('cache');
   });
 });
 
