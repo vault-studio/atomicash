@@ -180,14 +180,19 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     }
   }
 
-  // El jugador, en el centro.
+  // El jugador, en el centro, apuntando hacia donde se mueve (al pararse, hacia donde se movió por última vez).
+  const face = Math.atan2(isoY(p.facingX, p.facingY), isoX(p.facingX, p.facingY));
+  ctx.save();
+  ctx.translate(c, c);
+  ctx.rotate(face + Math.PI / 2);
   ctx.fillStyle = RADAR.phosphor;
   ctx.beginPath();
-  ctx.moveTo(c, c - 6);
-  ctx.lineTo(c + 5, c + 5);
-  ctx.lineTo(c - 5, c + 5);
+  ctx.moveTo(0, -6);
+  ctx.lineTo(5, 5);
+  ctx.lineTo(-5, 5);
   ctx.closePath();
   ctx.fill();
+  ctx.restore();
 }
 
 /** Flecha que apunta en `ang` con la punta en (x, y) + 6 px. */
