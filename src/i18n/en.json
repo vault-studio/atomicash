@@ -583,7 +583,8 @@
     "skip": "Skip",
     "close": "Collect",
     "new": "NEW!",
-    "dup": "+{{n}} shards"
+    "dup": "+{{n}} shards",
+    "summary": "{{n}} crates · {{fresh}} new · best: {{rarity}}"
   },
   "board": {
     "daily": "TODAY'S MISSIONS",

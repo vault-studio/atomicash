@@ -17,6 +17,9 @@ const HEADS: Readonly<Partial<Record<StatSurvivorId, string>>> = {
   benny: bennyHead,
 };
 
+/** Retrato de cuerpo entero; undefined si el personaje aún no tiene. */
+export const portraitOf = (id: StatSurvivorId): string | undefined => PORTRAITS[id];
+
 /** Busto con fondo transparente; undefined si el personaje aún no tiene. */
 export const headOf = (id: StatSurvivorId): string | undefined => HEADS[id];
 

@@ -583,7 +583,8 @@
     "skip": "Saltar",
     "close": "Recoger",
     "new": "¡NUEVO!",
-    "dup": "+{{n}} fichas"
+    "dup": "+{{n}} fichas",
+    "summary": "{{n}} cajas · {{fresh}} nuevos · lo mejor: {{rarity}}"
   },
   "board": {
     "daily": "MISIONES DE HOY",

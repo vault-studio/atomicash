@@ -5,6 +5,7 @@ import { IMPLANTS, UPGRADES, UPGRADE_IDS, upgradeCost } from '../../../config/me
 import { STAT_SURVIVOR_IDS, type StatSurvivorId } from '../../../config/survivors';
 import { buyUpgrade } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
+import { upgradeIcon } from '../../icons';
 import { Screen } from './common';
 
 export function Workshop({ onBack }: { onBack: () => void }) {
@@ -37,6 +38,7 @@ export function Workshop({ onBack }: { onBack: () => void }) {
               return (
                 <li key={u} className="shop__row">
                   <span>
+                    <img className="shop__icon" src={upgradeIcon(u)} alt="" />
                     <strong>{t(`workshop.${u}.name`)}</strong>{' '}
                     <small>{t(`workshop.${u}.desc`, { n: def.per })}</small>
                   </span>
