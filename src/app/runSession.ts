@@ -354,7 +354,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   cb.onHud(snapshot(world));
   // Depuración: acceso al mundo desde la consola del navegador (solo en desarrollo). Se fija en cada frame porque el
   // doble montaje de StrictMode crea dos sesiones y la descartada podía quedarse con la referencia.
-  if (import.meta.env.DEV) renderer.app.ticker.add(() => ((window as unknown as { __world?: World }).__world = world));
+  if (import.meta.env.DEV)
+    renderer.app.ticker.add(() => ((window as unknown as { __world?: World }).__world = world));
 
   return {
     world,

@@ -220,5 +220,16 @@ export const PICKUP_ART = {
     barrel_lit: 2.2,
   } as Readonly<Record<string, number>>,
   fixed: { mine: 26, beacon: 46 } as Readonly<Record<string, number>>,
-  bob: ['stim', 'coupon', 'medkit', 'magnet', 'bomb', 'freeze', 'nuka', 'chest', 'crate', 'cache'] as readonly string[],
+  bob: [
+    'stim',
+    'coupon',
+    'medkit',
+    'magnet',
+    'bomb',
+    'freeze',
+    'nuka',
+    'chest',
+    'crate',
+    'cache',
+  ] as readonly string[],
 } as const;

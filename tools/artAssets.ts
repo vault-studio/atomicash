@@ -58,7 +58,13 @@ export function artAssets(): Plugin {
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'assets/manifest.json', source: writeManifest() });
-      for (const file of [...walk(SPRITES_DIR), ...walk(ICONS_DIR), ...walk(TILES_DIR), ...walk(PROPS_DIR), ...walk(PICKUPS_DIR)]) {
+      for (const file of [
+        ...walk(SPRITES_DIR),
+        ...walk(ICONS_DIR),
+        ...walk(TILES_DIR),
+        ...walk(PROPS_DIR),
+        ...walk(PICKUPS_DIR),
+      ]) {
         if (!/\.(json|png)$/i.test(file)) continue;
         this.emitFile({ type: 'asset', fileName: toPosix(file), source: readFileSync(file) });
       }
