@@ -45,7 +45,8 @@ export function Expedition({ onStart, onBack }: Props) {
                     <em>{t('expedition.passive')}</em> {t(`passives.${id}`)}
                   </span>
                   <span className="pick__row">
-                    <em>{t('expedition.weapon')}</em> {t(`weapons.${o?.starter ?? SURVIVORS[id].weapon}.name`)}
+                    <em>{t('expedition.weapon')}</em>{' '}
+                    {t(`weapons.${o?.starter ?? SURVIVORS[id].weapon}.name`)}
                   </span>
                 </span>
               </button>

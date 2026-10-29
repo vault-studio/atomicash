@@ -26,7 +26,13 @@ import {
   type UpgradeId,
   type ZoneId,
 } from '../config/meta';
-import { ROSTER, STAT_SURVIVOR_IDS, SURVIVORS, type StatSurvivorId, type SurvivorRarity } from '../config/survivors';
+import {
+  ROSTER,
+  STAT_SURVIVOR_IDS,
+  SURVIVORS,
+  type StatSurvivorId,
+  type SurvivorRarity,
+} from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
@@ -260,9 +266,7 @@ export function refreshDaily(s: SaveData, now: Date): void {
     progress: 0,
     claimed: false,
     char:
-      MISSIONS[id].kind === 'surviveWith'
-        ? (pickN(rng, chars.length ? chars : ROSTER, 1)[0] ?? null)
-        : null,
+      MISSIONS[id].kind === 'surviveWith' ? (pickN(rng, chars.length ? chars : ROSTER, 1)[0] ?? null) : null,
   }));
 }
 
