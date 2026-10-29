@@ -6,7 +6,7 @@ import { AUDIO } from '../config/audio';
 import {
   BOSS_PHASES,
   ELITES,
-  STAT_ENEMY_IDS,
+  MOB_IDS,
   type BossKind,
   type EliteId,
   type StatEnemyId,
@@ -293,7 +293,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       for (let i = 0; i < 100; i++) {
         const a = Math.random() * Math.PI * 2;
         const d = 350 + Math.random() * 250;
-        const type = STAT_ENEMY_IDS[(Math.random() * 11) | 0] ?? 'dron';
+        const type = MOB_IDS[(Math.random() * MOB_IDS.length) | 0] ?? 'dron';
         spawnEnemy(world, type, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d);
       }
     } else if (e.code === 'KeyL') gainXp(world, world.xpNext - world.xp, true);

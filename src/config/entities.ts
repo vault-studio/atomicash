@@ -88,9 +88,9 @@ const DEFS = {
   aspiradora: { category: 'enemies', size: 1.7, color: '#B8A070', method: 'rigid', act: 1 },
   aspiradora_cria: { category: 'enemies', size: 0.4, color: '#D8C090', method: 'rigid', act: 1 },
   excavadora: { category: 'enemies', size: 1.8, color: '#C9A04A', method: 'rigid', act: 2 },
-  blindado: { category: 'enemies', size: 1.5, color: '#7A7A7A', method: 'mixamo', act: 2 },
+  blindado: { category: 'enemies', size: 1.5, color: '#7A7A7A', method: 'mixamo', act: 1 },
   mortero: { category: 'enemies', size: 1.6, color: '#8A6A4A', method: 'rigid_mixamo', act: 2 },
-  predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 2 },
+  predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 1 },
   moscon: { category: 'enemies', size: 0.8, color: '#3AA0A0', method: 'rigid', act: 2 },
 
   // ---------- Jefes (bosses) y variantes de fase ----------

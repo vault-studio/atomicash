@@ -1,0 +1,25 @@
+{
+  "id": "aspiradora",
+  "anim": "attack",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 8,
+  "fps": 16,
+  "loop": false
+}

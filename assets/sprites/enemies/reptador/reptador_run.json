@@ -1,0 +1,25 @@
+{
+  "id": "reptador",
+  "anim": "run",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 12,
+  "fps": 16,
+  "loop": true
+}

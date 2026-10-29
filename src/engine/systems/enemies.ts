@@ -1,4 +1,4 @@
-// Enemigos: aparición, IA (persecución, tirador, embestida, torreta, babosa, jefes) y separación.
+// Enemigos: aparición, IA (persecución, tirador, predicador, embestida, torreta, babosa, jefes) y separación.
 // Sin allocations: recorre el pool por índice y usa buffers del World.
 // No usar Math.hypot en el bucle caliente: V8 reserva memoria en cada llamada (argumentos variables).
 import {
@@ -6,6 +6,7 @@ import {
   ELITES,
   ENEMY_RULES,
   ENEMY_STATS,
+  GORE,
   MAX_ENEMY_RADIUS,
   enemyRadius,
   RAGE,
@@ -17,7 +18,7 @@ import { IRRADIATED } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
 import { ENDLESS } from '../../config/modes';
-import { addShake, banner, boom, hitStop, textFx } from '../fx';
+import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import {
   MODE_AIM,
   MODE_CHASE,
@@ -110,6 +111,8 @@ function firstTimer(type: StatEnemyId): number {
       return AI.cortacesped.every;
     case 'torreta':
       return AI.torreta.every;
+    case 'predicador':
+      return AI.predicador.every;
     case 'rey_rata':
       return AI.rey_rata.every;
     case 'dirigible':
@@ -216,6 +219,33 @@ export function compactEnemies(w: World): void {
   for (let i = pool.count - 1; i >= 0; i--) if ((pool.items[i] as Enemy).dead) pool.releaseAt(i);
 }
 
+/** Furia (RAGE): rojo, pega y corre más y duplica la vida. Solo una vez por enemigo. */
+function enrage(e: Enemy): void {
+  e.rage = true;
+  e.hp *= RAGE.hp;
+  e.maxHp *= RAGE.hp;
+  e.dmg *= RAGE.dmg;
+  e.speed *= RAGE.speed;
+}
+
+/** Sermón del predicador: enfurece a los enemigos normales que tiene cerca (ni jefes ni élites, como la furia). */
+function sermon(w: World, e: Enemy): void {
+  const A = AI.predicador;
+  const items = w.enemies.items;
+  for (let i = 0; i < w.enemies.count; i++) {
+    const o = items[i] as Enemy;
+    if (o === e || o.dead || o.rage || o.boss || o.elite) continue;
+    const dx = o.x - e.x;
+    const dy = o.y - e.y;
+    if (dx * dx + dy * dy < A.r * A.r) {
+      enrage(o);
+      o.flash = 0.15;
+    }
+  }
+  burst(w, e.x, e.y, 14, GORE.predicador, 1.4);
+  if (w.rng() < A.sloganChance) textFx(w, 'slogan', e.x, e.y, (w.rng() * SLOGAN_COUNT) | 0);
+}
+
 function markAttack(w: World, e: Enemy, anim: AttackAnim = 'attack'): void {
   e.lastAtk = w.time;
   e.atkAnim = anim;
@@ -303,6 +333,26 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       if (e.timer <= 0 && d < A.range) {
         e.timer = A.fireCd;
         fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad);
+        markAttack(w, e);
+      }
+      break;
+    }
+    case 'predicador': {
+      const A = AI.predicador;
+      if (d > A.keepMax) {
+        vx = ux * spd;
+        vy = uy * spd;
+      } else if (d < A.keepMin) {
+        vx = -ux * spd;
+        vy = -uy * spd;
+      } else {
+        vx = -uy * spd * A.strafe * e.side;
+        vy = ux * spd * A.strafe * e.side;
+      }
+      e.timer -= dt;
+      if (e.timer <= 0 && d < A.range) {
+        e.timer = A.every;
+        sermon(w, e);
         markAttack(w, e);
       }
       break;
@@ -561,11 +611,7 @@ export function updateEnemies(w: World, dt: number): void {
     e.prevY = e.y;
     e.flash -= dt;
     e.atkCd -= dt;
-    if (!e.rage && !e.boss && !e.elite && w.time - e.born >= RAGE.after) {
-      e.rage = true;
-      e.dmg *= RAGE.dmg;
-      e.speed *= RAGE.speed;
-    }
+    if (!e.rage && !e.boss && !e.elite && w.time - e.born >= RAGE.after) enrage(e);
     // Congelado por la crio-granada: ni se mueve ni ataca.
     if (e.frozen > 0) {
       e.frozen -= dt;

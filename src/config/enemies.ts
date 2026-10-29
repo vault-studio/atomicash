@@ -12,6 +12,8 @@ export interface EnemyStats {
   readonly r?: number;
   /** Resistencia al empuje: multiplica el empuje recibido (0 = inamovible). */
   readonly kbRes?: number;
+  /** Multiplica el daño que recibe (0,6 = blindaje que para el 40 %). */
+  readonly armor?: number;
   /** RAD que da su golpe de contacto. */
   readonly rad?: number;
   readonly boss?: boolean;
@@ -31,6 +33,10 @@ export const ENEMY_STATS = {
   babosa: { hp: 70, dmg: 8, speed: 50, xp: 3, kbRes: 0.6 },
   aspiradora: { hp: 60, dmg: 10, speed: 80, xp: 2 },
   aspiradora_cria: { hp: 6, dmg: 3, speed: 150, xp: 0, r: 6 },
+  // Tanque: lento, aguanta mucho (vida y chapa) y casi no se deja empujar.
+  blindado: { hp: 80, dmg: 14, speed: 58, xp: 4, kbRes: 0.25, armor: 0.6 },
+  // Apoyo: se queda a distancia y enfurece a los de alrededor con sus sermones.
+  predicador: { hp: 45, dmg: 6, speed: 74, xp: 4 },
   // Jefes: no escalan con el tiempo ni se reciclan.
   rey_rata: { hp: 3000, dmg: 18, speed: 76, xp: 60, kbRes: 0, boss: true },
   dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true },
@@ -54,6 +60,11 @@ export const AI = {
   torreta: { every: 2.6, burst: 3, burstGap: 0.15, bulletSpd: 260, range: 700, sloganChance: 0.3 },
   babosa: { trailEvery: 0.4, trailR: 26, trailLife: 4, trailRad: 5 },
   aspiradora: { children: 4, childType: 'aspiradora_cria', childDist: 18 },
+  /**
+   * Sermón cada `every` s si el jugador está a menos de `range`: enfurece (RAGE) al instante a los enemigos normales
+   * que tenga a `r` px. DECISIÓN: conviene matarlo primero, por eso no pega casi nada y se queda detrás.
+   */
+  predicador: { keepMin: 190, keepMax: 250, strafe: 0.35, every: 6, range: 520, r: 210, sloganChance: 0.6 },
   /**
    * Ciclo: se para a llamar a las ratas (`summonStop` s) y luego encadena `chain` embestidas, cada una con su aviso
    * (`aim`) y separadas solo `gap` s. `every` es lo que tarda en actuar al aparecer.
@@ -144,9 +155,10 @@ export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> =
 
 /**
  * Furia: cualquier enemigo normal (ni jefe ni élite) que siga vivo `after` s después de aparecer se enfurece, se
- * pone rojo y pega y corre más. DECISIÓN: para que no compense dejar a los bichos dando vueltas.
+ * pone rojo, pega y corre más y su vida (la que le queda y la máxima) se multiplica por `hp`.
+ * DECISIÓN: para que no compense dejar a los bichos dando vueltas.
  */
-export const RAGE = { after: 10, dmg: 1.25, speed: 1.6 } as const;
+export const RAGE = { after: 10, dmg: 1.25, speed: 1.6, hp: 2 } as const;
 
 export const ENEMY_RULES = {
   /** Enemigos simultáneos; al superarlo se recicla el más lejano (05_TECH.md §3). */
@@ -194,6 +206,8 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   babosa: [0x7dff3a, 0x4ac02a, 0xc0ff8a],
   aspiradora: SPARKS,
   aspiradora_cria: SPARKS,
+  blindado: [0xb8bec6, 0x6c7178, 0xa8382a],
+  predicador: [0xa8382a, 0x6a2a20, 0xf0e070],
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,

@@ -19,6 +19,10 @@ SOURCES = {
     'gus': ('characters', 'gus'),
     'mensajero': ('characters', 'benny'),
     'saqueador': ('enemies', 'saqueador'),
+    'blindado': ('enemies', 'blindado'),
+    'hinchado': ('enemies', 'hinchado'),
+    'predicador': ('enemies', 'predicador'),
+    'reptador': ('enemies', 'reptador'),
     'kingrat': ('bosses', 'rey_rata'),
 }
 
@@ -38,6 +42,10 @@ OVERRIDE = {
     ('saqueador', 'run'): {'frames': 12, 'fps': 12, 'span': 12},
     # Un ciclo de paso pesado en 32: más lento que el de los supervivientes.
     ('rey_rata', 'run'): {'frames': 16, 'fps': 10},
+    # Los lentos: un ciclo de 23–25 fotogramas repartido en 12, más pausado.
+    ('blindado', 'run'): {'frames': 12, 'fps': 10},
+    ('hinchado', 'run'): {'frames': 12, 'fps': 10},
+    ('predicador', 'run'): {'frames': 12, 'fps': 12},
 }
 
 

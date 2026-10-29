@@ -145,6 +145,7 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
+  d *= (ENEMY_STATS[e.type] as EnemyStats).armor ?? 1;
   if (w.dailyMod === 'glass' && !(flags & HIT_RAW)) d *= DAILY.glass.dealt;
   // Único «Cazador» del árbol: más daño a jefes y élites.
   if ((e.boss || e.elite) && w.mods.hunter) d *= 1 + w.mods.hunter / 100;
