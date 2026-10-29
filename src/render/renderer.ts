@@ -1,5 +1,5 @@
 // Render de la run con PixiJS v8. Lee el World y dibuja; nunca lo modifica.
-import { Application, Container, Graphics, Text } from 'pixi.js';
+import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, RAD_FOG, RUN_COLORS, VIEW } from '../config/render';
 import { JUICE } from '../config/run';
@@ -34,6 +34,10 @@ export class GameRenderer {
   private readonly texts: TextLayer;
   /** Tinte de pantalla completa: lluvia radiactiva, Tormenta, golpe recibido. */
   private readonly overlay = new Graphics();
+  /** Niebla de radiación: un degradado radial alrededor del personaje y, fuera de él, verde liso. */
+  private readonly fog = new Container();
+  private readonly fogHole = new Sprite(fogTexture());
+  private readonly fogEdge = new Graphics();
   /** Luces de la cinemática de victoria: rayos tras el personaje y chispas delante. */
   private readonly cineBack = new Graphics();
   private readonly cineFront = new Graphics();
@@ -80,7 +84,9 @@ export class GameRenderer {
     this.enemies = new EnemyLayer(this.actors, lib);
     this.pickups = pickupArt ? new PickupLayer(this.actors, pickupArt) : null;
     this.fx.art = pickupArt;
-    app.stage.addChild(this.overlay);
+    this.fog.addChild(this.fogHole, this.fogEdge);
+    this.fog.visible = false;
+    app.stage.addChild(this.fog, this.overlay);
 
     this.debugText = new Text({
       text: '',
@@ -350,31 +356,68 @@ export class GameRenderer {
 
   /**
    * Niebla verde de radiación con un hueco alrededor del personaje (pies en (x, y) de mundo) que se cierra según sube
-   * la RAD. Anillos concéntricos con el centro recortado: se suman hacia fuera y dan un borde suave.
+   * la RAD. El hueco es un degradado radial (ver `fogTexture`); lo que queda fuera de él, verde liso.
    */
   private drawRadFog(rad: number, x: number, y: number, k: number, time: number): void {
     const F = RAD_FOG;
     const f = clamp((rad - F.from) / (F.full - F.from), 0, 1);
+    this.fog.visible = f > 0;
     if (f <= 0) return;
     const { width, height } = this.app.screen;
     const ox = this.worldLayer.position.x + x * k;
     const oy = this.worldLayer.position.y + (y - F.lift) * k;
-    const far = Math.hypot(width, height) / 2;
+    const far = (Math.hypot(width, height) / 2) * F.start;
     const near = F.hole * k;
     // El hueco se cierra a ritmo constante con la RAD; late un poco cuando ya aprieta.
     const beat = this.reduceMotion ? 0 : 0.04 * f * Math.sin(time * 5);
     const hole = (far + (near - far) * f) * (1 + beat);
-    const total = F.maxAlpha * Math.pow(f, 0.7);
-    const per = 1 - Math.pow(1 - total, 1 / F.rings);
-    const o = this.overlay;
-    for (let i = 0; i < F.rings; i++)
-      o.rect(0, 0, width, height)
-        .fill({ color: F.color, alpha: per })
-        .circle(ox, oy, hole * (1 + i * 0.14))
-        .cut();
+    this.fog.alpha = F.maxAlpha * Math.pow(f, 0.7);
+    // Bordes en píxeles enteros para que el degradado y el verde liso casen sin rendija ni solape.
+    const half = Math.ceil(hole / F.soft);
+    const left = Math.round(ox) - half;
+    const top = Math.round(oy) - half;
+    const size = half * 2;
+    const s = this.fogHole;
+    s.tint = F.color;
+    s.position.set(left, top);
+    s.setSize(size, size);
+    const g = this.fogEdge;
+    g.clear();
+    const fill = { color: F.color };
+    if (top > 0) g.rect(0, 0, width, top).fill(fill);
+    if (top + size < height) g.rect(0, top + size, width, height - top - size).fill(fill);
+    if (left > 0) g.rect(0, top, left, size).fill(fill);
+    if (left + size < width) g.rect(left + size, top, width - left - size, size).fill(fill);
   }
 
   destroy(): void {
     this.app.destroy(true, { children: true });
   }
+}
+
+let fogTex: Texture | null = null;
+
+/**
+ * Degradado radial blanco (se tiñe con el sprite): transparente hasta `RAD_FOG.soft` del radio y opaco del todo en el
+ * borde y las esquinas, con una subida suave para que parezca niebla.
+ */
+function fogTexture(): Texture {
+  if (fogTex) return fogTex;
+  const n = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = n;
+  const ctx = canvas.getContext('2d')!;
+  const g = ctx.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+  const a = RAD_FOG.soft;
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8;
+    const e = t * t * (3 - 2 * t);
+    g.addColorStop(a + (1 - a) * t, `rgba(255,255,255,${e})`);
+  }
+  // Fuera del radio el degradado se queda en su último color: las esquinas salen opacas.
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, n, n);
+  fogTex = Texture.from(canvas);
+  return fogTex;
 }

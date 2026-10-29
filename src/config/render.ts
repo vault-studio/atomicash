@@ -89,7 +89,10 @@ export const RAD_FOG = {
   maxAlpha: 0.97,
   hole: 36,
   lift: 30,
-  rings: 6,
+  /** Fracción del radio del degradado que queda limpia; el resto sube suave hasta verde opaco. */
+  soft: 0.3,
+  /** Al empezar, el hueco limpio mide esta fracción de la media diagonal de la pantalla. */
+  start: 0.55,
 } as const;
 
 export const RADAR = {
