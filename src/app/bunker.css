@@ -396,10 +396,116 @@ button.card--survivor {
   transition-duration: 0.01ms !important;
 }
 
-/* Elegir superviviente al salir de expedición */
-.expedition__go {
-  margin-top: auto;
-  align-self: flex-end;
+/* ---------- Elegir superviviente al salir de expedición: pantalla completa con retratos ---------- */
+.pick {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.5vh, 14px);
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 0%, #1e2a1c, var(--crt-bg) 70%);
   color: var(--crt);
-  letter-spacing: 0.1em;
+}
+
+.pick__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pick__head h1 {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: clamp(18px, 3.2vh, 30px);
+  letter-spacing: 0.08em;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.pick__list {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(8px, 1.6vw, 20px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pick__card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: hidden;
+  padding: 0;
+  border: 3px solid #3a3020;
+  border-radius: 6px;
+  background: #000;
+  color: var(--crema);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 0 #000;
+  transition:
+    transform 0.15s,
+    border-color 0.15s;
+}
+
+.pick__card:hover,
+.pick__card:focus-visible {
+  outline: none;
+  border-color: #ffe14a;
+  transform: translateY(-3px);
+}
+
+.pick__card.is-active {
+  border-color: var(--crt);
+}
+
+.pick__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 15%;
+}
+
+/* Placa de datos sobre el retrato, como la etiqueta de un cartel de chapa. */
+.pick__info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(6px, 1.4vh, 12px) clamp(8px, 1.2vw, 14px);
+  background: linear-gradient(to top, rgba(10, 8, 4, 0.94) 70%, rgba(10, 8, 4, 0));
+  font-size: clamp(13px, 2vh, 18px);
+  line-height: 1.15;
+}
+
+.pick__name {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(15px, 2.8vh, 24px);
+  color: #ffe14a;
+  letter-spacing: 0.04em;
+}
+
+.pick__level {
+  color: var(--crt);
+}
+
+.pick__row em {
+  font-style: normal;
+  color: var(--ocre);
+  text-transform: uppercase;
+  font-size: 0.85em;
+  letter-spacing: 0.08em;
 }

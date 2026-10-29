@@ -432,7 +432,8 @@
   },
   "expedition": {
     "pick": "¿Quién sale al páramo?",
-    "go": "SALIR ▸"
+    "passive": "Pasiva",
+    "weapon": "Arma"
   },
   "collection": {
     "unknown": "???",
