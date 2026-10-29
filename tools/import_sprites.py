@@ -23,11 +23,13 @@ SOURCES = {
 
 # Por animación: fotogramas finales y fps. `span` = fotogramas de origen que forman la animación (el resto repite).
 DEFAULT = {
+    'idle': {'frames': 12, 'fps': 10},
     'run': {'frames': 12, 'fps': 16},
     'death': {'frames': 16, 'fps': 12},
     'hit': {'frames': 8, 'fps': 16},
     'attack_1': {'frames': 16, 'fps': 12},
     'attack_2': {'frames': 16, 'fps': 12},
+    'victory': {'frames': 16, 'fps': 12},
 }
 OVERRIDE = {
     # 48 fotogramas = 4 vueltas del mismo ciclo de 12; el saqueador camina, no corre.
@@ -56,6 +58,9 @@ for folder, (category, gid) in SOURCES.items():
     for path in sorted((SRC / folder).glob('*.json')):
         meta = json.loads(path.read_text(encoding='utf8'))
         anim = meta['anim']
+        if anim not in DEFAULT:
+            print(f'{category}/{gid}: animación «{anim}» desconocida, se omite (válidas: {", ".join(DEFAULT)})')
+            continue
         rule = {**DEFAULT[anim], **OVERRIDE.get((gid, anim), {})}
         img = Image.open(path.with_suffix('.png')).convert('RGBA')
         rows = img.height // CELL
