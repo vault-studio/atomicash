@@ -16,8 +16,8 @@ export interface RadTier {
 export const RAD = {
   /** Al llegar aquí se muere por radiación (salvo inmunes). */
   max: 100,
-  /** RAD/s dentro de un charco. DECISIÓN: de 7 a 15; quedarse en un charco unos 7 s mata. */
-  puddle: 15,
+  /** RAD/s dentro de un charco. DECISIÓN: de 0 a 100 en 6 s de charco (antes 7, luego 15). */
+  puddle: 100 / 6,
   /** RAD/s durante la lluvia radiactiva. */
   rain: 2.4,
   // DECISIÓN: la RAD ya no baja sola; solo el yodo (consumible) o rasgos como Yodo la quitan.
