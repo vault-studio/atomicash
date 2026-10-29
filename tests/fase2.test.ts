@@ -1,6 +1,6 @@
 // Dossier fase 2: élites, hordas en formación, avisos de los jefes y racha de bajas.
 import { describe, expect, it } from 'vitest';
-import { AI, ELITES, ENEMY_STATS } from '../src/config/enemies';
+import { AI, ELITES, ENEMY_STATS, RAGE } from '../src/config/enemies';
 import { RUN, STREAK, XP, streakMult } from '../src/config/run';
 import { HORDES } from '../src/config/waves';
 import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
@@ -209,5 +209,29 @@ describe('radiación', () => {
     run(w, 1);
     expect(w.player.rad).toBe(RAD.max);
     expect(w.player.deadAt).not.toBeNull();
+  });
+});
+
+describe('furia', () => {
+  it('los normales se enfurecen a los 10 s: más daño y velocidad', () => {
+    const w = quiet();
+    const e = spawnEnemy(w, 'dron', w.player.x + 2000, w.player.y, false);
+    const s = ENEMY_STATS.dron;
+    run(w, RAGE.after - 0.5);
+    expect(e.rage).toBe(false);
+    expect(e.speed).toBe(s.speed);
+    run(w, 1);
+    expect(e.rage).toBe(true);
+    expect(e.dmg).toBeCloseTo(s.dmg * RAGE.dmg);
+    expect(e.speed).toBeCloseTo(s.speed * RAGE.speed);
+    run(w, 5);
+    expect(e.speed).toBeCloseTo(s.speed * RAGE.speed);
+  });
+
+  it('ni jefes ni élites se enfurecen', () => {
+    const w = quiet();
+    const elite = spawnElite(w);
+    run(w, RAGE.after + 1);
+    expect(elite.rage).toBe(false);
   });
 });

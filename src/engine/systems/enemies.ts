@@ -8,6 +8,7 @@ import {
   ENEMY_STATS,
   MAX_ENEMY_RADIUS,
   enemyRadius,
+  RAGE,
   type EliteId,
   type EnemyStats,
   type StatEnemyId,
@@ -57,6 +58,7 @@ export function createEnemy(): Enemy {
     born: 0,
     dead: false,
     irr: false,
+    rage: false,
     boss: false,
     flying: false,
     gar: -1,
@@ -164,6 +166,7 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.born = w.time;
   e.dead = false;
   e.irr = isIrr;
+  e.rage = false;
   e.boss = boss;
   e.flying = s.flying === true;
   e.gar = -1;
@@ -558,6 +561,11 @@ export function updateEnemies(w: World, dt: number): void {
     e.prevY = e.y;
     e.flash -= dt;
     e.atkCd -= dt;
+    if (!e.rage && !e.boss && !e.elite && w.time - e.born >= RAGE.after) {
+      e.rage = true;
+      e.dmg *= RAGE.dmg;
+      e.speed *= RAGE.speed;
+    }
     // Congelado por la crio-granada: ni se mueve ni ataca.
     if (e.frozen > 0) {
       e.frozen -= dt;

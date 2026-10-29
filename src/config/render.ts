@@ -158,6 +158,8 @@ export const RUN_COLORS = {
   ebullet: 0xff6a3a,
   shadow: 0x000000,
   irradiated: 0xa8ff70,
+  /** Enemigo enfurecido (gana al verde de irradiado). */
+  rage: 0xff4a3a,
   /** Luces de la cinemática de victoria: rayos dorados y verde radiactivo alternos. */
   victoryA: 0xffd34d,
   victoryB: 0x9dff3a,

@@ -86,7 +86,14 @@ export class EnemyLayer {
       const atkDur = atkMeta ? atkMeta.frames / atkMeta.fps : ATTACK_FALLBACK;
       if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
       else v.show(e.moving ? MOVE_ANIMS : IDLE_ANIMS, dir, w.time - e.born, 0);
-      const tint = e.frozen > 0 ? RUN_COLORS.frozen : e.irr ? RUN_COLORS.irradiated : 0xffffff;
+      const tint =
+        e.frozen > 0
+          ? RUN_COLORS.frozen
+          : e.rage
+            ? RUN_COLORS.rage
+            : e.irr
+              ? RUN_COLORS.irradiated
+              : 0xffffff;
       const flash = e.flash > 0 ? Math.min(1, e.flash / HIT_FLASH) : 0;
       v.style(e.flying ? FLY_HEIGHT : 0, tint, 1, flash, e.boss ? JUICE.squash * 0.3 : JUICE.squash);
     }

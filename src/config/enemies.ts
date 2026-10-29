@@ -142,6 +142,12 @@ export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> =
   coloso: { at: 600, kills: 1000 },
 };
 
+/**
+ * Furia: cualquier enemigo normal (ni jefe ni élite) que siga vivo `after` s después de aparecer se enfurece, se
+ * pone rojo y pega y corre más. DECISIÓN: para que no compense dejar a los bichos dando vueltas.
+ */
+export const RAGE = { after: 10, dmg: 1.25, speed: 1.6 } as const;
+
 export const ENEMY_RULES = {
   /** Enemigos simultáneos; al superarlo se recicla el más lejano (05_TECH.md §3). */
   maxAlive: 400,

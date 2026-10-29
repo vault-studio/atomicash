@@ -110,6 +110,8 @@ export interface Enemy {
   dead: boolean;
   /** Variante irradiada. */
   irr: boolean;
+  /** Enfurecido (ver `RAGE`): ya lleva aplicados sus bonus de daño y velocidad. */
+  rage: boolean;
   boss: boolean;
   flying: boolean;
   /** Guarnición a la que pertenece (índice en `World.garrisons`), o −1. */
