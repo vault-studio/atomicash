@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { audio } from '../audio/audio';
-import { applyRun, refreshDaily, runOptionsFor } from '../meta/actions';
+import { applyRun, refreshDaily, runOptionsFor, setActive } from '../meta/actions';
 import { useSave } from '../store/save';
 import { useOnline } from '../store/online';
 import { connect, afterRun } from '../online/session';
 import type { RunResults } from '../engine/world';
+import type { StatSurvivorId } from '../config/survivors';
 import { RunScreen } from './screens/RunScreen';
 import { Backpack } from './screens/bunker/Backpack';
 import { Board } from './screens/bunker/Board';
 import { Bunker, type BunkerView } from './screens/bunker/Bunker';
+import { Expedition } from './screens/bunker/Expedition';
 import { Merchant } from './screens/bunker/Merchant';
 import { Psych } from './screens/bunker/Psych';
 import { Settings } from './screens/bunker/Settings';
@@ -25,6 +27,8 @@ export function App() {
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
   const [view, setView] = useState<View>('bunker');
+  /** Superviviente elegido al salir de expedición; null mientras se elige. */
+  const [runChar, setRunChar] = useState<StatSurvivorId | null>(null);
   const st = data.settings;
   const active = data.profile.active;
 
@@ -55,7 +59,17 @@ export function App() {
     [st.damageNumbers, st.reduceMotion],
   );
   const worldOptions = useMemo(() => (active ? runOptionsFor(data, active) : undefined), [data, active]);
-  const back = useCallback(() => setView('bunker'), []);
+  const back = useCallback(() => {
+    setRunChar(null);
+    setView('bunker');
+  }, []);
+  const start = useCallback(
+    (id: StatSurvivorId) => {
+      act((d) => setActive(d, id));
+      setRunChar(id);
+    },
+    [act],
+  );
   const finish = useCallback(
     (r: RunResults) => {
       const reward = act((d) => applyRun(d, r, new Date()));
@@ -67,10 +81,11 @@ export function App() {
 
   let screen: React.ReactNode;
   if (!data.profile.starterChosen) screen = <Psych />;
-  else if (view === 'expedition' && active)
+  else if (view === 'expedition' && !runChar) screen = <Expedition onStart={start} onBack={back} />;
+  else if (view === 'expedition' && runChar)
     screen = (
       <RunScreen
-        charId={active}
+        charId={runChar}
         settings={runSettings}
         worldOptions={worldOptions}
         onExit={back}

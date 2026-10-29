@@ -430,6 +430,10 @@
     "price": "{{n, number}} cup.",
     "active": "Superviviente activo: {{name}}"
   },
+  "expedition": {
+    "pick": "¿Quién sale al páramo?",
+    "go": "SALIR ▸"
+  },
   "collection": {
     "unknown": "???",
     "notRecruited": "Sin reclutar. Búscalo en los Suministros.",

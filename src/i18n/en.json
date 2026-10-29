@@ -430,6 +430,10 @@
     "price": "{{n, number}} cp",
     "active": "Active survivor: {{name}}"
   },
+  "expedition": {
+    "pick": "Who heads into the wasteland?",
+    "go": "HEAD OUT ▸"
+  },
   "collection": {
     "unknown": "???",
     "notRecruited": "Not recruited. Look for them in Supplies.",

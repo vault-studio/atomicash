@@ -129,11 +129,16 @@ export function psychResult(answers: readonly number[]): StarterId {
   return STARTERS[best]!;
 }
 
-/** Perfil psicológico: el elegido pasa a la colección y a ser el activo. Solo la primera vez. */
+/**
+ * Perfil psicológico: el elegido pasa a ser el activo. Solo la primera vez.
+ * DECISIÓN: todo el plantel queda disponible desde el principio (se elige al salir de expedición); la caja de
+ * suministros da estrellas y fichas de los que ya tienes.
+ */
 export function chooseStarter(s: SaveData, id: StatSurvivorId): void {
   if (s.profile.starterChosen) return;
   s.profile.starterChosen = id;
   grantSurvivor(s, id);
+  for (const r of ROSTER) s.survivors[r] ??= newSurvivor();
   s.profile.active = id;
 }
 

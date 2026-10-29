@@ -395,3 +395,11 @@ button.card--survivor {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* Elegir superviviente al salir de expedición */
+.expedition__go {
+  margin-top: auto;
+  align-self: flex-end;
+  color: var(--crt);
+  letter-spacing: 0.1em;
+}

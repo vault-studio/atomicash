@@ -9,7 +9,7 @@ import {
   upgradeCost,
   zoneRates,
 } from '../src/config/meta';
-import { SURVIVORS } from '../src/config/survivors';
+import { ROSTER, SURVIVORS } from '../src/config/survivors';
 import {
   applyRun,
   buyOffer,
@@ -145,7 +145,9 @@ describe('colección', () => {
     chooseStarter(s, 'dot');
     expect(s.profile.starterChosen).toBe('gus');
     expect(s.profile.active).toBe('gus');
-    expect(s.survivors.dot).toBeUndefined();
+    // Todo el plantel queda disponible para elegir al salir de expedición.
+    expect(Object.keys(s.survivors).sort()).toEqual([...ROSTER].sort());
+    expect(s.survivors.dot!.level).toBe(1);
   });
 });
 
@@ -306,7 +308,9 @@ describe('guardado', () => {
     expect(s.profile.active).toBe('gus');
     expect(s.survivors.gus!.implant).toBe('cortex');
     expect(s.survivors.gus!.upgrades.hp).toBe(1);
-    expect(Object.keys(s.survivors)).toEqual(['gus']);
+    // Mae y el falso se van; Dot y Benny entran a nivel 1 (todo el plantel es jugable).
+    expect(Object.keys(s.survivors).sort()).toEqual([...ROSTER].sort());
+    expect(s.survivors.dot!.level).toBe(1);
     expect(s.gacha.pity.paramo).toBe(12);
     expect(s.settings.musicVol).toBe(1);
     expect(s.settings.language).toBe('en');

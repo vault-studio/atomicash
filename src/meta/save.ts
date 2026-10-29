@@ -173,6 +173,8 @@ export function normalize(raw: unknown): SaveData {
   // Los supervivientes que ya no están en el plantel se quitan; si era el inicial, se repite el test.
   for (const id of ROSTER) if (sv[id] !== undefined) survivors[id] = normSurvivor(sv[id]);
   const starterChosen = oneOfOrNull(p.starterChosen, ROSTER);
+  // Tras el test se juega con cualquiera del plantel: los que falten entran a nivel 1.
+  if (starterChosen) for (const id of ROSTER) survivors[id] ??= newSurvivor();
   const active = oneOfOrNull(p.active, ROSTER) ?? starterChosen;
   return {
     version: SAVE.version,
