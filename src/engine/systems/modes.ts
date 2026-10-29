@@ -125,11 +125,12 @@ export function startObjective(w: World): void {
   banner(w, `banner.objective.${kind}`);
 }
 
-/** Una baja dentro de la zona de un objetivo de purga. */
-export function objectiveKill(w: World, x: number, y: number): void {
+/** Una baja con el jugador dentro de la zona de un objetivo de purga (el enemigo puede estar fuera). */
+export function objectiveKill(w: World): void {
   const o = w.objective;
   if (!o || o.kind !== 'purge') return;
-  if ((x - o.x) ** 2 + (y - o.y) ** 2 < o.r * o.r) o.progress++;
+  const p = w.player;
+  if ((p.x - o.x) ** 2 + (p.y - o.y) ** 2 < o.r * o.r) o.progress++;
 }
 
 export function updateObjective(w: World, dt: number): void {

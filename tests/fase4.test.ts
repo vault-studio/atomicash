@@ -72,15 +72,23 @@ describe('objetivos del mapa', () => {
     expect(w.choice?.type).toBe('cache');
   });
 
-  it('la purga cuenta las bajas dentro de la zona y caduca si no llegas', () => {
+  it('la purga cuenta las bajas con el jugador dentro de la zona, estén donde estén, y caduca si no llegas', () => {
     const w = quiet();
     w.objectiveIdx = 1;
     startObjective(w);
     const o = w.objective!;
     expect(o.kind).toBe('purge');
+    // Jugador fuera: no cuenta aunque el enemigo esté en el centro de la zona.
+    w.player.x = o.x + o.r * 3;
+    w.player.y = o.y;
     killEnemy(w, spawnEnemy(w, 'dron', o.x, o.y), 'llave');
+    expect(o.progress).toBe(0);
+    // Jugador dentro: cuenta aunque el enemigo esté fuera.
+    w.player.x = o.x;
+    w.player.y = o.y;
     killEnemy(w, spawnEnemy(w, 'dron', o.x + o.r * 2, o.y), 'llave');
     expect(o.progress).toBe(1);
+    w.player.x = o.x + o.r * 3;
     run(w, OBJECTIVES.purge.limit + 0.2);
     expect(w.objective).toBeNull();
     expect(w.objectivesDone).toBe(0);

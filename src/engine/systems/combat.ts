@@ -311,7 +311,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   e.dead = true;
   w.kills++;
   countKill(w);
-  objectiveKill(w, e.x, e.y);
+  objectiveKill(w);
   const before = streakMult(w.streak);
   w.streak++;
   if (w.streak > w.bestStreak) w.bestStreak = w.streak;
