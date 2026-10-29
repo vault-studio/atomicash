@@ -4,7 +4,7 @@ import { PLAYER } from '../config/run';
 import { FUSIONS, WEAPONS, scaled, type WeaponId } from '../config/weapons';
 import { TRAITS } from '../config/traits';
 import type { Card, World } from '../engine/types';
-import { traitIcon, weaponIcon } from './icons';
+import { hudIcon, pickupIcon, traitIcon, weaponIcon } from './icons';
 
 const f1 = (x: number): number => Math.round(x * 10) / 10;
 
@@ -168,6 +168,7 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         tag: t('cards.item'),
         title: t(`items.${c.id}.name`),
         desc: t(`items.${c.id}.desc`),
+        icon: hudIcon(c.id),
       };
     case 'coupons':
       return {
@@ -175,10 +176,23 @@ export function cardView(t: TFunction, w: World, c: Card): CardView {
         tag: t('cards.cache'),
         title: t('cards.coupons', { n: c.n }),
         desc: t('cards.cacheDesc'),
+        icon: pickupIcon('coupon'),
       };
     case 'heal':
-      return { cls: '', tag: t('cards.supply'), title: t('cards.heal'), desc: t('cards.healDesc') };
+      return {
+        cls: '',
+        tag: t('cards.supply'),
+        title: t('cards.heal'),
+        desc: t('cards.healDesc'),
+        icon: hudIcon('heal'),
+      };
     case 'purge':
-      return { cls: '', tag: t('cards.supply'), title: t('cards.purge'), desc: t('cards.purgeDesc') };
+      return {
+        cls: '',
+        tag: t('cards.supply'),
+        title: t('cards.purge'),
+        desc: t('cards.purgeDesc'),
+        icon: hudIcon('iodine'),
+      };
   }
 }

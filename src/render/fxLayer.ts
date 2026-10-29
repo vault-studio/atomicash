@@ -7,6 +7,7 @@ import { WEAPONS } from '../config/weapons';
 import { ELITES, ENEMY_RULES } from '../config/enemies';
 import type { World } from '../engine/types';
 import { isoX, isoY } from './iso';
+import type { PickupArt } from './pickupLayer';
 
 const TAU = Math.PI * 2;
 const SQ = Math.SQRT1_2;
@@ -40,9 +41,23 @@ function groundQuad(
   ]);
 }
 
+/** Color del halo de los objetos con dibujo; las gemas, los estimulantes y los cupones no llevan. */
+const PICKUP_HALO: Partial<Record<string, number>> = {
+  medkit: 0xffffff,
+  magnet: 0xffffff,
+  bomb: 0xffffff,
+  freeze: RUN_COLORS.freeze,
+  nuka: RUN_COLORS.nuka,
+  chest: 0xc77dff,
+  crate: 0xffffff,
+  cache: RUN_COLORS.cacheTrim,
+};
+
 export class FxLayer {
   readonly ground = new Graphics();
   readonly air = new Graphics();
+  /** Dibujos de los objetos del mapa: los que tienen dibujo solo llevan aquí su sombra o su halo. */
+  art: PickupArt | null = null;
 
   draw(w: World): void {
     const g = this.ground;
@@ -95,6 +110,7 @@ export class FxLayer {
       if (f > 0) groundCircle(g, ob.x, ob.y, ob.r * f).fill({ color: RUN_COLORS.objective, alpha: 0.18 });
     }
     // Barriles explosivos: rojos con la franja amarilla; con la mecha encendida parpadean.
+    const barrelArt = this.art?.has('barrel') ?? false;
     for (let i = 0; i < w.barrels.count; i++) {
       const b = w.barrels.items[i]!;
       const sx = isoX(b.x, b.y);
@@ -102,6 +118,11 @@ export class FxLayer {
       const r = b.r;
       const lit = b.fuse >= 0 && Math.sin(t * 60) > 0;
       groundCircle(g, b.x, b.y, r).fill({ color: 0x000000, alpha: 0.35 });
+      if (barrelArt) {
+        // Mecha encendida: destello rojo en el suelo.
+        if (lit) groundCircle(g, b.x, b.y, r * 2).fill({ color: RUN_COLORS.barrel, alpha: 0.35 });
+        continue;
+      }
       g.rect(sx - r * 0.8, sy - r * 2.2, r * 1.6, r * 2.2)
         .fill({ color: lit ? 0xffffff : RUN_COLORS.barrel })
         .stroke({ width: 1.5, color: 0x000000, alpha: 0.7 });
@@ -120,6 +141,7 @@ export class FxLayer {
         .stroke({ width: 2.5, color: E.color, alpha: 0.55 + 0.35 * pulse });
     }
     for (let i = 0; i < w.mines.count; i++) {
+      if (this.art?.has('mine')) break;
       const m = w.mines.items[i]!;
       const sx = isoX(m.x, m.y);
       const sy = isoY(m.x, m.y);
@@ -154,6 +176,15 @@ export class FxLayer {
       const k = w.pickups.items[i]!;
       const sx = isoX(k.x, k.y);
       const sy = isoY(k.x, k.y);
+      const name = k.kind === 'gem' ? (k.val >= 25 ? 'gem25' : k.val >= 5 ? 'gem5' : 'gem1') : k.kind;
+      if (this.art?.has(name)) {
+        // Con dibujo: sombra y, en los recogibles de efecto y los cofres, el halo que late para verlos de lejos.
+        groundCircle(g, k.x, k.y, k.r * 1.1).fill({ color: 0x000000, alpha: 0.3 });
+        const halo = PICKUP_HALO[k.kind];
+        if (halo !== undefined)
+          groundCircle(g, k.x, k.y, k.r * 2).fill({ color: halo, alpha: 0.14 + 0.08 * Math.sin(t * 5) });
+        continue;
+      }
       if (k.kind === 'gem') {
         const r = k.r;
         const c = k.val >= 25 ? RUN_COLORS.gem[25]! : k.val >= 5 ? RUN_COLORS.gem[5]! : RUN_COLORS.gem[1]!;

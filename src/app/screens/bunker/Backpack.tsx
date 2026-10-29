@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { BACKPACK, UPGRADES } from '../../../config/meta';
 import { useSave } from '../../../store/save';
+import { hudIcon } from '../../icons';
 import { Screen } from './common';
 
 export function Backpack({ onBack }: { onBack: () => void }) {
@@ -20,6 +21,7 @@ export function Backpack({ onBack }: { onBack: () => void }) {
           return (
             <li key={c} className="shop__row">
               <span>
+                <img className="shop__icon" src={hudIcon(c)} alt="" />
                 <strong>{t(`consumables.${c}.name`)}</strong> <small>{t(`consumables.${c}.desc`)}</small>
               </span>
               <span>

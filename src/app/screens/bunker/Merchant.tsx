@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IMPLANTS } from '../../../config/meta';
 import { buyOffer, isSoldOut, merchantStock, type Offer } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
+import { hudIcon, weaponIcon } from '../../icons';
 import { Screen } from './common';
 
 function untilMidnight(now: Date): string {
@@ -31,6 +32,7 @@ export function Merchant({ onBack }: { onBack: () => void }) {
       case 'consumable':
         return (
           <>
+            <img className="shop__icon" src={hudIcon(o.id)} alt="" />
             <strong>
               {t(`consumables.${o.id}.name`)} ×{o.qty}
             </strong>{' '}
@@ -57,6 +59,7 @@ export function Merchant({ onBack }: { onBack: () => void }) {
       case 'manual':
         return (
           <>
+            <img className="shop__icon" src={weaponIcon(o.weapon)} alt="" />
             <strong>{t('merchant.manual', { weapon: t(`weapons.${o.weapon}.name`) })}</strong>{' '}
             <small>{t('merchant.manualFor', { name: t(`entities.${o.char}`) })}</small>
           </>

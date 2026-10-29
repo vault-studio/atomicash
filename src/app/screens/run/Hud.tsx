@@ -7,7 +7,7 @@ import { RAD } from '../../../config/radiation';
 import { PLAYER, STREAK } from '../../../config/run';
 import { WEAPONS } from '../../../config/weapons';
 import type { Banner, World } from '../../../engine/types';
-import { weaponIcon } from '../../icons';
+import { hudIcon, weaponIcon } from '../../icons';
 import type { HudSnapshot } from '../../runSession';
 import { Minimap } from './Minimap';
 
@@ -204,7 +204,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               className={`slot slot--item ${it ? '' : 'is-empty'}`}
               title={it ? `${t(`items.${it}.name`)}: ${t(`items.${it}.desc`)}` : t('run.itemEmpty')}
             >
-              {it && <span className="slot__name">{t(`items.${it}.name`)}</span>}
+              {it && <img className="slot__icon" src={hudIcon(it)} alt={t(`items.${it}.name`)} />}
             </div>
           ))}
         </div>
@@ -218,7 +218,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               onClick={() => onConsume(i)}
               title={`${t(`consumables.${id}.name`)}: ${t(`consumables.${id}.desc`)} (${i + 5})`}
             >
-              <span className="slot__name">{t(`consumables.${id}.short`)}</span>
+              <img className="slot__icon" src={hudIcon(id)} alt={t(`consumables.${id}.short`)} />
               <span className="slot__lvl">{hud.cons[id]}</span>
               <span className="slot__key">{i + 5}</span>
             </button>

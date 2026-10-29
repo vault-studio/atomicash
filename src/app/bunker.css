@@ -197,6 +197,14 @@ button.card--survivor {
   flex: 1 1 260px;
 }
 
+.shop__icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+}
+
 .shop__row small {
   opacity: 0.75;
 }

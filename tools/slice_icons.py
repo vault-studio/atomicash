@@ -11,6 +11,8 @@ from PIL import Image
 
 SIZE = 128
 DARK = 45  # luminancia por debajo de la cual es fondo
+# La lámina del HUD tiene una casilla vacía que oscurece su última columna: con DARK se partiría en tres.
+DARK_BY_SHEET = {'ARTE/iconos_hud.webp': 30}
 LINE = 0.15  # fracción mínima de píxeles claros para que una fila o columna sea parte de una ficha
 INSET = 0.035  # fracción de la ficha que se recorta por cada lado para quitar el borde
 
@@ -29,6 +31,14 @@ SHEETS = {
             'ammo', 'boots', 'manual', 'helmet', 'plate', 'suture',
             'magnet', 'cat', 'scope', 'ration', 'oil', 'iodine',
             'fuse', 'tips', 'adren', 'rabbit', 'stock',
+        ],
+    ),
+    # Consumibles, objetos de jefe y la carta de curación.
+    'ARTE/iconos_hud.webp': (
+        Path('assets/icons/hud'),
+        [
+            'stim', 'iodine', 'grenade', 'turbo', 'dice', 'apron',
+            'skates', 'fridge', 'belt', 'bobble', 'heal',
         ],
     ),
 }
@@ -50,7 +60,7 @@ def runs(a: np.ndarray) -> list[tuple[int, int]]:
 
 for src, (out_dir, names) in SHEETS.items():
     img = Image.open(src).convert('RGB')
-    light = np.asarray(img.convert('L')) > DARK
+    light = np.asarray(img.convert('L')) > DARK_BY_SHEET.get(src, DARK)
     cols, rows = runs(light.mean(0)), runs(light.mean(1))
     cells = [(x, y) for y in rows for x in cols]
     assert len(cells) >= len(names), f'{src}: {len(cells)} celdas para {len(names)} iconos'

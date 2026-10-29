@@ -10,6 +10,7 @@ import { EnemyLayer } from './enemyLayer';
 import { FxLayer, TextLayer } from './fxLayer';
 import { GroundView, loadGroundTiles, type GroundTiles } from './ground';
 import { dirIndex, isoX, isoY } from './iso';
+import { loadPickupArt, PickupLayer, type PickupArt } from './pickupLayer';
 import type { SpriteLibrary } from './sprites';
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
@@ -25,6 +26,7 @@ export class GameRenderer {
   private readonly groundView: GroundView;
   private readonly player: ActorView;
   private readonly enemies: EnemyLayer;
+  private readonly pickups: PickupLayer | null;
   private readonly fx = new FxLayer();
   private readonly texts: TextLayer;
   /** Tinte de pantalla completa: lluvia radiactiva, Tormenta, golpe recibido. */
@@ -44,6 +46,7 @@ export class GameRenderer {
     world: World,
     translate: (key: string) => string,
     tiles: GroundTiles | null,
+    pickupArt: PickupArt | null,
   ) {
     app.stage.addChild(this.worldLayer);
     this.groundView = new GroundView(tiles, this.actors, world);
@@ -57,6 +60,8 @@ export class GameRenderer {
     this.player = new ActorView(ENTITIES[world.player.charId], lib, true);
     this.actors.addChild(this.player);
     this.enemies = new EnemyLayer(this.actors, lib);
+    this.pickups = pickupArt ? new PickupLayer(this.actors, pickupArt) : null;
+    this.fx.art = pickupArt;
     app.stage.addChild(this.overlay);
 
     this.debugText = new Text({
@@ -87,8 +92,12 @@ export class GameRenderer {
     });
     host.appendChild(app.canvas);
     // Las baldosas son opcionales: si faltan, queda el fondo liso con los charcos dibujados.
-    const tiles = await loadGroundTiles().catch(() => null);
-    return new GameRenderer(app, lib, world, translate, tiles);
+    // Igual los dibujos de los objetos del mapa: sin ellos quedan los placeholders.
+    const [tiles, pickupArt] = await Promise.all([
+      loadGroundTiles().catch(() => null),
+      loadPickupArt().catch(() => null),
+    ]);
+    return new GameRenderer(app, lib, world, translate, tiles, pickupArt);
   }
 
   toggleDebug(): void {
@@ -160,6 +169,7 @@ export class GameRenderer {
     const blink = p.inv > 0 && p.deadAt === null && Math.floor(w.time * 20) % 2 === 0;
     this.player.style(0, hurt ? RUN_COLORS.flash : 0xffffff, blink ? 0.55 : 1);
     this.enemies.sync(w, alpha);
+    this.pickups?.sync(w);
     this.fx.draw(w);
     this.texts.draw(w, this.showDamage && w.showDmg);
 

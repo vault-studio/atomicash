@@ -1,0 +1,92 @@
+{
+  "crate": {
+    "file": "crate.png",
+    "ay": 0.974,
+    "bw": 154
+  },
+  "chest": {
+    "file": "chest.png",
+    "ay": 0.976,
+    "bw": 152
+  },
+  "cache": {
+    "file": "cache.png",
+    "ay": 0.977,
+    "bw": 118
+  },
+  "medkit": {
+    "file": "medkit.png",
+    "ay": 0.964,
+    "bw": 153
+  },
+  "magnet": {
+    "file": "magnet.png",
+    "ay": 0.973,
+    "bw": 138
+  },
+  "bomb": {
+    "file": "bomb.png",
+    "ay": 0.924,
+    "bw": 106
+  },
+  "freeze": {
+    "file": "freeze.png",
+    "ay": 0.983,
+    "bw": 100
+  },
+  "nuka": {
+    "file": "nuka.png",
+    "ay": 0.979,
+    "bw": 93
+  },
+  "gem1": {
+    "file": "gem1.png",
+    "ay": 0.672,
+    "bw": 94
+  },
+  "gem5": {
+    "file": "gem5.png",
+    "ay": 0.971,
+    "bw": 146
+  },
+  "gem25": {
+    "file": "gem25.png",
+    "ay": 0.975,
+    "bw": 137
+  },
+  "stim": {
+    "file": "stim.png",
+    "ay": 0.986,
+    "bw": 120
+  },
+  "coupon": {
+    "file": "coupon.png",
+    "ay": 0.971,
+    "bw": 153
+  },
+  "barrel": {
+    "file": "barrel.png",
+    "ay": 0.98,
+    "bw": 95
+  },
+  "barrel_lit": {
+    "file": "barrel_lit.png",
+    "ay": 0.974,
+    "bw": 124
+  },
+  "beacon": {
+    "file": "beacon.png",
+    "ay": 0.984,
+    "bw": 90
+  },
+  "mine": {
+    "file": "mine.png",
+    "ay": 0.977,
+    "bw": 133
+  },
+  "iodine": {
+    "file": "iodine.png",
+    "ay": 0.977,
+    "bw": 115
+  }
+}

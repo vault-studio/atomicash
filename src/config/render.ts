@@ -193,3 +193,32 @@ export interface TileIndex {
   readonly height: number;
   readonly sets: Readonly<Record<string, readonly TileInfo[]>>;
 }
+
+/**
+ * Dibujos de los objetos del mapa (tools/slice_pickups.py → `assets/pickups/`). `w` es el ancho del cuerpo en px de
+ * mundo como múltiplo del radio del objeto (`fixed`: en px, para los que no tienen radio propio). `bob`: flota.
+ * DECISIÓN: algo más grandes que su radio de recogida para que se lean entre la arena y los enemigos.
+ */
+export const PICKUP_ART = {
+  dir: 'assets/pickups/',
+  index: 'assets/pickups/pickups.json',
+  w: {
+    gem1: 4.2,
+    gem5: 4,
+    gem25: 4,
+    stim: 3.6,
+    coupon: 4.4,
+    crate: 2.1,
+    chest: 2.3,
+    cache: 1.7,
+    medkit: 3.2,
+    magnet: 3,
+    bomb: 2.8,
+    freeze: 2.4,
+    nuka: 2.4,
+    barrel: 1.7,
+    barrel_lit: 2.2,
+  } as Readonly<Record<string, number>>,
+  fixed: { mine: 26, beacon: 46 } as Readonly<Record<string, number>>,
+  bob: ['stim', 'coupon', 'medkit', 'magnet', 'bomb', 'freeze', 'nuka', 'chest', 'crate', 'cache'] as readonly string[],
+} as const;
