@@ -1,11 +1,13 @@
 // Placeholders de proyectiles, chatarra, charcos, explosiones y rayos (04_ART_UI.md §5).
-// Dos Graphics que se redibujan cada frame: suelo (bajo los actores) y aire (encima).
+// Dos Graphics que se redibujan cada frame: suelo (bajo los actores) y aire (encima). Los efectos con dibujo
+// (`FX_ART`) van en dos capas de sprites encima de cada Graphics; sin su tira, queda el placeholder.
 import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
-import { RUN_COLORS } from '../config/render';
+import { FX_ART, RUN_COLORS } from '../config/render';
 import { FX, JUICE } from '../config/run';
 import { WEAPONS } from '../config/weapons';
 import { ELITES, ENEMY_RULES } from '../config/enemies';
-import type { World } from '../engine/types';
+import type { Boom, World } from '../engine/types';
+import type { FxSprites } from './fxSprites';
 import { isoX, isoY } from './iso';
 import type { PickupArt } from './pickupLayer';
 
@@ -53,11 +55,36 @@ const PICKUP_HALO: Partial<Record<string, number>> = {
   cache: RUN_COLORS.cacheTrim,
 };
 
+/** Color de la explosión de los barriles (engine/systems/modes.ts). */
+const BARREL_BOOM = 0xff7a2a;
+
+/** Tira de cada explosión según quién la pone (el motor solo deja su color), o null para el círculo. */
+function boomStrip(b: Boom): string | null {
+  if (b.r > FX_ART.boom.maxR) return null;
+  const C = FX.colors;
+  if (b.color === C.bloater) return 'acid_splash';
+  if (b.color === C.hammer) return 'slam';
+  if (b.color === C.tele || b.color === C.mine || b.color === C.grenade || b.color === BARREL_BOOM)
+    return 'fire_blast';
+  return null;
+}
+
+/** Ángulo en pantalla de una dirección de mundo. */
+const screenAngle = (vx: number, vy: number): number => Math.atan2(isoY(vx, vy), isoX(vx, vy));
+
 export class FxLayer {
   readonly ground = new Graphics();
   readonly air = new Graphics();
   /** Dibujos de los objetos del mapa: los que tienen dibujo solo llevan aquí su sombra o su halo. */
   art: PickupArt | null = null;
+  /** Sprites de efectos bajo los actores (charcos, zona, avisos) y encima (proyectiles, explosiones, estados). */
+  sg: FxSprites | null = null;
+  sa: FxSprites | null = null;
+  /** Subida de nivel y curación que se están mostrando: momento en que empezaron (−1 = nada). */
+  private levelSeen = -1;
+  private levelAt = -1;
+  private hpSeen = -1;
+  private healAt = -1;
 
   draw(w: World): void {
     const g = this.ground;
@@ -65,15 +92,53 @@ export class FxLayer {
     g.clear();
     a.clear();
     const t = w.time;
+    const sg = this.sg;
+    const sa = this.sa;
+    sg?.begin();
+    sa?.begin();
+    const P = FX_ART.pool;
 
+    const acidArt = sg?.has('acid_pool') ?? false;
     for (let i = 0; i < w.slimes.count; i++) {
       const s = w.slimes.items[i]!;
-      groundCircle(g, s.x, s.y, s.r).fill({ color: RUN_COLORS.slime, alpha: 0.25 * (s.life / s.max) });
+      const fade = s.life / s.max;
+      if (acidArt) {
+        // Cada charco en su fase para que no burbujeen todos a la vez.
+        sg!.put(
+          'acid_pool',
+          sg!.loop('acid_pool', t + i * 0.37, P.acid.fps),
+          isoX(s.x, s.y),
+          isoY(s.x, s.y),
+          s.r * P.acid.r,
+          {
+            ay: P.acid.ay,
+            alpha: Math.min(1, fade * 2) * 0.85,
+          },
+        );
+        continue;
+      }
+      groundCircle(g, s.x, s.y, s.r).fill({ color: RUN_COLORS.slime, alpha: 0.25 * fade });
     }
+    const fireArt = sg?.has('fire_pool') ?? false;
     for (let i = 0; i < w.pools.count; i++) {
       const pl = w.pools.items[i]!;
+      const fade = Math.min(1, pl.life / 0.5);
+      if (fireArt) {
+        sg!.put(
+          'fire_pool',
+          sg!.loop('fire_pool', t + i * 0.29, P.fire.fps),
+          isoX(pl.x, pl.y),
+          isoY(pl.x, pl.y),
+          pl.r * P.fire.r,
+          {
+            ay: P.fire.ay,
+            alpha: fade,
+          },
+        );
+        continue;
+      }
       const c = pl.src === 'coctel' ? RUN_COLORS.pool : 0xff9f5a;
-      groundCircle(g, pl.x, pl.y, pl.r).fill({ color: c, alpha: 0.35 * Math.min(1, pl.life / 0.5) });
+      groundCircle(g, pl.x, pl.y, pl.r).fill({ color: c, alpha: 0.35 * fade });
     }
     for (let i = 0; i < w.tele.count; i++) {
       const tl = w.tele.items[i]!;
@@ -96,18 +161,66 @@ export class FxLayer {
         });
         continue;
       }
+      if (sg?.has('tele_circle')) {
+        // Disco con franjas que crece desde el centro y aro discontinuo con flechas hacia dentro.
+        const T = FX_ART.tele;
+        const sx = isoX(tl.x, tl.y);
+        const sy = isoY(tl.x, tl.y);
+        if (f > 0)
+          sg.put('tele_disc', 0, sx, sy, tl.r * f * T.disc.r, {
+            flat: true,
+            tint: RUN_COLORS.tele,
+            alpha: T.disc.alpha * blink,
+          });
+        sg.put('tele_circle', 0, sx, sy, tl.r * T.circle.r, {
+          flat: true,
+          tint: RUN_COLORS.tele,
+          alpha: 0.9 * blink,
+        });
+        continue;
+      }
       groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: RUN_COLORS.tele, alpha: 0.8 * blink });
       groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: RUN_COLORS.tele, alpha: 0.25 * blink });
     }
-    // Zona del objetivo: anillo amarillo que late y se llena con el progreso.
+    // Zona del objetivo: anillo que late y se llena con el progreso (amarillo «aguanta», rojo «limpia la zona»).
     const ob = w.objective;
     if (ob) {
       const pulse = 0.5 + 0.5 * Math.sin(t * 4);
       const f = Math.min(1, ob.progress / ob.goal);
-      groundCircle(g, ob.x, ob.y, ob.r)
-        .fill({ color: RUN_COLORS.objective, alpha: 0.06 + 0.05 * pulse })
-        .stroke({ width: 3, color: RUN_COLORS.objective, alpha: 0.6 + 0.3 * pulse });
-      if (f > 0) groundCircle(g, ob.x, ob.y, ob.r * f).fill({ color: RUN_COLORS.objective, alpha: 0.18 });
+      if (sg?.has('zone_ring')) {
+        const Z = FX_ART.zone;
+        const col = ob.kind === 'purge' ? Z.purge : RUN_COLORS.objective;
+        const sx = isoX(ob.x, ob.y);
+        const sy = isoY(ob.x, ob.y);
+        const pl = w.player;
+        const inside = (pl.x - ob.x) ** 2 + (pl.y - ob.y) ** 2 < ob.r * ob.r;
+        if (f > 0) groundCircle(g, ob.x, ob.y, ob.r * f).fill({ color: col, alpha: 0.16 });
+        // Dentro: el suelo brilla y suben chispas del borde. Fuera: un brillo tenue para ver la zona de lejos.
+        const glow = inside ? sg.loop('zone_glow', t, Z.glow.fps) : 0;
+        sg.put('zone_glow', glow, sx, sy, ob.r * Z.glow.r, {
+          flat: true,
+          tint: col,
+          add: true,
+          alpha: inside ? Z.glow.alpha : 0.12 + 0.08 * pulse,
+        });
+        if (inside)
+          sg.put('zone_motes', sg.loop('zone_motes', t, Z.motes.fps), sx, sy, ob.r * Z.motes.r, {
+            ay: Z.motes.ay,
+            tint: col,
+            add: true,
+            alpha: Z.motes.alpha,
+          });
+        sg.put('zone_ring', 0, sx, sy, ob.r * Z.ring.r, {
+          flat: true,
+          tint: col,
+          alpha: 0.75 + 0.25 * pulse,
+        });
+      } else {
+        groundCircle(g, ob.x, ob.y, ob.r)
+          .fill({ color: RUN_COLORS.objective, alpha: 0.06 + 0.05 * pulse })
+          .stroke({ width: 3, color: RUN_COLORS.objective, alpha: 0.6 + 0.3 * pulse });
+        if (f > 0) groundCircle(g, ob.x, ob.y, ob.r * f).fill({ color: RUN_COLORS.objective, alpha: 0.18 });
+      }
     }
     // Barriles explosivos: rojos con la franja amarilla; con la mecha encendida parpadean.
     const barrelArt = this.art?.has('barrel') ?? false;
@@ -298,11 +411,25 @@ export class FxLayer {
           .stroke({ width: 2, color: 0x000000, alpha: 0.6 });
       }
     }
+    const B = FX_ART.boom;
     for (let i = 0; i < w.booms.count; i++) {
       const b = w.booms.items[i]!;
       const f = b.life / b.max;
+      const strip = boomStrip(b);
+      if (strip && sa?.has(strip)) {
+        // El golpe del martillo es una onda en el suelo; las explosiones y el ácido saltan por encima de los actores.
+        const o = strip === 'slam' ? B.slam : strip === 'acid_splash' ? B.acid : B.fire;
+        const layer = strip === 'slam' ? sg! : sa;
+        layer.put(strip, layer.once(strip, 1 - f), isoX(b.x, b.y), isoY(b.x, b.y), b.r * o.r, {
+          ay: o.ay,
+          flip: (i & 1) === 1,
+        });
+        continue;
+      }
       groundCircle(g, b.x, b.y, b.r * (1.1 - 0.3 * f)).fill({ color: b.color, alpha: 0.45 * f });
     }
+    this.drawEnemyFx(w);
+    this.drawPlayerFx(w);
 
     // Aire: esquirlas, proyectiles, rayos, armas orbitales y cócteles en vuelo.
     const lift = 22;
@@ -318,10 +445,34 @@ export class FxLayer {
       const s = w.shots.items[i]!;
       const sx = isoX(s.x, s.y);
       const sy = isoY(s.x, s.y) - lift;
+      const strip = FX_ART.shotArt[s.src];
+      if (strip && sa?.has(strip)) {
+        sa.put(strip, sa.loop(strip, t + i * 0.1, 12), sx, sy, FX_ART.shot[s.src]!.w, {
+          ax: FX_ART.shotAx,
+          rot: screenAngle(s.vx, s.vy),
+        });
+        continue;
+      }
       a.circle(sx, sy, Math.max(2.5, s.r * 0.8)).fill({ color: WEAPONS[s.src].color });
     }
     for (let i = 0; i < w.ebullets.count; i++) {
       const b = w.ebullets.items[i]!;
+      // Las radiactivas son escupitajos de ácido; las demás, balas rojas.
+      const strip = b.rad > 0 ? 'acid_spit' : 'ebullet';
+      if (sa?.has(strip)) {
+        sa.put(
+          strip,
+          sa.loop(strip, t + i * 0.1, FX_ART.ebullet.fps),
+          isoX(b.x, b.y),
+          isoY(b.x, b.y) - lift,
+          b.r * FX_ART.ebullet.r,
+          {
+            ax: FX_ART.shotAx,
+            rot: screenAngle(b.vx, b.vy),
+          },
+        );
+        continue;
+      }
       a.circle(isoX(b.x, b.y), isoY(b.x, b.y) - lift, b.r)
         .fill({ color: RUN_COLORS.ebullet })
         .stroke({ width: 1, color: 0x000000, alpha: 0.6 });
@@ -332,11 +483,36 @@ export class FxLayer {
       const x = l.sx + (l.tx - l.sx) * f;
       const y = l.sy + (l.ty - l.sy) * f;
       const h = Math.sin(f * Math.PI) * 60 + lift;
+      if (sa?.has('molotov')) {
+        const M = FX_ART.molotov;
+        sa.put('molotov', sa.loop('molotov', l.t + i * 0.2, M.fps), isoX(x, y), isoY(x, y) - h, M.w);
+        continue;
+      }
       a.circle(isoX(x, y), isoY(x, y) - h, 4).fill({ color: WEAPONS.coctel.color });
     }
     for (let i = 0; i < w.beams.count; i++) {
       const b = w.beams.items[i]!;
       if (b.n < 2) continue;
+      if (b.n === 3 && b.color === FX.colors.cone && sa?.has('wave')) {
+        // Megáfono: ondas desde el jugador (punto del medio) hacia el centro del cono.
+        const px = b.pts[2]!;
+        const py = b.pts[3]!;
+        const dx = (b.pts[0]! + b.pts[4]!) / 2 - px;
+        const dy = (b.pts[1]! + b.pts[5]!) / 2 - py;
+        const len = Math.hypot(isoX(dx, dy), isoY(dx, dy));
+        sa.put(
+          'wave',
+          sa.once('wave', 1 - b.life / b.max),
+          isoX(px, py),
+          isoY(px, py) - lift,
+          len * FX_ART.wave.len,
+          {
+            ax: 0,
+            rot: screenAngle(dx, dy),
+          },
+        );
+        continue;
+      }
       a.moveTo(isoX(b.pts[0]!, b.pts[1]!), isoY(b.pts[0]!, b.pts[1]!) - lift);
       for (let j = 1; j < b.n; j++) {
         const x = b.pts[j * 2]!;
@@ -357,11 +533,109 @@ export class FxLayer {
         const sx = isoX(x, y);
         const sy = isoY(x, y) - lift;
         const s = W.size * w.st.area * SQ;
+        if (wp.id === 'llave' && sa?.has('wrench')) {
+          // La llave va de punta hacia donde gira, con la estela detrás.
+          sa.put('wrench', 0, sx, sy, s * FX_ART.wrench.size, {
+            rot: screenAngle(-Math.sin(an), Math.cos(an)),
+          });
+          continue;
+        }
+        if (wp.id === 'dinamo' && sa?.has('coil')) {
+          sa.put('coil', sa.loop('coil', t + i * 0.13, FX_ART.coil.fps), sx, sy, s * FX_ART.coil.size);
+          continue;
+        }
         a.rect(sx - s, sy - s * 0.4, s * 2, s * 0.8)
           .fill({ color: W.color })
           .stroke({ width: 1, color: 0x000000, alpha: 0.6 });
       }
     }
+    sg?.end();
+    sa?.end();
+  }
+
+  /**
+   * Efectos sobre los enemigos: polvo al aparecer, hielo al estar congelados (se rompe al descongelarse), estrellas
+   * al estar aturdidos y llamas al pisar un charco de fuego; y la mancha del suelo de los recién muertos.
+   */
+  private drawEnemyFx(w: World): void {
+    const sg = this.sg;
+    const sa = this.sa;
+    if (!sg || !sa) return;
+    const E = FX_ART.enemy;
+    const t = w.time;
+    for (let i = 0; i < w.enemies.count; i++) {
+      const e = w.enemies.items[i]!;
+      if (e.dead) continue;
+      const sx = isoX(e.x, e.y);
+      const sy = isoY(e.x, e.y);
+      const up = e.flying ? FLY_HEIGHT : 0;
+      const age = t - e.born;
+      if (age < E.spawn.dur && !e.flying)
+        sg.put('spawn', sg.once('spawn', age / E.spawn.dur), sx, sy, e.r * E.spawn.r, { ay: E.spawn.ay });
+      if (e.frozen > 0) {
+        // Los últimos `thaw` s se rompe el hielo (frames 1…).
+        const n = sa.art.get('ice')?.frames.length ?? 1;
+        const frame =
+          e.frozen > E.ice.thaw ? 0 : Math.min(n - 1, 1 + Math.floor((1 - e.frozen / E.ice.thaw) * (n - 1)));
+        sa.put('ice', frame, sx, sy - up, e.r * E.ice.r, { ay: E.ice.ay });
+      } else if (e.stun > 0 && !e.boss) {
+        sa.put(
+          'stun',
+          sa.loop('stun', t + i * 0.1, E.stun.fps),
+          sx,
+          sy - up - e.r * E.stun.head,
+          e.r * E.stun.r,
+        );
+      }
+      if (!e.flying) {
+        for (let j = 0; j < w.pools.count; j++) {
+          const pl = w.pools.items[j]!;
+          if ((e.x - pl.x) ** 2 + (e.y - pl.y) ** 2 < pl.r * pl.r) {
+            sa.put('burn', sa.loop('burn', t + i * 0.17, E.burn.fps), sx, sy, e.r * E.burn.r, {
+              ay: E.burn.ay,
+              alpha: 0.9,
+            });
+            break;
+          }
+        }
+      }
+    }
+    const D = FX_ART.death;
+    for (let i = 0; i < w.corpses.count; i++) {
+      const c = w.corpses.items[i]!;
+      const age = t - c.t;
+      if (age >= D.dur || c.flying) continue;
+      sg.put('death', sg.once('death', age / D.dur), isoX(c.x, c.y), isoY(c.x, c.y), D.w, {
+        ay: D.ay,
+        flip: (i & 1) === 1,
+      });
+    }
+  }
+
+  /** Columna de luz al subir de nivel y cruces verdes al curarse de golpe (botiquín, rasgos). */
+  private drawPlayerFx(w: World): void {
+    const sa = this.sa;
+    const p = w.player;
+    const t = w.time;
+    // Primera vez (o partida nueva): solo apunta, no celebra.
+    if (this.levelSeen < 0 || w.level < this.levelSeen) {
+      this.levelSeen = w.level;
+      this.hpSeen = p.hp;
+      this.levelAt = this.healAt = -1;
+    }
+    if (w.level > this.levelSeen) this.levelAt = t;
+    this.levelSeen = w.level;
+    const H = FX_ART.heal;
+    if (p.hp - this.hpSeen >= p.maxHp * H.minFrac) this.healAt = t;
+    this.hpSeen = p.hp;
+    if (!sa) return;
+    const sx = isoX(p.x, p.y);
+    const sy = isoY(p.x, p.y);
+    const L = FX_ART.levelup;
+    if (this.levelAt >= 0 && t - this.levelAt < L.dur)
+      sa.put('levelup', sa.once('levelup', (t - this.levelAt) / L.dur), sx, sy, L.w, { ay: L.ay, add: true });
+    if (this.healAt >= 0 && t - this.healAt < H.dur)
+      sa.put('heal', sa.once('heal', (t - this.healAt) / H.dur), sx, sy, H.w, { ay: H.ay, add: true });
   }
 }
 

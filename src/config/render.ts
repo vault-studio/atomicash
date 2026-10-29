@@ -268,3 +268,64 @@ export const PICKUP_ART = {
     'cache',
   ] as readonly string[],
 } as const;
+
+/**
+ * Efectos con dibujo (tools/slice_fx.py → `assets/fx/`): tiras de frames del mismo tamaño. Sin la tira, FxLayer sigue
+ * dibujando su placeholder. Tamaños en px de mundo: `r` es múltiplo del radio del efecto (charco, zona, explosión) o
+ * del enemigo; `w`, ancho fijo. `ay` (y `ax`) es el punto de apoyo como fracción del frame; `fps` en las que hacen
+ * bucle. Las planas (`flat`) se aplastan a 2:1 para casar con los círculos isométricos del suelo.
+ */
+export const FX_ART = {
+  dir: 'assets/fx/',
+  index: 'assets/fx/fx.json',
+  zone: {
+    ring: { r: 2.12, ay: 0.5 },
+    glow: { r: 2, ay: 0.5, fps: 8, alpha: 0.55 },
+    motes: { r: 2, ay: 0.82, fps: 8, alpha: 0.8 },
+    /** Color de la zona de «limpia la zona» (la de «aguanta» usa `RUN_COLORS.objective`). */
+    purge: 0xff5a3c,
+  },
+  tele: { circle: { r: 2.1 }, disc: { r: 2.1, alpha: 0.4 } },
+  pool: {
+    fire: { r: 2.3, ay: 0.62, fps: 10 },
+    acid: { r: 2.3, ay: 0.58, fps: 7 },
+  },
+  boom: {
+    fire: { r: 2.2, ay: 0.72 },
+    acid: { r: 2.4, ay: 0.68 },
+    slam: { r: 2.3, ay: 0.55 },
+    /** Explosiones más grandes que esto (granada que barre la pantalla, crio-granada) siguen con el círculo. */
+    maxR: 220,
+  },
+  shot: {
+    pistola_clavos: { w: 28 },
+    jeringa: { w: 36 },
+    remachadora: { w: 28 },
+    dardos_incendiarios: { w: 38 },
+    rifle_cerrojo: { w: 34 },
+  } as Readonly<Record<string, { w: number }>>,
+  /** Qué tira usa cada arma con proyectil dibujado (las demás, círculo de su color). */
+  shotArt: {
+    pistola_clavos: 'nail',
+    jeringa: 'syringe',
+    remachadora: 'rivet',
+    dardos_incendiarios: 'dart',
+    rifle_cerrojo: 'bullet',
+  } as Readonly<Record<string, string>>,
+  /** Punto de la tira que va en la posición del proyectil (la estela queda detrás). */
+  shotAx: 0.68,
+  ebullet: { r: 6.5, fps: 12 },
+  molotov: { w: 30, fps: 14 },
+  wrench: { size: 4.6 },
+  coil: { size: 3.4, fps: 12 },
+  wave: { len: 1.05 },
+  enemy: {
+    burn: { r: 3, ay: 0.95, fps: 12 },
+    ice: { r: 3.2, ay: 0.88, thaw: 0.3 },
+    stun: { r: 2.4, head: 3.4, fps: 10 },
+    spawn: { r: 3.6, ay: 0.6, dur: 0.45 },
+  },
+  death: { w: 46, ay: 0.6, dur: 0.45 },
+  levelup: { w: 78, ay: 0.92, dur: 0.9 },
+  heal: { w: 56, ay: 0.9, dur: 0.6, minFrac: 0.08 },
+} as const;

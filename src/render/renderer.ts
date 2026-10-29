@@ -8,6 +8,7 @@ import type { World } from '../engine/types';
 import { ActorView } from './actor';
 import { EnemyLayer } from './enemyLayer';
 import { FxLayer, TextLayer } from './fxLayer';
+import { FxSprites, loadFxArt, type FxArt } from './fxSprites';
 import { GroundView, loadGroundTiles, type GroundTiles } from './ground';
 import { dirIndex, isoX, isoY } from './iso';
 import { OldScreenFilter } from './oldScreen';
@@ -67,15 +68,24 @@ export class GameRenderer {
     translate: (key: string) => string,
     tiles: GroundTiles | null,
     pickupArt: PickupArt | null,
+    fxArt: FxArt | null,
   ) {
+    if (fxArt) {
+      this.fx.sg = new FxSprites(fxArt);
+      this.fx.sa = new FxSprites(fxArt);
+    }
     app.stage.addChild(this.worldLayer);
     this.groundView = new GroundView(tiles, this.actors, world);
-    this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground, this.cineBack);
+    this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground);
+    if (this.fx.sg) this.worldLayer.addChild(this.fx.sg.layer);
+    this.worldLayer.addChild(this.cineBack);
     // Actores ordenados por profundidad entre el suelo y el aire.
     this.actors.sortableChildren = true;
     this.worldLayer.addChild(this.actors);
     this.texts = new TextLayer(translate);
-    this.worldLayer.addChild(this.fx.air, this.cineFront, this.texts);
+    this.worldLayer.addChild(this.fx.air);
+    if (this.fx.sa) this.worldLayer.addChild(this.fx.sa.layer);
+    this.worldLayer.addChild(this.cineFront, this.texts);
     this.cineBack.blendMode = 'add';
     this.cineFront.blendMode = 'add';
 
@@ -116,12 +126,13 @@ export class GameRenderer {
     });
     host.appendChild(app.canvas);
     // Las baldosas son opcionales: si faltan, queda el fondo liso con los charcos dibujados.
-    // Igual los dibujos de los objetos del mapa: sin ellos quedan los placeholders.
-    const [tiles, pickupArt] = await Promise.all([
+    // Igual los dibujos de los objetos del mapa y de los efectos: sin ellos quedan los placeholders.
+    const [tiles, pickupArt, fxArt] = await Promise.all([
       loadGroundTiles().catch(() => null),
       loadPickupArt().catch(() => null),
+      loadFxArt().catch(() => null),
     ]);
-    return new GameRenderer(app, lib, world, translate, tiles, pickupArt);
+    return new GameRenderer(app, lib, world, translate, tiles, pickupArt, fxArt);
   }
 
   /** Enciende o apaga el filtro de pantalla vieja sobre todo el lienzo. */

@@ -1,0 +1,170 @@
+{
+  "zone_ring": {
+    "file": "zone_ring.png",
+    "frames": 1,
+    "w": 512,
+    "h": 174
+  },
+  "zone_glow": {
+    "file": "zone_glow.png",
+    "frames": 6,
+    "w": 259,
+    "h": 138
+  },
+  "zone_motes": {
+    "file": "zone_motes.png",
+    "frames": 6,
+    "w": 256,
+    "h": 194
+  },
+  "tele_circle": {
+    "file": "tele_circle.png",
+    "frames": 1,
+    "w": 384,
+    "h": 149
+  },
+  "tele_disc": {
+    "file": "tele_disc.png",
+    "frames": 1,
+    "w": 384,
+    "h": 152
+  },
+  "fire_pool": {
+    "file": "fire_pool.png",
+    "frames": 6,
+    "w": 192,
+    "h": 98
+  },
+  "burn": {
+    "file": "burn.png",
+    "frames": 4,
+    "w": 128,
+    "h": 94
+  },
+  "fire_blast": {
+    "file": "fire_blast.png",
+    "frames": 7,
+    "w": 192,
+    "h": 151
+  },
+  "acid_pool": {
+    "file": "acid_pool.png",
+    "frames": 6,
+    "w": 192,
+    "h": 97
+  },
+  "acid_splash": {
+    "file": "acid_splash.png",
+    "frames": 5,
+    "w": 160,
+    "h": 89
+  },
+  "acid_spit": {
+    "file": "acid_spit.png",
+    "frames": 2,
+    "w": 128,
+    "h": 34
+  },
+  "nail": {
+    "file": "nail.png",
+    "frames": 1,
+    "w": 96,
+    "h": 30
+  },
+  "syringe": {
+    "file": "syringe.png",
+    "frames": 1,
+    "w": 96,
+    "h": 20
+  },
+  "rivet": {
+    "file": "rivet.png",
+    "frames": 1,
+    "w": 96,
+    "h": 27
+  },
+  "dart": {
+    "file": "dart.png",
+    "frames": 2,
+    "w": 96,
+    "h": 26
+  },
+  "molotov": {
+    "file": "molotov.png",
+    "frames": 4,
+    "w": 96,
+    "h": 68
+  },
+  "wrench": {
+    "file": "wrench.png",
+    "frames": 1,
+    "w": 128,
+    "h": 59
+  },
+  "coil": {
+    "file": "coil.png",
+    "frames": 4,
+    "w": 128,
+    "h": 107
+  },
+  "ebullet": {
+    "file": "ebullet.png",
+    "frames": 2,
+    "w": 96,
+    "h": 29
+  },
+  "wave": {
+    "file": "wave.png",
+    "frames": 5,
+    "w": 83,
+    "h": 93
+  },
+  "slam": {
+    "file": "slam.png",
+    "frames": 6,
+    "w": 191,
+    "h": 98
+  },
+  "heal": {
+    "file": "heal.png",
+    "frames": 4,
+    "w": 128,
+    "h": 95
+  },
+  "stun": {
+    "file": "stun.png",
+    "frames": 4,
+    "w": 96,
+    "h": 57
+  },
+  "ice": {
+    "file": "ice.png",
+    "frames": 5,
+    "w": 128,
+    "h": 76
+  },
+  "spawn": {
+    "file": "spawn.png",
+    "frames": 6,
+    "w": 160,
+    "h": 75
+  },
+  "death": {
+    "file": "death.png",
+    "frames": 5,
+    "w": 160,
+    "h": 89
+  },
+  "levelup": {
+    "file": "levelup.png",
+    "frames": 9,
+    "w": 96,
+    "h": 109
+  },
+  "bullet": {
+    "file": "bullet.png",
+    "frames": 1,
+    "w": 96,
+    "h": 31
+  }
+}
