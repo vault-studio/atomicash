@@ -2,6 +2,7 @@
 // Cada vista se crea una vez por hueco y solo se rehace si en ese hueco aparece otro sprite.
 import type { Container } from 'pixi.js';
 import { ENTITIES, type AnimId, type EntityId } from '../config/entities';
+import { ELITES } from '../config/enemies';
 import { RUN_COLORS } from '../config/render';
 import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
@@ -77,6 +78,7 @@ export class EnemyLayer {
       const x = e.prevX + (e.x - e.prevX) * alpha;
       const y = e.prevY + (e.y - e.prevY) * alpha;
       v.position.set(isoX(x, y), isoY(x, y));
+      v.scale.set(e.elite ? ELITES.scale : 1);
       v.zIndex = x + y + (e.flying ? 1e6 : 0);
       const dir = dirIndex(e.facingX, e.facingY);
       const since = w.time - e.lastAtk;

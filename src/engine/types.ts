@@ -1,9 +1,10 @@
 import type { EntityId } from '../config/entities';
-import type { StatEnemyId } from '../config/enemies';
+import type { EliteId, StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import type { BuildingKind } from '../config/props';
 import type { StatSurvivorId } from '../config/survivors';
 import type { Rarity, StatKey, TraitId } from '../config/traits';
+import type { HordeKind } from '../config/waves';
 import type { WeaponId } from '../config/weapons';
 import type { Pool } from './pool';
 import type { Rng } from './rng';
@@ -141,6 +142,10 @@ export interface Enemy {
   timer: number;
   /** Sentido de giro al rodear (−1 o 1). */
   side: number;
+  /** Prefijo de élite, o null si es normal. */
+  elite: EliteId | null;
+  /** Marcha en formación (hordas): segundos que sigue en línea recta por (dx, dy) antes de perseguir. */
+  march: number;
   /** Último golpe de cada arma orbital, por hueco. */
   readonly hitT: Float64Array;
 }
@@ -222,11 +227,16 @@ export interface Mine {
   dmg: number;
 }
 
-/** Aviso en el suelo de un ataque de jefe; al acabar, explota (y quizá crea un enemigo). */
+/**
+ * Aviso en el suelo de un ataque de jefe; al acabar, explota (y quizá crea un enemigo). Si (lx, ly) no es cero es un
+ * pasillo de anchura 2r desde (x, y) hasta (x + lx, y + ly). Con `dmg` 0 solo avisa (la embestida hace el daño).
+ */
 export interface Telegraph {
   x: number;
   y: number;
   r: number;
+  lx: number;
+  ly: number;
   t: number;
   dur: number;
   dmg: number;
@@ -241,6 +251,14 @@ export interface Slime {
   life: number;
   max: number;
   rad: number;
+}
+
+/** Horda anunciada: llega cuando `t` llega a 0, desde la dirección de mundo (ax, ay) respecto al jugador. */
+export interface Horde {
+  kind: HordeKind;
+  t: number;
+  ax: number;
+  ay: number;
 }
 
 export interface Point {
@@ -494,6 +512,18 @@ export interface World {
   storm: boolean;
   lastBossAt: number;
   readonly bossSpawned: Record<string, boolean>;
+  /** Próximo élite y próxima horda, en s de run. */
+  nextElite: number;
+  nextHorde: number;
+  hordeIdx: number;
+  /** Horda avisada que aún no ha llegado. */
+  horde: Horde | null;
+  /** Último élite golpeado (id) y cuándo, para su barra en el HUD. */
+  eliteFocus: number;
+  eliteFocusAt: number;
+  /** Bajas seguidas sin recibir daño, y la mejor de la run. */
+  streak: number;
+  bestStreak: number;
   /** Jefes vivos (para bajar el ritmo de oleadas y la barra de jefe). */
   bossAlive: number;
   shake: number;

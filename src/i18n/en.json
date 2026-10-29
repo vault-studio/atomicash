@@ -10,7 +10,7 @@
     "controls": "WASD / arrows: move · 1 2 3 / R: cards · 5–8: consumables · Esc: pause",
     "controlsTouch": "Drag on the left half to move",
     "back": "← Bunker",
-    "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min",
+    "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min · E elite · H horde",
     "dodge": "DODGE",
     "pause": "Pause",
     "paused": "PAUSED",
@@ -27,7 +27,10 @@
     "radar": "RADAR",
     "weapons": "WEAPONS",
     "itemEmpty": "Item slot: filled by a boss chest",
-    "kit": "KIT"
+    "kit": "KIT",
+    "streak": "STREAK {{n}}",
+    "elitePrefix": "{{prefix}} · {{name}}",
+    "bossPhase": "PHASE {{n}}"
   },
   "pauseStats": {
     "attributes": "Attributes",
@@ -370,7 +373,17 @@
     "swarm": "Drone swarm!",
     "rain": "Radioactive rain",
     "fusion": "Jury-rigged! {{name}}",
-    "storm": "THE STORM IS COMING!"
+    "storm": "THE STORM IS COMING!",
+    "elite": "{{prefix}} ELITE! {{name}}",
+    "eliteDown": "Elite down! Special chest",
+    "ratPhase": "The Rat King is enraged",
+    "streak": "{{n}} streak! XP ×{{mult}}",
+    "streakLost": "Streak lost",
+    "horde": {
+      "ring": "You're surrounded!",
+      "stampede": "Stampede!",
+      "wall": "A wall is coming!"
+    }
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",
@@ -401,7 +414,8 @@
     "maxHit": "Biggest hit",
     "peakDps": "Peak DPS",
     "items": "Items",
-    "timeline": "Damage every 30 s"
+    "timeline": "Damage every 30 s",
+    "bestStreak": "Best no-hit streak"
   },
   "sources": {
     "granada": "Grenade",
@@ -718,5 +732,12 @@
       "cheat": "Cheating",
       "other": "Other"
     }
+  },
+  "elites": {
+    "blindado": "ARMORED",
+    "veloz": "SWIFT",
+    "radiactivo": "RADIOACTIVE",
+    "divisor": "SPLITTER",
+    "vampirico": "VAMPIRIC"
   }
 }

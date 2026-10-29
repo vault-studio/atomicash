@@ -10,7 +10,7 @@
     "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 5–8: consumibles · Esc: pausa",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
     "back": "← Búnker",
-    "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min",
+    "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min · E élite · H horda",
     "dodge": "ESQUIVA",
     "pause": "Pausa",
     "paused": "EN PAUSA",
@@ -27,7 +27,10 @@
     "radar": "RADAR",
     "weapons": "ARMAS",
     "itemEmpty": "Hueco de objeto: lo llena el cofre de un jefe",
-    "kit": "EQUIPO"
+    "kit": "EQUIPO",
+    "streak": "RACHA {{n}}",
+    "elitePrefix": "{{prefix}} · {{name}}",
+    "bossPhase": "FASE {{n}}"
   },
   "pauseStats": {
     "attributes": "Atributos",
@@ -370,7 +373,17 @@
     "swarm": "¡Enjambre de drones!",
     "rain": "Lluvia radiactiva",
     "fusion": "¡Apaño! {{name}}",
-    "storm": "¡LLEGA LA TORMENTA!"
+    "storm": "¡LLEGA LA TORMENTA!",
+    "elite": "¡ÉLITE {{prefix}}! {{name}}",
+    "eliteDown": "¡Élite abatido! Cofre especial",
+    "ratPhase": "El Rey Rata se enfurece",
+    "streak": "¡Racha de {{n}}! Experiencia ×{{mult}}",
+    "streakLost": "Racha perdida",
+    "horde": {
+      "ring": "¡Te rodean!",
+      "stampede": "¡Estampida!",
+      "wall": "¡Se acerca un muro!"
+    }
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",
@@ -401,7 +414,8 @@
     "maxHit": "Golpe más fuerte",
     "peakDps": "Pico de DPS",
     "items": "Objetos",
-    "timeline": "Daño cada 30 s"
+    "timeline": "Daño cada 30 s",
+    "bestStreak": "Mejor racha sin daño"
   },
   "sources": {
     "granada": "Granada",
@@ -718,5 +732,12 @@
       "cheat": "Trampas",
       "other": "Otro"
     }
+  },
+  "elites": {
+    "blindado": "BLINDADO",
+    "veloz": "VELOZ",
+    "radiactivo": "RADIACTIVO",
+    "divisor": "DIVISOR",
+    "vampirico": "VAMPÍRICO"
   }
 }

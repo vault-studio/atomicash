@@ -4,7 +4,7 @@
 import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
-import { PLAYER } from '../../../config/run';
+import { PLAYER, STREAK } from '../../../config/run';
 import { WEAPONS } from '../../../config/weapons';
 import type { Banner, World } from '../../../engine/types';
 import type { HudSnapshot } from '../../runSession';
@@ -15,6 +15,26 @@ export const fmtTime = (s: number): string => {
   const ss = Math.floor(s % 60);
   return `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
 };
+
+/**
+ * Aviso de horda en el borde de la pantalla por donde llegará (el anillo, en todos los bordes). La flecha se pega al
+ * rectángulo de la pantalla siguiendo la dirección.
+ */
+function HordeWarning({ horde }: { horde: NonNullable<HudSnapshot['horde']> }) {
+  if (horde.kind === 'ring') return <div className="hud__edge-ring" />;
+  const k = 1 / Math.max(Math.abs(horde.sx), Math.abs(horde.sy));
+  const left = 50 + horde.sx * k * 44;
+  const top = 50 + horde.sy * k * 40;
+  const deg = (Math.atan2(horde.sy, horde.sx) * 180) / Math.PI;
+  return (
+    <div className="hud__edge" style={{ left: `${left}%`, top: `${top}%` }}>
+      <span className="hud__edge-arrow" style={{ transform: `rotate(${deg}deg)` }}>
+        ➤
+      </span>
+      <span className="hud__edge-sign">!</span>
+    </div>
+  );
+}
 
 interface Props {
   hud: HudSnapshot;
@@ -29,6 +49,8 @@ function useBannerText(): (b: Banner) => string {
     const params: Record<string, string> = { ...b.params };
     if (b.params.boss) params.name = t(`entities.${b.params.boss}`).toUpperCase();
     if (b.params.weapon) params.name = t(`weapons.${b.params.weapon}.name`);
+    if (b.params.elite) params.prefix = t(`elites.${b.params.elite}`);
+    if (b.params.enemy) params.name = t(`entities.${b.params.enemy}`);
     return t(b.key, params);
   };
 }
@@ -75,7 +97,26 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
           <div className="meter meter--boss">
             <div className="meter__bar">
               <div className="meter__fill" style={{ width: `${hud.boss.frac * 100}%` }} />
-              <span className="meter__over">{t(`entities.${hud.boss.id}`)}</span>
+              {hud.boss.marks.map((m) => (
+                <i key={m} className="meter__mark" style={{ left: `${m * 100}%` }} />
+              ))}
+              <span className="meter__over">
+                {t(`entities.${hud.boss.id}`)}
+                {hud.boss.marks.length > 0 && ` · ${t('run.bossPhase', { n: hud.boss.phase })}`}
+              </span>
+            </div>
+          </div>
+        )}
+        {hud.elite && (
+          <div className="meter meter--elite">
+            <div className="meter__bar">
+              <div className="meter__fill" style={{ width: `${hud.elite.frac * 100}%` }} />
+              <span className="meter__over">
+                {t('run.elitePrefix', {
+                  prefix: t(`elites.${hud.elite.prefix}`),
+                  name: t(`entities.${hud.elite.id}`),
+                })}
+              </span>
             </div>
           </div>
         )}
@@ -89,6 +130,12 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
         <div className="hud__radar panel">
           <Minimap world={world} />
           <span className="hud__kills">{t('run.kills', { n: hud.kills })}</span>
+          {hud.streak >= STREAK.show && (
+            <span className={`hud__streak ${hud.streakMult > 1 ? 'is-hot' : ''}`}>
+              {t('run.streak', { n: hud.streak })}
+              {hud.streakMult > 1 && <b> ×{hud.streakMult}</b>}
+            </span>
+          )}
         </div>
       </div>
 
@@ -149,6 +196,8 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
           ))}
         </div>
       </div>
+
+      {hud.horde && <HordeWarning horde={hud.horde} />}
     </div>
   );
 }

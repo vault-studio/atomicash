@@ -236,6 +236,93 @@
   box-shadow: none;
 }
 
+/* Marca donde el jefe cambia de fase. */
+.meter__mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: #ffe14a;
+  z-index: 1;
+}
+
+/* Élite: barra verde con el prefijo, como la del jefe pero más fina. */
+.meter--elite {
+  grid-template-columns: 1fr;
+  width: 86%;
+}
+
+.meter--elite .meter__bar {
+  height: 18px;
+  border-color: #9dff00;
+}
+
+.meter--elite .meter__fill {
+  background: #3c9a2a;
+  box-shadow: none;
+}
+
+.meter--elite .meter__over {
+  color: #d8ffb0;
+  font-size: 15px;
+  line-height: 14px;
+}
+
+/* Racha de bajas bajo el contador. */
+.hud__streak {
+  font-family: var(--hud-font);
+  font-size: 16px;
+  color: var(--phos);
+}
+
+.hud__streak.is-hot {
+  color: #ffe14a;
+  text-shadow: 0 0 8px rgba(255, 225, 74, 0.8);
+}
+
+.hud__streak b {
+  font-weight: inherit;
+  animation: hud-blink 0.8s steps(2) infinite;
+}
+
+/* Aviso de horda: flecha roja pegada al borde por donde llega, o el marco entero si es un anillo. */
+.hud__edge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  z-index: 5;
+  animation: hud-blink 0.35s steps(2) infinite;
+}
+
+.hud__edge-arrow {
+  position: absolute;
+  font-size: 46px;
+  color: var(--cereza);
+  text-shadow:
+    0 0 12px rgba(215, 38, 61, 0.9),
+    0 2px 0 #000;
+}
+
+.hud__edge-sign {
+  position: relative;
+  font-family: var(--title-font);
+  font-size: 22px;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.hud__edge-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  box-shadow: inset 0 0 60px 18px rgba(215, 38, 61, 0.55);
+  animation: hud-blink 0.35s steps(2) infinite;
+}
+
 .meter__over {
   position: relative;
   z-index: 1;

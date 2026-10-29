@@ -1,10 +1,29 @@
 // Daño a enemigos y al jugador, bajas, chatarra (XP) y radiación. Sin allocations en el camino caliente.
-import { AI, ENEMY_STATS, GORE, GORE_IRR, MAX_ENEMY_RADIUS, type EnemyStats } from '../../config/enemies';
+import {
+  AI,
+  ELITES,
+  ENEMY_STATS,
+  GORE,
+  GORE_IRR,
+  MAX_ENEMY_RADIUS,
+  type EnemyStats,
+} from '../../config/enemies';
 import { BOSS_VARIANTS } from '../../config/enemies';
 import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
-import { CAPS, COUPONS, FX, JUICE, KNOCKBACK, PLAYER, SUMMARY, XP } from '../../config/run';
+import {
+  CAPS,
+  COUPONS,
+  FX,
+  JUICE,
+  KNOCKBACK,
+  PLAYER,
+  STREAK,
+  SUMMARY,
+  XP,
+  streakMult,
+} from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
@@ -113,6 +132,11 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
+  if (e.elite) {
+    if (e.elite === 'blindado') d *= ELITES.blindado.dmgTaken;
+    w.eliteFocus = e.id;
+    w.eliteFocusAt = w.time;
+  }
   let crit = false;
   if (flags & HIT_DIRECT && st.crit > 0 && w.rng() < st.crit) {
     d *= CAPS.critMult;
@@ -150,7 +174,7 @@ export function hitEnemy(
     }
     const l = Math.sqrt(dx * dx + dy * dy) || 1;
     const s: EnemyStats = ENEMY_STATS[e.type];
-    const k = KNOCKBACK.base * kb * st.kb * (s.kbRes ?? 1);
+    const k = KNOCKBACK.base * kb * st.kb * (s.kbRes ?? 1) * (e.elite ? ELITES.kb : 1);
     e.kbx += (dx / l) * k;
     e.kby += (dy / l) * k;
   }
@@ -270,6 +294,14 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   e.dead = true;
   w.kills++;
   countKill(w);
+  const before = streakMult(w.streak);
+  w.streak++;
+  if (w.streak > w.bestStreak) w.bestStreak = w.streak;
+  const mult = streakMult(w.streak);
+  if (mult !== before) {
+    banner(w, 'banner.streak', { n: String(w.streak), mult: String(mult) });
+    sfx(w, SFX.pickup);
+  }
   sfx(w, SFX.kill);
   addCorpse(w, e);
   const gore = e.irr ? GORE_IRR : GORE[e.type];
@@ -278,12 +310,24 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     hitStop(w, JUICE.hitStop.boss);
     addShake(w, 14, 20);
   } else burst(w, e.x, e.y, JUICE.parts.perKill, gore, e.irr ? 1.4 : 1);
-  const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1);
+  const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1) * mult;
   if (xp > 0) {
     if (e.boss) dropGems(w, e.x, e.y, xp);
     else dropKillGems(w, e.x, e.y, xp, e.irr ? XP.rareGems : XP.killGems);
   }
-  if (e.gar >= 0) {
+  if (e.elite) {
+    addPickup(w, 'cache', e.x, e.y, BUILDINGS.cache.r);
+    banner(w, 'banner.eliteDown');
+    hitStop(w, JUICE.hitStop.bomb);
+    addShake(w, 6);
+    if (e.elite === 'divisor') {
+      const D = ELITES.divisor;
+      for (let i = 0; i < D.split; i++) {
+        const a = (i / D.split) * Math.PI * 2;
+        spawnEnemy(w, e.type, e.x + Math.cos(a) * D.splitDist, e.y + Math.sin(a) * D.splitDist, false);
+      }
+    }
+  } else if (e.gar >= 0) {
     const g = w.garrisons[e.gar]!;
     if (--g.left === 0) {
       addPickup(w, 'cache', g.x, g.y, BUILDINGS.cache.r);
@@ -370,6 +414,10 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   const d = Math.max(1, raw * tm - st.armor) * (1 - st.red);
   p.hp -= d;
   p.inv = PLAYER.invuln;
+  // Un golpe recibido corta la racha (si ya multiplicaba, se avisa).
+  if (w.streak >= STREAK.tiers[STREAK.tiers.length - 1]!.at) banner(w, 'banner.streakLost');
+  w.streak = 0;
+
   p.lastHit = w.time;
   sfx(w, SFX.hurt);
   w.shake = Math.min(FX.shakeMax, w.shake + 3);

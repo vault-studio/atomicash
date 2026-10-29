@@ -1,12 +1,12 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
 import type { ConsumableId, ItemId } from '../config/items';
-import { ENEMY_RULES } from '../config/enemies';
+import { ELITES, ENEMY_RULES } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
 import { CAPS, CREDITS, JUICE, PLAYER, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
-import { EVENTS } from '../config/waves';
+import { EVENTS, HORDES } from '../config/waves';
 import { refreshHazards } from './hazards';
 import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
@@ -161,7 +161,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     lobs: new Pool(createLob, 16),
     pools: new Pool(createFirePool, 64),
     mines: new Pool(createMine, 80),
-    tele: new Pool(createTele, 32),
+    tele: new Pool(createTele, 48),
     slimes: new Pool(createSlime, 120),
     hazards: [],
     hazardsOn: opts.hazards !== false,
@@ -206,6 +206,14 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     lastBossAt: -999,
     bossSpawned: {},
     bossAlive: 0,
+    nextElite: ELITES.first,
+    nextHorde: HORDES.first,
+    hordeIdx: 0,
+    horde: null,
+    eliteFocus: -1,
+    eliteFocusAt: -99,
+    streak: 0,
+    bestStreak: 0,
     shake: 0,
     showDmg: false,
     sfx: new Int32Array(SFX_COUNT),
@@ -369,6 +377,7 @@ export interface RunResults {
   maxHit: number;
   peakDps: number;
   peakKills5: number;
+  bestStreak: number;
   /** Daño y bajas por tramo de `SUMMARY.bucket` s (gráfica del ticket). */
   timeDmg: number[];
   timeKills: number[];
@@ -402,6 +411,7 @@ export function results(w: World): RunResults {
     maxHit: Math.round(w.maxHit),
     peakDps: Math.round(w.peakDps),
     peakKills5: w.peakKills5,
+    bestStreak: w.bestStreak,
     timeDmg: w.timeDmg.map(Math.round),
     timeKills: [...w.timeKills],
   };

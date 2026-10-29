@@ -64,6 +64,8 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
         <dl>
           <dt>{t('results.epic')}</dt>
           <dd>{r.peakKills5}</dd>
+          <dt>{t('results.bestStreak')}</dt>
+          <dd>{r.bestStreak ?? 0}</dd>
           <dt>{t('results.maxHit')}</dt>
           <dd>{r.maxHit.toLocaleString()}</dd>
           <dt>{t('results.peakDps')}</dt>

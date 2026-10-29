@@ -56,6 +56,7 @@ function fakeRun(over: Partial<RunResults> = {}): RunResults {
     maxHit: 0,
     peakDps: 0,
     peakKills5: 0,
+    bestStreak: 0,
     timeDmg: [],
     timeKills: [],
     ...over,

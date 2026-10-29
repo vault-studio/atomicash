@@ -3,18 +3,26 @@
 import type { Ticker } from 'pixi.js';
 import { audio } from '../audio/audio';
 import { AUDIO } from '../config/audio';
-import { STAT_ENEMY_IDS, type StatEnemyId } from '../config/enemies';
+import {
+  BOSS_PHASES,
+  ELITES,
+  STAT_ENEMY_IDS,
+  type BossKind,
+  type EliteId,
+  type StatEnemyId,
+} from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import { radTier } from '../config/radiation';
-import { PLAYER, RUN } from '../config/run';
+import { PLAYER, RUN, streakMult } from '../config/run';
+import type { HordeKind } from '../config/waves';
 import type { WeaponId } from '../config/weapons';
 import { advance, createFixedStep } from '../engine/loop';
 import { spawnEnemy } from '../engine/systems/enemies';
 import { applyChoice, gainXp, reroll, consumeItem } from '../engine/systems/progression';
-import { spawnBoss } from '../engine/systems/spawning';
+import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
 import type { Banner, Choice, InputState, World } from '../engine/types';
 import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
-import { setView } from '../engine/view';
+import { isoX, isoY, setView } from '../engine/view';
 import {
   createWorld,
   currentDps,
@@ -52,7 +60,14 @@ export interface HudSnapshot {
   cons: Record<ConsumableId, number>;
   items: ItemId[];
   rerolls: number;
-  boss: { id: StatEnemyId; frac: number } | null;
+  /** Jefe vivo: vida, fase y fracciones donde cambia de fase (marcas de la barra). */
+  boss: { id: StatEnemyId; frac: number; phase: number; marks: readonly number[] } | null;
+  /** Último élite golpeado, mientras dura su barra. */
+  elite: { id: StatEnemyId; prefix: EliteId; frac: number } | null;
+  /** Horda avisada: dirección de pantalla (unitaria) y fracción de la cuenta atrás que queda. */
+  horde: { kind: HordeKind; sx: number; sy: number; left: number } | null;
+  streak: number;
+  streakMult: number;
   banners: Banner[];
   rain: boolean;
   storm: boolean;
@@ -108,11 +123,29 @@ export interface RunOptions extends WorldOptions {
 
 function snapshot(w: World): HudSnapshot {
   let boss: HudSnapshot['boss'] = null;
-  if (w.bossAlive > 0) {
+  let elite: HudSnapshot['elite'] = null;
+  const showElite = w.time - w.eliteFocusAt < ELITES.barTime;
+  if (w.bossAlive > 0 || showElite) {
     for (let i = 0; i < w.enemies.count; i++) {
       const e = w.enemies.items[i]!;
-      if (e.boss && !e.dead) boss = { id: e.type, frac: Math.max(0, e.hp / e.maxHp) };
+      if (e.dead) continue;
+      if (e.boss)
+        boss = {
+          id: e.type,
+          frac: Math.max(0, e.hp / e.maxHp),
+          phase: e.phase,
+          marks: BOSS_PHASES[e.type as BossKind] ?? [],
+        };
+      else if (showElite && e.elite && e.id === w.eliteFocus)
+        elite = { id: e.type, prefix: e.elite, frac: Math.max(0, e.hp / e.maxHp) };
     }
+  }
+  let horde: HudSnapshot['horde'] = null;
+  if (w.horde) {
+    const sx = isoX(w.horde.ax, w.horde.ay);
+    const sy = isoY(w.horde.ax, w.horde.ay);
+    const l = Math.hypot(sx, sy) || 1;
+    horde = { kind: w.horde.kind, sx: sx / l, sy: sy / l, left: w.horde.t };
   }
   return {
     charId: w.charId,
@@ -132,6 +165,10 @@ function snapshot(w: World): HudSnapshot {
     items: [...w.items],
     rerolls: w.rerolls,
     boss,
+    elite,
+    horde,
+    streak: w.streak,
+    streakMult: streakMult(w.streak),
     banners: w.banners.slice(),
     rain: w.rain > 0,
     storm: w.storm,
@@ -200,6 +237,8 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       const next = (['rey_rata', 'dirigible', 'coloso'] as const).find((k) => !world.bossSpawned[k]);
       if (next) spawnBoss(world, next);
     } else if (e.code === 'KeyT') world.time += 60;
+    else if (e.code === 'KeyE') spawnElite(world);
+    else if (e.code === 'KeyH') announceHorde(world);
   };
   window.addEventListener('keydown', onKey);
 

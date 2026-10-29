@@ -3,17 +3,19 @@
 // No usar Math.hypot en el bucle caliente: V8 reserva memoria en cada llamada (argumentos variables).
 import {
   AI,
+  ELITES,
   ENEMY_RULES,
   ENEMY_STATS,
   MAX_ENEMY_RADIUS,
   enemyRadius,
+  type EliteId,
   type EnemyStats,
   type StatEnemyId,
 } from '../../config/enemies';
 import { IRRADIATED } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
-import { addShake, banner, boom, textFx } from '../fx';
+import { addShake, banner, boom, hitStop, textFx } from '../fx';
 import {
   MODE_AIM,
   MODE_CHASE,
@@ -27,7 +29,7 @@ import {
   type World,
 } from '../types';
 import { blockCircle, hitsObstacle } from '../obstacles';
-import { hurtPlayer, irradiatedChance } from './combat';
+import { addRad, hurtPlayer, irradiatedChance } from './combat';
 
 const TAU = Math.PI * 2;
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
@@ -77,12 +79,24 @@ export function createEnemy(): Enemy {
     trail: 0,
     timer: 0,
     side: 1,
+    elite: null,
+    march: 0,
     hitT: new Float64Array(ORBIT_SLOTS),
   };
 }
 
 export const createBullet = (): EnemyBullet => ({ x: 0, y: 0, vx: 0, vy: 0, r: 0, dmg: 0, rad: 0, life: 0 });
-export const createTele = (): Telegraph => ({ x: 0, y: 0, r: 0, t: 0, dur: 0, dmg: 0, spawn: null });
+export const createTele = (): Telegraph => ({
+  x: 0,
+  y: 0,
+  r: 0,
+  lx: 0,
+  ly: 0,
+  t: 0,
+  dur: 0,
+  dmg: 0,
+  spawn: null,
+});
 export const createSlime = (): Slime => ({ x: 0, y: 0, r: 0, life: 0, max: 0, rad: 0 });
 
 function firstTimer(type: StatEnemyId): number {
@@ -117,8 +131,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
     let farD = -1;
     for (let i = 0; i < pool.count; i++) {
       const o = pool.items[i] as Enemy;
-      // Ni jefes ni guarniciones: su cofre depende de matarlos a todos.
-      if ((o.boss || o.gar >= 0) && !o.dead) continue;
+      // Ni jefes, ni élites ni guarniciones: su cofre depende de matarlos.
+      if ((o.boss || o.elite || o.gar >= 0) && !o.dead) continue;
       const d = (o.x - p.x) ** 2 + (o.y - p.y) ** 2 + (o.dead ? 1e12 : 0);
       if (d > farD) {
         farD = d;
@@ -169,9 +183,21 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.trail = 0;
   e.timer = firstTimer(type) * (0.4 + w.rng() * 0.6);
   e.side = w.rng() < 0.5 ? -1 : 1;
+  e.elite = null;
+  e.march = 0;
   e.hitT.fill(-1e9);
   if (boss) w.bossAlive++;
   return e;
+}
+
+/** Convierte un enemigo recién creado en élite con el prefijo `kind`. */
+export function makeElite(e: Enemy, kind: EliteId): void {
+  e.elite = kind;
+  e.irr = false;
+  e.hp = e.maxHp = e.maxHp * ELITES.hp;
+  e.r = Math.round(e.r * ELITES.r);
+  e.xp *= ELITES.xp;
+  if (kind === 'veloz') e.speed *= ELITES.veloz.speed;
 }
 
 /** Elimina el enemigo de la posición `i` del pool (el último ocupa su hueco). */
@@ -219,15 +245,25 @@ function telegraph(
   dur: number,
   dmg: number,
   spawn: StatEnemyId | null = null,
+  lx = 0,
+  ly = 0,
 ): void {
   const t = w.tele.acquire();
   t.x = x;
   t.y = y;
   t.r = r;
+  t.lx = lx;
+  t.ly = ly;
   t.t = 0;
   t.dur = dur;
   t.dmg = dmg;
   t.spawn = spawn;
+}
+
+/** Marca en el suelo el pasillo de una embestida (solo aviso: el daño lo hace el contacto). */
+function dashLane(w: World, e: Enemy, aim: number, spd: number, dur: number): void {
+  const len = spd * dur + e.r;
+  telegraph(w, e.x, e.y, e.r, aim, 0, null, e.dx * len, e.dy * len);
 }
 
 function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, dist: number): void {
@@ -281,20 +317,31 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             e.dy = uy;
             markAttack(w, e);
           }
-        } else if (e.timer <= 0) {
+        } else {
           const R = AI.rey_rata;
-          e.timer = R.every;
-          if (e.alt) {
-            e.mode = MODE_AIM;
-            e.mt = R.aim;
-            e.dx = ux;
-            e.dy = uy;
-            markAttack(w, e, 'attack_1');
-          } else {
-            markAttack(w, e, 'attack_2');
-            ring(w, R.summonType, e.x, e.y, R.summon, R.summonDist);
+          if (e.phase === 1 && e.hp / e.maxHp < R.p2) {
+            e.phase = 2;
+            banner(w, 'banner.ratPhase');
+            addShake(w, 6);
+            ring(w, 'necrofago', e.x, e.y, 4, R.summonDist + 30);
           }
-          e.alt = !e.alt;
+          const p2 = e.phase >= 2;
+          if (e.timer <= 0) {
+            e.timer = p2 ? R.everyP2 : R.every;
+            if (e.alt) {
+              e.mode = MODE_AIM;
+              e.mt = p2 ? R.aimP2 : R.aim;
+              e.dx = ux;
+              e.dy = uy;
+              e.burst = p2 ? 1 : 0;
+              dashLane(w, e, e.mt, R.dashSpd, R.dash);
+              markAttack(w, e, 'attack_1');
+            } else {
+              markAttack(w, e, 'attack_2');
+              ring(w, R.summonType, e.x, e.y, p2 ? R.summonP2 : R.summon, R.summonDist);
+            }
+            e.alt = !e.alt;
+          }
         }
       } else if (e.mode === MODE_AIM) {
         vx = vy = 0;
@@ -308,8 +355,20 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         vy = e.dy * A.dashSpd;
         e.mt -= dt;
         if (e.mt <= 0) {
-          e.mode = MODE_CHASE;
-          if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
+          if (e.type === 'rey_rata' && e.burst > 0) {
+            // Fase 2: segunda embestida encadenada, apuntando de nuevo.
+            const R = AI.rey_rata;
+            e.burst--;
+            e.mode = MODE_AIM;
+            e.mt = R.aimP2;
+            e.dx = ux;
+            e.dy = uy;
+            dashLane(w, e, e.mt, R.dashSpd, R.dash);
+            markAttack(w, e, 'attack_1');
+          } else {
+            e.mode = MODE_CHASE;
+            if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
+          }
         }
       }
       break;
@@ -372,6 +431,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       if (p2 && e.phase === 1) {
         e.phase = 2;
         banner(w, 'banner.blimpDown');
+        addShake(w, 6);
       }
       e.timer -= dt;
       if (e.timer <= 0) {
@@ -400,6 +460,19 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             const off = (i - (A.bombCount - 1) / 2) * A.bombSpacing;
             telegraph(w, p.x + bx * off, p.y + by * off, A.bombR, A.bombWarn, A.bombDmg);
           }
+          // El pasillo de la pasada, de punta a punta (solo aviso).
+          const half = ((A.bombCount - 1) / 2) * A.bombSpacing + A.bombR;
+          telegraph(
+            w,
+            p.x - bx * half,
+            p.y - by * half,
+            A.laneR,
+            A.bombWarn,
+            0,
+            null,
+            bx * half * 2,
+            by * half * 2,
+          );
           if (p2) ring(w, A.p2SummonType, p.x, p.y, A.p2Summon, A.p2SummonDist);
         }
         e.alt = !e.alt;
@@ -413,6 +486,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       if (ph !== e.phase) {
         e.phase = ph;
         banner(w, 'banner.colossusPhase', { n: String(ph) });
+        addShake(w, 10);
+        hitStop(w, 0.12);
       }
       const sp = spd * (ph === 3 ? A.spdP3 : 1);
       if (e.stun > 0) {
@@ -460,6 +535,15 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
   }
 }
 
+/** Lo que hace cada prefijo de élite en cada tick (el blindaje y la división van en combat.ts). */
+function eliteTick(w: World, e: Enemy, d: number, dt: number): void {
+  if (e.elite === 'radiactivo') {
+    if (d < ELITES.radiactivo.auraR) addRad(w, ELITES.radiactivo.auraRad * dt);
+  } else if (e.elite === 'vampirico') {
+    e.hp = Math.min(e.maxHp, e.hp + e.maxHp * ELITES.vampirico.regen * dt);
+  }
+}
+
 export function updateEnemies(w: World, dt: number): void {
   const pool = w.enemies;
   const items = pool.items;
@@ -491,9 +575,15 @@ export function updateEnemies(w: World, dt: number): void {
     const uy = dy / d;
     vx = 0;
     vy = 0;
-    if (alive) think(w, e, d, ux, uy, dt);
+    if (e.march > 0) {
+      // Horda en formación: sigue recto aunque el jugador se aparte.
+      e.march -= dt;
+      vx = e.dx * e.speed;
+      vy = e.dy * e.speed;
+    } else if (alive) think(w, e, d, ux, uy, dt);
+    if (e.elite && alive) eliteTick(w, e, d, dt);
     // Si ya está encima del jugador, no lo empuja (solo se separa).
-    if (e.mode === MODE_CHASE && d <= e.r + p.r && e.type !== 'dirigible') {
+    if (e.mode === MODE_CHASE && e.march <= 0 && d <= e.r + p.r && e.type !== 'dirigible') {
       vx = 0;
       vy = 0;
     }
@@ -559,6 +649,8 @@ export function updateEnemies(w: World, dt: number): void {
       if (r !== 0) {
         e.atkCd = PLAYER.contactCd;
         if (!e.boss) markAttack(w, e);
+        if (r > 0 && e.elite === 'vampirico')
+          e.hp = Math.min(e.maxHp, e.hp + e.maxHp * ELITES.vampirico.healOnHit);
       }
     }
   }
@@ -599,6 +691,7 @@ export function updateTelegraphs(w: World, dt: number): void {
     const dmg = t.dmg;
     const spawn = t.spawn;
     pool.releaseAt(i);
+    if (dmg <= 0 && !spawn) continue;
     boom(w, x, y, r, 0.25, FX.colors.tele);
     addShake(w, 3);
     const dx = p.x - x;

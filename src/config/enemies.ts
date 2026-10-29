@@ -54,7 +54,20 @@ export const AI = {
   torreta: { every: 2.6, burst: 3, burstGap: 0.15, bulletSpd: 260, range: 700, sloganChance: 0.3 },
   babosa: { trailEvery: 0.4, trailR: 26, trailLife: 4, trailRad: 5 },
   aspiradora: { children: 4, childType: 'aspiradora_cria', childDist: 18 },
-  rey_rata: { every: 3.8, summon: 7, summonType: 'dron', summonDist: 70, aim: 0.75, dashSpd: 440, dash: 0.7 },
+  rey_rata: {
+    every: 3.8,
+    summon: 7,
+    summonType: 'dron',
+    summonDist: 70,
+    aim: 0.75,
+    dashSpd: 440,
+    dash: 0.7,
+    /** Fase 2 (por debajo de `p2`): ataca más a menudo, embiste dos veces seguidas y llama a más ratas. */
+    p2: 0.5,
+    everyP2: 2.8,
+    summonP2: 10,
+    aimP2: 0.55,
+  },
   dirigible: {
     orbitR: 320,
     every: 4,
@@ -75,6 +88,8 @@ export const AI = {
     p2SummonType: 'dron',
     p2SummonDist: 340,
     dropXp: 100,
+    /** Anchura del pasillo que marca el bombardeo en el suelo. */
+    laneR: 34,
   },
   coloso: {
     every: 3,
@@ -170,3 +185,42 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
 };
 /** Esquirlas de los irradiados. */
 export const GORE_IRR: readonly number[] = [0xa8ff70, 0x9dff00, 0xe8ffb0];
+
+/** Prefijos de élite (dossier §4): cada uno con su color de aura y su truco. */
+export type EliteId = 'blindado' | 'veloz' | 'radiactivo' | 'divisor' | 'vampirico';
+export const ELITE_IDS: readonly EliteId[] = ['blindado', 'veloz', 'radiactivo', 'divisor', 'vampirico'];
+
+/**
+ * Élites: un enemigo de la oleada vigente, más grande y duro, cada 60–90 s. Suelta siempre un cofre.
+ * DECISIÓN: el cofre es el especial (tragaperras de cupones y un nivel): los cofres de objeto son de los jefes y solo
+ * hay dos huecos, así que un élite no puede quitarle el hueco a un jefe.
+ */
+export const ELITES = {
+  first: 75,
+  everyMin: 60,
+  everyMax: 90,
+  /** Multiplicadores sobre el enemigo normal. */
+  hp: 14,
+  r: 1.35,
+  xp: 12,
+  /** Empuje que recibe (fracción). */
+  kb: 0.3,
+  /** Escala del sprite en el render. */
+  scale: 1.3,
+  /** Tipos que nunca salen de élite (no se mueven o son crías). */
+  exclude: ['torreta', 'aspiradora_cria'] as readonly StatEnemyId[],
+  /** Segundos que sigue la barra en el HUD desde el último golpe. */
+  barTime: 4,
+  blindado: { color: 0xc8ccd0, dmgTaken: 0.5 },
+  veloz: { color: 0x7fd8ff, speed: 1.7 },
+  radiactivo: { color: 0x9dff00, auraR: 120, auraRad: 7 },
+  divisor: { color: 0xff8a2a, split: 4, splitDist: 26 },
+  vampirico: { color: 0xd7263d, healOnHit: 0.15, regen: 0.01 },
+} as const;
+
+/** Fracciones de vida donde cambia de fase cada jefe (marcas de la barra del HUD). */
+export const BOSS_PHASES: Readonly<Record<BossKind, readonly number[]>> = {
+  rey_rata: [0.5],
+  dirigible: [0.5],
+  coloso: [0.66, 0.33],
+};

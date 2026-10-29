@@ -12,6 +12,8 @@ function passive(seed: number): ReturnType<typeof createWorld> {
   const w = createWorld('dot', seed, { startWeapon: null, hazards: false });
   w.player.god = true;
   w.nextEvent = Infinity;
+  w.nextElite = Infinity;
+  w.nextHorde = Infinity;
   return w;
 }
 
@@ -74,6 +76,8 @@ describe('oleadas', () => {
     const w2 = createWorld('dot', 7, { hazards: false });
     w2.time = 240;
     w2.bossSpawned.rey_rata = true;
+    // Élites y hordas tienen sus propios tipos (ver fase2.test.ts).
+    w2.nextElite = w2.nextHorde = Infinity;
     const later = runCollecting(w2, 30);
     const allowed = new Set(Object.keys(WAVES[4]!.mix));
     expect(later.length).toBeGreaterThan(0);

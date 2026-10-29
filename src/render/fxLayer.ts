@@ -4,7 +4,7 @@ import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
 import { RUN_COLORS } from '../config/render';
 import { FX, JUICE } from '../config/run';
 import { WEAPONS } from '../config/weapons';
-import { ENEMY_RULES } from '../config/enemies';
+import { ELITES, ENEMY_RULES } from '../config/enemies';
 import type { World } from '../engine/types';
 import { isoX, isoY } from './iso';
 
@@ -14,6 +14,30 @@ const SQ = Math.SQRT1_2;
 /** Círculo del suelo (radio r en mundo) como elipse isométrica. */
 function groundCircle(g: Graphics, x: number, y: number, r: number): Graphics {
   return g.ellipse(isoX(x, y), isoY(x, y), r, r / 2);
+}
+
+/** Rectángulo del suelo de (x, y) a (x + lx, y + ly) con semiancho (nx, ny), en isométrica. */
+function groundQuad(
+  g: Graphics,
+  x: number,
+  y: number,
+  lx: number,
+  ly: number,
+  nx: number,
+  ny: number,
+): Graphics {
+  const ex = x + lx;
+  const ey = y + ly;
+  return g.poly([
+    isoX(x + nx, y + ny),
+    isoY(x + nx, y + ny),
+    isoX(ex + nx, ey + ny),
+    isoY(ex + nx, ey + ny),
+    isoX(ex - nx, ey - ny),
+    isoY(ex - nx, ey - ny),
+    isoX(x - nx, y - ny),
+    isoY(x - nx, y - ny),
+  ]);
 }
 
 export class FxLayer {
@@ -39,8 +63,37 @@ export class FxLayer {
     for (let i = 0; i < w.tele.count; i++) {
       const tl = w.tele.items[i]!;
       const f = tl.t / tl.dur;
-      groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: RUN_COLORS.tele, alpha: 0.8 });
-      groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: RUN_COLORS.tele, alpha: 0.25 });
+      // El último cuarto parpadea: ya va a caer.
+      const blink = f > 0.75 ? 0.5 + 0.5 * Math.sin(t * 40) : 1;
+      if (tl.lx !== 0 || tl.ly !== 0) {
+        // Pasillo: rectángulo de anchura 2r a lo largo de (lx, ly), que se llena desde el origen.
+        const len = Math.sqrt(tl.lx * tl.lx + tl.ly * tl.ly);
+        const nx = (-tl.ly / len) * tl.r;
+        const ny = (tl.lx / len) * tl.r;
+        groundQuad(g, tl.x, tl.y, tl.lx, tl.ly, nx, ny).stroke({
+          width: 2,
+          color: RUN_COLORS.tele,
+          alpha: 0.8 * blink,
+        });
+        groundQuad(g, tl.x, tl.y, tl.lx * f, tl.ly * f, nx, ny).fill({
+          color: RUN_COLORS.tele,
+          alpha: 0.22 * blink,
+        });
+        continue;
+      }
+      groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: RUN_COLORS.tele, alpha: 0.8 * blink });
+      groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: RUN_COLORS.tele, alpha: 0.25 * blink });
+    }
+    // Aura de los élites: anillo del color de su prefijo que late (la del radiactivo marca su alcance).
+    for (let i = 0; i < w.enemies.count; i++) {
+      const e = w.enemies.items[i]!;
+      if (!e.elite || e.dead) continue;
+      const E = ELITES[e.elite];
+      const pulse = 0.5 + 0.5 * Math.sin(t * 6 + e.id);
+      const r = e.elite === 'radiactivo' ? ELITES.radiactivo.auraR : e.r * 1.9;
+      groundCircle(g, e.x, e.y, r)
+        .fill({ color: E.color, alpha: 0.1 + 0.08 * pulse })
+        .stroke({ width: 2.5, color: E.color, alpha: 0.55 + 0.35 * pulse });
     }
     for (let i = 0; i < w.mines.count; i++) {
       const m = w.mines.items[i]!;

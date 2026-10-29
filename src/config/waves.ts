@@ -107,3 +107,57 @@ export const EVENTS = {
 } as const;
 
 export type EventKind = (typeof EVENTS.order)[number];
+
+/**
+ * Hordas en formación (dossier §10), con aviso en el borde de la pantalla `warn` s antes:
+ * - `ring`: anillo que se cierra desde fuera de cámara.
+ * - `stampede`: estampida que cruza la pantalla en línea recta (apunta a donde estabas).
+ * - `wall`: muro que avanza en formación hacia el jugador y luego persigue.
+ * El tipo de enemigo sale de `types` según el minuto (el último cuyo `from` se ha pasado).
+ */
+export const HORDES = {
+  first: 50,
+  everyMin: 45,
+  everyMax: 70,
+  warn: 2.2,
+  order: ['ring', 'stampede', 'wall'] as const,
+  /** Margen fuera de cámara donde aparecen, en px de mundo. */
+  margin: 50,
+  ring: {
+    count: 22,
+    perMin: 2.5,
+    max: 48,
+    types: [
+      { from: 0, type: 'necrofago' },
+      { from: 300, type: 'saqueador' },
+    ],
+  },
+  stampede: {
+    count: 18,
+    perMin: 1.5,
+    max: 34,
+    /** Anchura del rebaño (perpendicular a la marcha) y separación entre filas. */
+    width: 220,
+    rowGap: 34,
+    speed: 1.6,
+    types: [
+      { from: 0, type: 'dron' },
+      { from: 240, type: 'reptador' },
+    ],
+  },
+  wall: {
+    count: 20,
+    perMin: 1.5,
+    max: 36,
+    spacing: 30,
+    /** Segundos extra de marcha en formación tras llegar a la altura del jugador. */
+    extra: 1.5,
+    types: [
+      { from: 0, type: 'necrofago' },
+      { from: 200, type: 'saqueador' },
+      { from: 480, type: 'cortacesped' },
+    ],
+  },
+} as const;
+
+export type HordeKind = (typeof HORDES.order)[number];

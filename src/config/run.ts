@@ -129,6 +129,25 @@ export const JUICE = {
   dmgScale: { base: 0.8, perDigit: 0.22, max: 1.9, pop: 0.45, popTime: 0.12 },
 } as const;
 
+/**
+ * Racha de bajas (dossier §12): bajas seguidas sin recibir daño. Cada tramo multiplica la experiencia de las bajas;
+ * un golpe recibido (no esquivado) la pierde. De mayor a menor.
+ */
+export const STREAK = {
+  tiers: [
+    { at: 300, mult: 2 },
+    { at: 100, mult: 1.5 },
+  ],
+  /** Desde cuántas bajas se ve el contador en el HUD. */
+  show: 10,
+} as const;
+
+/** Multiplicador de experiencia de una racha de `n` bajas. */
+export function streakMult(n: number): number {
+  for (const t of STREAK.tiers) if (n >= t.at) return t.mult;
+  return 1;
+}
+
 /** Resumen final: tramos de la gráfica de daño, en s. */
 export const SUMMARY = { bucket: 30, window: 5 } as const;
 
