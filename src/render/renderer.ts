@@ -11,9 +11,11 @@ import { FxLayer, TextLayer } from './fxLayer';
 import { GroundView, loadGroundTiles, type GroundTiles } from './ground';
 import { dirIndex, isoX, isoY } from './iso';
 import { loadPickupArt, PickupLayer, type PickupArt } from './pickupLayer';
+import { animDuration } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+const smooth = (x: number): number => x * x * (3 - 2 * x);
 
 export interface DebugInfo {
   fps: number;
@@ -31,6 +33,14 @@ export class GameRenderer {
   private readonly texts: TextLayer;
   /** Tinte de pantalla completa: lluvia radiactiva, Tormenta, golpe recibido. */
   private readonly overlay = new Graphics();
+  /** Luces de la cinemática de victoria: rayos tras el personaje y chispas delante. */
+  private readonly cineBack = new Graphics();
+  private readonly cineFront = new Graphics();
+  /** Segundos de cinemática transcurridos (-1 = no hay) y su duración. */
+  private victoryT = -1;
+  private victoryDur = 0;
+  /** Momento en que el jugador se paró: el idle empieza desde su primer fotograma. */
+  private stillSince = -1;
   private readonly debugText: Text;
   private debugOn = false;
   /** Zoom extra de la cámara: se aleja un poco con la pantalla llena de enemigos. */
@@ -50,12 +60,14 @@ export class GameRenderer {
   ) {
     app.stage.addChild(this.worldLayer);
     this.groundView = new GroundView(tiles, this.actors, world);
-    this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground);
+    this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground, this.cineBack);
     // Actores ordenados por profundidad entre el suelo y el aire.
     this.actors.sortableChildren = true;
     this.worldLayer.addChild(this.actors);
     this.texts = new TextLayer(translate);
-    this.worldLayer.addChild(this.fx.air, this.texts);
+    this.worldLayer.addChild(this.fx.air, this.cineFront, this.texts);
+    this.cineBack.blendMode = 'add';
+    this.cineFront.blendMode = 'add';
 
     this.player = new ActorView(ENTITIES[world.player.charId], lib, true);
     this.actors.addChild(this.player);
@@ -105,6 +117,34 @@ export class GameRenderer {
     this.debugText.visible = this.debugOn;
   }
 
+  /** Arranca la cinemática de victoria del personaje `charId`. Devuelve su duración en s. */
+  startVictory(charId: string): number {
+    const V = JUICE.victory;
+    const meta = this.lib.meta(charId, 'victory');
+    this.victoryT = 0;
+    this.victoryDur = (meta ? animDuration(meta) : V.fallback) + V.hold + V.zoomOut;
+    return this.victoryDur;
+  }
+
+  /** Avanza la cinemática `dt` s. Devuelve los segundos que le quedan (0 = terminada). */
+  stepVictory(dt: number): number {
+    if (this.victoryT < 0) return 0;
+    this.victoryT += dt;
+    if (this.victoryT < this.victoryDur) return this.victoryDur - this.victoryT;
+    this.victoryT = -1;
+    this.cineBack.clear();
+    this.cineFront.clear();
+    return 0;
+  }
+
+  /** Intensidad 0–1 de la cinemática: sube al entrar y baja al salir. */
+  private victoryLevel(): number {
+    if (this.victoryT < 0) return 0;
+    const V = JUICE.victory;
+    const t = this.victoryT;
+    return smooth(clamp(Math.min(t / V.zoomIn, (this.victoryDur - t) / V.zoomOut), 0, 1));
+  }
+
   /** Zoom de la cámara: encaja la vista de referencia en la pantalla. */
   private cameraScale(): number {
     const { width, height } = this.app.screen;
@@ -129,7 +169,11 @@ export class GameRenderer {
     const crowd = clamp((w.enemies.count - Z.from) / (Z.to - Z.from), 0, 1);
     const target = this.reduceMotion ? 1 : 1 - (1 - Z.minZoom) * crowd;
     this.zoom += (target - this.zoom) * Math.min(1, Z.lerp * dt);
-    const k = this.cameraScale();
+    const V = JUICE.victory;
+    const cine = this.victoryLevel();
+    // Con «reducir movimiento» la cinemática no hace zoom: solo luces.
+    const close = this.reduceMotion ? 0 : cine;
+    const k = this.cameraScale() * (1 + (V.zoom - 1) * close);
     const p = w.player;
     const px = p.prevX + (p.x - p.prevX) * alpha;
     const py = p.prevY + (p.y - p.prevY) * alpha;
@@ -137,32 +181,45 @@ export class GameRenderer {
     this.worldLayer.scale.set(k);
     let shx = 0;
     let shy = 0;
-    if (!this.reduceMotion && w.shake > 0.2) {
+    if (!this.reduceMotion && w.shake > 0.2 && this.victoryT < 0) {
       shx = Math.sin(w.time * 97) * w.shake;
       shy = Math.cos(w.time * 89) * w.shake * 0.6;
     }
-    this.worldLayer.position.set(width / 2 - isoX(px, py) * k + shx, height / 2 - isoY(px, py) * k + shy);
+    // La cámara sube con el zoom para encuadrar el cuerpo, no los pies.
+    const lift = V.lift * close;
+    this.worldLayer.position.set(
+      width / 2 - isoX(px, py) * k + shx,
+      height / 2 - (isoY(px, py) - lift) * k + shy,
+    );
     this.groundView.update(px, py, width / 2 / k, height / 2 / k);
 
     // Animación del jugador (biblia §5): death una vez; run al moverse; idle quieto. Sin hoja de idle, quieto se
     // queda en el primer fotograma de run en vez de correr sin moverse.
+    // En la cinemática de victoria mira a cámara (fila S).
     let anims: readonly AnimId[];
     let t: number;
+    let dir = dirIndex(p.facingX, p.facingY);
+    if (p.moving) this.stillSince = -1;
+    else if (this.stillSince < 0) this.stillSince = w.time;
     if (p.deadAt !== null) {
       anims = ['death'];
       t = w.time - p.deadAt;
+    } else if (this.victoryT >= 0) {
+      anims = ['victory', 'idle', 'run'];
+      t = this.victoryT;
+      dir = 0;
     } else if (p.moving) {
       anims = ['run'];
       t = w.time;
     } else if (this.lib.has(w.charId, 'idle')) {
       anims = ['idle'];
-      t = w.time;
+      t = w.time - this.stillSince;
     } else {
       anims = ['run'];
       t = 0;
     }
     const screenAngle = Math.atan2(isoY(p.facingX, p.facingY), isoX(p.facingX, p.facingY));
-    this.player.show(anims, dirIndex(p.facingX, p.facingY), t, screenAngle);
+    this.player.show(anims, dir, t, screenAngle);
     this.player.position.set(isoX(px, py), isoY(px, py));
     this.player.zIndex = px + py;
     const hurt = w.time - p.lastHit < 0.15;
@@ -181,7 +238,9 @@ export class GameRenderer {
         color: RUN_COLORS.storm,
         alpha: 0.18 + 0.06 * Math.sin(w.time * 4),
       });
-    if (!this.reduceMotion && hurt) o.rect(0, 0, width, height).fill({ color: 0xff0000, alpha: 0.12 });
+    if (!this.reduceMotion && hurt && this.victoryT < 0)
+      o.rect(0, 0, width, height).fill({ color: 0xff0000, alpha: 0.12 });
+    if (this.victoryT >= 0) this.drawVictory(isoX(px, py), isoY(px, py), cine, k);
 
     if (this.debugOn) {
       // DECISIÓN: el overlay F3 es una herramienta de desarrollo y no pasa por i18n.
@@ -190,6 +249,70 @@ export class GameRenderer {
         `t ${w.time.toFixed(1)} s  ticks ${w.ticks}  oleada ${currentWaveIndex(w.time)}  enemigos ${w.enemies.count}\n` +
         `sprites ${this.lib.count}  ${p.charId} (${p.x.toFixed(0)}, ${p.y.toFixed(0)}) dir ${dirIndex(p.facingX, p.facingY)}`;
     }
+  }
+
+  /**
+   * Luces de la cinemática con los pies del personaje en (x, y) de mundo: rayos que giran tras él, halo en el suelo,
+   * onda expansiva y chispas que suben; en pantalla, viñeta que oscurece lo demás y fogonazo inicial.
+   */
+  private drawVictory(x: number, y: number, level: number, k: number): void {
+    const V = JUICE.victory;
+    const t = this.victoryT;
+    const cy = y - V.lift;
+    const back = this.cineBack;
+    const front = this.cineFront;
+    back.clear();
+    front.clear();
+
+    const reach = 150 + 30 * Math.sin(t * 3);
+    for (let i = 0; i < V.rays; i++) {
+      const a = t * 0.6 + (i / V.rays) * Math.PI * 2;
+      const half = 0.07 + 0.03 * Math.sin(t * 5 + i);
+      const r = reach * (i % 2 ? 0.75 : 1);
+      back
+        .poly([
+          x,
+          cy,
+          x + Math.cos(a - half) * r,
+          cy + Math.sin(a - half) * r,
+          x + Math.cos(a + half) * r,
+          cy + Math.sin(a + half) * r,
+        ])
+        .fill({ color: i % 2 ? RUN_COLORS.victoryB : RUN_COLORS.victoryA, alpha: 0.22 * level });
+    }
+    for (let i = 3; i >= 1; i--)
+      back.ellipse(x, y, 26 * i, 13 * i).fill({ color: RUN_COLORS.victoryA, alpha: 0.12 * level });
+    if (t < 0.7) {
+      const s = t / 0.7;
+      back
+        .ellipse(x, y, 40 + 220 * s, 20 + 110 * s)
+        .stroke({ color: RUN_COLORS.victoryB, width: 6 * (1 - s), alpha: 1 - s });
+    }
+
+    // Chispas: cada una sube en espiral alrededor del personaje y vuelve a empezar.
+    for (let i = 0; i < 26; i++) {
+      const life = (t * (0.5 + (i % 5) * 0.12) + i * 0.137) % 1;
+      const a = i * 2.39996 + t * (i % 2 ? 1.3 : -1.1);
+      const r = 26 + (i % 7) * 7;
+      const sx = x + Math.cos(a) * r;
+      const sy = y - life * 120 + Math.sin(a) * r * 0.45;
+      front
+        .circle(sx, sy, (1.6 + (i % 3)) * (1 - life))
+        .fill({ color: i % 3 ? RUN_COLORS.victoryA : 0xffffff, alpha: level * (1 - life) });
+    }
+
+    // Viñeta: anillos con el centro recortado; se suman hacia fuera y dejan la luz sobre el personaje.
+    const { width, height } = this.app.screen;
+    const ox = this.worldLayer.position.x + x * k;
+    const oy = this.worldLayer.position.y + cy * k;
+    const o = this.overlay;
+    for (let i = 0; i < 6; i++)
+      o.rect(0, 0, width, height)
+        .fill({ color: 0x000000, alpha: 0.12 * level })
+        .circle(ox, oy, height * (0.2 + i * 0.06))
+        .cut();
+    if (t < 0.18 && !this.reduceMotion)
+      o.rect(0, 0, width, height).fill({ color: 0xffffff, alpha: 0.5 * (1 - t / 0.18) });
   }
 
   destroy(): void {

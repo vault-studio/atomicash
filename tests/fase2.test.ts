@@ -123,6 +123,26 @@ describe('avisos de los jefes', () => {
   });
 });
 
+describe('cinemática de victoria', () => {
+  it('la piden los jefes y los élites abatidos, no los enemigos normales', () => {
+    const w = quiet();
+    killEnemy(w, spawnEnemy(w, 'saqueador', w.player.x + 300, w.player.y), 'llave');
+    expect(w.victory).toBe(false);
+    killEnemy(w, spawnElite(w), 'llave');
+    expect(w.victory).toBe(true);
+    w.victory = false;
+    killEnemy(w, spawnEnemy(w, 'rey_rata', w.player.x + 300, w.player.y), 'llave');
+    expect(w.victory).toBe(true);
+  });
+
+  it('no la pide si el jugador ya ha muerto', () => {
+    const w = quiet();
+    w.player.deadAt = w.time;
+    killEnemy(w, spawnElite(w), 'llave');
+    expect(w.victory).toBe(false);
+  });
+});
+
 describe('racha de bajas', () => {
   it('multiplica la experiencia por tramos y se pierde al recibir un golpe', () => {
     expect(streakMult(0)).toBe(1);

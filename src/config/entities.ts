@@ -5,11 +5,12 @@
 export type Category = 'characters' | 'enemies' | 'bosses' | 'props';
 export type AnimMethod = 'mixamo' | 'rigid' | 'deform' | 'rigid_mixamo' | 'static';
 export type Availability = 'playable' | 'later' | 'locked';
-export type AnimId = 'idle' | 'run' | 'move' | 'hit' | 'attack' | 'attack_1' | 'attack_2' | 'death';
+export type AnimId =
+  'idle' | 'run' | 'move' | 'hit' | 'attack' | 'attack_1' | 'attack_2' | 'death' | 'victory';
 
 /** Animaciones por tipo (biblia §5). */
 export const ANIMS_BY_CATEGORY: Record<Category, readonly AnimId[]> = {
-  characters: ['idle', 'run', 'hit', 'death'],
+  characters: ['idle', 'run', 'hit', 'death', 'victory'],
   enemies: ['move', 'attack', 'death'],
   bosses: ['idle', 'move', 'attack_1', 'attack_2', 'death'],
   props: [],

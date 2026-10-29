@@ -29,7 +29,7 @@ describe('registro de entidades', () => {
   });
 
   it('asigna las animaciones por tipo', () => {
-    expect(ENTITIES.dot.anims).toEqual(['idle', 'run', 'hit', 'death']);
+    expect(ENTITIES.dot.anims).toEqual(['idle', 'run', 'hit', 'death', 'victory']);
     expect(ENTITIES.dron.anims).toEqual(['move', 'attack', 'death']);
     expect(ENTITIES.torreta.anims).toContain('idle');
     expect(ENTITIES.coloso_p3.anims).toEqual(ENTITIES.coloso.anims);

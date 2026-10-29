@@ -354,6 +354,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   } else if (!e.boss && w.rng() < COUPONS.dropChance) {
     addPickup(w, 'coupon', e.x, e.y, COUPONS.r, COUPONS.drop);
   }
+  if ((e.boss || e.elite) && w.player.deadAt === null) w.victory = true;
   if (e.boss) {
     w.bosses++;
     w.bossAlive--;

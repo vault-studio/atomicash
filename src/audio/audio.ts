@@ -95,7 +95,10 @@ class AudioEngine {
 
   // ---------- efectos ----------
 
-  play(id: SfxId | 'level' | 'select' | 'death' | 'win' | 'geiger' | 'chest', intensity = 1): void {
+  play(
+    id: SfxId | 'level' | 'select' | 'death' | 'win' | 'geiger' | 'chest' | 'victory',
+    intensity = 1,
+  ): void {
     const ctx = this.ctx;
     if (!ctx || ctx.state !== 'running' || this.sfxVol <= 0) return;
     const now = ctx.currentTime;
@@ -153,6 +156,16 @@ class AudioEngine {
         break;
       case 'death':
         this.blip(now, 'sawtooth', 300, 40, 1.2, 0.3);
+        break;
+      case 'victory':
+        // Golpe grave y soplo de ruido, arpegio que sube y acorde final sostenido con brillo.
+        this.blip(now, 'sine', 120, 40, 0.5, 0.35);
+        this.burst(now, 0.6, 3000, 0.12);
+        [392, 494, 587, 784, 988].forEach((f, i) =>
+          this.blip(now + 0.1 + i * 0.08, 'square', f, f, 0.14, 0.12),
+        );
+        [784, 988, 1175, 1568].forEach((f) => this.blip(now + 0.55, 'triangle', f, f * 1.01, 1.4, 0.09));
+        [2093, 2637, 3136].forEach((f, i) => this.blip(now + 0.6 + i * 0.12, 'sine', f, f, 0.25, 0.05));
         break;
       case 'win':
         [523, 659, 784, 1046, 784, 1046].forEach((f, i) =>

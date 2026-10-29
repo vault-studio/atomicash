@@ -192,6 +192,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     texts: new Pool(createText, 120),
     parts: new Pool(createParticle, JUICE.parts.max),
     hitStop: 0,
+    victory: false,
     banners: [],
     xp: 0,
     level: 1,

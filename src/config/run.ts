@@ -127,6 +127,12 @@ export const JUICE = {
   zoom: { from: 90, to: 260, minZoom: 0.86, lerp: 1.5 },
   /** Número de daño: escala por cifra (log10) y rebote al aparecer. */
   dmgScale: { base: 0.8, perDigit: 0.22, max: 1.9, pop: 0.45, popTime: 0.12 },
+  /**
+   * Cinemática de victoria al abatir un jefe o un élite: el juego se para, la cámara se acerca `zoom` veces al
+   * personaje (centrada `lift` px por encima de los pies) mientras hace la animación y vuelve. Tiempos en s;
+   * `fallback` es la duración si el personaje no tiene hoja de victory.
+   */
+  victory: { zoom: 2.3, lift: 34, zoomIn: 0.45, hold: 0.35, zoomOut: 0.5, fallback: 2, rays: 14 },
 } as const;
 
 /**

@@ -15,6 +15,7 @@ CELL = 256
 
 # Carpeta de NOVEDADES → (categoría, ID en el juego).
 SOURCES = {
+    'dot': ('characters', 'dot'),
     'gus': ('characters', 'gus'),
     'mensajero': ('characters', 'benny'),
     'saqueador': ('enemies', 'saqueador'),
@@ -23,13 +24,14 @@ SOURCES = {
 
 # Por animación: fotogramas finales y fps. `span` = fotogramas de origen que forman la animación (el resto repite).
 DEFAULT = {
-    'idle': {'frames': 12, 'fps': 10},
+    # Idle y victory llegan con 48 fotogramas a 12 fps (4 s): con 16 a 6 fps no van tres veces más rápidos.
+    'idle': {'frames': 16, 'fps': 6},
     'run': {'frames': 12, 'fps': 16},
     'death': {'frames': 16, 'fps': 12},
     'hit': {'frames': 8, 'fps': 16},
     'attack_1': {'frames': 16, 'fps': 12},
     'attack_2': {'frames': 16, 'fps': 12},
-    'victory': {'frames': 16, 'fps': 12},
+    'victory': {'frames': 16, 'fps': 6},
 }
 OVERRIDE = {
     # 48 fotogramas = 4 vueltas del mismo ciclo de 12; el saqueador camina, no corre.
@@ -52,12 +54,12 @@ def resample(img: Image.Image, src_frames: int, rows: int, n: int, span: int, lo
 
 for folder, (category, gid) in SOURCES.items():
     dest = OUT / category / gid
+    # Sin borrar lo que ya hay: una entrega puede traer solo algunas animaciones (dot: idle y victory).
     dest.mkdir(parents=True, exist_ok=True)
-    for old in dest.glob(f'{gid}_*'):
-        old.unlink()
     for path in sorted((SRC / folder).glob('*.json')):
         meta = json.loads(path.read_text(encoding='utf8'))
-        anim = meta['anim']
+        # Algunas entregas repiten el ID en la animación (gus_gus_idle.json trae «gus_idle»).
+        anim = meta['anim'].removeprefix(f'{folder}_')
         if anim not in DEFAULT:
             print(f'{category}/{gid}: animación «{anim}» desconocida, se omite (válidas: {", ".join(DEFAULT)})')
             continue
@@ -65,7 +67,7 @@ for folder, (category, gid) in SOURCES.items():
         img = Image.open(path.with_suffix('.png')).convert('RGBA')
         rows = img.height // CELL
         sheet = resample(img, meta['frames'], rows, rule['frames'], rule.get('span', meta['frames']), meta['loop'])
-        meta.update(id=gid, frames=sheet.width // CELL, fps=rule['fps'])
+        meta.update(id=gid, anim=anim, frames=sheet.width // CELL, fps=rule['fps'])
         name = f'{gid}_{anim}'
         sheet.save(dest / f'{name}.png', optimize=True)
         (dest / f'{name}.json').write_text(json.dumps(meta, indent=2) + '\n', encoding='utf8', newline='\n')

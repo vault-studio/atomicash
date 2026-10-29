@@ -25,12 +25,14 @@ export const SPRITES = {
     attack_2: 8,
     hit: 4,
     death: 12,
+    victory: 16,
   } satisfies Record<AnimId, number>,
   defaultFps: 12,
   /** Animaciones que se reproducen una vez. `death` se queda en el último frame (biblia §11.4). */
-  oneShot: ['death', 'hit', 'attack', 'attack_1', 'attack_2'] as readonly AnimId[],
+  oneShot: ['death', 'hit', 'attack', 'attack_1', 'attack_2', 'victory'] as readonly AnimId[],
   /** Corrige el pivote de un JSON sin tocar el archivo: { id: [x, y] } o { 'id_anim': [x, y] }. */
-  pivotOverride: { dot: [128, 213] } as Readonly<Record<string, readonly [number, number]>>,
+  // Las hojas viejas de Dot (prototipo) traen el pivote mal; las de idle y victory ya vienen bien.
+  pivotOverride: { dot_run: [128, 213], dot_hit: [128, 213], dot_death: [128, 213] } as Readonly<Record<string, readonly [number, number]>>,
 } as const;
 
 export const VIEW = {
@@ -130,6 +132,9 @@ export const RUN_COLORS = {
   ebullet: 0xff6a3a,
   shadow: 0x000000,
   irradiated: 0xa8ff70,
+  /** Luces de la cinemática de victoria: rayos dorados y verde radiactivo alternos. */
+  victoryA: 0xffd34d,
+  victoryB: 0x9dff3a,
   flash: 0xffb0b0,
   frozen: 0x9fdcff,
   freeze: 0x7fd8ff,
