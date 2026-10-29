@@ -71,6 +71,12 @@ export const PALETTE = {
  * Radar del HUD: recogibles y cajas de alrededor, cada tipo con su color; lo que queda fuera del alcance se marca
  * con una flecha en el borde. Alcance en px isométricos de pantalla (la vista de referencia mide 1280 de ancho).
  */
+/**
+ * Filtro de pantalla vieja de la run (ajuste «Filtro CRT»): curvatura del tubo, separación de rojo y azul en px de
+ * pantalla (más hacia los bordes), intensidad de la banda de luz que baja y del parpadeo.
+ */
+export const OLD_SCREEN = { curve: 0.12, aberration: 3.2, roll: 0.07, flicker: 0.03 } as const;
+
 export const RADAR = {
   range: 1500,
   /** Lado del radar en px CSS (el HUD lo encoge en pantallas bajas). */

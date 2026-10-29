@@ -10,6 +10,7 @@ import { EnemyLayer } from './enemyLayer';
 import { FxLayer, TextLayer } from './fxLayer';
 import { GroundView, loadGroundTiles, type GroundTiles } from './ground';
 import { dirIndex, isoX, isoY } from './iso';
+import { OldScreenFilter } from './oldScreen';
 import { loadPickupArt, PickupLayer, type PickupArt } from './pickupLayer';
 import { animDuration } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';
@@ -49,6 +50,8 @@ export class GameRenderer {
   /** Zoom extra de la cámara: se aleja un poco con la pantalla llena de enemigos. */
   private zoom = 1;
   private lastFrame = 0;
+  /** Filtro de pantalla vieja (null si está apagado o el renderer no es WebGL). */
+  private oldScreen: OldScreenFilter | null = null;
   /** Ajustes de accesibilidad (F3-08). */
   showDamage = true;
   reduceMotion = false;
@@ -113,6 +116,19 @@ export class GameRenderer {
       loadPickupArt().catch(() => null),
     ]);
     return new GameRenderer(app, lib, world, translate, tiles, pickupArt);
+  }
+
+  /** Enciende o apaga el filtro de pantalla vieja sobre todo el lienzo. */
+  setOldScreen(on: boolean): void {
+    if (on && !this.oldScreen && this.app.renderer.name === 'webgl') {
+      this.oldScreen = new OldScreenFilter();
+      this.app.stage.filterArea = this.app.screen;
+      this.app.stage.filters = [this.oldScreen];
+    } else if (!on && this.oldScreen) {
+      this.app.stage.filters = [];
+      this.oldScreen.destroy();
+      this.oldScreen = null;
+    }
   }
 
   toggleDebug(): void {
@@ -180,6 +196,7 @@ export class GameRenderer {
     const now = performance.now();
     const dt = Math.min(0.1, (now - (this.lastFrame || now)) / 1000);
     this.lastFrame = now;
+    this.oldScreen?.update(now / 1000, this.reduceMotion);
     const Z = JUICE.zoom;
     const crowd = clamp((w.enemies.count - Z.from) / (Z.to - Z.from), 0, 1);
     const target = this.reduceMotion ? 1 : 1 - (1 - Z.minZoom) * crowd;

@@ -59,8 +59,8 @@ export function App() {
   }, [act, view]);
 
   const runSettings = useMemo(
-    () => ({ showDamage: st.damageNumbers, reduceMotion: st.reduceMotion }),
-    [st.damageNumbers, st.reduceMotion],
+    () => ({ showDamage: st.damageNumbers, reduceMotion: st.reduceMotion, crt: st.crtFilter }),
+    [st.damageNumbers, st.reduceMotion, st.crtFilter],
   );
   const worldOptions = useMemo(
     () => (daily ? dailyOptions(daily) : active ? runOptionsFor(data, active) : undefined),

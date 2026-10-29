@@ -101,6 +101,8 @@ export interface RunCallbacks {
 export interface RunSettings {
   showDamage: boolean;
   reduceMotion: boolean;
+  /** Filtro de pantalla vieja sobre el juego. */
+  crt: boolean;
 }
 
 const SFX_NAMES = Object.keys(SFX) as SfxId[];
@@ -253,6 +255,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const apply = (s: RunSettings): void => {
     renderer.showDamage = s.showDamage;
     renderer.reduceMotion = s.reduceMotion;
+    renderer.setOldScreen(s.crt);
     world.showDmg = s.showDamage;
   };
   apply(opts.settings);

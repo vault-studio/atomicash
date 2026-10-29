@@ -487,6 +487,63 @@ select {
   animation: none !important;
 }
 
+/* Pantalla vieja de la run: scanlines y viñeta (::after) y grano que se mueve a saltos (::before), por encima del
+   juego y del HUD. La curvatura y la aberración van en el filtro del lienzo (render/oldScreen.ts). */
+.crt .run::after,
+.crt .run::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.crt .run {
+  overflow: hidden;
+}
+
+.crt .run::after {
+  inset: 0;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.26) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.7) 100%);
+  mix-blend-mode: multiply;
+}
+
+.crt .run::before {
+  inset: -50%;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .crt .run::before {
+    animation: crt-grain 0.5s infinite steps(1);
+  }
+}
+
+.reduce-motion .run::before {
+  animation: none !important;
+}
+
+@keyframes crt-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-7%, 4%);
+  }
+  40% {
+    transform: translate(5%, -6%);
+  }
+  60% {
+    transform: translate(-3%, 8%);
+  }
+  80% {
+    transform: translate(8%, -2%);
+  }
+}
+
 /* Icono pequeño de arma junto a su nombre (pausa, resumen, selección). */
 .wicon {
   display: inline-block;
