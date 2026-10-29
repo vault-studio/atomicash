@@ -87,7 +87,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               style={{ width: `${(hud.rad / RAD.max) * 100}%`, background: hud.radColor }}
             />
           </div>
-          <span className="meter__val">{t('run.rad', { n: Math.round(hud.rad) })}</span>
+          <span className="meter__val">{t('run.rad', { n: Math.floor(hud.rad) })}</span>
         </div>
       </div>
 

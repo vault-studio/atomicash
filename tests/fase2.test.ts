@@ -199,4 +199,15 @@ describe('radiación', () => {
     run(w, STEP);
     expect(w.player.deadAt).not.toBeNull();
   });
+
+  it('si un irradiado te lleva a 100 también se muere', () => {
+    const w = quiet();
+    w.player.god = false;
+    w.player.rad = RAD.max - 2;
+    const e = spawnEnemy(w, 'torreta', w.player.x + IRRADIATED.auraR * 0.5, w.player.y, false);
+    e.irr = true;
+    run(w, 1);
+    expect(w.player.rad).toBe(RAD.max);
+    expect(w.player.deadAt).not.toBeNull();
+  });
 });

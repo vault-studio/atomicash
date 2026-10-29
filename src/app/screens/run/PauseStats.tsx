@@ -36,7 +36,7 @@ export function PauseStats({ world: w }: { world: World }) {
     ['magnet', pct(st.magnet / PLAYER.magnetBase - 1), st.magnet === PLAYER.magnetBase],
     ['xp', pct(st.xpMult - 1), st.xpMult === 1],
     ['luck', st.luck, st.luck === 0],
-    ['rad', Math.round(p.rad)],
+    ['rad', Math.floor(p.rad)],
   ];
   const half = Math.ceil(attrs.length / 2);
   const run: Row[] = [
