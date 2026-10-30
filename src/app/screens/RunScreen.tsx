@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TEST_PHASE } from '../../config/run';
 import type { StatSurvivorId } from '../../config/survivors';
 import type { Choice, World } from '../../engine/types';
 import type { RunResults, WorldOptions } from '../../engine/world';
@@ -126,6 +127,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
   }, []);
   const endWeld = useCallback(() => setWeld(null), []);
   const consume = useCallback((i: number) => sessionRef.current?.consume(i), []);
+  const spawnColossus = useCallback(() => sessionRef.current?.spawnColossus(), []);
   const pause = useCallback(() => setPaused(true), []);
   const doReroll = useCallback(() => sessionRef.current?.reroll(), []);
   const banish = useCallback((i: number) => sessionRef.current?.banish(i), []);
@@ -140,6 +142,12 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
       <div className="run__canvas" ref={hostRef} />
       {!ready && <div className="run__loading">{t('app.loading')}</div>}
       {ready && hud && world && <Hud hud={hud} world={world} onPause={pause} onConsume={consume} />}
+      {TEST_PHASE && ready && !result && !choice && !paused && (
+        // Fase de test: saca al Coloso en cualquier momento. tabIndex -1 para que el espacio no lo vuelva a pulsar.
+        <button className="run__test" tabIndex={-1} onClick={spawnColossus}>
+          {t('run.testColossus')}
+        </button>
+      )}
       {ready && hud && hud.time < 8 && (
         <div className="run__hint">
           {t(COARSE_POINTER ? 'run.controlsTouch' : 'run.controls')}

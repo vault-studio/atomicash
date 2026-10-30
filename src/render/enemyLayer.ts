@@ -16,8 +16,10 @@ import type { SpriteLibrary } from './sprites';
 const MOVE_ANIMS = ['move', 'run', 'idle'] as const;
 const IDLE_ANIMS = ['idle', 'move', 'run'] as const;
 const DEATH_ANIMS = ['death'] as const;
+const VICTORY_ANIMS = ['victory', 'idle', 'run'] as const;
 const ATTACK_ANIMS: Record<string, readonly AnimId[]> = {
-  attack: ['attack', 'move', 'run', 'idle'],
+  // El tirador trae su disparo como attack_1.
+  attack: ['attack', 'attack_1', 'move', 'run', 'idle'],
   attack_1: ['attack_1', 'attack', 'move', 'run', 'idle'],
   attack_2: ['attack_2', 'attack', 'move', 'run', 'idle'],
 };
@@ -66,7 +68,8 @@ export class EnemyLayer {
     this.dead = new ViewSlots(parent, lib);
   }
 
-  sync(w: World, alpha: number): void {
+  /** `victor` (si lo hay) hace su animación de victoria mirando a cámara, `victorT` s desde que empezó. */
+  sync(w: World, alpha: number, victor: Enemy | null = null, victorT = 0): void {
     const items = w.enemies.items;
     const n = w.enemies.count;
     let shown = 0;
@@ -84,7 +87,8 @@ export class EnemyLayer {
       const since = w.time - e.lastAtk;
       const atkMeta = this.lib.meta(id, e.atkAnim);
       const atkDur = atkMeta ? atkMeta.frames / atkMeta.fps : ATTACK_FALLBACK;
-      if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
+      if (e === victor) v.show(VICTORY_ANIMS, 0, victorT, 0);
+      else if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
       else v.show(e.moving ? MOVE_ANIMS : IDLE_ANIMS, dir, w.time - e.born, 0);
       const tint =
         e.frozen > 0

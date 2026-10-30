@@ -28,7 +28,7 @@ import {
   reroll,
 } from '../engine/systems/progression';
 import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
-import type { Banner, Choice, InputState, World } from '../engine/types';
+import type { Banner, Choice, Enemy, InputState, World } from '../engine/types';
 import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
 import { isOnScreen, isoX, isoY, setView } from '../engine/view';
 import {
@@ -154,6 +154,8 @@ export interface RunSession {
   lock(i: number): void;
   consume(i: number): void;
   setPaused(p: boolean): void;
+  /** Fase de test: saca al Coloso cerca del jugador. */
+  spawnColossus(): void;
   apply(settings: RunSettings): void;
   dispose(): void;
 }
@@ -234,6 +236,15 @@ function snapshot(w: World): HudSnapshot {
   };
 }
 
+/** Primer enemigo vivo de tipo `type`. */
+function findAlive(w: World, type: Enemy['type']): Enemy | null {
+  for (let i = 0; i < w.enemies.count; i++) {
+    const e = w.enemies.items[i]!;
+    if (!e.dead && e.type === type) return e;
+  }
+  return null;
+}
+
 export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallbacks): Promise<RunSession> {
   // Los Text de Pixi miden la fuente al crearse: hay que tenerla cargada antes.
   await Promise.all([sprites.load(), document.fonts.load('700 14px "Pixelify Sans"').catch(() => [])]);
@@ -246,8 +257,10 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const portrait = window.matchMedia(PORTRAIT_QUERY);
   let paused = false;
   let ended = false;
-  /** Segundos que le quedan a la cinemática de victoria. */
+  /** Segundos que le quedan a la cinemática de victoria (o de derrota). */
   let victoryLeft = 0;
+  /** El jugador ha muerto con el Coloso en el mapa: su cinemática de victoria cierra la run. */
+  let defeat = false;
   let lastChoice: Choice | null = null;
   let hudAcc = 1;
   const sound = createSoundTap();
@@ -317,6 +330,30 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   const onTick = (ticker: Ticker): void => {
     const frameSec = ticker.deltaMS / 1000;
     let steps = 0;
+    // Muerte con el Coloso en el mapa (le haya dado él el último golpe o no): el mundo se para y él celebra con la
+    // cinemática de los cofres. Al acabar su animación la cámara se queda en él y sale el resumen.
+    if (!defeat && !ended && world.player.deadAt !== null) {
+      const boss = findAlive(world, 'coloso');
+      if (boss) {
+        defeat = true;
+        world.hitStop = 0;
+        victoryLeft = renderer.startDefeat(boss);
+        cb.onHud(snapshot(world));
+      }
+    }
+    if (defeat && !ended && victoryLeft > 0) {
+      if (!portrait.matches && !paused) {
+        victoryLeft = renderer.stepVictory(frameSec, true);
+        if (renderer.victoryHolding) {
+          victoryLeft = 0;
+          world.over = true;
+        }
+      }
+      fs.acc = 0;
+      renderer.render(world, 1, { fps, steps });
+      sound(world, frameSec);
+      if (!world.over) return;
+    }
     // Cinemática de victoria (máquina de cupones recogida): el mundo se para mientras el personaje la hace. Al acabar
     // la animación sale la máquina y la cámara sigue cerca hasta cobrarla; luego vuelve al zoom normal.
     if (!portrait.matches && !paused && !ended && (victoryLeft > 0 || world.victory)) {
@@ -410,6 +447,10 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     setPaused(p) {
       paused = p;
       if (p) controls.release();
+    },
+    spawnColossus() {
+      if (ended || world.player.deadAt !== null) return;
+      spawnBoss(world, 'coloso');
     },
     apply,
     dispose() {

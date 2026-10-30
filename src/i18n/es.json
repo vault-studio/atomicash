@@ -14,6 +14,8 @@
     "dodge": "ESQUIVA",
     "pause": "Pausa",
     "paused": "EN PAUSA",
+    "defeat": "¡PERDISTE!",
+    "testColossus": "TEST · Coloso",
     "resume": "Continuar",
     "abandon": "Abandonar expedición",
     "level": "NV {{n}}",

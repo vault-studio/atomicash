@@ -17,10 +17,10 @@ describe('registro de entidades', () => {
     expect(count('props')).toBe(10);
   });
 
-  it('la prioridad del Acto 1 son 3 jugables, 13 enemigos, 3 jefes y 4 armas', () => {
+  it('la prioridad del Acto 1 son 3 jugables, 14 enemigos, 3 jefes y 4 armas', () => {
     const p = act1Priority();
     // Gus aún no tiene armas propias con arte: Dot y Benny llevan dos cada uno.
-    expect(p).toHaveLength(23);
+    expect(p).toHaveLength(24);
     expect(p).toEqual(
       expect.arrayContaining([
         'dot',
@@ -29,6 +29,7 @@ describe('registro de entidades', () => {
         'aspiradora_cria',
         'blindado',
         'predicador',
+        'excavadora',
         'coloso',
         'petardos',
       ]),

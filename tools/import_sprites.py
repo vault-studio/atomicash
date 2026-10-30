@@ -1,10 +1,11 @@
 # Importa las hojas de sprites de NOVEDADES/ a assets/sprites/ con el ID y la ruta que espera el juego.
-# Uso: python tools/import_sprites.py
+# Uso: python tools/import_sprites.py [carpeta ...]  (sin carpetas, todas)
 #
 # Las hojas llegan con hasta 48 fotogramas por fila (12 288 px de ancho): muchos móviles no cargan texturas de más
 # de 4096 px, así que cada animación se queda en 16 fotogramas como mucho, tomados a intervalos iguales del tramo
 # útil, y se ajustan los fps. El JSON sigue el contrato de la biblia de arte (filas = 8 direcciones).
 import json
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -23,7 +24,9 @@ SOURCES = {
     'hinchado': ('enemies', 'hinchado'),
     'predicador': ('enemies', 'predicador'),
     'reptador': ('enemies', 'reptador'),
+    'Tirador': ('enemies', 'tirador'),
     'kingrat': ('bosses', 'rey_rata'),
+    'Coloso': ('bosses', 'coloso'),
 }
 
 # Por animación: fotogramas finales y fps. `span` = fotogramas de origen que forman la animación (el resto repite).
@@ -46,6 +49,9 @@ OVERRIDE = {
     ('blindado', 'run'): {'frames': 12, 'fps': 10},
     ('hinchado', 'run'): {'frames': 12, 'fps': 10},
     ('predicador', 'run'): {'frames': 12, 'fps': 12},
+    # Ciclos de 20 (tirador) y 30 (Coloso) fotogramas a 12 fps: uno de cada dos, a la mitad de fps.
+    ('tirador', 'run'): {'frames': 10, 'fps': 8},
+    ('coloso', 'run'): {'frames': 15, 'fps': 7},
 }
 
 
@@ -60,7 +66,10 @@ def resample(img: Image.Image, src_frames: int, rows: int, n: int, span: int, lo
     return out
 
 
+only = set(sys.argv[1:])
 for folder, (category, gid) in SOURCES.items():
+    if only and folder not in only:
+        continue
     dest = OUT / category / gid
     # Sin borrar lo que ya hay: una entrega puede traer solo algunas animaciones (dot: idle y victory).
     dest.mkdir(parents=True, exist_ok=True)

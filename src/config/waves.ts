@@ -70,6 +70,7 @@ export const WAVES: readonly WaveDef[] = [
     rate: 5.0,
     max: 220,
     mix: {
+      excavadora: 1,
       cortacesped: 3,
       torreta: 1,
       saqueador: 4,
@@ -87,6 +88,7 @@ export const WAVES: readonly WaveDef[] = [
     rate: 5.6,
     max: 260,
     mix: {
+      excavadora: 2,
       cortacesped: 3,
       torreta: 1,
       babosa: 3,
@@ -103,6 +105,7 @@ export const WAVES: readonly WaveDef[] = [
     rate: 6.4,
     max: 300,
     mix: {
+      excavadora: 2,
       cortacesped: 4,
       torreta: 2,
       babosa: 3,

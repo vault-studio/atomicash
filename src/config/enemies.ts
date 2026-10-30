@@ -37,6 +37,8 @@ export const ENEMY_STATS = {
   blindado: { hp: 80, dmg: 14, speed: 58, xp: 4, kbRes: 0.25, armor: 0.6 },
   // Apoyo: se queda a distancia y enfurece a los de alrededor con sus sermones.
   predicador: { hp: 45, dmg: 6, speed: 74, xp: 4 },
+  // Ariete: muy lenta, embiste con la pala, aguanta mucho y no se deja empujar.
+  excavadora: { hp: 160, dmg: 18, speed: 46, xp: 7, kbRes: 0.1, armor: 0.4 },
   // Jefes: no escalan con el tiempo ni se reciclan.
   rey_rata: { hp: 3000, dmg: 18, speed: 76, xp: 60, kbRes: 0, boss: true },
   dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true },
@@ -208,6 +210,7 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   aspiradora_cria: SPARKS,
   blindado: [0xb8bec6, 0x6c7178, 0xa8382a],
   predicador: [0xa8382a, 0x6a2a20, 0xf0e070],
+  excavadora: SPARKS,
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,

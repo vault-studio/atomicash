@@ -135,7 +135,18 @@ export const JUICE = {
    * `fallback` es la duración si el personaje no tiene hoja de victory.
    */
   victory: { zoom: 2.3, lift: 34, zoomIn: 0.45, hold: 0.35, zoomOut: 0.5, fallback: 2, rays: 14 },
+  /**
+   * Cinemática de derrota cuando el jugador muere con el Coloso en el mapa: la misma de victoria pero sobre el jefe, con luces rojas
+   * y el «¡Perdiste!» encima. Se queda en primer plano `hold` s tras su animación y sale el resumen de la run.
+   * `textIn` es lo que tarda el texto en aparecer.
+   */
+  defeat: { zoom: 1.35, lift: 120, hold: 1.2, textIn: 0.35 },
 } as const;
+
+/**
+ * Fase de test: enseña en la run el botón que saca al Coloso. Ponlo a false al publicar.
+ */
+export const TEST_PHASE = true;
 
 /**
  * Racha de bajas (dossier §12): bajas seguidas sin recibir daño. Cada tramo multiplica la experiencia de las bajas;

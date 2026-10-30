@@ -1,11 +1,12 @@
 # =====================================================================
 #  Atomic Ash · render_rigido.py
 #  Sprites de enemigos de una sola malla sin esqueleto (aspiradora,
-#  babosa, cortacésped, torreta). El movimiento es procedural: el
+#  babosa, cortacésped, torreta, excavadora y el Dirigible). El
+#  movimiento es procedural: el
 #  modelo entero se desplaza, se inclina y se deforma por escala.
 #
 #  Uso:
-#    blender -b -P tools/render_rigido.py -- <modelo.fbx> <carpeta_salida> <id> [preview]
+#    blender -b -P tools/render_rigido.py -- <modelo.fbx|.glb> <carpeta_salida> <id> [preview]
 #
 #  Deja los fotogramas en <salida>/_frames y un _render.json; las hojas
 #  las monta tools/pack_frames.py. Misma cámara, escala y luz que
@@ -37,6 +38,10 @@ PROFILES = {
     "babosa": dict(fit=(2.4, 0.9), anims={"move": (12, 10, True), "attack": (8, 14, False), "death": (12, 10, False)}),
     "cortacesped": dict(fit=(2.3, 1.3), anims={"move": (8, 16, True), "attack": (10, 16, False), "death": (12, 12, False)}),
     "torreta": dict(fit=(1.3, 1.6), anims={"idle": (8, 8, True), "attack": (8, 16, False), "death": (12, 12, False)}),
+    "excavadora": dict(fit=(2.2, 1.3), anims={"move": (8, 12, True), "attack": (10, 14, False), "death": (12, 12, False)}),
+    # Vuela: el juego lo eleva (FLY_HEIGHT), aquí se renderiza a ras de suelo.
+    "dirigible": dict(fit=(2.2, 1.4), anims={"move": (12, 8, True), "attack_1": (10, 12, False),
+                                             "attack_2": (10, 12, False), "death": (14, 10, False)}),
 }
 # -----------------------------------------------------------------
 
@@ -204,7 +209,52 @@ def pose_torreta(anim, t):
     return {}
 
 
-POSES = {"aspiradora": pose_aspiradora, "babosa": pose_babosa, "cortacesped": pose_cortacesped, "torreta": pose_torreta}
+def pose_excavadora(anim, t):
+    if anim == "move":
+        # orugas: avanza a tirones con el motor en marcha
+        return dict(jit=0.006, pitch=1.5 * math.sin(t * math.tau * 2), roll=1.2 * math.sin(t * math.tau),
+                    fwd=0.02 * math.sin(t * math.tau * 2))
+    if anim == "attack":
+        # se encabrita hacia atrás y deja caer la pala con todo el peso
+        if t < 0.45:
+            u = ease(t / 0.45)
+            return dict(pitch=-12 * u, fwd=-0.06 * u)
+        u = ease((t - 0.45) / 0.2)
+        r = ease((t - 0.7) / 0.3)
+        return dict(pitch=-12 + 20 * u - 8 * r, fwd=-0.06 + 0.18 * u - 0.12 * r, jit=0.02 * u * (1 - r))
+    if anim == "death":
+        # el motor revienta: tiembla, da un bote y vuelca de lado
+        shake = 1 - ease(t / 0.45)
+        fall = ease((t - 0.35) / 0.65)
+        return dict(jit=0.03 * shake, hop=0.1 * math.sin(min(1, t / 0.3) * math.pi), roll=80 * fall, yaw=15 * fall)
+    return {}
+
+
+def pose_dirigible(anim, t):
+    s = math.sin(t * math.tau)
+    if anim == "move":
+        # flota: sube y baja despacio y se mece con el viento
+        return dict(hop=0.05 + 0.04 * s, roll=3 * math.sin(t * math.tau + 0.8), pitch=2 * s)
+    if anim == "attack_1":
+        # abre la bodega: frena, se ladea y suelta la carga con un respingo
+        u = math.sin(min(1.0, t / 0.6) * math.pi)
+        kick = math.exp(-max(0.0, t - 0.5) * 8) if t > 0.5 else 0
+        return dict(hop=0.05 + 0.06 * kick, roll=7 * u, yaw=4 * u, pitch=-3 * u)
+    if anim == "attack_2":
+        # pasada de bombardeo: morro abajo y acelera
+        u = math.sin(t * math.pi)
+        return dict(hop=0.05 - 0.03 * u, pitch=9 * u, fwd=0.14 * u, jit=0.006 * u)
+    if anim == "death":
+        # pierde gas: tiembla, cae de morro girando y se desinfla contra el suelo
+        shake = 1 - ease(t / 0.4)
+        fall = ease((t - 0.2) / 0.8)
+        return dict(jit=0.025 * shake, hop=0.05 * (1 - fall), pitch=28 * fall, roll=22 * fall, yaw=30 * fall,
+                    sz=1 - 0.35 * fall, sx=1 + 0.08 * fall)
+    return {}
+
+
+POSES = {"aspiradora": pose_aspiradora, "babosa": pose_babosa, "cortacesped": pose_cortacesped, "torreta": pose_torreta,
+         "excavadora": pose_excavadora, "dirigible": pose_dirigible}
 
 
 def main():
@@ -216,7 +266,10 @@ def main():
     sc = bpy.context.scene
 
     before = set(bpy.data.objects)
-    bpy.ops.import_scene.fbx(filepath=src)
+    if src.lower().endswith((".glb", ".gltf")):
+        bpy.ops.import_scene.gltf(filepath=src)
+    else:
+        bpy.ops.import_scene.fbx(filepath=src)
     body = next(o for o in bpy.data.objects if o not in before and o.type == "MESH")
     for o in [o for o in bpy.data.objects if o not in before and o is not body]:
         bpy.data.objects.remove(o, do_unlink=True)

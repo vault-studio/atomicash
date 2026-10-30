@@ -1319,3 +1319,22 @@
     animation: none;
   }
 }
+
+/* Fase de test: botón para sacar al Coloso (abajo en el centro, fuera de la zona del joystick). */
+.run__test {
+  position: absolute;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 16px;
+  color: #ffb03a;
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px dashed #ffb03a;
+  cursor: pointer;
+}
+.run__test:active {
+  background: rgba(255, 176, 58, 0.25);
+}

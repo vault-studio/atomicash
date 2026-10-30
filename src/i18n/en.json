@@ -14,6 +14,8 @@
     "dodge": "DODGE",
     "pause": "Pause",
     "paused": "PAUSED",
+    "defeat": "YOU LOST!",
+    "testColossus": "TEST · Colossus",
     "resume": "Resume",
     "abandon": "Abandon expedition",
     "level": "LV {{n}}",

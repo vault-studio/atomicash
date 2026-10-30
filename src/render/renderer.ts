@@ -4,7 +4,7 @@ import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, RAD_FOG, RUN_COLORS, VIEW } from '../config/render';
 import { JUICE } from '../config/run';
 import { currentWaveIndex } from '../engine/systems/spawning';
-import type { World } from '../engine/types';
+import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
 import { EnemyLayer } from './enemyLayer';
 import { FxLayer, TextLayer } from './fxLayer';
@@ -48,6 +48,10 @@ export class GameRenderer {
   /** Cuándo acaba la animación (ahí se espera si hace falta) y reloj de las luces, que no se para al esperar. */
   private victoryHoldAt = 0;
   private victoryClock = 0;
+  /** Cinemática de derrota: el enemigo que celebra (null = la cinemática es la del personaje). */
+  private victor: Enemy | null = null;
+  /** «¡Perdiste!» de la cinemática de derrota, en coordenadas de pantalla. */
+  private readonly defeatText: Text;
   /** Momento en que el jugador se paró: el idle empieza desde su primer fotograma. */
   private stillSince = -1;
   private readonly debugText: Text;
@@ -97,6 +101,20 @@ export class GameRenderer {
     this.fog.addChild(this.fogHole, this.fogEdge);
     this.fog.visible = false;
     app.stage.addChild(this.fog, this.overlay);
+    this.defeatText = new Text({
+      text: translate('run.defeat'),
+      style: {
+        fontFamily: '"Pixelify Sans", monospace',
+        fontWeight: '700',
+        fontSize: 72,
+        fill: RUN_COLORS.defeatText,
+        stroke: { color: 0x000000, width: 10, join: 'round' },
+        dropShadow: { color: 0x000000, alpha: 0.6, blur: 6, distance: 6 },
+      },
+    });
+    this.defeatText.anchor.set(0.5);
+    this.defeatText.visible = false;
+    app.stage.addChild(this.defeatText);
 
     this.debugText = new Text({
       text: '',
@@ -157,9 +175,25 @@ export class GameRenderer {
   startVictory(charId: string): number {
     const V = JUICE.victory;
     const meta = this.lib.meta(charId, 'victory');
+    this.victor = null;
     this.victoryT = 0;
     this.victoryClock = 0;
     this.victoryHoldAt = (meta ? animDuration(meta) : V.fallback) + V.hold;
+    this.victoryDur = this.victoryHoldAt + V.zoomOut;
+    return this.victoryDur;
+  }
+
+  /**
+   * Arranca la cinemática de derrota: la cámara va hasta `e` (el Coloso), que hace su victory mientras el personaje
+   * cae y sale «¡Perdiste!». Devuelve su duración en s.
+   */
+  startDefeat(e: Enemy): number {
+    const V = JUICE.victory;
+    const meta = this.lib.meta(e.type, 'victory');
+    this.victor = e;
+    this.victoryT = 0;
+    this.victoryClock = 0;
+    this.victoryHoldAt = (meta ? animDuration(meta) : V.fallback) + JUICE.defeat.hold;
     this.victoryDur = this.victoryHoldAt + V.zoomOut;
     return this.victoryDur;
   }
@@ -180,6 +214,8 @@ export class GameRenderer {
     if (hold) this.victoryT = Math.min(this.victoryT, this.victoryHoldAt);
     if (this.victoryT < this.victoryDur) return this.victoryDur - this.victoryT;
     this.victoryT = -1;
+    this.victor = null;
+    this.defeatText.visible = false;
     this.cineBack.clear();
     this.cineFront.clear();
     return 0;
@@ -219,13 +255,18 @@ export class GameRenderer {
     const target = this.reduceMotion ? 1 : 1 - (1 - Z.minZoom) * crowd;
     this.zoom += (target - this.zoom) * Math.min(1, Z.lerp * dt);
     const V = JUICE.victory;
+    const D = JUICE.defeat;
     const cine = this.victoryLevel();
     // Con «reducir movimiento» la cinemática no hace zoom: solo luces.
     const close = this.reduceMotion ? 0 : cine;
-    const k = this.cameraScale() * (1 + (V.zoom - 1) * close);
+    const vic = this.victor;
+    const k = this.cameraScale() * (1 + ((vic ? D.zoom : V.zoom) - 1) * close);
     const p = w.player;
     const px = p.prevX + (p.x - p.prevX) * alpha;
     const py = p.prevY + (p.y - p.prevY) * alpha;
+    // En la derrota la cámara va del personaje al que lo ha matado.
+    const fx = vic ? px + (vic.x - px) * cine : px;
+    const fy = vic ? py + (vic.y - py) * cine : py;
 
     this.worldLayer.scale.set(k);
     let shx = 0;
@@ -235,10 +276,10 @@ export class GameRenderer {
       shy = Math.cos(w.time * 89) * w.shake * 0.6;
     }
     // La cámara sube con el zoom para encuadrar el cuerpo, no los pies.
-    const lift = V.lift * close;
+    const lift = (vic ? D.lift : V.lift) * close;
     this.worldLayer.position.set(
-      width / 2 - isoX(px, py) * k + shx,
-      height / 2 - (isoY(px, py) - lift) * k + shy,
+      width / 2 - isoX(fx, fy) * k + shx,
+      height / 2 - (isoY(fx, fy) - lift) * k + shy,
     );
     this.groundView.update(px, py, width / 2 / k, height / 2 / k);
 
@@ -252,7 +293,8 @@ export class GameRenderer {
     else if (this.stillSince < 0) this.stillSince = w.time;
     if (p.deadAt !== null) {
       anims = ['death'];
-      t = w.time - p.deadAt;
+      // En la derrota el mundo está parado: la caída sigue al reloj de la cinemática.
+      t = w.time - p.deadAt + (vic ? this.victoryT : 0);
     } else if (this.victoryT >= 0) {
       anims = ['victory', 'idle', 'run'];
       t = this.victoryT;
@@ -274,7 +316,7 @@ export class GameRenderer {
     const hurt = w.time - p.lastHit < 0.15;
     const blink = p.inv > 0 && p.deadAt === null && Math.floor(w.time * 20) % 2 === 0;
     this.player.style(0, hurt ? RUN_COLORS.flash : 0xffffff, blink ? 0.55 : 1);
-    this.enemies.sync(w, alpha);
+    this.enemies.sync(w, alpha, vic, this.victoryT);
     this.pickups?.sync(w);
     this.fx.draw(w);
     this.texts.draw(w, this.showDamage && w.showDmg);
@@ -290,7 +332,12 @@ export class GameRenderer {
     if (!this.reduceMotion && hurt && this.victoryT < 0)
       o.rect(0, 0, width, height).fill({ color: 0xff0000, alpha: 0.12 });
     this.drawRadFog(p.rad, isoX(px, py), isoY(px, py), k, w.time);
-    if (this.victoryT >= 0) this.drawVictory(isoX(px, py), isoY(px, py), cine, k);
+    if (this.victoryT >= 0) {
+      if (vic) {
+        this.drawVictory(isoX(vic.x, vic.y), isoY(vic.x, vic.y), cine, k, true);
+        this.drawDefeatText(width, height);
+      } else this.drawVictory(isoX(px, py), isoY(px, py), cine, k, false);
+    }
 
     if (this.debugOn) {
       // DECISIÓN: el overlay F3 es una herramienta de desarrollo y no pasa por i18n.
@@ -305,16 +352,20 @@ export class GameRenderer {
    * Luces de la cinemática con los pies del personaje en (x, y) de mundo: rayos que giran tras él, halo en el suelo,
    * onda expansiva y chispas que suben; en pantalla, viñeta que oscurece lo demás y fogonazo inicial.
    */
-  private drawVictory(x: number, y: number, level: number, k: number): void {
+  private drawVictory(x: number, y: number, level: number, k: number, defeat: boolean): void {
     const V = JUICE.victory;
     const t = this.victoryClock;
-    const cy = y - V.lift;
+    // El Coloso es mucho más grande que el personaje: luces a su escala y en rojo.
+    const s = defeat ? 2.2 : 1;
+    const colA = defeat ? RUN_COLORS.defeatA : RUN_COLORS.victoryA;
+    const colB = defeat ? RUN_COLORS.defeatB : RUN_COLORS.victoryB;
+    const cy = y - (defeat ? JUICE.defeat.lift : V.lift);
     const back = this.cineBack;
     const front = this.cineFront;
     back.clear();
     front.clear();
 
-    const reach = 150 + 30 * Math.sin(t * 3);
+    const reach = (150 + 30 * Math.sin(t * 3)) * s;
     for (let i = 0; i < V.rays; i++) {
       const a = t * 0.6 + (i / V.rays) * Math.PI * 2;
       const half = 0.07 + 0.03 * Math.sin(t * 5 + i);
@@ -328,27 +379,27 @@ export class GameRenderer {
           x + Math.cos(a + half) * r,
           cy + Math.sin(a + half) * r,
         ])
-        .fill({ color: i % 2 ? RUN_COLORS.victoryB : RUN_COLORS.victoryA, alpha: 0.22 * level });
+        .fill({ color: i % 2 ? colB : colA, alpha: 0.22 * level });
     }
     for (let i = 3; i >= 1; i--)
-      back.ellipse(x, y, 26 * i, 13 * i).fill({ color: RUN_COLORS.victoryA, alpha: 0.12 * level });
+      back.ellipse(x, y, 26 * i * s, 13 * i * s).fill({ color: colA, alpha: 0.12 * level });
     if (t < 0.7) {
-      const s = t / 0.7;
+      const u = t / 0.7;
       back
-        .ellipse(x, y, 40 + 220 * s, 20 + 110 * s)
-        .stroke({ color: RUN_COLORS.victoryB, width: 6 * (1 - s), alpha: 1 - s });
+        .ellipse(x, y, (40 + 220 * u) * s, (20 + 110 * u) * s)
+        .stroke({ color: colB, width: 6 * (1 - u) * s, alpha: 1 - u });
     }
 
     // Chispas: cada una sube en espiral alrededor del personaje y vuelve a empezar.
     for (let i = 0; i < 26; i++) {
       const life = (t * (0.5 + (i % 5) * 0.12) + i * 0.137) % 1;
       const a = i * 2.39996 + t * (i % 2 ? 1.3 : -1.1);
-      const r = 26 + (i % 7) * 7;
+      const r = (26 + (i % 7) * 7) * s;
       const sx = x + Math.cos(a) * r;
-      const sy = y - life * 120 + Math.sin(a) * r * 0.45;
+      const sy = y - life * 120 * s + Math.sin(a) * r * 0.45;
       front
-        .circle(sx, sy, (1.6 + (i % 3)) * (1 - life))
-        .fill({ color: i % 3 ? RUN_COLORS.victoryA : 0xffffff, alpha: level * (1 - life) });
+        .circle(sx, sy, (1.6 + (i % 3)) * (1 - life) * s)
+        .fill({ color: i % 3 ? colA : 0xffffff, alpha: level * (1 - life) });
     }
 
     // Viñeta: anillos con el centro recortado; se suman hacia fuera y dejan la luz sobre el personaje.
@@ -363,6 +414,21 @@ export class GameRenderer {
         .cut();
     if (t < 0.18 && !this.reduceMotion)
       o.rect(0, 0, width, height).fill({ color: 0xffffff, alpha: 0.5 * (1 - t / 0.18) });
+  }
+
+  /** «¡Perdiste!»: entra grande y encaja de golpe; luego late despacio. */
+  private drawDefeatText(width: number, height: number): void {
+    const D = JUICE.defeat;
+    const t = this.victoryClock;
+    const txt = this.defeatText;
+    txt.visible = true;
+    const u = clamp(t / D.textIn, 0, 1);
+    // Que quepa en pantallas estrechas.
+    const fit = Math.min(1, (width * 0.9) / (txt.width / (txt.scale.x || 1)));
+    const pulse = this.reduceMotion ? 1 : 1 + 0.04 * Math.sin(t * 4);
+    txt.scale.set(fit * (u < 1 ? 2.2 - 1.2 * smooth(u) : pulse));
+    txt.alpha = u;
+    txt.position.set(width / 2, height * 0.55);
   }
 
   /**

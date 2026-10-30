@@ -163,6 +163,10 @@ export const RUN_COLORS = {
   /** Luces de la cinemática de victoria: rayos dorados y verde radiactivo alternos. */
   victoryA: 0xffd34d,
   victoryB: 0x9dff3a,
+  /** Luces de la cinemática de derrota (el Coloso celebra) y su texto. */
+  defeatA: 0xff4a3a,
+  defeatB: 0xffa03a,
+  defeatText: 0xff3a2a,
   flash: 0xffb0b0,
   frozen: 0x9fdcff,
   freeze: 0x7fd8ff,

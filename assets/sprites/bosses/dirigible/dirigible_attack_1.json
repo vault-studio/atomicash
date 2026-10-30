@@ -1,0 +1,25 @@
+{
+  "id": "dirigible",
+  "anim": "attack_1",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 10,
+  "fps": 12,
+  "loop": false
+}
