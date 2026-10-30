@@ -45,8 +45,8 @@ create table public.leaderboard_runs (
   created_at timestamptz not null default now()
 );
 
-create index leaderboard_time on public.leaderboard_runs (time_sec desc, kills desc) where not hidden;
-create index leaderboard_boss on public.leaderboard_runs (boss_dmg desc, time_sec asc) where not hidden;
+create index leaderboard_time_idx on public.leaderboard_runs (time_sec desc, kills desc) where not hidden;
+create index leaderboard_boss_idx on public.leaderboard_runs (boss_dmg desc, time_sec asc) where not hidden;
 create index leaderboard_user on public.leaderboard_runs (user_id, created_at desc);
 
 alter table public.leaderboard_runs enable row level security;

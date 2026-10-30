@@ -7,4 +7,5 @@ enable_anonymous_sign_ins = true
 enable_manual_linking = true
 
 [functions.submit-run]
-verify_jwt = true
+# La propia función comprueba el usuario con auth.getUser(); la verificación «legacy» rechazaría los JWT nuevos.
+verify_jwt = false
