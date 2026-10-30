@@ -1,4 +1,5 @@
-// Antes de salir de expedición: elegir con quién, a pantalla completa con los retratos del plantel.
+// Expedición, pestaña Expedición: elegir con quién, a pantalla completa con los retratos del plantel (la otra pestaña es
+// la colección de supervivientes).
 // El último usado sale marcado.
 import { useTranslation } from 'react-i18next';
 import { ROSTER, type StatSurvivorId } from '../../../config/survivors';
@@ -11,6 +12,8 @@ interface Props {
   onStart: (id: StatSurvivorId) => void;
   onDaily: () => void;
   onBack: () => void;
+  /** Pestañas Expedición / Supervivientes. */
+  nav?: React.ReactNode;
 }
 
 /** Reto del día: superviviente, modificador, tu mejor marca de hoy y el premio del primer intento. */
@@ -40,7 +43,7 @@ function DailyCard({ onPlay }: { onPlay: () => void }) {
   );
 }
 
-export function Expedition({ onStart, onDaily, onBack }: Props) {
+export function Expedition({ onStart, onDaily, onBack, nav }: Props) {
   const { t } = useTranslation();
   const survivors = useSaveData((d) => d.survivors);
   const active = useSaveData((d) => d.profile.active);
@@ -53,6 +56,7 @@ export function Expedition({ onStart, onDaily, onBack }: Props) {
         </button>
         <h1>{t('expedition.pick')}</h1>
       </header>
+      {nav}
       <DailyCard onPlay={onDaily} />
       <ul className="pick__list">
         {ROSTER.map((id, i) => {

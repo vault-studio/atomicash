@@ -120,12 +120,12 @@ function RosterCard({ id, owned: o, active }: CardProps) {
   );
 }
 
-export function Survivors({ onBack }: { onBack: () => void }) {
+export function Survivors({ onBack, nav }: { onBack: () => void; nav?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
 
   return (
-    <Screen title={t('bunker.survivors.cmd')} onBack={onBack}>
+    <Screen title={t('bunker.survivors.cmd')} onBack={onBack} nav={nav}>
       <p>{t('collection.count', { n: Object.keys(data.survivors).length, total: POOL.length })}</p>
       <ul className="roster">
         {POOL.map((id) => (

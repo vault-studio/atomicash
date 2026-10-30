@@ -13,8 +13,6 @@ import {
   MISSIONS,
   MISSION_IDS,
   RARITIES,
-  STARTERS,
-  type StarterId,
   STARS,
   SURVIVOR_LEVEL,
   topRarity,
@@ -137,16 +135,9 @@ export function setActive(s: SaveData, id: StatSurvivorId): void {
   if (s.survivors[id]) s.profile.active = id;
 }
 
-/** Resultado del test: el inicial con más respuestas; en empate, el primero de `STARTERS`. */
-export function psychResult(answers: readonly number[]): StarterId {
-  const score = STARTERS.map((_, i) => answers.filter((a) => a === i).length);
-  let best = 0;
-  for (let i = 1; i < score.length; i++) if (score[i]! > score[best]!) best = i;
-  return STARTERS[best]!;
-}
-
 /**
- * Perfil psicológico: el elegido pasa a ser el activo. Solo la primera vez.
+ * Superviviente inicial: pasa a ser el activo. Solo la primera vez (la app elige el primero de `STARTERS` al crear la
+ * partida; ya no hay test).
  * DECISIÓN: todo el plantel queda disponible desde el principio (se elige al salir de expedición); la caja de
  * suministros da estrellas y fichas de los que ya tienes.
  */

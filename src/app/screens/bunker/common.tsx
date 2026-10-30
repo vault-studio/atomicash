@@ -15,10 +15,12 @@ export const RARITY_COLOR: Record<SurvivorRarity, string> = {
 interface ScreenProps {
   title: string;
   onBack?: () => void;
+  /** Pestañas bajo la cabecera (pantallas que agrupan varias secciones). */
+  nav?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function Screen({ title, onBack, children }: ScreenProps) {
+export function Screen({ title, onBack, nav, children }: ScreenProps) {
   const { t } = useTranslation();
   const credits = useSaveData((d) => d.profile.credits);
   return (
@@ -32,8 +34,35 @@ export function Screen({ title, onBack, children }: ScreenProps) {
         <h1>{title}</h1>
         <span className="credits">{t('bunker.credits', { n: credits })}</span>
       </header>
+      {nav}
       {children}
     </main>
+  );
+}
+
+interface TabsProps<T extends string> {
+  ids: readonly T[];
+  current: T;
+  onTab: (id: T) => void;
+  label: (id: T) => string;
+}
+
+/** Pestañas de una pantalla agrupada (Expedición, Intendencia). */
+export function Tabs<T extends string>({ ids, current, onTab, label }: TabsProps<T>) {
+  return (
+    <nav className="tabs" role="tablist">
+      {ids.map((id) => (
+        <button
+          key={id}
+          role="tab"
+          aria-selected={id === current}
+          className="tabs__tab"
+          onClick={() => onTab(id)}
+        >
+          {label(id)}
+        </button>
+      ))}
+    </nav>
   );
 }
 
@@ -44,4 +73,13 @@ export function Stars({ n }: { n: number }) {
       <span className="stars__off">{'★'.repeat(STARS.max - n)}</span>
     </span>
   );
+}
+
+/** Tiempo hasta la medianoche local (HH:MM): cuándo rotan el mercader y las misiones. */
+export function untilMidnight(now: Date): string {
+  const m = new Date(now);
+  m.setHours(24, 0, 0, 0);
+  const s = Math.max(0, Math.floor((m.getTime() - now.getTime()) / 1000));
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}`;
 }

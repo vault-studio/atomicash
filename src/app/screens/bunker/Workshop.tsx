@@ -1,14 +1,15 @@
 // Taller (02_GAMEPLAY.md §9): árbol pequeño por superviviente. Solo afecta cuando juegas con él.
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IMPLANTS, UPGRADES, UPGRADE_IDS, upgradeCost } from '../../../config/meta';
-import { STAT_SURVIVOR_IDS, type StatSurvivorId } from '../../../config/survivors';
+import { STAT_SURVIVOR_IDS, SURVIVORS, type StatSurvivorId } from '../../../config/survivors';
 import { buyUpgrade } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
 import { upgradeIcon } from '../../icons';
-import { Screen } from './common';
+import { RARITY_COLOR, Screen } from './common';
+import { headOf } from './Portraits';
 
-export function Workshop({ onBack }: { onBack: () => void }) {
+export function Workshop({ onBack, nav }: { onBack: () => void; nav?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
@@ -18,10 +19,18 @@ export function Workshop({ onBack }: { onBack: () => void }) {
   const o = id ? data.survivors[id] : undefined;
 
   return (
-    <Screen title={t('bunker.workshop.cmd')} onBack={onBack}>
+    <Screen title={t('bunker.workshop.cmd')} onBack={onBack} nav={nav}>
       <div className="chips" role="tablist">
         {owned.map((c) => (
-          <button key={c} role="tab" aria-selected={c === id} className="chip" onClick={() => setSel(c)}>
+          <button
+            key={c}
+            role="tab"
+            aria-selected={c === id}
+            className="chip chip--face"
+            style={{ '--rarity': RARITY_COLOR[SURVIVORS[c].rarity] } as CSSProperties}
+            onClick={() => setSel(c)}
+          >
+            {headOf(c) && <img src={headOf(c)} alt="" />}
             {t(`entities.${c}`)}
           </button>
         ))}

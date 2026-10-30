@@ -6,14 +6,14 @@ import { useSave } from '../../../store/save';
 import { hudIcon } from '../../icons';
 import { Screen } from './common';
 
-export function Backpack({ onBack }: { onBack: () => void }) {
+export function Backpack({ onBack, nav }: { onBack: () => void; nav?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
   const active = data.profile.active ? data.survivors[data.profile.active] : undefined;
   const cap = BACKPACK.perRun + (active?.upgrades.cons ?? 0) * UPGRADES.cons.per;
 
   return (
-    <Screen title={t('bunker.backpack.cmd')} onBack={onBack}>
+    <Screen title={t('bunker.backpack.cmd')} onBack={onBack} nav={nav}>
       <p>{t('backpack.rule', { n: cap })}</p>
       <ul className="shop">
         {CONSUMABLE_IDS.map((c) => {

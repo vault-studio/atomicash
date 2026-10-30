@@ -14,7 +14,8 @@ export async function connect(): Promise<void> {
     const account = await ensureAccount();
     on.set({ account, connected: true, status: 'idle' });
     const local = useSave.getState().data;
-    if (local.profile.stats.runs === 0 && !local.profile.starterChosen) {
+    // Sin expediciones jugadas, la partida de la nube manda (la local acaba de crearse).
+    if (local.profile.stats.runs === 0) {
       const cloud = await downloadSave(account.userId);
       if (cloud) {
         useSave.getState().replace(cloud.data);

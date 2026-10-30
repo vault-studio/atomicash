@@ -1,4 +1,4 @@
-// Retratos del plantel: de cuerpo entero (selección de expedición y test inicial) y de busto (pausa).
+// Retratos del plantel: de cuerpo entero (selección de expedición) y de busto (pausa).
 import { useTranslation } from 'react-i18next';
 import benny from '../../../../assets/portraits/benny.webp';
 import dot from '../../../../assets/portraits/dot.webp';

@@ -729,45 +729,6 @@ button.card--survivor {
   font-size: 0.7rem;
 }
 
-/* ---------- Perfil psicológico ---------- */
-.psych__answers {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 640px;
-}
-
-.psych__answer {
-  width: 100%;
-  min-height: 48px;
-  padding: 8px 12px;
-  text-align: left;
-  background: transparent;
-  color: var(--crema);
-  border: 1px dashed rgba(60, 255, 107, 0.5);
-  font-size: 1.3rem;
-  cursor: pointer;
-}
-
-.psych__answer:hover,
-.psych__answer:focus-visible {
-  border-style: solid;
-  border-color: var(--crt);
-  outline: none;
-}
-
-.psych__box {
-  color: var(--crt);
-}
-
-.psych__fine {
-  margin-top: 24px !important;
-  font-size: 0.95rem;
-}
-
 .ticket__reward {
   border-top: 1px dashed rgba(60, 255, 107, 0.45);
   margin-top: 8px;
@@ -904,147 +865,420 @@ button.card--survivor {
   letter-spacing: 0.08em;
 }
 
-/* Veredicto del test inicial: retrato grande a la izquierda y el texto con los botones a la derecha. */
-.psych-verdict__body {
+/* ---------- Árbol: pantalla de radar con las tres ramas ---------- */
+/* La pantalla del árbol no hace scroll: el mapa llena el alto que deja la cabecera. */
+.terminal:has(.tree) {
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal .tree__intro {
+  margin: 6px 0 10px;
+  opacity: 0.8;
+}
+
+.tree {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-  gap: clamp(12px, 3vw, 40px);
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
+  gap: 16px;
 }
 
-.psych-verdict__text {
+.tree__stage {
+  position: relative;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  gap: 14px;
-  font-size: clamp(16px, 2.6vh, 22px);
-  color: var(--crema);
+  align-items: center;
 }
 
-.psych-verdict__text p {
-  margin: 0;
-}
-
-.psych-verdict__text p:first-child {
-  color: var(--crt);
-  letter-spacing: 0.08em;
-}
-
-.psych-verdict__name {
-  font-family: var(--title-font);
-  font-size: clamp(22px, 5vh, 44px);
-  color: #ffe14a;
-  text-shadow: 0 2px 0 #000;
-}
-
-/* ---------- Árbol de pasivas (dossier §8) ---------- */
-.tree {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 280px);
-  gap: 14px;
-  align-items: start;
-}
-
+/* Llena todo el hueco: al acercar se ve también lo que queda a los lados del disco. */
 .tree__map {
   width: 100%;
-  max-height: 68vh;
-  aspect-ratio: 1;
-  background: radial-gradient(circle at 50% 50%, rgba(60, 255, 107, 0.08), transparent 70%);
-  border: 1px solid rgba(60, 255, 107, 0.25);
+  height: 100%;
+  /* Los gestos (pellizco, arrastre) los lleva el árbol, no el navegador. */
+  touch-action: none;
+  user-select: none;
 }
 
-.tree__edge {
-  stroke: rgba(60, 255, 107, 0.15);
-  stroke-width: 0.5;
+.tree__map.is-zoomed {
+  cursor: grab;
 }
 
-.tree__edge.is-near {
-  stroke: rgba(60, 255, 107, 0.4);
+.tree__map.is-zoomed:active {
+  cursor: grabbing;
+}
+
+/* Botones de zoom, abajo a la izquierda del mapa. */
+.tree__zoom {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tree__zoom-btn {
+  width: 48px;
+  height: 48px;
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--crt);
+  background: rgba(5, 16, 8, 0.85);
+  border: 2px solid var(--crt);
+  cursor: pointer;
+}
+
+.tree__zoom-btn:hover:not(:disabled),
+.tree__zoom-btn:focus-visible {
+  background: var(--crt);
+  color: var(--crt-bg);
+  outline: none;
+}
+
+.tree__zoom-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tree__disc {
+  stroke: rgba(60, 255, 107, 0.45);
+  stroke-width: 0.4;
+}
+
+.tree__wedge {
+  opacity: 0.07;
+}
+
+.tree__ring {
+  fill: none;
+  stroke: rgba(60, 255, 107, 0.16);
+  stroke-width: 0.25;
+  stroke-dasharray: 0.8 0.8;
+}
+
+.tree__spoke {
+  stroke: rgba(60, 255, 107, 0.1);
+  stroke-width: 0.25;
+}
+
+/* Barrido del radar: una cuña que gira despacio. */
+.tree__sweep {
+  transform-origin: 50px 50px;
+  animation: tree-sweep 7s linear infinite;
+  pointer-events: none;
+}
+
+.tree__sweep path {
+  fill: rgba(60, 255, 107, 0.07);
+}
+
+@keyframes tree-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tree__label {
+  font-family: var(--title-font);
+  font-size: 3px;
+  letter-spacing: 0.3px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #050b06;
+  stroke-width: 0.8px;
+  opacity: 0.9;
+}
+
+/* Uniones */
+.tree__wire {
+  stroke: rgba(243, 233, 210, 0.13);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+}
+
+.tree__edge.is-near .tree__wire {
+  stroke: var(--c);
+  stroke-opacity: 0.45;
   stroke-dasharray: 1 1;
 }
 
-.tree__edge.is-on {
-  stroke: var(--crt);
-  stroke-width: 0.9;
+.tree__edge.is-on .tree__wire {
+  stroke: var(--c);
+  stroke-width: 1.1;
+  filter: url(#tree-glow);
 }
 
+.tree__flow {
+  stroke: #fff;
+  stroke-width: 0.45;
+  stroke-linecap: round;
+  stroke-dasharray: 0.6 3.4;
+  opacity: 0.8;
+  animation: tree-flow 1.4s linear infinite;
+}
+
+@keyframes tree-flow {
+  to {
+    stroke-dashoffset: -4;
+  }
+}
+
+/* Nodos */
 .tree__node {
   cursor: pointer;
   outline: none;
 }
 
-.tree__node > * {
+.tree__base {
   fill: #0b140d;
-  stroke: rgba(60, 255, 107, 0.35);
-  stroke-width: 0.5;
-  transition: fill 0.15s;
 }
 
-.tree__node.is-big > * {
-  stroke: #4a8cff;
+.tree__icon {
+  transition:
+    filter 0.2s,
+    opacity 0.2s;
 }
 
-.tree__node.is-unique > * {
-  stroke: #ffc83a;
+.tree__rim {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.45;
+  stroke-opacity: 0.5;
 }
 
-.tree__node.is-open > * {
-  stroke: var(--crt);
+.tree__inner {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.25;
+  stroke-opacity: 0.6;
+}
+
+.tree__crown {
+  fill: none;
+  stroke: #ffe14a;
+  stroke-width: 0.35;
+  stroke-dasharray: 1.2 0.7;
+  opacity: 0.6;
+}
+
+.tree__node.is-big .tree__rim {
+  stroke-width: 0.7;
+}
+
+.tree__node.is-unique .tree__rim {
+  stroke: #ffe14a;
   stroke-width: 0.8;
-  animation: tree-pulse 1.2s ease-in-out infinite;
 }
 
-.tree__node.is-poor > * {
+/* Sin aprender: apagado; a tiro y con cupones: late; aprendido: a todo color y brillando. */
+.tree__node.is-locked .tree__icon {
+  filter: grayscale(0.85) brightness(0.62);
+}
+
+.tree__node.is-poor .tree__icon,
+.tree__node.is-open .tree__icon {
+  filter: grayscale(0.4) brightness(0.85);
+}
+
+.tree__halo {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tree-halo 1.4s ease-out infinite;
+}
+
+.tree__node.is-poor .tree__halo {
   stroke: rgba(243, 233, 210, 0.5);
+  animation: none;
 }
 
-.tree__node.is-owned > * {
-  fill: var(--crt);
-}
-
-.tree__node.is-owned.is-big > * {
-  fill: #4a8cff;
-}
-
-.tree__node.is-owned.is-unique > * {
-  fill: #ffc83a;
-}
-
-.tree__node.is-sel > *,
-.tree__node:focus-visible > * {
-  stroke: #fff;
-  stroke-width: 1;
-}
-
-@keyframes tree-pulse {
-  50% {
-    stroke-opacity: 0.35;
+@keyframes tree-halo {
+  from {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.3);
+    opacity: 0;
   }
 }
 
-.tree__info {
+.tree__node.is-owned .tree__rim,
+.tree__node.is-root .tree__rim {
+  stroke-opacity: 1;
+  stroke-width: 0.8;
+  filter: url(#tree-glow);
+}
+
+.tree__node.is-owned.is-unique .tree__crown {
+  opacity: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tree-sweep 9s linear infinite;
+}
+
+.tree__node:hover .tree__icon {
+  filter: none;
+}
+
+.tree__node.is-sel .tree__rim,
+.tree__node:focus-visible .tree__rim {
+  stroke: #fff;
+  stroke-opacity: 1;
+  stroke-width: 0.9;
+}
+
+/* Panel */
+.tree__panel {
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.tree__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid var(--c);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, transparent), rgba(0, 0, 0, 0.6) 60%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--c) 30%, transparent);
+  color: var(--crema);
+}
+
+.tree__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tree__card-icon {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  border: 2px solid var(--c);
+  border-radius: 50%;
+  object-fit: cover;
+  background: #0b140d;
+}
+
+.tree__card-branch {
+  display: block;
+  color: var(--c);
+  letter-spacing: 0.08em;
+}
+
+.tree__card-name {
+  display: block;
+  font-family: var(--title-font);
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: var(--crema);
+}
+
+.terminal .tree__card-fx {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.terminal .tree__card-state {
+  margin: 0;
+  color: var(--c);
+}
+
+.tree__buy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tree__buy img {
+  width: 24px;
+  height: 24px;
+}
+
+.tree__branches {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tree__branch {
+  display: grid;
+  grid-template-columns: 9em 1fr auto;
+  align-items: center;
   gap: 8px;
-  padding: 12px;
-  border: 1px solid rgba(60, 255, 107, 0.35);
-  background: rgba(5, 16, 8, 0.6);
+  color: var(--c);
 }
 
-.tree__info hr {
-  width: 100%;
-  border: 0;
-  border-top: 1px dashed rgba(60, 255, 107, 0.3);
+.tree__branch-bar {
+  height: 8px;
+  background: color-mix(in srgb, var(--c) 15%, transparent);
 }
 
-.tree__size.is-big {
-  color: #4a8cff;
+.tree__branch-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
 }
 
-.tree__size.is-unique {
-  color: #ffc83a;
+.tree__bonuses {
+  padding: 10px 12px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--crema);
+}
+
+.terminal .tree__bonuses h3 {
+  margin: 0 0 8px;
+  color: var(--crt);
+  letter-spacing: 0.1em;
+}
+
+.terminal .tree__bonuses p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.tree__bonuses ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree__bonuses li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree__bonuses img {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tree__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
 }
 
 .tree__confirm {
@@ -1056,10 +1290,11 @@ button.card--survivor {
 
 @media (max-width: 760px), (max-height: 520px) {
   .tree {
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: minmax(0, 1fr) 230px;
   }
-  .tree__map {
-    max-height: 58vh;
+  .tree__card-icon {
+    width: 56px;
+    height: 56px;
   }
 }
 
@@ -1104,7 +1339,6 @@ button.card--survivor {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: clamp(10px, 1.6vw, 20px);
-  max-width: 1200px;
 }
 
 .roster__card {
@@ -1337,4 +1571,308 @@ button.card--survivor {
   min-height: 40px;
   padding: 4px 8px;
   font-size: 1rem;
+}
+
+/* Pestañas de las pantallas agrupadas (Expedición, Intendencia). */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 12px 0 16px;
+  border-bottom: 2px solid var(--crt);
+}
+
+.tabs__tab {
+  min-height: 44px;
+  padding: 6px 18px;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--crt);
+  border: 2px solid transparent;
+  border-bottom: none;
+  font: inherit;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.tabs__tab:hover,
+.tabs__tab:focus-visible {
+  opacity: 1;
+  outline: none;
+  background: rgba(60, 255, 107, 0.1);
+}
+
+.tabs__tab[aria-selected='true'] {
+  opacity: 1;
+  background: var(--crt);
+  color: var(--crt-bg);
+  border-color: var(--crt);
+}
+
+/* ---------- Tablón: expediente, órdenes del día y medallas ---------- */
+.terminal .board__h {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 26px 0 12px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--crt);
+  letter-spacing: 0.1em;
+}
+
+.board__h small {
+  margin-left: auto;
+  font-size: 1rem;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+.board__record {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.board__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 12px 6px;
+  background: rgba(60, 255, 107, 0.07);
+  border: 1px solid rgba(60, 255, 107, 0.45);
+  box-shadow: inset 0 0 18px rgba(60, 255, 107, 0.12);
+}
+
+.board__num {
+  font-family: var(--hud-font);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--crt);
+  text-shadow: 0 0 10px rgba(60, 255, 107, 0.55);
+}
+
+.board__lbl {
+  font-size: 0.95rem;
+  color: var(--crema);
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* Misiones: órdenes en fila, todas de la misma altura. */
+.board__missions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  grid-template-areas:
+    'icon title'
+    'icon count'
+    'bar bar'
+    'reward btn';
+  align-items: center;
+  gap: 6px 12px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(60, 255, 107, 0.4);
+  color: var(--crema);
+  overflow: hidden;
+}
+
+.order__icon {
+  grid-area: icon;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(60, 255, 107, 0.35));
+}
+
+.order__title {
+  grid-area: title;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.order__count {
+  grid-area: count;
+  opacity: 0.85;
+}
+
+.order__count b {
+  color: var(--crt);
+  font-size: 1.4rem;
+}
+
+/* Barra a tramos, como un medidor de fósforo. */
+.order__bar {
+  grid-area: bar;
+  height: 14px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.85) 10px 12px),
+    linear-gradient(90deg, var(--crt) var(--p), rgba(60, 255, 107, 0.12) var(--p));
+  border: 1px solid rgba(60, 255, 107, 0.5);
+}
+
+.order__reward {
+  grid-area: reward;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffe14a;
+  font-size: 1.4rem;
+}
+
+.order__reward img {
+  width: 30px;
+  height: 30px;
+}
+
+.order .btn {
+  grid-area: btn;
+  justify-self: end;
+}
+
+.order.is-ready {
+  border-color: #ffe14a;
+  animation: order-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes order-glow {
+  from {
+    box-shadow: 0 0 6px rgba(255, 225, 74, 0.3);
+  }
+  to {
+    box-shadow: 0 0 22px rgba(255, 225, 74, 0.75);
+  }
+}
+
+.order.is-claimed > :not(.order__stamp) {
+  opacity: 0.4;
+}
+
+.order__stamp {
+  grid-area: btn;
+  justify-self: end;
+  padding: 2px 10px;
+  border: 3px solid var(--cereza);
+  color: var(--cereza);
+  font-family: var(--title-font);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+/* Logros: medallas con el progreso alrededor. */
+.board__medals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(60, 255, 107, 0.25);
+  color: var(--crema);
+}
+
+.medal__ring {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--crt) var(--p), rgba(60, 255, 107, 0.12) var(--p));
+}
+
+.medal__core {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--crt-bg);
+  color: var(--crt);
+  font-size: 1.3rem;
+}
+
+.medal__name {
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.medal__desc {
+  opacity: 0.75;
+}
+
+.medal__reward {
+  margin-top: auto;
+  font-size: 0.95rem;
+  color: #ffe14a;
+}
+
+.medal:not(.is-won) .medal__name {
+  opacity: 0.8;
+}
+
+.medal.is-won {
+  border-color: #ffe14a;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 225, 74, 0.16), rgba(0, 0, 0, 0.5) 70%);
+}
+
+.medal.is-won .medal__ring {
+  background: conic-gradient(#ffe14a, #ff9a2a, #ffe14a, #ff9a2a, #ffe14a);
+  box-shadow: 0 0 18px rgba(255, 225, 74, 0.6);
+}
+
+.medal.is-won .medal__core {
+  color: #ffe14a;
+  font-size: 2.4rem;
+  text-shadow: 0 0 10px rgba(255, 225, 74, 0.8);
+}
+
+@media (max-width: 900px) {
+  .board__record {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Selector de superviviente con su cara (Taller). */
+.chip--face {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+}
+
+.chip--face img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  object-position: 50% 20%;
+  border: 2px solid var(--rarity);
+  border-radius: 50%;
+  background: #1a1a12;
 }

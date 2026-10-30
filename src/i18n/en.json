@@ -453,7 +453,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDITION",
-      "desc": "Head out into the wasteland"
+      "desc": "Head out and manage your roster"
+    },
+    "stores": {
+      "cmd": "QUARTERMASTER",
+      "desc": "Supplies, workshop, merchant and backpack"
     },
     "survivors": {
       "cmd": "SURVIVORS",
@@ -495,7 +499,8 @@
   "expedition": {
     "pick": "Who heads into the wasteland?",
     "passive": "Passive",
-    "weapon": "Weapon"
+    "weapon": "Weapon",
+    "tabGo": "EXPEDITION"
   },
   "collection": {
     "unknown": "???",
@@ -590,7 +595,6 @@
   },
   "board": {
     "daily": "TODAY'S MISSIONS",
-    "claim": "Claim {{n}} cp",
     "claimed": "Claimed",
     "achievements": "ACHIEVEMENTS",
     "reward": "{{credits}} cp + {{shards}} shards",
@@ -600,7 +604,9 @@
     "best": "Best time",
     "bosses": "Bosses defeated",
     "wins": "Wins",
-    "pulls": "Crates opened"
+    "pulls": "Crates opened",
+    "renew": "New in {{time}}",
+    "claimShort": "CLAIM"
   },
   "missions": {
     "kills": "Defeat {{n}} enemies",
@@ -663,52 +669,6 @@
     "importBad": "That file is not an Atomic Ash save.",
     "importConfirm": "Replace the current save with the one in the file?",
     "resetConfirm": "Delete the whole save? This cannot be undone."
-  },
-  "psych": {
-    "back": "← Back",
-    "title": "MINISTRY OF CIVIL APTITUDE",
-    "form": "Form 27-B · question {{n}} of {{total}}",
-    "fine": "Tick one box only. The Ministry takes no responsibility for your answers.",
-    "verdict": "RESULT: the Ministry assigns you…",
-    "why": "Starts with: {{weapon}}",
-    "accept": "Accept assignment",
-    "other": "Pick another",
-    "q1": {
-      "q": "The shelter radio breaks down. You…",
-      "a0": "Take it apart with a wrench.",
-      "a1": "Cook a stew to calm the neighbours down.",
-      "a2": "Run for a new one across the wasteland."
-    },
-    "q2": {
-      "q": "Your favourite food is…",
-      "a0": "Whatever's in the can, with engine grease.",
-      "a1": "My stew of whatever there is. Everything goes in.",
-      "a2": "Whatever I can eat without stopping."
-    },
-    "q3": {
-      "q": "You see a mushroom cloud on the horizon.",
-      "a0": "I measure the blast with a ruler.",
-      "a1": "Put the pot on: it is going to be a long day.",
-      "a2": "Start running the other way."
-    },
-    "q4": {
-      "q": "A neighbour glows in the dark.",
-      "a0": "I ask them to light my engine bay.",
-      "a1": "Ask if they are any good for slow cooking.",
-      "a2": "Ask them to light my way home."
-    },
-    "q5": {
-      "q": "Your motto is…",
-      "a0": "\"If it isn't broken, you haven't used it.\"",
-      "a1": "“A full stomach fights better”.",
-      "a2": "“The parcel always gets there”."
-    },
-    "q6": {
-      "q": "What would you take to a desert island?",
-      "a0": "A toolbox.",
-      "a1": "A frying pan and spices.",
-      "a2": "Running shoes. I will swim back."
-    }
   },
   "reward": {
     "xp": "+{{n}} survivor XP",
@@ -779,11 +739,9 @@
     "intro": "Buy passives with coupons, always next to one you own. They apply to every survivor. Nodes: {{n}}.",
     "root": "Shelter",
     "rootDesc": "The centre of the tree. Everything grows from here.",
-    "small": "Minor passive",
     "owned": "Learned",
     "locked": "Locked",
     "needs": "Buy a node linked to this one first.",
-    "pick": "Tap a node to see what it does.",
     "spent": "Spent on the tree: {{n}} coupons",
     "reset": "Unlearn all",
     "resetAsk": "Unlearn everything and get {{n}} coupons back?",
@@ -795,6 +753,7 @@
       "unique": "UNIQUE"
     },
     "name": {
+      "coupons": "Penny-pincher",
       "banish": "Banishment",
       "lock": "Padlock",
       "reroll": "Second hand",
@@ -820,7 +779,30 @@
       "hunter": "+{{v}}% damage to bosses and elites.",
       "coldBlood": "When hit you keep {{v}}% of your streak.",
       "smuggler": "Special chest slot machines roll twice and keep the best."
-    }
+    },
+    "learn": "Learn",
+    "bonuses": "LEARNED",
+    "noBonuses": "Nothing yet. Start with a node next to the Shelter.",
+    "branch": {
+      "combat": "COMBAT",
+      "survival": "SURVIVAL",
+      "scrap": "SCRAPPING",
+      "bridge": "BRIDGE",
+      "root": "SHELTER"
+    },
+    "statName": {
+      "dmg": "Marksman",
+      "hp": "Toughness",
+      "crit": "Keen eye",
+      "armor": "Plating",
+      "mag": "Magnet pockets",
+      "regen": "Patch-up",
+      "spd": "Long stride",
+      "xp": "Veteran"
+    },
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoomReset": "Show all"
   },
   "daily": {
     "title": "DAILY CHALLENGE · {{day}}",

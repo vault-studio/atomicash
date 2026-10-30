@@ -10,9 +10,6 @@ export const RARITIES: readonly SurvivorRarity[] = ['common', 'rare', 'epic', 'l
 export const STARTERS = ROSTER;
 export type StarterId = (typeof STARTERS)[number];
 
-/** Test del Ministerio: la respuesta i de cada pregunta suma un punto a `STARTERS[i]`. Textos en `psych.q<n>`. */
-export const PSYCH = { questions: 6 } as const;
-
 export const SURVIVOR_LEVEL = {
   max: 30,
   /** XP del superviviente para pasar del nivel n al n+1. */

@@ -2,6 +2,7 @@
 // objetos del mapa (`assets/pickups/`, tools/slice_pickups.py). Los publica el plugin artAssets.
 import type { ConsumableId, ItemId } from '../config/items';
 import type { UpgradeId } from '../config/meta';
+import type { TreeNode } from '../config/tree';
 import type { TraitId } from '../config/traits';
 import type { WeaponId } from '../config/weapons';
 
@@ -42,4 +43,33 @@ export function sourceIcon(src: string): string | undefined {
     default:
       return weaponIcon(src as WeaponId);
   }
+}
+
+/**
+ * Dibujo de cada nodo del Árbol según lo que da. DECISIÓN: se reutilizan los iconos de rasgos, del HUD y de los
+ * objetos del mapa hasta que haya iconos propios.
+ */
+const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<TreeNode['stat']>, string>>> = {
+  dmg: 'traits/tips',
+  hp: 'traits/plate',
+  crit: 'traits/scope',
+  armor: 'traits/helmet',
+  mag: 'traits/magnet',
+  regen: 'traits/suture',
+  spd: 'traits/boots',
+  xp: 'traits/manual',
+};
+const TREE_MOD_ICONS: Readonly<Record<NonNullable<TreeNode['mod']>, string>> = {
+  coupons: 'coupon',
+  banish: 'traits/fuse',
+  lock: 'cache',
+  reroll: 'hud/dice',
+  hunter: 'hud/bobble',
+  coldBlood: 'traits/cat',
+  smuggler: 'chest',
+};
+/** Icono de un nodo del Árbol; el centro (sin efecto) es la baliza del refugio. */
+export function treeIcon(n: TreeNode): string {
+  const key = (n.stat ? TREE_STAT_ICONS[n.stat] : n.mod ? TREE_MOD_ICONS[n.mod] : null) ?? 'beacon';
+  return key.includes('/') ? `${BASE}${key}.png` : `${PICKUPS}${key}.png`;
 }

@@ -453,7 +453,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDICIÓN",
-      "desc": "Salir al páramo"
+      "desc": "Salir al páramo y tu plantel"
+    },
+    "stores": {
+      "cmd": "INTENDENCIA",
+      "desc": "Suministros, taller, mercader y mochila"
     },
     "survivors": {
       "cmd": "SUPERVIVIENTES",
@@ -495,7 +499,8 @@
   "expedition": {
     "pick": "¿Quién sale al páramo?",
     "passive": "Pasiva",
-    "weapon": "Arma"
+    "weapon": "Arma",
+    "tabGo": "EXPEDICIÓN"
   },
   "collection": {
     "unknown": "???",
@@ -590,7 +595,6 @@
   },
   "board": {
     "daily": "MISIONES DE HOY",
-    "claim": "Cobrar {{n}} cup.",
     "claimed": "Cobrada",
     "achievements": "LOGROS",
     "reward": "{{credits}} cup. + {{shards}} fichas",
@@ -600,7 +604,9 @@
     "best": "Mejor tiempo",
     "bosses": "Jefes abatidos",
     "wins": "Victorias",
-    "pulls": "Cajas abiertas"
+    "pulls": "Cajas abiertas",
+    "renew": "Nuevas en {{time}}",
+    "claimShort": "COBRAR"
   },
   "missions": {
     "kills": "Abate {{n}} enemigos",
@@ -663,52 +669,6 @@
     "importBad": "Ese archivo no es una partida de Atomic Ash.",
     "importConfirm": "¿Sustituir la partida actual por la del archivo?",
     "resetConfirm": "¿Borrar toda la partida? No se puede deshacer."
-  },
-  "psych": {
-    "back": "← Volver",
-    "title": "MINISTERIO DE APTITUD CIVIL",
-    "form": "Formulario 27-B · pregunta {{n}} de {{total}}",
-    "fine": "Marque una sola casilla. El Ministerio no se hace responsable de sus respuestas.",
-    "verdict": "RESULTADO: el Ministerio le asigna a…",
-    "why": "Empieza con: {{weapon}}",
-    "accept": "Aceptar destino",
-    "other": "Elegir otro",
-    "q1": {
-      "q": "Se avería la radio del refugio. Usted…",
-      "a0": "La desmonta con una llave inglesa.",
-      "a1": "Prepara un guiso para calmar a los vecinos.",
-      "a2": "Corre a por una nueva al otro lado del páramo."
-    },
-    "q2": {
-      "q": "Su comida favorita es…",
-      "a0": "Lo que haya en la lata, con grasa de motor.",
-      "a1": "Mi guiso de lo que haya. Lleva de todo.",
-      "a2": "Lo que pueda comer sin dejar de correr."
-    },
-    "q3": {
-      "q": "Ve un hongo atómico en el horizonte.",
-      "a0": "Calculo la onda con una regla.",
-      "a1": "Pongo la olla al fuego: va a ser un día largo.",
-      "a2": "Echo a correr en dirección contraria."
-    },
-    "q4": {
-      "q": "Un vecino brilla en la oscuridad.",
-      "a0": "Le pido que me alumbre el motor.",
-      "a1": "Le pregunto si sirve para cocinar a fuego lento.",
-      "a2": "Le pido que me alumbre el camino de vuelta."
-    },
-    "q5": {
-      "q": "Su lema vital es…",
-      "a0": "«Si no se rompe, no lo has usado».",
-      "a1": "«Con el estómago lleno se lucha mejor».",
-      "a2": "«El paquete siempre llega»."
-    },
-    "q6": {
-      "q": "¿Qué llevaría a una isla desierta?",
-      "a0": "Una caja de herramientas.",
-      "a1": "Una sartén y especias.",
-      "a2": "Unas zapatillas. Se sale nadando."
-    }
   },
   "reward": {
     "xp": "+{{n}} XP de superviviente",
@@ -779,11 +739,9 @@
     "intro": "Compra pasivas con cupones, siempre junto a una que ya tengas. Valen para todos los supervivientes. Nodos: {{n}}.",
     "root": "Refugio",
     "rootDesc": "El centro del árbol. Todo sale de aquí.",
-    "small": "Pasiva menor",
     "owned": "Aprendida",
     "locked": "Bloqueada",
     "needs": "Compra antes un nodo unido a este.",
-    "pick": "Toca un nodo para ver qué hace.",
     "spent": "Gastado en el árbol: {{n}} cupones",
     "reset": "Desaprender todo",
     "resetAsk": "¿Desaprender todo y recuperar {{n}} cupones?",
@@ -795,6 +753,7 @@
       "unique": "ÚNICA"
     },
     "name": {
+      "coupons": "Ahorrador",
       "banish": "Destierro",
       "lock": "Candado",
       "reroll": "Segunda mano",
@@ -820,7 +779,30 @@
       "hunter": "+{{v}} % de daño a jefes y élites.",
       "coldBlood": "Al recibir un golpe conservas el {{v}} % de la racha.",
       "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor."
-    }
+    },
+    "learn": "Aprender",
+    "bonuses": "LO APRENDIDO",
+    "noBonuses": "Aún nada. Empieza por un nodo junto al Refugio.",
+    "branch": {
+      "combat": "COMBATE",
+      "survival": "SUPERVIVENCIA",
+      "scrap": "CHATARRERÍA",
+      "bridge": "PUENTE",
+      "root": "REFUGIO"
+    },
+    "statName": {
+      "dmg": "Puntería",
+      "hp": "Aguante",
+      "crit": "Ojo certero",
+      "armor": "Blindaje",
+      "mag": "Bolsillos imantados",
+      "regen": "Remiendos",
+      "spd": "Zancada",
+      "xp": "Veteranía"
+    },
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "zoomReset": "Ver todo"
   },
   "daily": {
     "title": "RETO DIARIO · {{day}}",

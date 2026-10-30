@@ -4,18 +4,14 @@ import { MISSIONS } from '../../../config/meta';
 import { useSaveData } from '../../../store/save';
 import { Screen } from './common';
 
-export const BUNKER_VIEWS = [
-  'expedition',
-  'survivors',
-  'workshop',
-  'tree',
-  'merchant',
-  'backpack',
-  'supplies',
-  'board',
-  'settings',
-] as const;
+export const BUNKER_VIEWS = ['expedition', 'stores', 'tree', 'board', 'settings'] as const;
 export type BunkerView = (typeof BUNKER_VIEWS)[number];
+
+/** Pestañas de las entradas que agrupan varias pantallas. */
+export const EXPEDITION_TABS = ['go', 'roster'] as const;
+export type ExpeditionTab = (typeof EXPEDITION_TABS)[number];
+export const STORE_TABS = ['supplies', 'workshop', 'merchant', 'backpack'] as const;
+export type StoreTab = (typeof STORE_TABS)[number];
 
 interface Props {
   onGo: (v: BunkerView) => void;

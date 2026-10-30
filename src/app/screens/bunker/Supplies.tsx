@@ -57,7 +57,7 @@ function PullCard({ g, delay }: { g: Grant; delay: number }) {
   );
 }
 
-export function Supplies({ onBack }: { onBack: () => void }) {
+export function Supplies({ onBack, nav }: { onBack: () => void; nav?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
@@ -85,7 +85,7 @@ export function Supplies({ onBack }: { onBack: () => void }) {
   const fresh = res ? res.grants.filter((g) => g.isNew).length : 0;
 
   return (
-    <Screen title={t('bunker.supplies.cmd')} onBack={onBack}>
+    <Screen title={t('bunker.supplies.cmd')} onBack={onBack} nav={nav}>
       <section className="supply">
         <div className="supply__hero">
           <span className="supply__rays" aria-hidden="true" />

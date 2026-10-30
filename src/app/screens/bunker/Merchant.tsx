@@ -5,17 +5,9 @@ import { IMPLANTS } from '../../../config/meta';
 import { buyOffer, isSoldOut, merchantStock, type Offer } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
 import { hudIcon, weaponIcon } from '../../icons';
-import { Screen } from './common';
+import { Screen, untilMidnight } from './common';
 
-function untilMidnight(now: Date): string {
-  const m = new Date(now);
-  m.setHours(24, 0, 0, 0);
-  const s = Math.max(0, Math.floor((m.getTime() - now.getTime()) / 1000));
-  const p = (n: number): string => String(n).padStart(2, '0');
-  return `${p(Math.floor(s / 3600))}:${p(Math.floor((s % 3600) / 60))}`;
-}
-
-export function Merchant({ onBack }: { onBack: () => void }) {
+export function Merchant({ onBack, nav }: { onBack: () => void; nav?: React.ReactNode }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
@@ -68,7 +60,7 @@ export function Merchant({ onBack }: { onBack: () => void }) {
   };
 
   return (
-    <Screen title={t('bunker.merchant.cmd')} onBack={onBack}>
+    <Screen title={t('bunker.merchant.cmd')} onBack={onBack} nav={nav}>
       <p>{t('merchant.restock', { time: untilMidnight(now) })}</p>
       <ul className="shop">
         {stock.map((o) => {
