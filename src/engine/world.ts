@@ -199,6 +199,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     xp: 0,
     level: 1,
     xpNext: xpForLevel(1),
+    rageFrom: Infinity,
     kills: 0,
     coupons: 0,
     dmgTotal: 0,

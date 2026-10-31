@@ -534,6 +534,8 @@ export interface World {
   xp: number;
   level: number;
   xpNext: number;
+  /** Momento en que el jugador llegó a `RAGE.minLevel` (Infinity hasta entonces): la furia cuenta desde aquí. */
+  rageFrom: number;
   kills: number;
   /** Cupones recogidos en la partida. */
   coupons: number;

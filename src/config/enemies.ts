@@ -177,10 +177,12 @@ export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> =
 
 /**
  * Furia: cualquier enemigo normal (ni jefe ni élite) que siga vivo `after` s después de aparecer se enfurece, se
- * pone rojo, pega y corre más y su vida (la que le queda y la máxima) se multiplica por `hp`.
+ * pone rojo, pega y corre más y su vida (la que le queda y la máxima) se multiplica por `hp`. No hay furia (ni
+ * por tiempo ni por sermón) hasta que el jugador llega al nivel `minLevel`; a partir de ahí los `after` s cuentan
+ * desde ese momento para los que ya estaban, así no se enfurecen todos de golpe al subir de nivel.
  * DECISIÓN: para que no compense dejar a los bichos dando vueltas.
  */
-export const RAGE = { after: 10, dmg: 1.25, speed: 1.6, hp: 2 } as const;
+export const RAGE = { after: 10, minLevel: 3, dmg: 1.6, speed: 1.6, hp: 2 } as const;
 
 export const ENEMY_RULES = {
   /** Enemigos simultáneos; al superarlo se recicla el más lejano (05_TECH.md §3). */

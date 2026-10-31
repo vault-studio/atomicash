@@ -1,7 +1,7 @@
 // Criterio de F1-04: 1 000 entidades sin allocations por frame.
 import { PerformanceObserver, performance } from 'node:perf_hooks';
 import { describe, expect, it } from 'vitest';
-import { ENEMY_RULES, STAT_ENEMY_IDS } from '../src/config/enemies';
+import { ENEMY_RULES, RAGE, STAT_ENEMY_IDS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { removeEnemyAt, spawnEnemy } from '../src/engine/systems/enemies';
 import { createWorld, tick } from '../src/engine/world';
@@ -91,7 +91,8 @@ describe('motor sin allocations', () => {
         const w = crowd();
         w.weapons = loadout.map((id) => createWeapon(id, 5));
         w.player.god = true;
-        // Sin subidas de nivel (abrir tarjetas sí reserva memoria, y pausa el motor).
+        // Sin subidas de nivel (abrir tarjetas sí reserva memoria, y pausa el motor), pero con la furia ya activa.
+        w.level = RAGE.minLevel;
         w.xpNext = Infinity;
         for (let i = 0; i < w.enemies.count; i++) {
           const e = w.enemies.items[i]!;

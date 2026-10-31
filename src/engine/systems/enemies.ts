@@ -239,11 +239,12 @@ function enrage(e: Enemy): void {
   e.speed *= RAGE.speed;
 }
 
-/** Sermón del predicador: enfurece a los enemigos normales que tiene cerca (ni jefes ni élites, como la furia). */
+/** Sermón del predicador: enfurece a los enemigos normales que tiene cerca (ni jefes ni élites, como la furia; tampoco antes de `RAGE.minLevel`). */
 function sermon(w: World, e: Enemy): void {
   const A = AI.predicador;
   const items = w.enemies.items;
-  for (let i = 0; i < w.enemies.count; i++) {
+  const n = w.level >= RAGE.minLevel ? w.enemies.count : 0;
+  for (let i = 0; i < n; i++) {
     const o = items[i] as Enemy;
     if (o === e || o.dead || o.rage || o.boss || o.elite) continue;
     const dx = o.x - e.x;
@@ -632,6 +633,7 @@ export function updateEnemies(w: World, dt: number): void {
   const out = w.scratch;
   const kd = Math.exp(-KNOCKBACK.decay * dt);
   const alive = p.deadAt === null;
+  if (w.rageFrom === Infinity && w.level >= RAGE.minLevel) w.rageFrom = w.time;
 
   for (let i = 0; i < n; i++) {
     const e = items[i] as Enemy;
@@ -640,7 +642,7 @@ export function updateEnemies(w: World, dt: number): void {
     e.prevY = e.y;
     e.flash -= dt;
     e.atkCd -= dt;
-    if (!e.rage && !e.boss && !e.elite && w.time - e.born >= RAGE.after) enrage(e);
+    if (!e.rage && !e.boss && !e.elite && w.time - Math.max(e.born, w.rageFrom) >= RAGE.after) enrage(e);
     // Congelado por la crio-granada: ni se mueve ni ataca.
     if (e.frozen > 0) {
       e.frozen -= dt;
