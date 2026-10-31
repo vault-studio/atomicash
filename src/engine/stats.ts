@@ -41,6 +41,7 @@ export function createStats(): PlayerStats {
     red: 0,
     dodge: 0,
     crit: 0,
+    critMult: CAPS.critMult,
     area: 1,
     pierce: 0,
     kb: 1,
@@ -76,6 +77,7 @@ export function recalc(w: World): void {
   st.red = Math.min(CAPS.dmgReduction, tr.red / 100);
   st.dodge = Math.min(CAPS.dodge, tr.dodge / 100);
   st.crit = Math.min(CAPS.crit, tr.crit / 100);
+  st.critMult = CAPS.critMult + tr.critDmg / 100;
   st.area = 1 + tr.area / 100;
   st.pierce = tr.pierce;
   st.kb = 1 + tr.kb / 100;

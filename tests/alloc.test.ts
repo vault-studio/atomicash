@@ -95,7 +95,8 @@ describe('motor sin allocations', () => {
         w.xpNext = Infinity;
         for (let i = 0; i < w.enemies.count; i++) {
           const e = w.enemies.items[i]!;
-          e.hp = e.maxHp = 400;
+          // El Coloso no cae: su muerte abre la victoria (tarjetas, cinemática), que sí reserva memoria y no es combate.
+          e.hp = e.maxHp = e.type === 'coloso' ? 1e9 : 400;
         }
         let k = 0;
         const run = (n: number): void => {

@@ -72,3 +72,12 @@ for src, (out_dir, names) in SHEETS.items():
         box = tuple(round(v) for v in (cx - side / 2, cy - side / 2, cx + side / 2, cy + side / 2))
         img.crop(box).resize((SIZE, SIZE), Image.LANCZOS).save(out_dir / f'{name}.png', optimize=True)
     print(f'{src}: {len(names)} iconos en {out_dir}')
+
+# Iconos derivados mientras no haya ficha propia: el de daño crítico es la mira del crítico teñida de rojo.
+DERIVED = {'assets/icons/traits/hollow.png': ('assets/icons/traits/scope.png', (1.35, 0.55, 0.5))}
+for dst, (src, (kr, kg, kb)) in DERIVED.items():
+    a = np.asarray(Image.open(src).convert('RGB')).astype(float)
+    lum = a.mean(2, keepdims=True)
+    tinted = np.clip(lum * np.array([kr, kg, kb]) * 1.15, 0, 255)
+    Image.fromarray(tinted.astype(np.uint8)).save(dst, optimize=True)
+    print(f'{dst} (derivado de {src})')

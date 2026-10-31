@@ -47,16 +47,15 @@ export const OBJECTIVES = {
 } as const;
 
 /**
- * Modo infinito: al caer el Coloso se puede seguir. Cada minuto suben ritmo, tope y vida de los enemigos, y los jefes
- * vuelven en rueda cada `bossEvery` s, cada vuelta con más vida.
+ * Modo infinito: al caer el Coloso se puede seguir. Cada minuto suben ritmo, tope y vida de los enemigos. No vuelven
+ * los jefes: la presión la ponen los élites, uno cada `eliteEvery` s.
  */
 export const ENDLESS = {
   ratePerMin: 0.12,
   maxPerMin: 0.08,
   hpPerMin: 0.15,
-  bossEvery: 150,
-  bossHpPerLoop: 0.5,
-  /** Élites y hordas más a menudo (multiplica el intervalo). */
+  eliteEvery: 15,
+  /** Hordas más a menudo (multiplica el intervalo). */
   specialsMult: 0.7,
 } as const;
 

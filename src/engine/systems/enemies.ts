@@ -297,6 +297,25 @@ function telegraph(
   t.spawn = spawn;
 }
 
+/** Salto del Coloso: aviso donde está ahora el jugador y velocidad para llegar justo al acabar el aviso. */
+function startLeap(w: World, e: Enemy): void {
+  const A = AI.coloso;
+  const p = w.player;
+  telegraph(w, p.x, p.y, A.stompR, A.stompWarn, A.stompDmg);
+  e.dx = (p.x - e.x) / A.stompWarn;
+  e.dy = (p.y - e.y) / A.stompWarn;
+  e.stun = A.stompWarn;
+  e.alt = true;
+}
+
+function leapTick(w: World, e: Enemy, dt: number): void {
+  e.stun -= dt;
+  if (e.stun <= 0 && e.alt) {
+    e.alt = false;
+    addShake(w, 12, 16);
+  }
+}
+
 /** Marca en el suelo el pasillo de una embestida (solo aviso: el daño lo hace el contacto). */
 function dashLane(w: World, e: Enemy, aim: number, spd: number, dur: number): void {
   const len = spd * dur + e.r;
@@ -543,8 +562,10 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       }
       const sp = spd * (ph === 3 ? A.spdP3 : 1);
       if (e.stun > 0) {
-        e.stun -= dt;
-        vx = vy = 0;
+        // En el aire: vuela en línea recta hasta el punto de caída (dx, dy ya es la velocidad del salto).
+        vx = e.dx;
+        vy = e.dy;
+        leapTick(w, e, dt);
       } else {
         vx = ux * sp;
         vy = uy * sp;
@@ -556,8 +577,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         const act = e.act++ % rot;
         if (act === 0) {
           markAttack(w, e, 'attack_1');
-          telegraph(w, e.x, e.y, A.stompR, A.stompWarn, A.stompDmg);
-          e.stun = A.stompWarn;
+          startLeap(w, e);
         } else if (act === 1) {
           markAttack(w, e, 'attack_2');
           const n = A.debrisBase + A.debrisPerPhase * ph;
@@ -640,7 +660,14 @@ export function updateEnemies(w: World, dt: number): void {
     if (e.elite && alive) eliteTick(w, e, d, dt);
     if (e.irr && alive && d < IRRADIATED.auraR) addRad(w, IRRADIATED.auraRad * dt);
     // Si ya está encima del jugador, no lo empuja (solo se separa).
-    if (e.mode === MODE_CHASE && e.march <= 0 && d <= e.r + p.r && e.type !== 'dirigible') {
+    // El Coloso en pleno salto (alt) no se para encima del jugador ni rodea obstáculos: va por el aire.
+    if (
+      e.mode === MODE_CHASE &&
+      e.march <= 0 &&
+      d <= e.r + p.r &&
+      e.type !== 'dirigible' &&
+      !(e.type === 'coloso' && e.alt)
+    ) {
       vx = 0;
       vy = 0;
     }
@@ -679,7 +706,8 @@ export function updateEnemies(w: World, dt: number): void {
     e.x = nx;
     e.y = ny;
     // Los de tierra rodean los obstáculos; los voladores pasan por encima.
-    if (!e.flying && e.type !== 'torreta') blockCircle(w, e, e.r, vx + e.kbx, vy + e.kby, e.side);
+    if (!e.flying && !(e.type === 'coloso' && e.alt) && e.type !== 'torreta')
+      blockCircle(w, e, e.r, vx + e.kbx, vy + e.kby, e.side);
     e.kbx *= kd;
     e.kby *= kd;
 

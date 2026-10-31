@@ -1,5 +1,4 @@
 // Fase 4 del dossier: barriles explosivos, objetivos en el mapa (§11) y modo infinito tras el Coloso (§17).
-import { BOSS_IDS } from '../../config/enemies';
 import { BARRELS, DAILY, ENDLESS, OBJECTIVES } from '../../config/modes';
 import { JUICE } from '../../config/run';
 import { addShake, banner, boom, burst, hitStop } from '../fx';
@@ -7,7 +6,6 @@ import { SFX, sfx } from '../sfx';
 import type { Barrel, World } from '../types';
 import { offscreenDistance } from '../view';
 import { HIT_RAW, addCoupons, addPickup, hitEnemy, hurtPlayer, queryEnemies } from './combat';
-import { spawnBoss } from './spawning';
 
 const TAU = Math.PI * 2;
 const BARREL_SPARKS = [0xff5a3c, 0xffaa3c, 0xffe14a, 0x6c7178] as const;
@@ -179,23 +177,10 @@ export function chooseEndless(w: World, go: boolean): void {
   }
   w.endless = true;
   w.endlessAt = w.time;
-  w.nextEndlessBoss = w.time + ENDLESS.bossEvery;
+  // Los élites empiezan a salir a su ritmo de infinito desde ya.
+  w.nextElite = Math.min(w.nextElite, w.time + ENDLESS.eliteEvery);
   banner(w, 'banner.endless');
 }
 
 /** Minutos de infinito jugados (0 si no). */
 export const endlessMin = (w: World): number => (w.endless ? (w.time - w.endlessAt) / 60 : 0);
-
-export function updateEndless(w: World): void {
-  if (!w.endless || w.time < w.nextEndlessBoss || w.bossAlive > 0) return;
-  w.nextEndlessBoss = w.time + ENDLESS.bossEvery;
-  const kind = BOSS_IDS[w.endlessLoop % BOSS_IDS.length]!;
-  const loop = 1 + Math.floor(w.endlessLoop / BOSS_IDS.length);
-  w.endlessLoop++;
-  spawnBoss(w, kind);
-  for (let i = 0; i < w.enemies.count; i++) {
-    const e = w.enemies.items[i]!;
-    if (e.boss && e.type === kind && e.born === w.time)
-      e.hp = e.maxHp = e.maxHp * (1 + ENDLESS.bossHpPerLoop * loop);
-  }
-}

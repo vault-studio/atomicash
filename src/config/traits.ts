@@ -12,6 +12,7 @@ export type StatKey =
   | 'mag'
   | 'dodge'
   | 'crit'
+  | 'critDmg'
   | 'hp'
   | 'cd'
   | 'radDecay'
@@ -45,6 +46,8 @@ export const TRAITS = {
   magnet: { stat: 'mag', base: 25, max: 150 },
   cat: { stat: 'dodge', base: 4, max: 35 },
   scope: { stat: 'crit', base: 5, max: 50 },
+  // Daño de los críticos: +25 % por común sobre el ×2 base, hasta ×4. Vale poco sin `scope`, por eso sale menos.
+  hollow: { stat: 'critDmg', base: 25, max: 200, weight: 0.7 },
   ration: { stat: 'hp', base: 20, max: 200 },
   oil: { stat: 'cd', base: 6, max: 60 },
   iodine: { stat: 'radDecay', base: 1, max: 4 },

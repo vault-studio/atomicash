@@ -52,6 +52,7 @@
     "dmg": "Damage",
     "cd": "Cooldown",
     "crit": "Critical",
+    "critDmg": "Crit damage",
     "area": "Area",
     "pierce": "Pierce",
     "kb": "Knockback",
@@ -285,7 +286,11 @@
     },
     "scope": {
       "name": "Sniper's eye",
-      "desc": "+{{v, number}}% ×2 critical chance (direct attacks)"
+      "desc": "+{{v, number}}% critical chance (direct attacks)"
+    },
+    "hollow": {
+      "name": "Hollow-point rounds",
+      "desc": "+{{v, number}}% critical damage (base crit is ×2)"
     },
     "ration": {
       "name": "Military ration",

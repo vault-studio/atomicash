@@ -28,7 +28,7 @@ import {
   updateSlimes,
   updateTelegraphs,
 } from './systems/enemies';
-import { createBarrel, updateBarrels, updateEndless, updateObjective } from './systems/modes';
+import { createBarrel, updateBarrels, updateObjective } from './systems/modes';
 import { updatePickups } from './systems/progression';
 import { updateSpawning } from './systems/spawning';
 import {
@@ -75,6 +75,7 @@ const STAT_KEYS: readonly StatKey[] = [
   'mag',
   'dodge',
   'crit',
+  'critDmg',
   'hp',
   'cd',
   'radDecay',
@@ -229,8 +230,6 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     objectivesDone: 0,
     endless: false,
     endlessAt: 0,
-    nextEndlessBoss: Infinity,
-    endlessLoop: 0,
     winTime: 0,
     daily: opts.daily?.day ?? null,
     dailyMod: opts.daily?.mod ?? null,
@@ -338,7 +337,6 @@ export function tick(w: World, input: InputState, dt: number): void {
   if (p.deadAt === null) {
     updateSpawning(w, dt);
     updateObjective(w, dt);
-    updateEndless(w);
   }
   updateWeapons(w, dt);
   updateShots(w, dt);

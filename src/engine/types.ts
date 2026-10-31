@@ -33,6 +33,8 @@ export interface PlayerStats {
   red: number;
   dodge: number;
   crit: number;
+  /** Multiplicador del daño crítico (CAPS.critMult + el rasgo). */
+  critMult: number;
   area: number;
   pierce: number;
   kb: number;
@@ -568,8 +570,6 @@ export interface World {
   /** Modo infinito tras el Coloso: desde cuándo, próximo jefe y vueltas de la rueda de jefes. */
   endless: boolean;
   endlessAt: number;
-  nextEndlessBoss: number;
-  endlessLoop: number;
   /** Segundo en que cayó el Coloso (0 si no). */
   winTime: number;
   /** Reto diario: día (UTC, `AAAA-MM-DD`) y modificador; null en una partida normal. */

@@ -16,6 +16,12 @@ import type { SpriteLibrary } from './sprites';
 const flyLift = (id: EntityId): number =>
   (ENTITIES[id].variantOf ?? id) === 'dirigible' ? AI.dirigible.lift : FLY_HEIGHT;
 
+/** Altura del Coloso en pleno salto: un arco que sube y baja durante el aviso. */
+const leapLift = (e: Enemy): number =>
+  e.type === 'coloso' && e.alt && e.stun > 0
+    ? Math.sin(Math.PI * (1 - e.stun / AI.coloso.stompWarn)) * AI.coloso.jumpH
+    : 0;
+
 // Algunas hojas llaman `run` a lo que el juego llama `move` (saqueador, Rey Rata).
 const MOVE_ANIMS = ['move', 'run', 'idle'] as const;
 const IDLE_ANIMS = ['idle', 'move', 'run'] as const;
@@ -103,7 +109,13 @@ export class EnemyLayer {
               ? RUN_COLORS.irradiated
               : 0xffffff;
       const flash = e.flash > 0 ? Math.min(1, e.flash / HIT_FLASH) : 0;
-      v.style(e.flying ? flyLift(e.type) : 0, tint, 1, flash, e.boss ? JUICE.squash * 0.3 : JUICE.squash);
+      v.style(
+        e.flying ? flyLift(e.type) : leapLift(e),
+        tint,
+        1,
+        flash,
+        e.boss ? JUICE.squash * 0.3 : JUICE.squash,
+      );
     }
     this.alive.hideFrom(shown);
 

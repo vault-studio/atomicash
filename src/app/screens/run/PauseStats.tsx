@@ -1,6 +1,6 @@
 // Estadísticas del personaje en la pausa: atributos actuales (rasgos, objeto, RAD, turbo) y resumen de la partida.
 import { useTranslation } from 'react-i18next';
-import { PLAYER } from '../../../config/run';
+import { CAPS, PLAYER } from '../../../config/run';
 import { survivorStats } from '../../../config/survivors';
 import { SOURCE_INDEX } from '../../../config/weapons';
 import type { World } from '../../../engine/types';
@@ -30,6 +30,7 @@ export function PauseStats({ world: w }: { world: World }) {
     ['dmg', pct(st.dmgMult - 1), Math.abs(st.dmgMult - 1) < 0.005],
     ['cd', pct(1 - st.cdMult), st.cdMult === 1],
     ['crit', pct(st.crit), st.crit === 0],
+    ['critDmg', `×${st.critMult.toFixed(2)}`, st.critMult === CAPS.critMult],
     ['area', pct(st.area - 1), st.area === 1],
     ['pierce', st.pierce, st.pierce === 0],
     ['kb', pct(st.kb - 1), st.kb === 1],

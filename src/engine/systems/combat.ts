@@ -12,18 +12,7 @@ import { BOSS_VARIANTS } from '../../config/enemies';
 import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
-import {
-  CAPS,
-  COUPONS,
-  FX,
-  JUICE,
-  KNOCKBACK,
-  PLAYER,
-  STREAK,
-  SUMMARY,
-  XP,
-  streakMult,
-} from '../../config/run';
+import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
 import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
@@ -156,7 +145,7 @@ export function hitEnemy(
   }
   let crit = false;
   if (flags & HIT_DIRECT && st.crit > 0 && w.rng() < st.crit) {
-    d *= CAPS.critMult;
+    d *= st.critMult;
     crit = true;
   }
   // Sin contar el exceso del último golpe: el ranking no puede superar la vida real del jefe.

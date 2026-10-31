@@ -52,6 +52,7 @@
     "dmg": "Daño",
     "cd": "Enfriamiento",
     "crit": "Crítico",
+    "critDmg": "Daño crítico",
     "area": "Área",
     "pierce": "Perforación",
     "kb": "Retroceso",
@@ -285,7 +286,11 @@
     },
     "scope": {
       "name": "Ojo de francotirador",
-      "desc": "+{{v, number}} % de crítico ×2 (ataques directos)"
+      "desc": "+{{v, number}} % de probabilidad de crítico (ataques directos)"
+    },
+    "hollow": {
+      "name": "Balas de punta hueca",
+      "desc": "+{{v, number}} % de daño crítico (el crítico base es ×2)"
     },
     "ration": {
       "name": "Ración militar",

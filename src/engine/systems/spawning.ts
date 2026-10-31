@@ -207,8 +207,10 @@ function updateSpecials(w: World, dt: number): void {
   const often = w.endless ? ENDLESS.specialsMult : 1;
   if (w.time >= w.nextElite) {
     spawnElite(w);
-    const k = often * (w.dailyMod === 'elites' ? DAILY.elites.every : 1);
-    w.nextElite = w.time + (ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin)) * k;
+    const k = w.dailyMod === 'elites' ? DAILY.elites.every : 1;
+    w.nextElite = w.endless
+      ? w.time + ENDLESS.eliteEvery
+      : w.time + (ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin)) * k;
   }
   if (w.horde) {
     // Una horda avisada antes del jefe espera a que muera.

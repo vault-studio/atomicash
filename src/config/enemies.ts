@@ -128,9 +128,15 @@ export const AI = {
     spdP3: 1.35,
     p2: 0.66,
     p3: 0.33,
-    stompR: 175,
-    stompWarn: 1,
-    stompDmg: 30,
+    /**
+     * Salto: despega desde donde está y cae donde estaba el jugador al saltar, en `stompWarn` s, con una onda de
+     * `stompR`. DECISIÓN: zona enorme; a ~200 px/s solo da tiempo a salir si se reacciona al momento.
+     */
+    stompR: 280,
+    stompWarn: 1.6,
+    stompDmg: 34,
+    /** Altura del salto en pantalla (px), para el dibujo. */
+    jumpH: 140,
     debrisR: 46,
     debrisWarn: 1.1,
     debrisDmg: 20,

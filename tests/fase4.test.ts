@@ -96,7 +96,7 @@ describe('objetivos del mapa', () => {
 });
 
 describe('modo infinito', () => {
-  it('tras el Coloso se puede seguir: sin Tormenta, más duro y con jefes en rueda', () => {
+  it('tras el Coloso se puede seguir: sin Tormenta, más duro, sin jefes y con un élite cada 15 s', () => {
     const w = quiet();
     const c = spawnEnemy(w, 'coloso', w.player.x + 400, w.player.y, false);
     hitEnemy(w, c, 1e9, 'llave', 4);
@@ -105,10 +105,11 @@ describe('modo infinito', () => {
     expect(w.endless).toBe(true);
     expect(w.over).toBe(false);
     w.time = RUN.stormStart + 5;
-    w.nextEndlessBoss = w.time;
+    w.nextElite = w.time;
     run(w, 1);
     expect(w.storm).toBe(false);
-    expect(w.bossAlive).toBe(1);
+    expect(w.bossAlive).toBe(0);
+    expect(w.nextElite).toBeCloseTo(w.time + ENDLESS.eliteEvery - 1, 0);
     w.endlessAt = w.time - 60 * 4;
     const e = spawnEnemy(w, 'dron', w.player.x + 500, w.player.y, false);
     expect(e.maxHp).toBeGreaterThan(8 * (1 + w.time / 250) * (1 + 3.9 * ENDLESS.hpPerMin));
