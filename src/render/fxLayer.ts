@@ -597,16 +597,32 @@ export class FxLayer {
         );
       }
       if (!e.flying) {
-        for (let j = 0; j < w.pools.count; j++) {
-          const pl = w.pools.items[j]!;
-          if ((e.x - pl.x) ** 2 + (e.y - pl.y) ** 2 < pl.r * pl.r) {
-            sa.put('burn', sa.loop('burn', t + i * 0.17, E.burn.fps), sx, sy, e.r * E.burn.r, {
+        // Arde si lleva quemaduras del cóctel o si pisa un charco (los de los dardos no dejan quemadura).
+        let burning = 0;
+        for (let s = 0; s < e.burnT.length; s++) if (e.burnT[s]! > 0) burning++;
+        if (burning > 0)
+          sa.put(
+            'burn',
+            sa.loop('burn', t + i * 0.17, E.burn.fps),
+            sx,
+            sy,
+            e.r * E.burn.r * (0.8 + 0.15 * burning),
+            {
               ay: E.burn.ay,
               alpha: 0.9,
-            });
-            break;
+            },
+          );
+        else
+          for (let j = 0; j < w.pools.count; j++) {
+            const pl = w.pools.items[j]!;
+            if ((e.x - pl.x) ** 2 + (e.y - pl.y) ** 2 < pl.r * pl.r) {
+              sa.put('burn', sa.loop('burn', t + i * 0.17, E.burn.fps), sx, sy, e.r * E.burn.r, {
+                ay: E.burn.ay,
+                alpha: 0.9,
+              });
+              break;
+            }
           }
-        }
       }
     }
     const D = FX_ART.death;

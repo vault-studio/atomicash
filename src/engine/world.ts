@@ -38,6 +38,7 @@ import {
   createShot,
   createWeapon,
   updateFirePools,
+  updateBurns,
   updateLobs,
   updateMines,
   updateShots,
@@ -342,6 +343,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   updateShots(w, dt);
   updateLobs(w, dt);
   updateFirePools(w, dt);
+  updateBurns(w, dt);
   updateMines(w, dt);
   resolveBlasts(w);
   updateEnemies(w, dt);

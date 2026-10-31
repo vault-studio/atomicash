@@ -183,7 +183,7 @@
     "coctel": {
       "name": "Gasoline cocktail",
       "short": "Cocktail",
-      "desc": "{{n}} cocktail(s); the puddle deals {{dmg, number}} damage every {{tick, number}} s for {{dur, number}} s."
+      "desc": "{{n}} cocktail(s); the puddle deals {{dmg, number}} damage every {{tick, number}} s for {{dur, number}} s. Anything that steps in burns: {{burn, number}} damage per second for {{burnDur, number}} s (up to {{stacks}} burns)."
     },
     "tesla": {
       "name": "Chest tesla",

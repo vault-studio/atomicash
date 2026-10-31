@@ -154,6 +154,14 @@ export interface Enemy {
   march: number;
   /** Último golpe de cada arma orbital, por hueco. */
   readonly hitT: Float64Array;
+  /** Quemaduras del cóctel: tiempo que le queda a cada una (0 = hueco libre) y su daño por segundo. */
+  readonly burnT: Float64Array;
+  readonly burnD: Float64Array;
+  /** Tiempo hasta el próximo golpe de quemadura. */
+  burnTick: number;
+  /** Tick (`World.ticks`) en que pisó fuego por última vez y cuánto lleva seguido dentro. */
+  fireAt: number;
+  fireIn: number;
 }
 
 export interface Weapon {
@@ -218,6 +226,8 @@ export interface FirePool {
   tick: number;
   tickCd: number;
   dmg: number;
+  /** Daño por segundo de la quemadura que pega a quien lo pisa (0 = no quema). */
+  burn: number;
   src: WeaponId;
 }
 

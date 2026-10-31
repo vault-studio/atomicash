@@ -183,7 +183,7 @@
     "coctel": {
       "name": "Cóctel de gasolina",
       "short": "Cóctel",
-      "desc": "{{n}} cóctel(es); el charco hace {{dmg, number}} de daño cada {{tick, number}} s durante {{dur, number}} s."
+      "desc": "{{n}} cóctel(es); el charco hace {{dmg, number}} de daño cada {{tick, number}} s durante {{dur, number}} s. Quien lo pisa arde: {{burn, number}} de daño por segundo durante {{burnDur, number}} s (hasta {{stacks}} quemaduras)."
     },
     "tesla": {
       "name": "Tesla de pecho",

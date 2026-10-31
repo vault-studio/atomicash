@@ -14,6 +14,7 @@ import {
   type EnemyStats,
   type StatEnemyId,
 } from '../../config/enemies';
+import { WEAPONS } from '../../config/weapons';
 import { IRRADIATED } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
@@ -87,6 +88,11 @@ export function createEnemy(): Enemy {
     elite: null,
     march: 0,
     hitT: new Float64Array(ORBIT_SLOTS),
+    burnT: new Float64Array(WEAPONS.coctel.burn.stacks),
+    burnD: new Float64Array(WEAPONS.coctel.burn.stacks),
+    burnTick: 0,
+    fireAt: -2,
+    fireIn: 0,
   };
 }
 
@@ -195,6 +201,10 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.elite = null;
   e.march = 0;
   e.hitT.fill(-1e9);
+  e.burnT.fill(0);
+  e.burnTick = 0;
+  e.fireAt = -2;
+  e.fireIn = 0;
   if (boss) w.bossAlive++;
   return e;
 }

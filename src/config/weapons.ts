@@ -73,8 +73,13 @@ export const WEAPONS = {
     poolTick: 0.25,
     dmg: 5,
     dmgPerLvl: 0.2,
-    dur: 2.5,
-    durPerLvl: 0.5,
+    dur: 5,
+    durPerLvl: 1,
+    /**
+     * Quemadura: quien pisa el charco (o sigue dentro `stay` s más) coge una de hasta `stacks`, que dura `dur` s y
+     * le hace `dps` (con `dmgPerLvl`) cada segundo. Con todas puestas, una nueva renueva la que antes se acaba.
+     */
+    burn: { dps: 4, dur: 4.5, stacks: 3, stay: 1 },
     color: '#ff8a2a',
   },
   tesla: {

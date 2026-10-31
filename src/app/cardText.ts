@@ -30,6 +30,9 @@ export function weaponParams(id: WeaponId, l: number): Record<string, number> {
         dmg: f1(scaled(W.dmg, W.dmgPerLvl, l)),
         tick: W.poolTick,
         dur: f1(W.dur + W.durPerLvl * (l - 1)),
+        burn: f1(scaled(W.burn.dps, W.dmgPerLvl, l)),
+        burnDur: W.burn.dur,
+        stacks: W.burn.stacks,
       };
     }
     case 'tesla': {
