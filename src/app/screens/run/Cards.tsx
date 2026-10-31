@@ -62,7 +62,7 @@ export function Cards({ choice, world, onPick, onReroll, onBanish, onLock }: Pro
   const ready = landed >= reels;
 
   const coupons = choice.cards[0]?.kind === 'coupons' ? choice.cards[0].n : 0;
-  const tier = coupons >= CACHE_ROLL.jackpot ? 'jackpot' : coupons >= CACHE_ROLL.double[0] ? 'double' : null;
+  const tier = coupons >= CACHE_ROLL.jackpot ? 'jackpot' : coupons >= CACHE_ROLL.big ? 'big' : null;
   useEffect(() => {
     if (ready && slot) audio.play(tier === 'jackpot' ? 'win' : 'level');
   }, [ready, slot, tier]);

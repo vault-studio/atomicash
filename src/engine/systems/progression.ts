@@ -307,16 +307,18 @@ export function openItemChoice(w: World): void {
 
 /** Cofre especial: tragaperras de cupones. La UI hace girar los rodillos y al cobrar se suma un nivel. */
 export function openCacheChoice(w: World): void {
-  const C = CACHE_ROLL;
-  const u = w.rng();
-  const range = (r: readonly [number, number]): number => r[0] + Math.round(w.rng() * (r[1] - r[0]));
-  const roll = (x: number): number =>
-    x < C.jackpotChance
-      ? C.jackpot
-      : x < C.jackpotChance + C.doubleChance
-        ? range(C.double)
-        : range(C.normal);
-  let n = roll(u);
+  const roll = (x: number): number => {
+    let tier: readonly [number, number, number] = CACHE_ROLL.tiers[CACHE_ROLL.tiers.length - 1]!;
+    for (const t of CACHE_ROLL.tiers) {
+      if (x < t[0]) {
+        tier = t;
+        break;
+      }
+      x -= t[0];
+    }
+    return tier[1] + Math.floor(w.rng() * (tier[2] - tier[1] + 1));
+  };
+  let n = roll(w.rng());
   // Único «Contrabandista»: tira dos veces y se queda con la mejor.
   if (w.mods.smuggler) n = Math.max(n, roll(w.rng()));
   w.choice = { type: 'cache', cards: [{ kind: 'coupons', n }] };

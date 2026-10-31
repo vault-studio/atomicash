@@ -6,7 +6,7 @@ import { hazardAt } from '../src/engine/hazards';
 import { createCellObject, objectAt } from '../src/engine/obstacles';
 import { CACHE_ROLL, COUPONS } from '../src/config/run';
 import { killEnemy } from '../src/engine/systems/combat';
-import { applyChoice } from '../src/engine/systems/progression';
+import { applyChoice, openCacheChoice } from '../src/engine/systems/progression';
 import { compactEnemies, spawnEnemy } from '../src/engine/systems/enemies';
 import type { World } from '../src/engine/types';
 import { createWorld, results, tick } from '../src/engine/world';
@@ -181,7 +181,8 @@ describe('edificios', () => {
       const card = w.choice!.cards[0]!;
       expect(card.kind).toBe('coupons');
       const n = card.kind === 'coupons' ? card.n : 0;
-      expect(n).toBeGreaterThanOrEqual(CACHE_ROLL.normal[0]);
+      expect(n).toBeGreaterThanOrEqual(CACHE_ROLL.tiers[CACHE_ROLL.tiers.length - 1]![1]);
+      expect(n).toBeLessThanOrEqual(CACHE_ROLL.jackpot);
       applyChoice(w, 0);
       expect(w.coupons - coupons).toBe(n);
       expect(w.level).toBe(level + 1);
@@ -220,5 +221,28 @@ describe('cupones', () => {
     const base = results(w).credits;
     w.coupons += 37;
     expect(results(w).credits).toBe(base + 37);
+  });
+});
+
+describe('tragaperras del cofre especial', () => {
+  it('reparte los cupones según los tramos de CACHE_ROLL', () => {
+    const w = createWorld('dot', 7, { hazards: false });
+    const N = 100_000;
+    const hits = CACHE_ROLL.tiers.map(() => 0);
+    let sum = 0;
+    for (let i = 0; i < N; i++) {
+      openCacheChoice(w);
+      const c = w.choice!.cards[0]!;
+      const n = c.kind === 'coupons' ? c.n : -1;
+      const k = CACHE_ROLL.tiers.findIndex(([, lo, hi]) => n >= lo && n <= hi);
+      expect(k).toBeGreaterThanOrEqual(0);
+      hits[k]!++;
+      sum += n;
+    }
+    w.choice = null;
+    CACHE_ROLL.tiers.forEach(([p], k) => expect(Math.abs(hits[k]! / N - p)).toBeLessThan(0.006));
+    expect(sum / N).toBeGreaterThan(340);
+    expect(sum / N).toBeLessThan(390);
+    expect(CACHE_ROLL.tiers.reduce((a, [p]) => a + p, 0)).toBeCloseTo(1);
   });
 });

@@ -1044,7 +1044,7 @@
   color: rgba(60, 255, 107, 0.8);
 }
 
-.slotm.is-ready.is-double {
+.slotm.is-ready.is-big {
   --accent: #ffb347;
   box-shadow:
     inset 0 0 0 1px #000,

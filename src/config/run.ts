@@ -106,15 +106,21 @@ export const COUPONS = { dropChance: 0.01, drop: 5, r: 6, cache: 100 } as const;
 
 /**
  * Tragaperras del cofre especial: cupones al azar en vez de una cantidad fija (y siempre un nivel).
- * DECISIÓN: la media (~125) queda algo por encima de los 100 fijos de antes para compensar la espera de la animación.
- * `chance` se reparte en orden: premio gordo, doble y normal (el resto).
+ * Cada tramo es `[probabilidad, mínimo, máximo]` (ambos incluidos); las probabilidades suman 1. Media ≈ 366.
+ * `jackpot` (999) es el premio gordo y desde `big` la máquina celebra un gran premio.
  */
 export const CACHE_ROLL = {
-  normal: [70, 130],
-  double: [180, 260],
-  jackpot: 500,
-  doubleChance: 0.15,
-  jackpotChance: 0.03,
+  tiers: [
+    [0.01, 999, 999],
+    [0.03, 901, 998],
+    [0.06, 601, 900],
+    [0.15, 501, 599],
+    [0.2, 351, 499],
+    [0.4, 151, 349],
+    [0.15, 50, 149],
+  ],
+  jackpot: 999,
+  big: 601,
 } as const;
 
 /**
