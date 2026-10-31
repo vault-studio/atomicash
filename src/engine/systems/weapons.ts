@@ -479,8 +479,13 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
         const l = w.lobs.acquire();
         l.sx = p.x;
         l.sy = p.y;
-        l.tx = t.x;
-        l.ty = t.y;
+        // Cae un poco por delante del bicho (hacia el jugador): como viene a por ti, se mete en el fuego.
+        const dx = p.x - t.x;
+        const dy = p.y - t.y;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const lead = Math.min(W.lead, d * 0.5) / d;
+        l.tx = t.x + dx * lead;
+        l.ty = t.y + dy * lead;
         l.t = 0;
         l.dur = W.flight;
         l.lvl = lvl;

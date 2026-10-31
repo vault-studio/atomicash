@@ -70,6 +70,8 @@ export const WEAPONS = {
     cd: 2.2,
     flight: 0.5,
     poolR: 58,
+    /** El charco cae esta distancia por delante del objetivo, hacia el jugador (como mucho a medio camino). */
+    lead: 45,
     poolTick: 0.25,
     dmg: 5,
     dmgPerLvl: 0.2,

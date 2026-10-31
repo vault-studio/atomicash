@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { RUN } from '../src/config/run';
 import { WEAPONS } from '../src/config/weapons';
 import { spawnEnemy } from '../src/engine/systems/enemies';
+import { createWeapon } from '../src/engine/systems/weapons';
 import type { Enemy, World } from '../src/engine/types';
 import { createWorld, tick } from '../src/engine/world';
 
@@ -76,6 +77,17 @@ describe('quemaduras del cóctel', () => {
     const lost = hp0 - e.hp;
     expect(lost).toBeGreaterThanOrEqual(10 * Math.floor(B.dur));
     expect(lost).toBeLessThan(10 * Math.floor(B.dur) * 1.6);
+  });
+
+  it('el cóctel cae un poco por delante del bicho, hacia el jugador', () => {
+    const w = quiet();
+    const e = dummy(w, 300);
+    w.weapons = [createWeapon('coctel', 1)];
+    run(w, 0.4);
+    const l = w.lobs.items[0]!;
+    expect(w.lobs.count).toBe(1);
+    expect(Math.hypot(l.tx - e.x, l.ty - e.y)).toBeCloseTo(WEAPONS.coctel.lead, 0);
+    expect(Math.hypot(l.tx - w.player.x, l.ty - w.player.y)).toBeCloseTo(300 - WEAPONS.coctel.lead, 0);
   });
 
   it('el cóctel sigue haciendo su daño al caer y su charco quema', () => {

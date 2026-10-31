@@ -99,6 +99,9 @@ export class EnemyLayer {
       const atkDur = atkMeta ? atkMeta.frames / atkMeta.fps : ATTACK_FALLBACK;
       if (e === victor) v.show(VICTORY_ANIMS, 0, victorT, 0);
       else if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
+      // Quieto y sin hoja de reposo (el tirador): se queda apuntando en vez de correr en el sitio.
+      else if (!e.moving && atkMeta && !this.lib.meta(id, 'idle'))
+        v.show(ATTACK_ANIMS[e.atkAnim]!, dir, 0, 0);
       else v.show(e.moving ? MOVE_ANIMS : IDLE_ANIMS, dir, w.time - e.born, 0);
       const tint =
         e.frozen > 0
