@@ -68,4 +68,53 @@ for i, name in enumerate(NAMES):
     }
     rgba.save(OUT / f'{name}.png', optimize=True)
     print(name, w, h, index[name])
+
+
+def boots() -> None:
+    """
+    Botas de velocidad: no están en la lámina del mapa; salen de la ficha `boots` de ARTE/iconos_rasgos.webp
+    (segunda de la primera fila), recortando la bota marrón de la piedra gris y de las rayas de velocidad claras.
+    """
+    sheet = Image.open('ARTE/iconos_rasgos.webp').convert('RGB')
+    light = np.asarray(sheet.convert('L')) > 45
+
+    def runs(a: np.ndarray) -> list[tuple[int, int]]:
+        out, start = [], None
+        for i, v in enumerate(list(a) + [0]):
+            if v > 0.15 and start is None:
+                start = i
+            elif v <= 0.15 and start is not None:
+                out.append((start, i))
+                start = None
+        return out
+
+    (x0, x1), (y0, y1) = runs(light.mean(0))[1], runs(light.mean(1))[0]
+    side = min(x1 - x0, y1 - y0) * 0.93
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    box = tuple(round(v) for v in (cx - side / 2, cy - side / 2, cx + side / 2, cy + side / 2))
+    c = np.asarray(sheet.crop(box)).astype(float)
+    h, w = c.shape[:2]
+    lum, warm = c.mean(2), c[..., 0] - c[..., 2]
+    # La bota es cálida (rojo > azul); la piedra es gris. Las rayas son claras y están a la izquierda.
+    fg = nd.binary_fill_holes(nd.binary_closing(warm > 22, iterations=4))
+    streaks = nd.binary_dilation(lum > 125, iterations=2) & (np.arange(w)[None, :] < 0.4 * w)
+    fg = nd.binary_opening(fg & ~streaks, iterations=3)
+    lab, k = nd.label(fg)
+    fg = lab == 1 + int(np.argmax(nd.sum(fg, lab, range(1, k + 1))))
+    fg = nd.binary_fill_holes(nd.binary_closing(fg, iterations=3))
+    a = nd.gaussian_filter(fg.astype(float), 0.8)
+    rgba = Image.fromarray(np.dstack([c, a * 255]).astype(np.uint8), 'RGBA')
+    scale = min(1, MAX / max(rgba.size))
+    rgba = rgba.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
+    ys, xs = np.where(fg)
+    index['boots'] = {
+        'file': 'boots.png',
+        'ay': round(float((ys.max() + 1) / h), 3),
+        'bw': round(float((xs.max() - xs.min() + 1) * scale)),
+    }
+    rgba.save(OUT / 'boots.png', optimize=True)
+    print('boots', rgba.size, index['boots'])
+
+
+boots()
 (OUT / 'pickups.json').write_text(json.dumps(index, indent=2) + '\n', encoding='utf8', newline='\n')

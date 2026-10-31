@@ -67,6 +67,8 @@ export interface Player {
   turbo: number;
   /** Nuka-pila restante (cadencia doble), en s. */
   nuka: number;
+  /** Segundos que quedan de botas de velocidad. */
+  boots: number;
   /** Curación por bajas disponible (tope por segundo). */
   healBudget: number;
   /** Tiempo de la run del último golpe recibido. */
@@ -318,6 +320,7 @@ export type PickupKind =
   | 'freeze'
   /** Nuka-pila: cadencia doble durante unos segundos. */
   | 'nuka'
+  | 'boots'
   /** Cofre especial de un edificio con la guarnición eliminada. */
   | 'cache';
 

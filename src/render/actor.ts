@@ -81,8 +81,10 @@ export class ActorView extends Container {
     if (tex && meta) {
       this.sprite.texture = tex;
       this.sprite.anchor.set(meta.pivot[0] / meta.cell[0], meta.pivot[1] / meta.cell[1]);
-      this.sprite.scale.set(this.cellScale);
-      this.glow.scale.set(this.cellScale);
+      // Las hojas con celdas más grandes que la de referencia tienen más detalle, no más tamaño.
+      const s = (this.cellScale * VIEW.refCell) / meta.cell[0];
+      this.sprite.scale.set(s);
+      this.glow.scale.set(s);
       this.sprite.visible = true;
       this.placeholder.visible = false;
     } else {

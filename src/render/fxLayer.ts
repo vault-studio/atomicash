@@ -50,6 +50,7 @@ const PICKUP_HALO: Partial<Record<string, number>> = {
   bomb: 0xffffff,
   freeze: RUN_COLORS.freeze,
   nuka: RUN_COLORS.nuka,
+  boots: RUN_COLORS.boots,
   chest: 0xc77dff,
   crate: 0xffffff,
   cache: RUN_COLORS.cacheTrim,
@@ -275,6 +276,14 @@ export class FxLayer {
         width: 2.5,
         color: RUN_COLORS.nuka,
         alpha: (0.5 + 0.3 * pulse) * fade,
+      });
+    }
+    if (p.boots > 0) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 10);
+      groundCircle(g, p.x, p.y, 22 + pulse * 3).stroke({
+        width: 2,
+        color: RUN_COLORS.boots,
+        alpha: (0.45 + 0.3 * pulse) * Math.min(1, p.boots),
       });
     }
     for (const wp of w.weapons) {

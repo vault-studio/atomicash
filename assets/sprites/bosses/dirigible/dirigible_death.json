@@ -2,12 +2,12 @@
   "id": "dirigible",
   "anim": "death",
   "cell": [
-    256,
-    256
+    384,
+    384
   ],
   "pivot": [
-    128,
-    200
+    192,
+    300
   ],
   "directions": [
     "S",
@@ -19,7 +19,7 @@
     "E",
     "SE"
   ],
-  "frames": 14,
-  "fps": 10,
+  "frames": 10,
+  "fps": 8,
   "loop": false
 }

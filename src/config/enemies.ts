@@ -232,14 +232,16 @@ export type EliteId = 'blindado' | 'veloz' | 'radiactivo' | 'divisor' | 'vampiri
 export const ELITE_IDS: readonly EliteId[] = ['blindado', 'veloz', 'radiactivo', 'divisor', 'vampirico'];
 
 /**
- * Élites: un enemigo de la oleada vigente, más grande y duro, cada 60–90 s. Suelta siempre un cofre.
- * DECISIÓN: el cofre es el especial (tragaperras de cupones y un nivel): los cofres de objeto son de los jefes y solo
- * hay dos huecos, así que un élite no puede quitarle el hueco a un jefe.
+ * Élites: un enemigo de la oleada vigente, más grande y duro, cada 30–50 s. Suelta siempre un power-up y a veces
+ * (`cacheChance`) el cofre especial.
+ * DECISIÓN: el cofre especial (tragaperras de cupones y un nivel) es sobre todo de los edificios limpios; los cofres
+ * de objeto son de los jefes y solo hay dos huecos, así que un élite no puede quitarle el hueco a un jefe.
  */
 export const ELITES = {
-  first: 75,
-  everyMin: 60,
-  everyMax: 90,
+  first: 50,
+  everyMin: 30,
+  everyMax: 50,
+  cacheChance: 0.2,
   /** Multiplicadores sobre el enemigo normal. */
   hp: 14,
   r: 1.35,

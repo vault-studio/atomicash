@@ -2,12 +2,12 @@
   "id": "dirigible",
   "anim": "attack_1",
   "cell": [
-    256,
-    256
+    384,
+    384
   ],
   "pivot": [
-    128,
-    200
+    192,
+    300
   ],
   "directions": [
     "S",
@@ -19,7 +19,7 @@
     "E",
     "SE"
   ],
-  "frames": 10,
-  "fps": 12,
+  "frames": 8,
+  "fps": 10,
   "loop": false
 }

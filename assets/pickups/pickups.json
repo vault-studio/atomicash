@@ -88,5 +88,10 @@
     "file": "iodine.png",
     "ay": 0.977,
     "bw": 115
+  },
+  "boots": {
+    "file": "boots.png",
+    "ay": 0.982,
+    "bw": 146
   }
 }

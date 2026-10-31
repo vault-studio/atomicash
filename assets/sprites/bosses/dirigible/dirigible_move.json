@@ -2,12 +2,12 @@
   "id": "dirigible",
   "anim": "move",
   "cell": [
-    256,
-    256
+    384,
+    384
   ],
   "pivot": [
-    128,
-    200
+    192,
+    300
   ],
   "directions": [
     "S",
@@ -19,7 +19,7 @@
     "E",
     "SE"
   ],
-  "frames": 12,
-  "fps": 8,
+  "frames": 8,
+  "fps": 6,
   "loop": true
 }

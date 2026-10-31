@@ -37,14 +37,27 @@ describe('recogibles de campo', () => {
     expect(p.hp).toBeCloseTo(p.maxHp * (0.2 + FIELD_PICKUPS.medkitHeal), 5);
   });
 
-  it('el imán atrae la chatarra de la pantalla, no la de fuera', () => {
+  it('el imán atrae experiencia, cupones y power-ups de todo el mapa, pero no los cofres', () => {
     const w = quiet();
     const p = w.player;
     const near = addPickup(w, 'gem', p.x + 300, p.y, 5, 1);
     const far = addPickup(w, 'gem', p.x + 2500, p.y + 2500, 5, 1);
+    const coupon = addPickup(w, 'coupon', p.x - 3000, p.y, 6, 5);
+    const boots = addPickup(w, 'boots', p.x, p.y - 3000, 9);
+    const chest = addPickup(w, 'cache', p.x + 3000, p.y, 20);
     pickUp(w, 'magnet');
-    expect(near.pull).toBe(true);
-    expect(far.pull).toBe(false);
+    expect([near.pull, far.pull, coupon.pull, boots.pull]).toEqual([true, true, true, true]);
+    expect(chest.pull).toBe(false);
+  });
+
+  it('las botas aceleran un rato', () => {
+    const w = quiet();
+    const speed = w.st.speed;
+    pickUp(w, 'boots');
+    tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(w.st.speed).toBeCloseTo(speed * FIELD_PICKUPS.bootsSpeed);
+    for (let i = 0; i < 60 * FIELD_PICKUPS.boots; i++) tick(w, { moveX: 0, moveY: 0 }, 1 / 60);
+    expect(w.st.speed).toBeCloseTo(speed);
   });
 
   it('la bomba mata a todo lo que se ve y deja vivo lo de fuera', () => {

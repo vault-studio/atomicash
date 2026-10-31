@@ -43,7 +43,7 @@ export const DROPS = {
   stimChance: 0.004,
 } as const;
 
-export type FieldPickupId = 'medkit' | 'magnet' | 'bomb' | 'freeze' | 'nuka';
+export type FieldPickupId = 'medkit' | 'magnet' | 'bomb' | 'freeze' | 'nuka' | 'boots';
 
 /**
  * Recogibles de campo: los suelta al azar un enemigo al morir y se usan al tocarlos.
@@ -52,8 +52,10 @@ export type FieldPickupId = 'medkit' | 'magnet' | 'bomb' | 'freeze' | 'nuka';
  */
 export const FIELD_PICKUPS = {
   /** Probabilidad de que una baja suelte uno (la suerte la sube como a los estimulantes). */
-  chance: 0.006,
-  weights: { medkit: 6, magnet: 3, bomb: 1, freeze: 2, nuka: 2 } as Readonly<Record<FieldPickupId, number>>,
+  chance: 0.018,
+  weights: { medkit: 6, magnet: 3, bomb: 1, freeze: 2, nuka: 2, boots: 3 } as Readonly<
+    Record<FieldPickupId, number>
+  >,
   /** Radio del objeto en el suelo. */
   r: 9,
   /** Fracción de la vida máxima que cura el botiquín. */
@@ -66,6 +68,16 @@ export const FIELD_PICKUPS = {
   /** Nuka-pila: segundos con la recarga de las armas multiplicada por `nukaCd` (0,5 = cadencia doble). */
   nuka: 10,
   nukaCd: 0.5,
+  /** Botas de velocidad: segundos con la velocidad de movimiento multiplicada por `bootsSpeed`. */
+  boots: 10,
+  bootsSpeed: 1.5,
 } as const;
 
-export const FIELD_PICKUP_IDS: readonly FieldPickupId[] = ['medkit', 'magnet', 'bomb', 'freeze', 'nuka'];
+export const FIELD_PICKUP_IDS: readonly FieldPickupId[] = [
+  'medkit',
+  'magnet',
+  'bomb',
+  'freeze',
+  'nuka',
+  'boots',
+];

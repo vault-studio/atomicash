@@ -1,5 +1,12 @@
 // Recogida de chatarra, XP, subidas de nivel y tarjetas (F1-07), cofres de objeto y consumibles.
-import { CONSUMABLES, CONSUMABLE_IDS, FIELD_PICKUPS, ITEM_IDS, type ConsumableId } from '../../config/items';
+import {
+  CONSUMABLES,
+  CONSUMABLE_IDS,
+  FIELD_PICKUPS,
+  FIELD_PICKUP_IDS,
+  ITEM_IDS,
+  type ConsumableId,
+} from '../../config/items';
 import { RAD } from '../../config/radiation';
 import { CACHE_ROLL, FX, JUICE, PLAYER, XP, xpForLevel } from '../../config/run';
 import { CARDS, TRAITS, TRAIT_IDS, type TraitDef, type TraitId } from '../../config/traits';
@@ -9,7 +16,7 @@ import { FUSIONS, WEAPONS, WEAPON_IDS, type WeaponId } from '../../config/weapon
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { recalc } from '../stats';
 import { SFX, sfx } from '../sfx';
-import type { Card, World } from '../types';
+import type { Card, PickupKind, World } from '../types';
 import { isOnScreen } from '../view';
 import { addCoupons, addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies } from './combat';
 import { compactEnemies } from './enemies';
@@ -39,7 +46,7 @@ export function updatePickups(w: World, dt: number): void {
     const dx = p.x - k.x;
     const dy = p.y - k.y;
     const d = Math.sqrt(dx * dx + dy * dy) || 1;
-    if (k.kind === 'gem' || k.kind === 'stim' || k.kind === 'coupon') {
+    if (k.pull || k.kind === 'gem' || k.kind === 'stim' || k.kind === 'coupon') {
       if (!k.pull && d < mag) k.pull = true;
       if (k.pull) {
         k.sp = (k.sp || XP.pullSpeed) + XP.pullAccel * dt;
@@ -83,6 +90,10 @@ export function updatePickups(w: World, dt: number): void {
       p.nuka = FIELD_PICKUPS.nuka;
       burst(w, p.x, p.y, 16, NUKA_SPARKS, 0.8);
       textFx(w, 'pickup', p.x, p.y, 0, 'pickups.nuka');
+    } else if (kind === 'boots') {
+      p.boots = FIELD_PICKUPS.boots;
+      burst(w, p.x, p.y, 12, BOOT_DUST, 0.8);
+      textFx(w, 'pickup', p.x, p.y, 0, 'pickups.boots');
     } else {
       const S = EVENTS.supply;
       for (let g = 0; g < S.gems; g++)
@@ -381,12 +392,14 @@ export function applyChoice(w: World, i: number): void {
 
 // ---------- recogibles de campo ----------
 
-/** Imán: la chatarra y los estimulantes que se ven en pantalla vuelan hacia el jugador. */
+/** Lo que el imán atrae: experiencia, estimulantes, cupones y power-ups (no cofres ni cajas). */
+const MAGNETIC: ReadonlySet<PickupKind> = new Set<PickupKind>(['gem', 'stim', 'coupon', ...FIELD_PICKUP_IDS]);
+
+/** Imán: todo lo que atrae, en cualquier parte del mapa, vuela hacia el jugador. */
 function magnetPull(w: World): void {
   for (let i = 0; i < w.pickups.count; i++) {
     const k = w.pickups.items[i]!;
-    if ((k.kind === 'gem' || k.kind === 'stim' || k.kind === 'coupon') && isOnScreen(w, k.x, k.y))
-      k.pull = true;
+    if (MAGNETIC.has(k.kind)) k.pull = true;
   }
 }
 
@@ -407,6 +420,7 @@ function screenBomb(w: World): void {
 }
 
 const NUKA_SPARKS = [0xff3d6a, 0xffe14a, 0xffffff] as const;
+const BOOT_DUST = [0xe8a33a, 0xd6c38a, 0xffffff] as const;
 const ICE = [0xbfefff, 0x7fd8ff, 0xffffff] as const;
 
 /** Crio-granada: congela a todo enemigo que se vea en pantalla (a los jefes, menos rato). */

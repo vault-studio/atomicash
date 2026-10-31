@@ -33,15 +33,18 @@ DIRECTIONS = [("S", 0), ("SW", -45), ("W", -90), ("NW", -135),
 # ----- propio de cada enemigo -----
 # fit: medida máxima (largo/ancho, alto) en metros que puede ocupar en la celda.
 # anims: nombre -> (frames, fps, loop)
+# cell (opcional): lado de la celda en px si no es CELL. Mismo encuadre, más píxeles: para enemigos que el juego
+#   dibuja muy grandes. El juego lo compensa (VIEW.refCell); cada hoja debe caber en 4096 px de ancho.
 PROFILES = {
     "aspiradora": dict(fit=(2.1, 1.5), anims={"move": (8, 12, True), "attack": (8, 16, False), "death": (12, 12, False)}),
     "babosa": dict(fit=(2.4, 0.9), anims={"move": (12, 10, True), "attack": (8, 14, False), "death": (12, 10, False)}),
     "cortacesped": dict(fit=(2.3, 1.3), anims={"move": (8, 16, True), "attack": (10, 16, False), "death": (12, 12, False)}),
     "torreta": dict(fit=(1.3, 1.6), anims={"idle": (8, 8, True), "attack": (8, 16, False), "death": (12, 12, False)}),
     "excavadora": dict(fit=(2.2, 1.3), anims={"move": (8, 12, True), "attack": (10, 14, False), "death": (12, 12, False)}),
-    # Vuela: el juego lo eleva (FLY_HEIGHT), aquí se renderiza a ras de suelo.
-    "dirigible": dict(fit=(2.2, 1.4), anims={"move": (12, 8, True), "attack_1": (10, 12, False),
-                                             "attack_2": (10, 12, False), "death": (14, 10, False)}),
+    # Vuela: el juego lo eleva, aquí se renderiza a ras de suelo. En el juego se ve enorme: celda de 384 px y
+    # menos fotogramas para que las hojas no pasen de 4096 px.
+    "dirigible": dict(fit=(2.2, 1.4), cell=384, anims={"move": (8, 6, True), "attack_1": (8, 10, False),
+                                                       "attack_2": (8, 10, False), "death": (10, 8, False)}),
 }
 # -----------------------------------------------------------------
 
@@ -258,8 +261,11 @@ POSES = {"aspiradora": pose_aspiradora, "babosa": pose_babosa, "cortacesped": po
 
 
 def main():
+    global CELL, PIVOT
     src, dst, cid, preview = args()
     prof = PROFILES[cid]
+    k = prof.get("cell", CELL) / CELL
+    CELL, PIVOT = round(CELL * k), (round(PIVOT[0] * k), round(PIVOT[1] * k))
     pose_fn = POSES[cid]
     bpy.ops.wm.read_factory_settings(use_empty=True)
     setup_scene()

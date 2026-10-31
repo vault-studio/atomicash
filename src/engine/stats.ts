@@ -62,7 +62,8 @@ export function recalc(w: World): void {
   const st = w.st;
 
   const maxHp = Math.max(1, Math.round((ch.hp + tr.hp) * (1 - tier.hpPen) * it.hpMult));
-  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + it.speed) * turbo;
+  const boots = p.boots > 0 ? FIELD_PICKUPS.bootsSpeed : 1;
+  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + it.speed) * turbo * boots;
   st.magnet = PLAYER.magnetBase * (1 + (ch.magnetPct ?? 0) + tr.mag / 100) * (1 + it.magnet);
   st.armor = tr.armor;
   st.luck = tr.luck + it.luck;

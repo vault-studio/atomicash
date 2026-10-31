@@ -334,7 +334,9 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     else dropKillGems(w, e.x, e.y, xp, e.irr ? XP.rareGems : XP.killGems);
   }
   if (e.elite) {
-    addPickup(w, 'cache', e.x, e.y, BUILDINGS.cache.r);
+    // Power-up siempre y, a veces, también el cofre especial (a un lado para que no se recojan juntos).
+    addPickup(w, rollFieldPickup(w.rng()), e.x, e.y, FIELD_PICKUPS.r);
+    if (w.rng() < ELITES.cacheChance) addPickup(w, 'cache', e.x + 40, e.y + 40, BUILDINGS.cache.r);
     banner(w, 'banner.eliteDown');
     hitStop(w, JUICE.hitStop.bomb);
     addShake(w, 6);

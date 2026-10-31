@@ -50,6 +50,8 @@ export const VIEW = {
     Category,
     number
   >,
+  /** Lado de celda de las hojas para el que vale `scalePerSize`; una hoja de 384 px se dibuja a 256/384. */
+  refCell: 256,
   /** Radio del placeholder = tamaño × este valor (en px de mundo). */
   placeholderRadiusPerSize: 10,
   gridStep: 100,
@@ -115,8 +117,9 @@ export const RADAR = {
     cache: '#3fb8af',
     freeze: '#bfefff',
     nuka: '#ff3d6a',
+    boots: '#e8a33a',
   } as Readonly<
-    Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest' | 'cache' | 'freeze' | 'nuka', string>
+    Record<'medkit' | 'magnet' | 'bomb' | 'crate' | 'chest' | 'cache' | 'freeze' | 'nuka' | 'boots', string>
   >,
   /** Edificios de 3×3: un rombo del color de lo que los rodea. */
   buildings: {
@@ -173,6 +176,7 @@ export const RUN_COLORS = {
   freezeCore: 0xe8f8ff,
   nuka: 0xff3d6a,
   nukaGlow: 0xffe14a,
+  boots: 0xe8a33a,
   rain: 0x9dff00,
   storm: 0x8a3324,
   aura: 0x7dff6a,
@@ -253,6 +257,7 @@ export const PICKUP_ART = {
     bomb: 2.8,
     freeze: 2.4,
     nuka: 2.4,
+    boots: 3,
     barrel: 1.7,
     barrel_lit: 2.2,
   } as Readonly<Record<string, number>>,
@@ -267,6 +272,7 @@ export const PICKUP_ART = {
     'bomb',
     'freeze',
     'nuka',
+    'boots',
     'chest',
     'crate',
     'cache',

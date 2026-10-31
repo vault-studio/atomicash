@@ -1,6 +1,7 @@
 // Dossier fase 2: élites, hordas en formación, avisos de los jefes y racha de bajas.
 import { describe, expect, it } from 'vitest';
 import { AI, ELITES, ENEMY_STATS, RAGE } from '../src/config/enemies';
+import { FIELD_PICKUP_IDS } from '../src/config/items';
 import { RUN, STREAK, XP, streakMult } from '../src/config/run';
 import { HORDES } from '../src/config/waves';
 import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
@@ -44,16 +45,20 @@ describe('élites', () => {
     expect(w.nextElite).toBeLessThanOrEqual(ELITES.first + ELITES.everyMax + 1);
   });
 
-  it('son más duros, sueltan cofre especial y llenan la barra del HUD al golpearlos', () => {
+  it('son más duros, sueltan un power-up (y a veces el cofre) y llenan la barra del HUD al golpearlos', () => {
     const w = quiet();
     const e = spawnElite(w);
     expect(e.elite).not.toBeNull();
     expect(e.maxHp).toBeCloseTo(ENEMY_STATS[e.type].hp * (1 + w.time / 250) * ELITES.hp);
     hitEnemy(w, e, 1, 'llave', 4);
     expect(w.eliteFocus).toBe(e.id);
+    (w as { rng: () => number }).rng = () => 0; // por debajo de cacheChance: también cofre
     killEnemy(w, e, 'llave');
-    const caches = w.pickups.items.slice(0, w.pickups.count).filter((k) => k.kind === 'cache');
-    expect(caches).toHaveLength(1);
+    const kinds = w.pickups.items.slice(0, w.pickups.count).map((k) => k.kind);
+    expect(kinds.filter((k) => (FIELD_PICKUP_IDS as readonly string[]).includes(k)).length).toBeGreaterThan(
+      0,
+    );
+    expect(kinds.filter((k) => k === 'cache')).toHaveLength(1);
   });
 
   it('el blindado recibe la mitad de daño y el divisor se parte al morir', () => {

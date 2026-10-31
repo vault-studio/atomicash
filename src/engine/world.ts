@@ -133,6 +133,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
       radPeak: 0,
       turbo: 0,
       nuka: 0,
+      boots: 0,
       healBudget: 0,
       lastHit: -9,
       god: false,
@@ -279,6 +280,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   p.inv -= dt;
   p.turbo -= dt;
   p.nuka -= dt;
+  p.boots -= dt;
   p.healBudget = Math.min(CAPS.killHealPerSec, p.healBudget + CAPS.killHealPerSec * dt);
   if (w.st.regen > 0) heal(w, w.st.regen * dt);
 }
