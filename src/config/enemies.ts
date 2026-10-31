@@ -60,7 +60,8 @@ export const statsOf = (id: StatEnemyId): EnemyStats => ENEMY_STATS[id];
 
 /** Parámetros de comportamiento (F2-03). Los tiempos van en segundos y las distancias en px de mundo. */
 export const AI = {
-  tirador: { keepMin: 220, keepMax: 270, fireCd: 2.2, bulletSpd: 230, range: 700, strafe: 0.4 },
+  /** Se acerca hasta `hold` (algo menos que `range`) y ahí se planta quieto a disparar. */
+  tirador: { hold: 600, fireCd: 2.2, bulletSpd: 230, range: 700 },
   hinchado: { boomR: 95, boomEnemyDmg: 30, boomPlayerDmg: 10, boomRad: 8 },
   cortacesped: { every: 4, aim: 0.45, dashSpd: 340, dash: 0.7, range: 500 },
   torreta: { every: 2.6, burst: 3, burstGap: 0.15, bulletSpd: 260, range: 700, sloganChance: 0.3 },

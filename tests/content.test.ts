@@ -118,13 +118,16 @@ describe('irradiados', () => {
 });
 
 describe('IA de enemigos (03_CONTENT.md)', () => {
-  it('el tirador guarda distancia y dispara', () => {
+  it('el tirador se acerca hasta tenerte a tiro y se planta a disparar', () => {
     const w = quiet();
     w.player.god = true;
-    const e = spawnEnemy(w, 'tirador', w.player.x + 100, w.player.y, false);
-    run(w, 4);
+    const e = spawnEnemy(w, 'tirador', w.player.x + AI.tirador.hold + 200, w.player.y, false);
+    run(w, 6);
     const d = Math.hypot(e.x - w.player.x, e.y - w.player.y);
-    expect(d).toBeGreaterThan(AI.tirador.keepMin - 20);
+    expect(d).toBeLessThanOrEqual(AI.tirador.hold + 5);
+    const { x, y } = e;
+    run(w, 2);
+    expect(Math.hypot(e.x - x, e.y - y)).toBeLessThan(5);
     expect(w.ebullets.count + (w.player.lastHit > 0 ? 1 : 0)).toBeGreaterThan(0);
   });
 

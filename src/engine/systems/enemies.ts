@@ -340,15 +340,12 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
   switch (e.type) {
     case 'tirador': {
       const A = AI.tirador;
-      if (d > A.keepMax) {
+      if (d > A.hold) {
         vx = ux * spd;
         vy = uy * spd;
-      } else if (d < A.keepMin) {
-        vx = -ux * spd;
-        vy = -uy * spd;
       } else {
-        vx = -uy * spd * A.strafe * e.side;
-        vy = ux * spd * A.strafe * e.side;
+        vx = 0;
+        vy = 0;
       }
       e.timer -= dt;
       if (e.timer <= 0 && d < A.range) {
