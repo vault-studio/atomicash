@@ -25,7 +25,7 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
   const peak = Math.max(1, ...r.timeDmg);
 
   return (
-    <div className="overlay overlay--dark" role="dialog" aria-modal="true">
+    <div className="overlay overlay--dark overlay--results" role="dialog" aria-modal="true">
       <div className="ticket">
         <h2 className={r.won ? 'is-won' : ''}>{t(r.won ? 'results.won' : 'results.lost')}</h2>
         <p className="ticket__no">

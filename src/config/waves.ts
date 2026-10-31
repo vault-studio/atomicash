@@ -131,8 +131,11 @@ export const SPAWN = {
   /** Las torretas aparecen ya dentro de este anillo (no se mueven). */
   staticMin: 400,
   staticMax: 600,
-  /** Con un jefe vivo aparecen menos enemigos. */
-  bossRateMult: 0.7,
+  /**
+   * Con un jefe vivo no aparece nadie más (oleadas, eventos ni guarniciones): el combate es solo contra él y lo que
+   * invoca. Lo que ya estaba vivo sigue.
+   */
+  bossRateMult: 0,
   /**
    * Multiplicador global del ritmo de aparición de todas las oleadas.
    * DECISIÓN: menos enemigos que dan mucha más experiencia (XP.killMult): se sube de nivel más a menudo con menos

@@ -103,10 +103,11 @@ const DEFS = {
     act: 1,
     variantOf: 'rey_rata',
   },
-  dirigible: { category: 'bosses', size: 5, color: '#C8B0E0', method: 'rigid', act: 1 },
+  // DECISIÓN: el Dirigible es una mole que tapa el cielo, 3,5 veces su tamaño original (5).
+  dirigible: { category: 'bosses', size: 17.5, color: '#C8B0E0', method: 'rigid', act: 1 },
   dirigible_dmg: {
     category: 'bosses',
-    size: 5,
+    size: 17.5,
     color: '#C8B0E0',
     method: 'rigid',
     act: 1,

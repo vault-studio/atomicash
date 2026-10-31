@@ -35,7 +35,7 @@ export const CONSUMABLES = {
 } as const;
 
 export type ConsumableId = keyof typeof CONSUMABLES;
-/** Orden de los huecos (teclas 5–8). */
+/** Orden de los huecos (teclas 1–4). */
 export const CONSUMABLE_IDS: readonly ConsumableId[] = ['stim', 'iodine', 'grenade', 'turbo'];
 
 export const DROPS = {

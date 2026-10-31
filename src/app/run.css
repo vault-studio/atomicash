@@ -1093,6 +1093,45 @@
   animation: ticket-out 0.6s steps(12) both;
 }
 
+/*
+ * Resultados: el ticket se desplaza por dentro y los botones quedan siempre a la vista, por larga que sea la lista.
+ * En horizontal con poca altura (móvil) los botones pasan a una columna a la derecha del ticket.
+ */
+.overlay--results {
+  overflow: hidden;
+  justify-content: center;
+}
+
+.overlay--results .ticket {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crt) transparent;
+}
+
+.overlay--results .overlay__actions {
+  flex-shrink: 0;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .overlay--results {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .overlay--results .ticket {
+    max-height: 100%;
+  }
+
+  .overlay--results .overlay__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: min(220px, 30vw);
+  }
+}
+
 @keyframes ticket-out {
   from {
     clip-path: inset(0 0 100% 0);

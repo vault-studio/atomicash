@@ -7,7 +7,7 @@
     "rotate": "Gira el móvil a horizontal ↻"
   },
   "run": {
-    "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 5–8: consumibles · Esc: pausa",
+    "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 1–4: consumibles (tarjetas al elegir) · Esc: pausa",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
     "back": "← Búnker",
     "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min · E élite · H horda",
@@ -722,7 +722,6 @@
     "dmg": "{{n, number}} de daño",
     "report": "Reportar",
     "reported": "Reportado",
-    "hide": "Ocultar",
     "reason": {
       "nickname": "Apodo ofensivo",
       "cheat": "Trampas",

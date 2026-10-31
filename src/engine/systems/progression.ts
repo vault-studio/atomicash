@@ -425,7 +425,7 @@ function screenFreeze(w: World): void {
 
 // ---------- consumibles ----------
 
-/** Usa el consumible del hueco `i` (teclas 5–8). Devuelve si se usó. */
+/** Usa el consumible del hueco `i` (teclas 1–4). Devuelve si se usó. */
 export function consumeItem(w: World, i: number): boolean {
   if (w.over || w.choice || w.player.deadAt !== null) return false;
   const id: ConsumableId | undefined = CONSUMABLE_IDS[i];

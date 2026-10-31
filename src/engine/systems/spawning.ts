@@ -211,7 +211,8 @@ function updateSpecials(w: World, dt: number): void {
     w.nextElite = w.time + (ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin)) * k;
   }
   if (w.horde) {
-    w.horde.t -= dt;
+    // Una horda avisada antes del jefe espera a que muera.
+    if (w.bossAlive === 0) w.horde.t -= dt;
     if (w.horde.t <= 0) releaseHorde(w);
   } else if (w.time >= w.nextHorde) {
     announceHorde(w);
@@ -260,7 +261,8 @@ function updateGarrisons(w: World): void {
 }
 
 export function updateSpawning(w: World, dt: number): void {
-  updateGarrisons(w);
+  // Con un jefe vivo los edificios esperan: su guarnición saldrá cuando se vuelva a pasar cerca.
+  if (w.bossAlive === 0) updateGarrisons(w);
   const waveIdx = currentWaveIndex(w.time);
   const wave = WAVES[waveIdx]!;
   const pool = w.enemies;
@@ -309,7 +311,8 @@ export function updateSpawning(w: World, dt: number): void {
   }
 
   if (w.time >= w.nextEvent) {
-    if (w.time - w.lastBossAt < EVENTS.bossQuiet) w.nextEvent = w.lastBossAt + EVENTS.bossQuiet;
+    if (w.bossAlive > 0) w.nextEvent = w.time + EVENTS.bossQuiet;
+    else if (w.time - w.lastBossAt < EVENTS.bossQuiet) w.nextEvent = w.lastBossAt + EVENTS.bossQuiet;
     else {
       fireEvent(w);
       w.nextEvent += EVENTS.every;

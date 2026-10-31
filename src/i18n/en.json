@@ -7,7 +7,7 @@
     "rotate": "Turn your phone sideways ↻"
   },
   "run": {
-    "controls": "WASD / arrows: move · 1 2 3 / R: cards · 5–8: consumables · Esc: pause",
+    "controls": "WASD / arrows: move · 1 2 3 / R: cards · 1–4: consumables (cards while choosing) · Esc: pause",
     "controlsTouch": "Drag on the left half to move",
     "back": "← Bunker",
     "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min · E elite · H horde",
@@ -722,7 +722,6 @@
     "dmg": "{{n, number}} damage",
     "report": "Report",
     "reported": "Reported",
-    "hide": "Hide",
     "reason": {
       "nickname": "Offensive name",
       "cheat": "Cheating",

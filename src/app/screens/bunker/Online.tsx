@@ -113,8 +113,6 @@ const REASONS: readonly ReportReason[] = ['nickname', 'cheat', 'other'];
 
 export function Leaderboard() {
   const { t } = useTranslation();
-  const hidden = useOnline((s) => s.hiddenRuns);
-  const hide = useOnline((s) => s.hide);
   const [kind, setKind] = useState<BoardKind>('dmg');
   const [period, setPeriod] = useState<BoardPeriod>('day');
   const [rows, setRows] = useState<BoardRow[] | null>(null);
@@ -189,45 +187,40 @@ export function Leaderboard() {
       {rows && rows.length === 0 && <p>{t('online.empty')}</p>}
       {rows && rows.length > 0 && (
         <ol className="shop board">
-          {rows
-            .filter((r) => !hidden.includes(r.id))
-            .map((r, i) => (
-              <li key={r.id} className="shop__row">
-                <span>
-                  <strong>
-                    {i + 1}. {r.nickname}
-                  </strong>{' '}
-                  <small>{t(`entities.${r.charId}`, { defaultValue: r.charId })}</small>
-                </span>
-                <span>
-                  {kind === 'finish'
-                    ? `${fmtTime(r.timeSec)} · ${t('online.kills', { n: r.kills })}`
-                    : `${t('online.dmg', { n: r.dmgTotal })} · ${fmtTime(r.timeSec)}${r.won ? ' ★' : ''}`}
-                </span>
-                {reporting === r.id ? (
-                  <span className="row">
-                    {REASONS.map((why) => (
-                      <button key={why} className="chip" onClick={() => report(r.id, why)}>
-                        {t(`online.reason.${why}`)}
-                      </button>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="row">
-                    <button
-                      className="chip"
-                      disabled={reported.includes(r.id)}
-                      onClick={() => setReporting(r.id)}
-                    >
-                      {t(reported.includes(r.id) ? 'online.reported' : 'online.report')}
+          {rows.map((r, i) => (
+            <li key={r.id} className="shop__row">
+              <span>
+                <strong>
+                  {i + 1}. {r.nickname}
+                </strong>{' '}
+                <small>{t(`entities.${r.charId}`, { defaultValue: r.charId })}</small>
+              </span>
+              <span>
+                {kind === 'finish'
+                  ? `${fmtTime(r.timeSec)} · ${t('online.kills', { n: r.kills })}`
+                  : `${t('online.dmg', { n: r.dmgTotal })} · ${fmtTime(r.timeSec)}${r.won ? ' ★' : ''}`}
+              </span>
+              {reporting === r.id ? (
+                <span className="row">
+                  {REASONS.map((why) => (
+                    <button key={why} className="chip" onClick={() => report(r.id, why)}>
+                      {t(`online.reason.${why}`)}
                     </button>
-                    <button className="chip" onClick={() => hide(r.id)}>
-                      {t('online.hide')}
-                    </button>
-                  </span>
-                )}
-              </li>
-            ))}
+                  ))}
+                </span>
+              ) : (
+                <span className="row">
+                  <button
+                    className="chip"
+                    disabled={reported.includes(r.id)}
+                    onClick={() => setReporting(r.id)}
+                  >
+                    {t(reported.includes(r.id) ? 'online.reported' : 'online.report')}
+                  </button>
+                </span>
+              )}
+            </li>
+          ))}
         </ol>
       )}
     </>

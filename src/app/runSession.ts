@@ -297,9 +297,9 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       renderer.toggleDebug();
       return;
     }
-    // Consumibles: teclas 5–8 (y Q/E/Z/X para no estirar la mano).
-    const ci = ['Digit5', 'Digit6', 'Digit7', 'Digit8'].indexOf(e.code);
-    if (ci >= 0 && !paused) {
+    // Consumibles: teclas 1–4. Con una elección abierta esas teclas son de las tarjetas.
+    const ci = ['Digit1', 'Digit2', 'Digit3', 'Digit4'].indexOf(e.code);
+    if (ci >= 0 && !paused && !world.choice) {
       consumeItem(world, ci);
       hudAcc = 1;
       return;

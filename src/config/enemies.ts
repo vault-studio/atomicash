@@ -43,7 +43,9 @@ export const ENEMY_STATS = {
   excavadora: { hp: 160, dmg: 18, speed: 46, xp: 7, kbRes: 0.1, armor: 0.4, metal: true },
   // Jefes: no escalan con el tiempo ni se reciclan.
   rey_rata: { hp: 3000, dmg: 18, speed: 76, xp: 60, kbRes: 0, boss: true },
-  dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true, metal: true },
+  // Choque fijo: el sprite es enorme (entities.ts) pero solo el casco recibe balas, y un radio así de grande
+  // agrandaría todas las consultas de la rejilla.
+  dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true, metal: true, r: 90 },
   coloso: { hp: 20000, dmg: 26, speed: 44, xp: 0, kbRes: 0, boss: true, metal: true },
 } as const satisfies Partial<Record<EnemyId | BossId, EnemyStats>>;
 
@@ -93,7 +95,12 @@ export const AI = {
     summonP2: 10,
   },
   dirigible: {
-    orbitR: 320,
+    /**
+     * Altura de vuelo en pantalla (los demás voladores usan ENEMY_RULES.flyHeight). El sprite es tan grande que ya
+     * queda muy por encima de su sombra; con más altura se saldría de la vista.
+     */
+    lift: 0,
+    orbitR: 280,
     every: 4,
     everyP2: 3,
     p2: 0.5,

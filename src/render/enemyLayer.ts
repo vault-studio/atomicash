@@ -2,7 +2,7 @@
 // Cada vista se crea una vez por hueco y solo se rehace si en ese hueco aparece otro sprite.
 import type { Container } from 'pixi.js';
 import { ENTITIES, type AnimId, type EntityId } from '../config/entities';
-import { ELITES } from '../config/enemies';
+import { AI, ELITES } from '../config/enemies';
 import { RUN_COLORS } from '../config/render';
 import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
@@ -11,6 +11,10 @@ import { ActorView } from './actor';
 import { FLY_HEIGHT } from './fxLayer';
 import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteLibrary } from './sprites';
+
+/** Altura de vuelo de un sprite volador: el Dirigible (y su variante dañada) vuela más bajo por su tamaño. */
+const flyLift = (id: EntityId): number =>
+  (ENTITIES[id].variantOf ?? id) === 'dirigible' ? AI.dirigible.lift : FLY_HEIGHT;
 
 // Algunas hojas llaman `run` a lo que el juego llama `move` (saqueador, Rey Rata).
 const MOVE_ANIMS = ['move', 'run', 'idle'] as const;
@@ -99,7 +103,7 @@ export class EnemyLayer {
               ? RUN_COLORS.irradiated
               : 0xffffff;
       const flash = e.flash > 0 ? Math.min(1, e.flash / HIT_FLASH) : 0;
-      v.style(e.flying ? FLY_HEIGHT : 0, tint, 1, flash, e.boss ? JUICE.squash * 0.3 : JUICE.squash);
+      v.style(e.flying ? flyLift(e.type) : 0, tint, 1, flash, e.boss ? JUICE.squash * 0.3 : JUICE.squash);
     }
     this.alive.hideFrom(shown);
 
@@ -114,7 +118,11 @@ export class EnemyLayer {
       // Sin hoja de muerte, el placeholder se desvanece.
       const meta = this.lib.meta(k.sprite, 'death');
       const fade = meta ? 1 : Math.max(0, 1 - t * 2.5);
-      v.style(k.flying ? FLY_HEIGHT * Math.max(0, 1 - t) : 0, k.irr ? RUN_COLORS.irradiated : 0xffffff, fade);
+      v.style(
+        k.flying ? flyLift(k.sprite) * Math.max(0, 1 - t) : 0,
+        k.irr ? RUN_COLORS.irradiated : 0xffffff,
+        fade,
+      );
     }
     this.dead.hideFrom(c.count);
   }

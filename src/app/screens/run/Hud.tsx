@@ -216,11 +216,11 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               className="slot slot--cons"
               disabled={hud.cons[id] <= 0}
               onClick={() => onConsume(i)}
-              title={`${t(`consumables.${id}.name`)}: ${t(`consumables.${id}.desc`)} (${i + 5})`}
+              title={`${t(`consumables.${id}.name`)}: ${t(`consumables.${id}.desc`)} (${i + 1})`}
             >
               <img className="slot__icon" src={hudIcon(id)} alt={t(`consumables.${id}.short`)} />
               <span className="slot__lvl">{hud.cons[id]}</span>
-              <span className="slot__key">{i + 5}</span>
+              <span className="slot__key">{i + 1}</span>
             </button>
           ))}
         </div>
