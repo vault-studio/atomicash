@@ -230,7 +230,7 @@ export function compactEnemies(w: World): void {
   for (let i = pool.count - 1; i >= 0; i--) if ((pool.items[i] as Enemy).dead) pool.releaseAt(i);
 }
 
-/** Furia (RAGE): rojo, pega y corre más y duplica la vida. Solo una vez por enemigo. */
+/** Furia (RAGE): rojo, pega, corre y aguanta más. Solo una vez por enemigo. */
 function enrage(e: Enemy): void {
   e.rage = true;
   e.hp *= RAGE.hp;
@@ -344,9 +344,13 @@ function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, di
 let vx = 0;
 let vy = 0;
 
+/** Velocidad efectiva: la de un enfurecido no pasa de `RAGE.speedCap` × la del jugador. */
+const speedOf = (w: World, e: Enemy): number =>
+  e.rage ? Math.min(e.speed, w.st.speed * RAGE.speedCap) : e.speed;
+
 function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number): void {
   const p = w.player;
-  const spd = e.speed;
+  const spd = speedOf(w, e);
   const irrRad = e.irr ? IRRADIATED.rad : 0;
   switch (e.type) {
     case 'tirador': {
@@ -660,8 +664,8 @@ export function updateEnemies(w: World, dt: number): void {
     if (e.march > 0) {
       // Horda en formación: sigue recto aunque el jugador se aparte.
       e.march -= dt;
-      vx = e.dx * e.speed;
-      vy = e.dy * e.speed;
+      vx = e.dx * speedOf(w, e);
+      vy = e.dy * speedOf(w, e);
     } else if (!e.boss && e.stun > 0) {
       // Aturdido por los petardos: no avanza ni ataca, pero el empuje sigue.
       e.stun -= dt;

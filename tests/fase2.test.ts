@@ -251,6 +251,22 @@ describe('furia', () => {
     expect(e.rage).toBe(true);
   });
 
+  it('enfurecido, nunca corre más que `speedCap` × la velocidad del jugador', () => {
+    const w = quiet();
+    w.level = RAGE.minLevel;
+    // La cría es la más rápida: enfurecida superaría al jugador sin el tope.
+    const e = spawnEnemy(w, 'aspiradora_cria', w.player.x + 1000, w.player.y, false);
+    run(w, RAGE.after + 0.5);
+    expect(e.rage).toBe(true);
+    expect(e.speed).toBeGreaterThan(w.st.speed);
+    e.x = e.prevX = w.player.x + 1000;
+    e.y = e.prevY = w.player.y;
+    const x = e.x;
+    run(w, 1);
+    expect(x - e.x).toBeGreaterThan(w.st.speed * RAGE.speedCap * 0.9);
+    expect(x - e.x).toBeLessThanOrEqual(w.st.speed * RAGE.speedCap + 1);
+  });
+
   it('ni jefes ni élites se enfurecen', () => {
     const w = quiet();
     const elite = spawnElite(w);
