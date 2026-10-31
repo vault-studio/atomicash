@@ -585,4 +585,10 @@ export interface World {
   showDmg: boolean;
   /** Contadores de sonidos por tipo (índices SFX); el audio reproduce las diferencias entre frames. */
   readonly sfx: Int32Array;
+  /** Posición del último sonido de cada tipo (para colocarlo en el estéreo). */
+  readonly sfxX: Float32Array;
+  readonly sfxY: Float32Array;
+  /** Distancia² al jugador y momento del sonido guardado (para quedarse con el más cercano de cada paso). */
+  readonly sfxD: Float32Array;
+  readonly sfxT: Float64Array;
 }

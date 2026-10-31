@@ -1,7 +1,7 @@
 // Efectos que el motor deja para el render y la UI: textos, avisos, explosiones y rayos.
 // Todos usan pools con tope; si se llena, el efecto se descarta (no afecta a la simulación).
 import { FX, JUICE } from '../config/run';
-import { SFX, sfx } from './sfx';
+import { SFX, sfx, type SfxCode } from './sfx';
 import {
   BEAM_POINTS,
   type Beam,
@@ -76,8 +76,16 @@ export function banner(w: World, key: string, params: Readonly<Record<string, st
   w.banners.push({ key, params, life: FX.bannerLife });
 }
 
-export function boom(w: World, x: number, y: number, r: number, life: number, color: number): void {
-  sfx(w, SFX.boom);
+export function boom(
+  w: World,
+  x: number,
+  y: number,
+  r: number,
+  life: number,
+  color: number,
+  sound: SfxCode = SFX.boom,
+): void {
+  sfx(w, sound, x, y);
   if (w.booms.count >= FX.maxBooms) return;
   const b = w.booms.acquire();
   b.x = x;
@@ -88,8 +96,15 @@ export function boom(w: World, x: number, y: number, r: number, life: number, co
 }
 
 /** Empieza un rayo en (x, y); añade puntos con `beamPoint`. Devuelve null si no caben más. */
-export function beamStart(w: World, x: number, y: number, life: number, color: number): Beam | null {
-  sfx(w, SFX.zap);
+export function beamStart(
+  w: World,
+  x: number,
+  y: number,
+  life: number,
+  color: number,
+  sound: SfxCode = SFX.zap,
+): Beam | null {
+  sfx(w, sound, x, y);
   if (w.beams.count >= FX.maxBeams) return null;
   const b = w.beams.acquire();
   b.pts[0] = x;

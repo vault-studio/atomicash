@@ -20,8 +20,9 @@ if (import.meta.env.DEV) {
 
 // El AudioContext solo puede arrancar tras un gesto; se desbloquea con el primero y el menú pone su música.
 const unlock = (): void => audio.unlock();
-window.addEventListener('pointerdown', unlock);
-window.addEventListener('keydown', unlock);
+// pointerdown con el dedo no cuenta como gesto en móvil: hacen falta pointerup/touchend/click.
+for (const ev of ['pointerup', 'touchend', 'click', 'keydown'])
+  window.addEventListener(ev, unlock, { capture: true, passive: true });
 audio.setMusic('menu');
 // Silencio al perder el foco (04_ART_UI.md §4).
 document.addEventListener('visibilitychange', () => audio.setFocused(!document.hidden));

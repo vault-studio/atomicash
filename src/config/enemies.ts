@@ -19,30 +19,32 @@ export interface EnemyStats {
   readonly boss?: boolean;
   /** Vuela: no colisiona, no hace daño de contacto y no lo alcanzan las armas de suelo. */
   readonly flying?: boolean;
+  /** Máquina, chapa u hormigón: los golpes y la muerte suenan a metal en vez de a carne. */
+  readonly metal?: boolean;
 }
 
 export const ENEMY_STATS = {
-  dron: { hp: 8, dmg: 4, speed: 122, xp: 1 },
+  dron: { hp: 8, dmg: 4, speed: 122, xp: 1, metal: true },
   necrofago: { hp: 25, dmg: 8, speed: 78, xp: 1 },
   saqueador: { hp: 40, dmg: 10, speed: 100, xp: 2 },
   tirador: { hp: 30, dmg: 8, speed: 72, xp: 2 },
   reptador: { hp: 35, dmg: 9, speed: 112, xp: 2, rad: 5 },
   hinchado: { hp: 50, dmg: 0, speed: 58, xp: 2 },
-  cortacesped: { hp: 60, dmg: 12, speed: 88, xp: 5 },
-  torreta: { hp: 120, dmg: 10, speed: 0, xp: 5, kbRes: 0 },
+  cortacesped: { hp: 60, dmg: 12, speed: 88, xp: 5, metal: true },
+  torreta: { hp: 120, dmg: 10, speed: 0, xp: 5, kbRes: 0, metal: true },
   babosa: { hp: 70, dmg: 8, speed: 50, xp: 3, kbRes: 0.6 },
-  aspiradora: { hp: 60, dmg: 10, speed: 80, xp: 2 },
-  aspiradora_cria: { hp: 6, dmg: 3, speed: 150, xp: 0, r: 6 },
+  aspiradora: { hp: 60, dmg: 10, speed: 80, xp: 2, metal: true },
+  aspiradora_cria: { hp: 6, dmg: 3, speed: 150, xp: 0, r: 6, metal: true },
   // Tanque: lento, aguanta mucho (vida y chapa) y casi no se deja empujar.
-  blindado: { hp: 80, dmg: 14, speed: 58, xp: 4, kbRes: 0.25, armor: 0.6 },
+  blindado: { hp: 80, dmg: 14, speed: 58, xp: 4, kbRes: 0.25, armor: 0.6, metal: true },
   // Apoyo: se queda a distancia y enfurece a los de alrededor con sus sermones.
   predicador: { hp: 45, dmg: 6, speed: 74, xp: 4 },
   // Ariete: muy lenta, embiste con la pala, aguanta mucho y no se deja empujar.
-  excavadora: { hp: 160, dmg: 18, speed: 46, xp: 7, kbRes: 0.1, armor: 0.4 },
+  excavadora: { hp: 160, dmg: 18, speed: 46, xp: 7, kbRes: 0.1, armor: 0.4, metal: true },
   // Jefes: no escalan con el tiempo ni se reciclan.
   rey_rata: { hp: 3000, dmg: 18, speed: 76, xp: 60, kbRes: 0, boss: true },
-  dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true },
-  coloso: { hp: 20000, dmg: 26, speed: 44, xp: 0, kbRes: 0, boss: true },
+  dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true, metal: true },
+  coloso: { hp: 20000, dmg: 26, speed: 44, xp: 0, kbRes: 0, boss: true, metal: true },
 } as const satisfies Partial<Record<EnemyId | BossId, EnemyStats>>;
 
 export type StatEnemyId = keyof typeof ENEMY_STATS;

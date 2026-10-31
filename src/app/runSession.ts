@@ -133,8 +133,14 @@ function createSoundTap(): (w: World, frameSec: number) => void {
   return (w, frameSec) => {
     for (let i = 0; i < SFX_COUNT; i++) {
       const n = w.sfx[i]! - prev[i]!;
-      if (n > 0) audio.play(SFX_NAMES[i]!, 0.6 + n * 0.1);
       prev[i] = w.sfx[i]!;
+      if (n <= 0) continue;
+      // Colocado en el estéreo según dónde pasó respecto al jugador en la pantalla (isométrica), en pantallas.
+      const ox = w.sfxX[i]! - w.player.x;
+      const oy = w.sfxY[i]! - w.player.y;
+      const dx = isoX(ox, oy) / (w.view.halfW || 1);
+      const dy = isoY(ox, oy) / (w.view.halfH || 1);
+      audio.play(SFX_NAMES[i]!, n, dx, Math.sqrt(dx * dx + dy * dy));
     }
     geiger += frameSec * AUDIO.geigerRate * (w.player.rad / 100) * (0.5 + Math.random());
     if (geiger >= 1) {
@@ -446,6 +452,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     },
     setPaused(p) {
       paused = p;
+      audio.setPaused(p);
       if (p) controls.release();
     },
     spawnColossus() {

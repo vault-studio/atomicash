@@ -26,18 +26,25 @@ const MANIFEST = {
   ],
 };
 
-/** Service worker: precache por versión, caché primero y la página como respaldo de navegación. */
+/**
+ * Service worker: precache por versión, caché primero y la página como respaldo de navegación. La música no se
+ * precachea (18 MB que todo jugador nuevo bajaría de golpe): se guarda la primera vez que suena. Las peticiones
+ * parciales (Range, de los <audio>) van siempre a la red: la caché devolvería un 200 entero y Safari lo rechaza.
+ */
 export function serviceWorker(version: string, files: readonly string[]): string {
   return `// Generado por tools/pwa.ts. No editar.
 const CACHE = 'atomicash-${version}';
 const FILES = ${JSON.stringify(['./', ...files])};
+const RUNTIME = '/assets/audio/music/';
+// La música guardada al sonar va en su propia caché, que sobrevive a las versiones nuevas.
+const MUSIC = 'atomicash-music-v1';
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('atomicash-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('atomicash-') && k !== CACHE && k !== MUSIC).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -48,8 +55,21 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(() => caches.match('./')));
     return;
   }
+  if (req.headers.has('range')) return;
   // ignoreVary: los módulos con crossorigin llevan Origin y el servidor puede responder Vary: Origin.
-  e.respondWith(caches.match(req, { ignoreVary: true }).then((hit) => hit || fetch(req)));
+  e.respondWith(
+    caches.match(req, { ignoreVary: true }).then(
+      (hit) =>
+        hit ||
+        fetch(req).then((res) => {
+          if (res.ok && new URL(req.url).pathname.includes(RUNTIME)) {
+            const copy = res.clone();
+            caches.open(MUSIC).then((c) => c.put(req, copy));
+          }
+          return res;
+        }),
+    ),
+  );
 });
 `;
 }
@@ -87,8 +107,17 @@ export function pwa(): Plugin {
           ...ICONS.map((f) => `app/${f}`),
           'manifest.webmanifest',
         ]),
-      ].sort();
-      const version = createHash('sha256').update(files.join('\n')).digest('hex').slice(0, 12);
+      ]
+        .filter((f) => !f.startsWith('assets/audio/music/'))
+        .sort();
+      // La versión depende del contenido, no solo de los nombres: rehacer el audio con los mismos nombres también
+      // tiene que llegar a las PWA instaladas.
+      const hash = createHash('sha256').update(files.join('\n'));
+      for (const f of Object.keys(bundle).sort()) {
+        const out = bundle[f]!;
+        hash.update(out.type === 'chunk' ? out.code : out.source);
+      }
+      const version = hash.digest('hex').slice(0, 12);
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: serviceWorker(version, files) });
     },
   };

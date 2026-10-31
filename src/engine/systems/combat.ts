@@ -163,7 +163,7 @@ export function hitEnemy(
   if (e.boss) w.bossDmg += Math.min(d, Math.max(0, e.hp));
   e.hp -= d;
   e.flash = 0.08;
-  sfx(w, SFX.hit);
+  sfx(w, (ENEMY_STATS[e.type] as EnemyStats).metal ? SFX.hitMetal : SFX.hit, e.x, e.y);
   w.dmgTotal += d;
   if (d > w.maxHit) w.maxHit = d;
   const tb = Math.floor(w.time / SUMMARY.bucket);
@@ -320,7 +320,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     banner(w, 'banner.streak', { n: String(w.streak), mult: String(mult) });
     sfx(w, SFX.pickup);
   }
-  sfx(w, SFX.kill);
+  sfx(w, (ENEMY_STATS[e.type] as EnemyStats).metal ? SFX.killMetal : SFX.kill, e.x, e.y);
   addCorpse(w, e);
   const gore = e.irr ? GORE_IRR : GORE[e.type];
   if (e.boss) {

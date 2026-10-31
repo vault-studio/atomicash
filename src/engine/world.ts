@@ -242,6 +242,10 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     shake: 0,
     showDmg: false,
     sfx: new Int32Array(SFX_COUNT),
+    sfxX: new Float32Array(SFX_COUNT),
+    sfxY: new Float32Array(SFX_COUNT),
+    sfxD: new Float32Array(SFX_COUNT),
+    sfxT: new Float64Array(SFX_COUNT).fill(-1),
   };
   recalc(w);
   w.player.hp = w.st.maxHp;

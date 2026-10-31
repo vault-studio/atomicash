@@ -67,6 +67,9 @@ export function Settings({ onBack }: { onBack: () => void }) {
       <h2>{t('settings.sound')}</h2>
       {slider('musicVol')}
       {slider('sfxVol')}
+      <p>
+        <small>{t('settings.audioCredits')}</small>
+      </p>
       <h2>{t('settings.graphics')}</h2>
       {toggle('crtFilter')}
       {toggle('damageNumbers')}

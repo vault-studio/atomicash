@@ -1,16 +1,12 @@
-// Audio procedural con WebAudio (F2-09): efectos sintetizados y música generativa, sin archivos.
-// DECISIÓN: sin dependencias ni samples; todo se genera con osciladores y ruido, así es 100 % original
-// y funciona sin red. Volúmenes de música y efectos separados; silencio cuando la pestaña pierde el foco.
-import type { SfxId } from '../engine/sfx';
-import { AUDIO, type MusicMood } from '../config/audio';
+// Audio con grabaciones (tools/build_audio.py → assets/audio/, créditos en assets/audio/CREDITS.md).
+// DECISIÓN: WebAudio directo, sin librerías. Efectos y lechos de ambiente decodificados en memoria (variantes, tono
+// al azar, posición en el estéreo, reverb, loops exactos al sample); la música va por <audio> porque 4 min
+// decodificados no caben, y se baja entera como blob para que el service worker la guarde sin peticiones parciales.
+// Mezcla: efectos/ambiente/música → filtro de poca vida → margen → compresor → recorte suave; la interfaz se salta
+// el filtro. El audio nunca puede romper el juego: todo lo público va dentro de `safe`.
+import { AUDIO, type MusicMood, type SfxDef, type SoundId } from '../config/audio';
 
-type Ctx = AudioContext;
-
-/** Capas de la música de la run (ver AUDIO.layers). */
-type Layer = 'bass' | 'drums' | 'chords' | 'arp' | 'lead';
-const LAYERS: readonly Layer[] = ['bass', 'drums', 'chords', 'arp', 'lead'];
-
-/** Estado de la partida que decide qué capas suenan. */
+/** Estado de la partida que mueve la mezcla. */
 export interface MusicState {
   /** 0–1. */
   intensity: number;
@@ -18,315 +14,731 @@ export interface MusicState {
   lowHp: boolean;
 }
 
+interface Entry {
+  file: string;
+  dur: number;
+  /** Lechos: tramo que se repite (el archivo lleva margen antes y después para esquivar los bordes del AAC). */
+  loopStart?: number;
+  loopEnd?: number;
+}
+interface Index {
+  sfx: Record<string, Entry[]>;
+  amb: Record<string, Entry | Entry[]>;
+  music: Record<string, Entry & { loop: boolean }>;
+}
+
+interface Voice {
+  id: SoundId;
+  src: AudioBufferSourceNode;
+  gain: GainNode;
+  end: number;
+  priority: boolean;
+}
+
+/** Pista por streaming: un <audio> y su ganancia. `gen` invalida las paradas pendientes al reutilizarla. */
+interface Deck {
+  el: HTMLAudioElement;
+  gain: GainNode;
+  track: string | null;
+  gen: number;
+  url: string | null;
+}
+
+/** Lecho de ambiente en loop exacto. */
+interface Bed {
+  id: string;
+  src: AudioBufferSourceNode;
+  gain: GainNode;
+}
+
+const BASE = `${import.meta.env.BASE_URL}${AUDIO.dir}`;
+const SFX = AUDIO.sfx as Readonly<Record<SoundId, SfxDef>>;
+
+const shuffle = <T>(a: T[]): T[] => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [a[i], a[j]] = [a[j]!, a[i]!];
+  }
+  return a;
+};
+
+/** El audio es un adorno: un fallo (navegador viejo, nodo raro) se traga en vez de parar el bucle del juego. */
+function safe(fn: () => void): void {
+  try {
+    fn();
+  } catch (e) {
+    if (import.meta.env.DEV) console.warn('[audio]', e);
+  }
+}
+
+/** WAV de silencio para «estrenar» los <audio> dentro del gesto (iOS y WebView no los dejan sonar después si no). */
+function silentWav(): string {
+  const n = 64;
+  const b = new DataView(new ArrayBuffer(44 + n * 2));
+  const w = (o: number, s: string): void => [...s].forEach((c, i) => b.setUint8(o + i, c.charCodeAt(0)));
+  w(0, 'RIFF');
+  b.setUint32(4, 36 + n * 2, true);
+  w(8, 'WAVEfmt ');
+  b.setUint32(16, 16, true);
+  b.setUint16(20, 1, true);
+  b.setUint16(22, 1, true);
+  b.setUint32(24, 8000, true);
+  b.setUint32(28, 16000, true);
+  b.setUint16(32, 2, true);
+  b.setUint16(34, 16, true);
+  w(36, 'data');
+  b.setUint32(40, n * 2, true);
+  let s = '';
+  for (let i = 0; i < b.byteLength; i++) s += String.fromCharCode(b.getUint8(i));
+  return 'data:audio/wav;base64,' + btoa(s);
+}
+
 class AudioEngine {
-  private ctx: Ctx | null = null;
+  private ctx: AudioContext | null = null;
   private master!: GainNode;
+  /** Compresor final; su `reduction` sirve para comprobar que la mezcla no lo tiene trabajando todo el rato. */
+  comp: DynamicsCompressorNode | null = null;
+  /** Petición de música en curso: una nueva invalida las anteriores aunque aún se estén bajando. */
+  private musicReq = 0;
   private music!: GainNode;
-  private lowpass!: BiquadFilterNode;
-  private readonly layer = {} as Record<Layer, GainNode>;
-  private state: MusicState = { intensity: 1, streak: false, lowHp: false };
+  private musicLevel!: GainNode;
+  private duckGain!: GainNode;
+  private radio!: [BiquadFilterNode, BiquadFilterNode];
+  private world!: BiquadFilterNode;
   private fx!: GainNode;
-  private noise!: AudioBuffer;
+  private ui!: GainNode;
+  private amb!: GainNode;
+  private windLevel!: GainNode;
+  private fxSend!: GainNode;
+  private ambSend!: GainNode;
+  private index: Index | null = null;
+  private loading = false;
+  private readonly buffers = new Map<string, AudioBuffer[]>();
+  private readonly voices: Voice[] = [];
+  private readonly lastVariant = new Map<string, number>();
+  private readonly lastPlay = new Map<string, number>();
+  private decks: Deck[] = [];
+  private activeDeck = -1;
+  private bed: Bed | null = null;
   private musicVol: number = AUDIO.defaultMusic;
   private sfxVol: number = AUDIO.defaultSfx;
   private mood: MusicMood | null = null;
-  private nextNote = 0;
-  private step = 0;
-  private timer: number | null = null;
-  private readonly lastPlay = new Map<string, number>();
+  private playlist: string[] = [];
+  private state: MusicState = { intensity: -1, streak: false, lowHp: false };
   private focused = true;
+  private paused = false;
   private chain = 0;
   private lastPickup = -1;
+  private ambTimer: number | null = null;
+  private readonly nextAmb = new Map<string, number>();
+  private heartAt = 0;
 
-  /** Crea el contexto en el primer gesto del usuario (los navegadores lo exigen). */
+  /**
+   * Primer gesto del usuario: crea el contexto y los reproductores de música (los navegadores exigen las dos cosas
+   * dentro del gesto). Los siguientes gestos reaniman el contexto si quedó suspendido o interrumpido (iOS).
+   */
   unlock(): void {
-    if (this.ctx) {
-      if (this.ctx.state === 'suspended' && this.focused) void this.ctx.resume();
+    safe(() => {
+      if (this.ctx) {
+        if (this.ctx.state !== 'running' && this.focused) void this.ctx.resume();
+        if (!this.index && !this.loading) void this.load(this.ctx);
+        return;
+      }
+      if (typeof AudioContext === 'undefined') return;
+      // iOS: que el interruptor de silencio mande igual sobre todo el juego (antes de crear el contexto).
+      const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+      if (session) session.type = 'ambient';
+      const ctx = new AudioContext({ latencyHint: 'interactive' });
+      this.ctx = ctx;
+      this.buildGraph(ctx);
+      const silence = silentWav();
+      this.decks = [this.deck(ctx, silence), this.deck(ctx, silence)];
+      this.applyVolumes();
+      if (ctx.state !== 'running') void ctx.resume();
+      void this.load(ctx);
+    });
+  }
+
+  private buildGraph(ctx: AudioContext): void {
+    // Final: margen de −3 dB, compresor que solo toca los picos y techo suave: lineal hasta 0,8 y redondeado por
+    // encima. La curva cubre ±2 (entra a media ganancia) para que hasta +6 dB de exceso se redondee sin recortarse.
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -3;
+    comp.knee.value = 0;
+    comp.ratio.value = 20;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.15;
+    this.comp = comp;
+    const N = 2048;
+    const K = 0.8;
+    const curve = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = ((i / (N - 1)) * 2 - 1) * 2;
+      const a = Math.abs(x);
+      curve[i] = Math.sign(x) * (a <= K ? a : K + (1 - K) * Math.tanh((a - K) / (1 - K)));
+    }
+    const clip = ctx.createWaveShaper();
+    clip.curve = curve;
+    clip.oversample = '2x';
+    const pre = ctx.createGain();
+    pre.gain.value = 0.5;
+    this.master = ctx.createGain();
+    this.master.gain.value = AUDIO.headroom;
+    this.master.connect(comp).connect(pre).connect(clip).connect(ctx.destination);
+
+    // Filtro de poca vida: apaga el mundo (efectos, ambiente y música), no la interfaz.
+    this.world = ctx.createBiquadFilter();
+    this.world.type = 'lowpass';
+    this.world.Q.value = Math.SQRT1_2;
+    this.world.frequency.value = this.openFreq();
+    this.world.connect(this.master);
+
+    this.fx = ctx.createGain();
+    this.fx.connect(this.world);
+    this.ui = ctx.createGain();
+    this.ui.connect(this.master);
+    this.amb = ctx.createGain();
+    this.windLevel = ctx.createGain();
+    this.amb.connect(this.windLevel).connect(this.world);
+
+    // Dos retornos de reverb con la misma sala: el de los efectos va con su volumen y el del ambiente con el suyo.
+    const ir = this.impulse(ctx);
+    this.fxSend = this.reverbBus(ctx, ir, this.fx);
+    this.ambSend = this.reverbBus(ctx, ir, this.amb);
+
+    // Música: volumen del jugador → ducking → nivel por intensidad → radio (solo en el menú) → mundo.
+    this.music = ctx.createGain();
+    this.duckGain = ctx.createGain();
+    this.musicLevel = ctx.createGain();
+    const lo = ctx.createBiquadFilter();
+    lo.type = 'highpass';
+    const hi = ctx.createBiquadFilter();
+    hi.type = 'lowpass';
+    this.radio = [lo, hi];
+    this.setRadio(false, true);
+    this.music.connect(this.duckGain).connect(this.musicLevel).connect(lo).connect(hi).connect(this.world);
+  }
+
+  /** Envío de reverb: sin graves (no embarra las explosiones) y con un poco de retardo antes de la cola. */
+  private reverbBus(ctx: AudioContext, ir: AudioBuffer, out: AudioNode): GainNode {
+    const R = AUDIO.reverb;
+    const send = ctx.createGain();
+    const hp = ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = R.highpass;
+    const pre = ctx.createDelay(0.2);
+    pre.delayTime.value = R.predelay;
+    const conv = ctx.createConvolver();
+    conv.buffer = ir;
+    const wet = ctx.createGain();
+    wet.gain.value = R.wet;
+    send.connect(hp).connect(pre).connect(conv).connect(wet).connect(out);
+    return send;
+  }
+
+  private openFreq(): number {
+    return Math.min(AUDIO.layers.lowpass.open, (this.ctx?.sampleRate ?? 44100) / 2.2);
+  }
+
+  /** Respuesta al impulso: ruido estéreo que cae y se oscurece, como el eco de un páramo con ruinas. */
+  private impulse(ctx: AudioContext): AudioBuffer {
+    const R = AUDIO.reverb;
+    const n = Math.floor(ctx.sampleRate * R.seconds);
+    const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+    const a = Math.exp((-2 * Math.PI * R.damp) / ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      let lp = 0;
+      for (let i = 0; i < n; i++) {
+        const t = i / n;
+        // El filtro se cierra con el tiempo: los agudos se apagan antes que los graves.
+        const k = a + (1 - a) * t * 0.9;
+        lp = lp * k + (Math.random() * 2 - 1) * (1 - k);
+        d[i] =
+          lp * Math.pow(1 - t, R.decay) * (i < ctx.sampleRate * 0.012 ? i / (ctx.sampleRate * 0.012) : 1);
+      }
+    }
+    return buf;
+  }
+
+  private async load(ctx: AudioContext): Promise<void> {
+    this.loading = true;
+    let idx: Index;
+    try {
+      const res = await fetch(BASE + 'audio.json');
+      if (!res.ok) throw new Error(`audio.json ${res.status}`);
+      idx = (await res.json()) as Index;
+    } catch (e) {
+      // Sin índice no hay audio; el siguiente gesto lo vuelve a intentar.
+      if (import.meta.env.DEV) console.warn('[audio]', e);
+      this.loading = false;
       return;
     }
-    const AC =
-      window.AudioContext ??
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
-    this.ctx = ctx;
-    this.master = ctx.createGain();
-    this.master.connect(ctx.destination);
-    this.music = ctx.createGain();
-    this.fx = ctx.createGain();
-    this.lowpass = ctx.createBiquadFilter();
-    this.lowpass.type = 'lowpass';
-    this.lowpass.frequency.value = AUDIO.layers.lowpass.open;
-    this.music.connect(this.lowpass).connect(this.master);
-    for (const l of LAYERS) {
-      this.layer[l] = ctx.createGain();
-      this.layer[l].connect(this.music);
-    }
-    this.applyLayers(true);
-    this.fx.connect(this.master);
-    this.applyVolumes();
-    const len = ctx.sampleRate;
-    this.noise = ctx.createBuffer(1, len, ctx.sampleRate);
-    const data = this.noise.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    if (this.mood) this.startScheduler();
+    const decode = async (key: string, list: Entry[]): Promise<void> => {
+      const out: AudioBuffer[] = [];
+      for (const e of list) {
+        try {
+          const data = await (await fetch(BASE + e.file)).arrayBuffer();
+          out.push(await ctx.decodeAudioData(data));
+        } catch (err) {
+          // Una variante que falle no tumba las demás.
+          if (import.meta.env.DEV) console.warn('[audio]', e.file, err);
+        }
+      }
+      if (out.length) this.buffers.set(key, out);
+    };
+    // Primero el lecho y la música del momento, luego interfaz y armas, luego el resto.
+    const beds = Object.entries(idx.amb).filter((e): e is [string, Entry] => !Array.isArray(e[1]));
+    await Promise.all(beds.map(([k, v]) => decode('bed:' + k, [v])));
+    // Con el índice publicado ya puede arrancar la música (antes, setMusic solo apunta el momento).
+    this.index = idx;
+    safe(() => {
+      if (this.mood) this.startMood(this.mood);
+    });
+    const order = Object.keys(idx.sfx).sort(
+      (a, b) => Number(!SFX[a as SoundId]?.ui) - Number(!SFX[b as SoundId]?.ui),
+    );
+    await Promise.all(order.map((k) => decode(k, idx.sfx[k]!)));
+    for (const [k, v] of Object.entries(idx.amb)) if (Array.isArray(v)) await decode('amb:' + k, v);
+    this.loading = false;
+  }
+
+  private deck(ctx: AudioContext, silence: string): Deck {
+    const el = new Audio();
+    el.preload = 'auto';
+    // Estreno dentro del gesto: a partir de aquí el elemento puede sonar sin otro toque.
+    el.src = silence;
+    void el
+      .play()
+      .then(() => el.pause())
+      .catch(() => undefined);
+    const gain = ctx.createGain();
+    gain.gain.value = 0;
+    ctx.createMediaElementSource(el).connect(gain).connect(this.music);
+    return { el, gain, track: null, gen: 0, url: null };
   }
 
   setVolumes(music: number, sfx: number): void {
     this.musicVol = music;
     this.sfxVol = sfx;
-    this.applyVolumes();
+    safe(() => this.applyVolumes());
   }
 
   private applyVolumes(): void {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
     this.music.gain.setTargetAtTime(this.musicVol * AUDIO.musicGain, t, 0.05);
+    // El ambiente va con los efectos: es parte del mundo, no de la banda sonora.
+    this.amb.gain.setTargetAtTime(this.sfxVol * AUDIO.ambGain, t, 0.05);
     this.fx.gain.setTargetAtTime(this.sfxVol * AUDIO.sfxGain, t, 0.02);
+    this.ui.gain.setTargetAtTime(this.sfxVol * AUDIO.sfxGain, t, 0.02);
   }
 
   /** Silencio al perder el foco (04_ART_UI.md §4). */
   setFocused(f: boolean): void {
     this.focused = f;
-    if (!this.ctx) return;
-    if (f) void this.ctx.resume();
-    else void this.ctx.suspend();
+    safe(() => {
+      if (!this.ctx) return;
+      const active = this.decks[this.activeDeck];
+      for (const d of this.decks) {
+        if (f && d === active && d.track) void d.el.play().catch(() => undefined);
+        else if (!f) d.el.pause();
+        // Un reproductor que se estaba apagando se queda apagado.
+        else if (d !== active) this.stopDeck(d);
+      }
+      if (f) void this.ctx.resume();
+      else void this.ctx.suspend();
+    });
+  }
+
+  /** La run en pausa (o eligiendo tarjeta): sin truenos ni latido. */
+  setPaused(p: boolean): void {
+    this.paused = p;
   }
 
   // ---------- efectos ----------
 
-  play(
-    id: SfxId | 'level' | 'select' | 'death' | 'win' | 'geiger' | 'chest' | 'victory',
-    intensity = 1,
-  ): void {
+  /**
+   * Suena un efecto. `pan` −1…1 (izquierda–derecha) y `dist` en pantallas desde el jugador; sin ellos, centrado.
+   * `intensity` (≈ cuántos a la vez) sube un poco el volumen.
+   */
+  play(id: SoundId, intensity = 1, pan = 0, dist = 0): void {
+    safe(() => this.playUnsafe(id, intensity, pan, dist));
+  }
+
+  private playUnsafe(id: SoundId, intensity: number, pan: number, dist: number): void {
     const ctx = this.ctx;
-    if (!ctx || ctx.state !== 'running' || this.sfxVol <= 0) return;
+    const def = SFX[id];
+    if (!ctx || !def || ctx.state !== 'running' || this.sfxVol <= 0) return;
+    const bufs = this.buffers.get(id);
+    if (!bufs) return;
+    if (!Number.isFinite(pan)) pan = 0;
+    if (!Number.isFinite(dist)) dist = 0;
+    const S = AUDIO.space;
+    if (!def.ui && dist > S.cull) return;
     const now = ctx.currentTime;
-    const gap = AUDIO.minGap[id] ?? 0.03;
-    if (now - (this.lastPlay.get(id) ?? -1) < gap) return;
-    this.lastPlay.set(id, now);
-    const v = Math.min(1, intensity);
-    switch (id) {
-      case 'shot':
-        this.blip(now, 'square', 880, 440, 0.05, 0.12 * v);
-        break;
-      case 'hit':
-        this.burst(now, 0.03, 2400, 0.1 * v);
-        break;
-      case 'kill':
-        this.blip(now, 'triangle', 300, 90, 0.08, 0.18 * v);
-        this.burst(now, 0.06, 900, 0.12 * v);
-        break;
-      case 'pickup': {
-        // Cadena de recogidas: cada una medio tono más aguda (hasta dos octavas) si llega seguida de la anterior.
-        this.chain =
-          now - this.lastPickup < AUDIO.pickupChain.gap ? Math.min(AUDIO.pickupChain.max, this.chain + 1) : 0;
-        this.lastPickup = now;
-        const f = AUDIO.pickupChain.base * Math.pow(2, this.chain / 12);
-        this.blip(now, 'sine', f, f * 1.5, 0.06, 0.1);
-        break;
+    if (now - (this.lastPlay.get(id) ?? -1) < def.gap) return;
+    const priority = def.priority ?? false;
+
+    // Límite de voces: por sonido y en total. Se apaga la más vieja; las prioritarias solo ceden ante otras.
+    for (let i = this.voices.length - 1; i >= 0; i--)
+      if (this.voices[i]!.end <= now) this.voices.splice(i, 1);
+    let count = 0;
+    let oldest: Voice | undefined;
+    for (const v of this.voices)
+      if (v.id === id) {
+        count++;
+        oldest ??= v;
       }
-      case 'hurt':
-        this.blip(now, 'sawtooth', 220, 80, 0.18, 0.25);
-        break;
-      case 'boom':
-        this.burst(now, 0.35, 400, 0.35 * v);
-        this.blip(now, 'sine', 90, 35, 0.3, 0.35 * v);
-        break;
-      case 'zap':
-        this.blip(now, 'sawtooth', 1600, 300, 0.08, 0.1 * v);
-        break;
-      case 'boss':
-        for (let i = 0; i < 3; i++) this.blip(now + i * 0.22, 'square', 110, 104, 0.2, 0.25);
-        break;
-      case 'dodge':
-        this.blip(now, 'sine', 600, 1400, 0.08, 0.12);
-        break;
-      case 'level':
-        [523, 659, 784, 1046].forEach((f, i) => this.blip(now + i * 0.07, 'square', f, f, 0.1, 0.14));
-        break;
-      case 'chest':
-        [392, 523, 659, 784, 1046].forEach((f, i) => this.blip(now + i * 0.06, 'triangle', f, f, 0.12, 0.16));
-        break;
-      case 'select':
-        this.blip(now, 'square', 1400, 1400, 0.03, 0.08);
-        break;
-      case 'geiger':
-        this.burst(now, 0.008, 4000, 0.18);
-        break;
-      case 'death':
-        this.blip(now, 'sawtooth', 300, 40, 1.2, 0.3);
-        break;
-      case 'victory':
-        // Golpe grave y soplo de ruido, arpegio que sube y acorde final sostenido con brillo.
-        this.blip(now, 'sine', 120, 40, 0.5, 0.35);
-        this.burst(now, 0.6, 3000, 0.12);
-        [392, 494, 587, 784, 988].forEach((f, i) =>
-          this.blip(now + 0.1 + i * 0.08, 'square', f, f, 0.14, 0.12),
-        );
-        [784, 988, 1175, 1568].forEach((f) => this.blip(now + 0.55, 'triangle', f, f * 1.01, 1.4, 0.09));
-        [2093, 2637, 3136].forEach((f, i) => this.blip(now + 0.6 + i * 0.12, 'sine', f, f, 0.25, 0.05));
-        break;
-      case 'win':
-        [523, 659, 784, 1046, 784, 1046].forEach((f, i) =>
-          this.blip(now + i * 0.15, 'square', f, f, 0.2, 0.16),
-        );
-        break;
+    if (oldest && count >= def.voices) this.steal(oldest, now);
+    else if (this.voices.length >= AUDIO.maxVoices) {
+      const victim = this.voices.find((v) => !v.priority) ?? (priority ? this.voices[0] : undefined);
+      if (!victim) return;
+      this.steal(victim, now);
     }
-  }
+    this.lastPlay.set(id, now);
 
-  private blip(t: number, type: OscillatorType, f0: number, f1: number, dur: number, vol: number): void {
-    const ctx = this.ctx!;
-    const o = ctx.createOscillator();
+    // Variante al azar sin repetir la anterior.
+    let vi = (Math.random() * bufs.length) | 0;
+    if (bufs.length > 1 && vi === this.lastVariant.get(id)) vi = (vi + 1) % bufs.length;
+    this.lastVariant.set(id, vi);
+    const buf = bufs[vi]!;
+
+    let semis = (Math.random() * 2 - 1) * def.pitch;
+    if (id === 'pickup') {
+      // Cadena de recogidas: cada una medio tono más aguda si llega seguida de la anterior.
+      const C = AUDIO.pickupChain;
+      this.chain = now - this.lastPickup < C.gap ? Math.min(C.max, this.chain + 1) : 0;
+      this.lastPickup = now;
+      semis = this.chain;
+    }
+
+    const far = def.ui ? 0 : Math.max(0, dist - S.near);
+    const att = 1 / (1 + far * S.falloff);
+    const vol = def.gain * Math.min(1.25, 0.85 + 0.15 * intensity) * att * (0.9 + Math.random() * 0.2);
+
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = Math.pow(2, semis / 12);
     const g = ctx.createGain();
-    o.type = type;
-    o.frequency.setValueAtTime(f0, t);
-    o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(this.fx);
-    o.start(t);
-    o.stop(t + dur + 0.02);
-  }
-
-  private burst(t: number, dur: number, cutoff: number, vol: number, out: AudioNode = this.fx): void {
-    const ctx = this.ctx!;
-    const s = ctx.createBufferSource();
-    s.buffer = this.noise;
-    const f = ctx.createBiquadFilter();
-    f.type = 'lowpass';
-    f.frequency.value = cutoff;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(vol, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    s.connect(f).connect(g).connect(out);
-    s.start(t, Math.random() * 0.5);
-    s.stop(t + dur + 0.02);
-  }
-
-  // ---------- música ----------
-
-  /** La run informa de su estado; las capas entran y salen con un fundido. */
-  setMusicState(s: MusicState): void {
-    const changed =
-      s.streak !== this.state.streak ||
-      s.lowHp !== this.state.lowHp ||
-      Math.abs(s.intensity - this.state.intensity) > 0.05;
-    this.state = s;
-    if (changed) this.applyLayers(false);
-  }
-
-  private applyLayers(now: boolean): void {
-    if (!this.ctx) return;
-    const L = AUDIO.layers;
-    // Fuera de la run (menú) o con un jefe: todas las capas.
-    const all = this.mood !== 'run';
-    const i = this.state.intensity;
-    const on: Record<Layer, boolean> = {
-      bass: true,
-      drums: all || i >= L.drums,
-      chords: all || i >= L.chords,
-      arp: all || i >= L.arp,
-      lead: this.mood === 'run' && this.state.streak,
+    g.gain.value = vol;
+    src.connect(g);
+    const nodes: AudioNode[] = [g];
+    if (def.ui) g.connect(this.ui);
+    else {
+      // Sin StereoPanner (navegadores viejos) suena centrado.
+      const p = typeof ctx.createStereoPanner === 'function' ? ctx.createStereoPanner() : null;
+      let out: AudioNode = g;
+      if (p) {
+        p.pan.value = Math.max(-1, Math.min(1, pan * S.pan));
+        g.connect(p);
+        out = p;
+        nodes.push(p);
+      }
+      out.connect(this.fx);
+      const send = (def.reverb ?? 0) + Math.min(1, far) * S.farReverb;
+      if (send > 0) {
+        const s = ctx.createGain();
+        s.gain.value = send;
+        out.connect(s).connect(this.fxSend);
+        nodes.push(s);
+      }
+    }
+    src.onended = () => {
+      for (const n of nodes) n.disconnect();
     };
-    const t = this.ctx.currentTime;
-    const tc = now ? 0.001 : L.fade / 3;
-    for (const l of LAYERS) this.layer[l].gain.setTargetAtTime(on[l] ? 1 : 0, t, tc);
-    const low = this.mood === 'run' && this.state.lowHp;
-    this.lowpass.frequency.setTargetAtTime(low ? L.lowpass.closed : L.lowpass.open, t, tc);
+    src.start(now);
+    this.voices.push({ id, src, gain: g, end: now + buf.duration / src.playbackRate.value, priority });
+    if (def.duck) this.duck(def.duck);
   }
 
-  /** Menús: swing de bajo y acordes; run: arpegio menor con más tensión. null = silencio. */
+  private steal(v: Voice, now: number): void {
+    v.gain.gain.setTargetAtTime(0, now, 0.01);
+    v.src.stop(now + 0.05);
+    v.end = now;
+    this.voices.splice(this.voices.indexOf(v), 1);
+  }
+
+  /** Baja la música un momento para que se oiga el golpe. */
+  private duck(amount: number): void {
+    const t = this.ctx!.currentTime;
+    const g = this.duckGain.gain;
+    const D = AUDIO.duck;
+    const target = Math.min(g.value, 1 - amount);
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(target, t + D.attack);
+    g.setTargetAtTime(1, t + D.attack + 0.1, D.release / 3);
+  }
+
+  // ---------- música y ambiente ----------
+
+  /** Menús: discos de los años 20 por la radio del búnker; run: ambiente del páramo; jefe: percusión. null = silencio. */
   setMusic(mood: MusicMood | null): void {
     if (mood === this.mood) return;
     this.mood = mood;
-    this.step = 0;
-    this.applyLayers(false);
-    if (!mood) this.stopScheduler();
-    else if (this.ctx) this.startScheduler();
+    safe(() => {
+      if (this.ctx && this.index) this.startMood(mood);
+    });
   }
 
-  private startScheduler(): void {
-    if (this.timer !== null || !this.ctx) return;
-    this.nextNote = this.ctx.currentTime + 0.1;
-    this.timer = window.setInterval(() => this.schedule(), 100);
-  }
-
-  private stopScheduler(): void {
-    if (this.timer !== null) window.clearInterval(this.timer);
-    this.timer = null;
-  }
-
-  private schedule(): void {
-    const ctx = this.ctx;
-    const mood = this.mood;
-    if (!ctx || !mood || ctx.state !== 'running') return;
-    const M = AUDIO.music[mood];
-    const beat = 60 / M.bpm / 2;
-    while (this.nextNote < ctx.currentTime + 0.3) {
-      const s = this.step;
-      const bar = Math.floor(s / 8) % M.prog.length;
-      const root = M.prog[bar]!;
-      // Swing: las corcheas impares llegan tarde.
-      const t = this.nextNote + (s % 2 === 1 ? beat * M.swing : 0);
-      const Ly = this.layer;
-      if (s % 2 === 0)
-        this.note(
-          t,
-          'triangle',
-          midi(root - 12 + M.bass[(s / 2) % M.bass.length]!),
-          beat * 1.6,
-          0.22,
-          Ly.bass,
-        );
-      if (s % 8 === 2 || s % 8 === 6)
-        for (const iv of M.chord) this.note(t, 'square', midi(root + iv), beat * 0.6, 0.035, Ly.chords);
-      if (M.arp.length)
-        this.note(t, 'sawtooth', midi(root + 12 + M.arp[s % M.arp.length]!), beat * 0.5, 0.03, Ly.arp);
-      // Melodía de la racha: pentatónica por encima del arpegio.
-      if (this.mood === 'run' && s % 2 === 0) {
-        const lead = AUDIO.layers.lead;
-        this.note(t, 'square', midi(root + lead[(s / 2) % lead.length]!), beat * 0.9, 0.04, Ly.lead);
-      }
-      if (s % 4 === 0) this.burst(t, 0.04, 6000, 0.05, Ly.drums);
-      if (M.kick && s % 4 === 0) {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.frequency.setValueAtTime(120, t);
-        o.frequency.exponentialRampToValueAtTime(40, t + 0.12);
-        g.gain.setValueAtTime(0.35, t);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-        o.connect(g).connect(Ly.drums);
-        o.start(t);
-        o.stop(t + 0.2);
-      }
-      this.nextNote += beat;
-      this.step++;
+  private startMood(mood: MusicMood | null): void {
+    const ctx = this.ctx!;
+    const t = ctx.currentTime;
+    this.setRadio(mood === 'menu');
+    // La mezcla de la run se vuelve a aplicar entera con el siguiente estado; fuera de ella, a su sitio.
+    this.state = { intensity: -1, streak: false, lowHp: false };
+    if (mood !== 'run') {
+      this.musicLevel.gain.setTargetAtTime(1, t, 0.3);
+      this.windLevel.gain.setTargetAtTime(1, t, 0.3);
+    }
+    // Entre run y jefe el filtro de poca vida se queda como está: el siguiente estado lo vuelve a fijar.
+    if (mood !== 'run' && mood !== 'boss') this.sweep(this.openFreq(), 0.3);
+    if (!mood) {
+      this.musicReq++;
+      for (const d of this.decks) if (d.track) this.fadeOut(d, 1.5);
+      this.activeDeck = -1;
+      this.setBed(null);
+      this.stopOneShots();
+      return;
+    }
+    this.playlist = shuffle([...AUDIO.music.tracks[mood]]);
+    this.nextTrack();
+    this.setBed(AUDIO.amb.bed[mood]);
+    if (mood === 'menu') this.stopOneShots();
+    else if (this.ambTimer === null) {
+      for (const [k, o] of Object.entries(AUDIO.amb.oneShots))
+        this.nextAmb.set(k, t + o.every[0] * (0.3 + Math.random() * 0.7));
+      this.ambTimer = window.setInterval(() => safe(() => this.tickAmbience()), 250);
     }
   }
 
-  private note(
-    t: number,
-    type: OscillatorType,
-    f: number,
-    dur: number,
-    vol: number,
-    out: AudioNode = this.music,
-  ): void {
+  private nextTrack(): void {
+    if (!this.mood) return;
+    if (!this.playlist.length) this.playlist = shuffle([...AUDIO.music.tracks[this.mood]]);
+    const id = this.playlist.shift()!;
+    const e = this.index!.music[id];
+    if (e) void this.crossfade(id, e.file);
+  }
+
+  /** Funde de la pista que suena a `track` en el otro reproductor. La pista se baja entera antes de sonar. */
+  private async crossfade(track: string, file: string): Promise<void> {
     const ctx = this.ctx!;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = type;
-    o.frequency.value = f;
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(vol, t + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(out);
-    o.start(t);
-    o.stop(t + dur + 0.05);
+    const xf = AUDIO.music.crossfade;
+    const req = ++this.musicReq;
+    let url: string;
+    try {
+      const res = await fetch(BASE + file);
+      if (!res.ok) throw new Error(`${file}: ${res.status}`);
+      url = URL.createObjectURL(await res.blob());
+    } catch (e) {
+      if (import.meta.env.DEV) console.warn('[audio]', e);
+      return;
+    }
+    // Mientras se bajaba pudo cambiar el momento: esta pista ya no toca.
+    if (req !== this.musicReq) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    // El reproductor se elige al sonar, no al pedir; todos los demás se funden.
+    const ni = this.activeDeck === 0 ? 1 : 0;
+    const next = this.decks[ni]!;
+    for (const d of this.decks) if (d !== next && d.track) this.fadeOut(d, xf);
+    const gen = ++next.gen;
+    this.activeDeck = ni;
+    if (next.url) URL.revokeObjectURL(next.url);
+    next.url = url;
+    next.track = track;
+    next.el.src = url;
+    const t = ctx.currentTime;
+    next.gain.gain.cancelScheduledValues(t);
+    next.gain.gain.setValueAtTime(0, t);
+    next.gain.gain.linearRampToValueAtTime(1, t + xf);
+    if (this.focused) void next.el.play().catch(() => undefined);
+    // Antes de que acabe entra la siguiente con un fundido; `onended` por si el aviso de tiempo no llegó.
+    const advance = (): void => {
+      if (next.gen !== gen) return;
+      next.el.ontimeupdate = null;
+      next.el.onended = null;
+      next.el.onerror = null;
+      safe(() => this.nextTrack());
+    };
+    next.el.ontimeupdate = () => {
+      const left = next.el.duration - next.el.currentTime;
+      if (isFinite(left) && left < xf + 0.25) advance();
+    };
+    next.el.onended = advance;
+    next.el.onerror = advance;
+  }
+
+  private fadeOut(d: Deck, xf: number): void {
+    const t = this.ctx!.currentTime;
+    const g = d.gain.gain;
+    const gen = ++d.gen;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(0, t + xf);
+    d.el.ontimeupdate = null;
+    d.el.onended = null;
+    d.el.onerror = null;
+    window.setTimeout(
+      () => {
+        if (d.gen === gen) this.stopDeck(d);
+      },
+      xf * 1000 + 100,
+    );
+  }
+
+  private stopDeck(d: Deck): void {
+    d.gen++;
+    d.el.pause();
+    d.gain.gain.cancelScheduledValues(0);
+    d.gain.gain.value = 0;
+    d.track = null;
+  }
+
+  /** Cambia el lecho de ambiente con un fundido; suena en loop exacto desde memoria. */
+  private setBed(id: string | null): void {
+    if ((this.bed?.id ?? null) === id) return;
+    const ctx = this.ctx!;
+    const t = ctx.currentTime;
+    const F = AUDIO.amb.fade;
+    const old = this.bed;
+    if (old) {
+      old.gain.gain.cancelScheduledValues(t);
+      old.gain.gain.setValueAtTime(old.gain.gain.value, t);
+      old.gain.gain.linearRampToValueAtTime(0, t + F);
+      old.src.stop(t + F + 0.05);
+    }
+    this.bed = null;
+    const buf = id ? this.buffers.get('bed:' + id)?.[0] : undefined;
+    const e = id ? (this.index?.amb[id] as Entry | undefined) : undefined;
+    if (!id || !buf) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    const a = e?.loopStart ?? 0;
+    const b = Math.min(buf.duration, e?.loopEnd ?? buf.duration);
+    src.loopStart = a;
+    src.loopEnd = b;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(AUDIO.amb.bedGain, t + F);
+    src.connect(gain).connect(this.amb);
+    src.onended = () => gain.disconnect();
+    // Cada vez desde un punto distinto del loop, para que no suene igual al entrar.
+    src.start(t, a + Math.random() * (b - a));
+    this.bed = { id, src, gain };
+  }
+
+  private setRadio(on: boolean, now = false): void {
+    const R = AUDIO.music.radio;
+    const t = this.ctx!.currentTime;
+    const tc = now ? 0.001 : 0.4;
+    this.radio[0].frequency.setTargetAtTime(on ? R.lo : 20, t, tc);
+    this.radio[1].frequency.setTargetAtTime(on ? R.hi : this.openFreq(), t, tc);
+  }
+
+  /** Barrido del filtro de poca vida, exponencial (suena como el oído, no como un corte tardío). */
+  private sweep(f: number, time: number): void {
+    const t = this.ctx!.currentTime;
+    const p = this.world.frequency;
+    p.cancelScheduledValues(t);
+    p.setValueAtTime(p.value, t);
+    p.exponentialRampToValueAtTime(f, t + time);
+  }
+
+  private stopOneShots(): void {
+    if (this.ambTimer !== null) window.clearInterval(this.ambTimer);
+    this.ambTimer = null;
+  }
+
+  /** Truenos, ráfagas y explosiones lejanas al azar, colocados a un lado u otro; y el latido con poca vida. */
+  private tickAmbience(): void {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state !== 'running' || this.paused) return;
+    const t = ctx.currentTime;
+    for (const [k, o] of Object.entries(AUDIO.amb.oneShots)) {
+      if (t < (this.nextAmb.get(k) ?? 0)) continue;
+      this.nextAmb.set(k, t + o.every[0] + Math.random() * (o.every[1] - o.every[0]));
+      const bufs = this.buffers.get('amb:' + k);
+      if (!bufs) continue;
+      const src = ctx.createBufferSource();
+      src.buffer = bufs[(Math.random() * bufs.length) | 0]!;
+      src.playbackRate.value = 0.9 + Math.random() * 0.2;
+      const g = ctx.createGain();
+      g.gain.value = o.gain;
+      src.connect(g);
+      let out: AudioNode = g;
+      if (typeof ctx.createStereoPanner === 'function') {
+        const p = ctx.createStereoPanner();
+        p.pan.value = (Math.random() * 2 - 1) * 0.8;
+        out = g.connect(p);
+      }
+      out.connect(this.amb);
+      const s = ctx.createGain();
+      s.gain.value = 0.5;
+      out.connect(s).connect(this.ambSend);
+      src.onended = () => {
+        g.disconnect();
+        out.disconnect();
+        s.disconnect();
+      };
+      src.start(t);
+    }
+    if (this.state.lowHp && this.mood !== 'menu') this.heartbeat(t);
+  }
+
+  /** Latido grave con poca vida (dos golpes sordos), programado por delante en el reloj del audio. */
+  private heartbeat(t: number): void {
+    const H = AUDIO.layers.heartbeat;
+    const beat = 60 / H.bpm;
+    if (this.heartAt < t) this.heartAt = t + 0.05;
+    const ctx = this.ctx!;
+    while (this.heartAt < t + 0.6) {
+      for (const [dt, v] of [
+        [0, 1],
+        [0.22, 0.7],
+      ] as const) {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        const at = this.heartAt + dt;
+        o.frequency.setValueAtTime(62, at);
+        o.frequency.exponentialRampToValueAtTime(38, at + 0.15);
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(H.gain * v * this.sfxVol, at + 0.012);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.2);
+        // Directo al margen final: el latido no se apaga con el filtro de poca vida.
+        o.connect(g).connect(this.master);
+        o.onended = () => g.disconnect();
+        o.start(at);
+        o.stop(at + 0.25);
+      }
+      this.heartAt += beat;
+    }
+  }
+
+  /** La run informa de su estado: la mezcla se mueve con un fundido. */
+  setMusicState(s: MusicState): void {
+    safe(() => {
+      const changed =
+        s.streak !== this.state.streak ||
+        s.lowHp !== this.state.lowHp ||
+        Math.abs(s.intensity - this.state.intensity) > 0.05;
+      if (!changed || !this.ctx) return;
+      const wasLow = this.state.lowHp;
+      this.state = { ...s };
+      const L = AUDIO.layers;
+      const t = this.ctx.currentTime;
+      const tc = L.fade / 3;
+      const i = this.mood === 'run' ? s.intensity : 1;
+      const lerp = (r: readonly [number, number]): number => r[0] + (r[1] - r[0]) * i;
+      this.musicLevel.gain.setTargetAtTime(lerp(L.music) * (s.streak ? 1.1 : 1), t, tc);
+      this.windLevel.gain.setTargetAtTime(lerp(L.wind), t, tc);
+      const low = this.mood !== 'menu' && s.lowHp;
+      if (low !== wasLow) this.sweep(low ? L.lowpass.closed : this.openFreq(), L.fade);
+    });
   }
 }
-
-const midi = (n: number): number => 440 * Math.pow(2, (n - 69) / 12);
 
 export const audio = new AudioEngine();

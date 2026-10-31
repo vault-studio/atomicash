@@ -3,7 +3,7 @@
 import { WEAPONS, scaled, type WeaponId } from '../../config/weapons';
 import { FX } from '../../config/run';
 import { addShake, beamPoint, beamStart, boom } from '../fx';
-import { SFX, sfx } from '../sfx';
+import { SFX, SHOT_SFX, sfx } from '../sfx';
 import {
   SHOT_HITS,
   type Enemy,
@@ -64,7 +64,7 @@ function addShot(
   kb: number,
 ): void {
   const p = w.player;
-  sfx(w, SFX.shot);
+  sfx(w, SHOT_SFX[src] ?? SFX.shot);
   const s = w.shots.acquire();
   s.x = p.x;
   s.y = p.y;
@@ -118,7 +118,7 @@ function chain(
   const out = w.qChain;
   let ns = 0;
   seen[ns++] = first.id;
-  const beam = beamStart(w, ox, oy, 0.12, FX.colors.chain);
+  const beam = beamStart(w, ox, oy, 0.12, FX.colors.chain, SFX.tesla);
   beamPoint(beam, first.x, first.y);
   if (!skipFirst) hitEnemy(w, first, dmg, src, 0);
   let cx = first.x;
@@ -429,6 +429,7 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
         l.dur = W.flight;
         l.lvl = lvl;
         thrown++;
+        sfx(w, SFX.throw);
       }
       wp.cd = thrown === 0 ? 0.1 : W.cd * st.cdMult;
       return;
@@ -498,7 +499,7 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
         wp.cd = 0.05;
         return;
       }
-      boom(w, p.x, p.y, R, 0.2, FX.colors.hammer);
+      boom(w, p.x, p.y, R, 0.2, FX.colors.hammer, SFX.slam);
       addShake(w, 2);
       wp.cd = W.cd * st.cdMult;
       return;
@@ -534,6 +535,7 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
         p.y + Math.sin(base - half) * R,
         0.15,
         FX.colors.cone,
+        SFX.sonic,
       );
       beamPoint(beam, p.x, p.y);
       beamPoint(beam, p.x + Math.cos(base + half) * R, p.y + Math.sin(base + half) * R);
@@ -550,7 +552,7 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
       const dmg = scaled(W.dmg, W.dmgPerLvl, lvl) * (1 + W.regenBonus * st.regen);
       for (let i = 0; i < k; i++) {
         const e = w.enemies.items[nearIdx[i]!]!;
-        const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.zap);
+        const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.zap, SFX.defib);
         beamPoint(beam, e.x, e.y);
         hitEnemy(w, e, dmg, wp.id, 0, W.kb, p.x, p.y);
       }
@@ -625,6 +627,7 @@ export function updateLobs(w: World, dt: number): void {
     l.t += dt;
     if (l.t < l.dur) continue;
     const life = W.dur + W.durPerLvl * (l.lvl - 1);
+    sfx(w, SFX.molotov, l.tx, l.ty);
     addFirePool(
       w,
       l.tx,
@@ -675,7 +678,7 @@ export function updateMines(w: World, dt: number): void {
       hitEnemy(w, e, m.dmg, 'petardos', 0, W.kb, m.x, m.y);
       if (!e.boss) e.stun = Math.max(e.stun, W.stun);
     }
-    boom(w, m.x, m.y, m.r, 0.18, FX.colors.mine);
+    boom(w, m.x, m.y, m.r, 0.18, FX.colors.mine, SFX.pop);
     w.mines.releaseAt(i);
   }
 }

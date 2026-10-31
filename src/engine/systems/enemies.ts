@@ -33,6 +33,7 @@ import {
 } from '../types';
 import { blockCircle, hitsObstacle } from '../obstacles';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
+import { SFX, sfx } from '../sfx';
 
 const TAU = Math.PI * 2;
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
@@ -261,6 +262,7 @@ export function fireBullet(
   dmg: number,
   rad: number,
 ): void {
+  sfx(w, SFX.eshot, x, y);
   const b = w.ebullets.acquire();
   b.x = x;
   b.y = y;

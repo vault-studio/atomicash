@@ -650,6 +650,7 @@
     "sound": "SOUND",
     "musicVol": "Music",
     "sfxVol": "Effects",
+    "audioCredits": "Boss music: \"Industrial Cinematic\" by Kevin MacLeod (incompetech.com), CC BY 4.0. Menu records from 1920–1924, public domain. All other audio CC0 (BigSoundBank, OpenGameArt).",
     "graphics": "GRAPHICS",
     "crtFilter": "CRT filter (scanlines and vignette)",
     "damageNumbers": "Damage numbers",
