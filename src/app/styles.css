@@ -364,14 +364,6 @@ select {
   display: block;
 }
 
-.run__loading {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: var(--crt);
-}
-
 .run__back {
   position: absolute;
   top: max(10px, env(safe-area-inset-top));

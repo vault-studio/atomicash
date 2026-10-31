@@ -10,6 +10,7 @@ import type { RunResults } from '../engine/world';
 import { STARTERS } from '../config/meta';
 import type { StatSurvivorId } from '../config/survivors';
 import { RunScreen } from './screens/RunScreen';
+import { Intro } from './screens/Intro';
 import { Backpack } from './screens/bunker/Backpack';
 import { Board } from './screens/bunker/Board';
 import {
@@ -45,6 +46,9 @@ export function App() {
   const [runChar, setRunChar] = useState<StatSurvivorId | null>(null);
   /** Reto diario en curso (null en una expedición normal). */
   const [daily, setDaily] = useState<DailyChallenge | null>(null);
+  /** Intro de la bomba al abrir el juego (se salta con movimiento reducido). */
+  const [intro, setIntro] = useState(() => !useSave.getState().data.settings.reduceMotion);
+  const endIntro = useCallback(() => setIntro(false), []);
   const st = data.settings;
   const active = data.profile.active;
 
@@ -156,6 +160,7 @@ export function App() {
   return (
     <>
       {screen}
+      {intro && <Intro onDone={endIntro} />}
       <SaveConflictDialog />
       <div className="rotate">{t('app.rotate')}</div>
     </>

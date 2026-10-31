@@ -3,6 +3,11 @@
     "title": "ATOMIC ASH",
     "subtitle": "Las Afueras · Acto 1",
     "loading": "Cargando sprites…",
+    "tagline": "El fin del mundo solo fue el principio",
+    "introBoot": "Industrias Ceniza (TM) · Terminal mod. 57",
+    "introAlert": "¡Alerta atómica! Agáchese y cúbrase",
+    "expedition": "Comenzando expedición…",
+    "loaderSignal": "SEÑAL",
     "language": "Idioma",
     "rotate": "Gira el móvil a horizontal ↻"
   },

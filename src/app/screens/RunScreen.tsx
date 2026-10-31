@@ -10,7 +10,13 @@ import { Hud } from './run/Hud';
 import { PauseStats } from './run/PauseStats';
 import { Results } from './run/Results';
 import { Weld } from './run/Weld';
+import { ExpeditionLoader } from './ExpeditionLoader';
 import type { WeaponId } from '../../config/weapons';
+
+/** El hongo de la carga se ve al menos esto (ms), con la run en pausa detrás. */
+const LOADER_MIN_MS = 2600;
+/** Fundido de salida del hongo (cuadra con .nukeload en nuke.css). */
+const LOADER_FADE_MS = 400;
 
 const COARSE_POINTER = window.matchMedia('(pointer: coarse)').matches;
 
@@ -31,6 +37,9 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
   const hostRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<RunSession | null>(null);
   const [ready, setReady] = useState(false);
+  /** Hongo de carga: tapa al menos LOADER_MIN_MS y hasta que la run esté lista; luego se funde y se quita. */
+  const [minDone, setMinDone] = useState(false);
+  const [loaderGone, setLoaderGone] = useState(false);
   const [hud, setHud] = useState<HudSnapshot | null>(null);
   const [choice, setChoice] = useState<Choice | null>(null);
   // Cada elección nueva remonta las tarjetas (la tragaperras de los cofres vuelve a girar).
@@ -61,6 +70,9 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
     setResult(null);
     setChoice(null);
     setPaused(false);
+    setMinDone(false);
+    setLoaderGone(false);
+    const minTimer = setTimeout(() => setMinDone(true), LOADER_MIN_MS);
     void startRun(
       host,
       { charId, seed, settings: settingsRef.current, ...optionsRef.current },
@@ -83,6 +95,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
     });
     return () => {
       cancelled = true;
+      clearTimeout(minTimer);
       session?.dispose();
       sessionRef.current = null;
     };
@@ -92,9 +105,16 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
     sessionRef.current?.apply(settings);
   }, [settings]);
 
+  const loaded = ready && minDone;
   useEffect(() => {
-    sessionRef.current?.setPaused(paused || weld !== null);
-  }, [paused, weld]);
+    if (!loaded) return;
+    const t = setTimeout(() => setLoaderGone(true), LOADER_FADE_MS);
+    return () => clearTimeout(t);
+  }, [loaded]);
+
+  useEffect(() => {
+    sessionRef.current?.setPaused(paused || weld !== null || !loaded);
+  }, [paused, weld, loaded, ready]);
 
   // Pausa con Esc/P y al perder el foco de la pestaña.
   useEffect(() => {
@@ -140,7 +160,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
   return (
     <div className="run">
       <div className="run__canvas" ref={hostRef} />
-      {!ready && <div className="run__loading">{t('app.loading')}</div>}
+      {!loaderGone && <ExpeditionLoader leaving={loaded} />}
       {ready && hud && world && <Hud hud={hud} world={world} onPause={pause} onConsume={consume} />}
       {TEST_PHASE && ready && !result && !choice && !paused && (
         // Fase de test: saca al Coloso en cualquier momento. tabIndex -1 para que el espacio no lo vuelva a pulsar.
