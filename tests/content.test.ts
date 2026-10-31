@@ -131,6 +131,20 @@ describe('IA de enemigos (03_CONTENT.md)', () => {
     expect(w.ebullets.count + (w.player.lastHit > 0 ? 1 : 0)).toBeGreaterThan(0);
   });
 
+  it('plantado, el tirador no vuelve a andar por un paso que des, solo si te alejas `resume`', () => {
+    const w = quiet();
+    w.player.god = true;
+    const e = spawnEnemy(w, 'tirador', w.player.x + AI.tirador.hold + 200, w.player.y, false);
+    run(w, 6);
+    expect(e.moving).toBe(false);
+    w.player.x -= AI.tirador.resume / 2;
+    run(w, 1);
+    expect(e.moving).toBe(false);
+    w.player.x -= AI.tirador.resume;
+    tick(w, STILL, STEP);
+    expect(e.moving).toBe(true);
+  });
+
   it('el hinchado explota al morir y daña a los suyos', () => {
     const w = quiet();
     const { x, y } = w.player;

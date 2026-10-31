@@ -350,7 +350,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
   switch (e.type) {
     case 'tirador': {
       const A = AI.tirador;
-      if (d > A.hold) {
+      if (d > (e.moving ? A.hold : A.hold + A.resume)) {
         vx = ux * spd;
         vy = uy * spd;
       } else {

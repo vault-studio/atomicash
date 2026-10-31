@@ -10,6 +10,7 @@ import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
 import { FLY_HEIGHT } from './fxLayer';
 import { dirIndex, isoX, isoY } from './iso';
+import type { SpriteMeta } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';
 
 /** Altura de vuelo de un sprite volador: el Dirigible (y su variante dañada) vuela más bajo por su tamaño. */
@@ -78,6 +79,16 @@ export class EnemyLayer {
     this.dead = new ViewSlots(parent, lib);
   }
 
+  /** Hoja de ataque que se mostrará para `anim` (el tirador pide `attack` pero solo trae `attack_1`). */
+  private attackMeta(id: EntityId, anim: string): SpriteMeta | null {
+    for (const a of ATTACK_ANIMS[anim]!) {
+      if (!a.startsWith('attack')) break;
+      const m = this.lib.meta(id, a);
+      if (m) return m;
+    }
+    return null;
+  }
+
   /** `victor` (si lo hay) hace su animación de victoria mirando a cámara, `victorT` s desde que empezó. */
   sync(w: World, alpha: number, victor: Enemy | null = null, victorT = 0): void {
     const items = w.enemies.items;
@@ -95,7 +106,7 @@ export class EnemyLayer {
       v.zIndex = x + y + (e.flying ? 1e6 : 0);
       const dir = dirIndex(e.facingX, e.facingY);
       const since = w.time - e.lastAtk;
-      const atkMeta = this.lib.meta(id, e.atkAnim);
+      const atkMeta = this.attackMeta(id, e.atkAnim);
       const atkDur = atkMeta ? atkMeta.frames / atkMeta.fps : ATTACK_FALLBACK;
       if (e === victor) v.show(VICTORY_ANIMS, 0, victorT, 0);
       else if (since < atkDur) v.show(ATTACK_ANIMS[e.atkAnim]!, dir, since, 0);
