@@ -63,6 +63,30 @@ export async function linkGoogle(): Promise<void> {
   if (error) throw error;
 }
 
+/** Entra con una cuenta de Google que ya existe (otro dispositivo). Sustituye la sesión actual. Redirige a Google. */
+export async function signInGoogle(): Promise<void> {
+  const sb = await client();
+  const { error } = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname },
+  });
+  if (error) throw error;
+}
+
+export type AuthReturn = 'identity-taken' | 'error';
+
+/**
+ * Error con el que vuelve el login de Google (en la query o el hash), o null. Limpia la URL para que no se
+ * repita al recargar. `identity-taken`: esa cuenta de Google ya está vinculada a otro jugador.
+ */
+export function takeAuthReturn(): AuthReturn | null {
+  const { search, hash, pathname } = window.location;
+  const params = new URLSearchParams(search + '&' + hash.replace(/^#/, ''));
+  if (!params.has('error') && !params.has('error_code')) return null;
+  window.history.replaceState(null, '', pathname);
+  return params.get('error_code') === 'identity_already_exists' ? 'identity-taken' : 'error';
+}
+
 export async function signOut(): Promise<void> {
   const sb = await client();
   await sb.auth.signOut();

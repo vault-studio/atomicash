@@ -706,6 +706,14 @@
       "error": "No se pudo guardar el apodo."
     },
     "linkGoogle": "Vincular con Google",
+    "signInGoogle": "Ya tengo cuenta: entrar con Google",
+    "identityTaken": "Esa cuenta de Google ya tiene una partida guardada. Entra con ella para seguir donde lo dejaste.",
+    "conflict": {
+      "title": "DOS PARTIDAS",
+      "text": "La partida de la nube es distinta de la de este dispositivo. Elige cuál conservar; la otra se sustituye.",
+      "cloud": "Usar la de la nube ({{n}} expediciones, {{when}})",
+      "local": "Quedarme con la de este dispositivo ({{n}} expediciones)"
+    },
     "autoSubmit": "Enviar mis expediciones al ranking",
     "push": "Subir partida a la nube",
     "pull": "Bajar partida de la nube",

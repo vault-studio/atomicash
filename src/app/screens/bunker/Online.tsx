@@ -13,7 +13,7 @@ import {
   type BoardRow,
   type ReportReason,
 } from '../../../online/online';
-import { connect, pullSave, pushSave } from '../../../online/session';
+import { connect, loginGoogle, pullSave, pushSave } from '../../../online/session';
 import { useOnline } from '../../../store/online';
 import { fmtTime } from '../run/Hud';
 
@@ -37,10 +37,19 @@ export function OnlinePanel() {
             </a>
           </small>
         </p>
-        <button className="btn" disabled={on.status === 'busy'} onClick={() => void connect()}>
-          {t(on.status === 'busy' ? 'online.connecting' : 'online.connect')}
-        </button>
-        {on.status === 'error' && <p role="status">{t('online.error')}</p>}
+        <div className="row">
+          <button className="btn" disabled={on.status === 'busy'} onClick={() => void connect()}>
+            {t(on.status === 'busy' ? 'online.connecting' : 'online.connect')}
+          </button>
+          <button
+            className="btn btn--primary"
+            disabled={on.status === 'busy'}
+            onClick={() => void loginGoogle().catch(() => on.set({ status: 'error' }))}
+          >
+            {t('online.signInGoogle')}
+          </button>
+        </div>
+        {(on.status === 'error' || on.authReturn === 'error') && <p role="status">{t('online.error')}</p>}
       </>
     );
 
@@ -76,6 +85,18 @@ export function OnlinePanel() {
           </button>
         )}
       </div>
+      {on.authReturn === 'identity-taken' && acc.guest && (
+        <div className="online-taken" role="status">
+          <p>{t('online.identityTaken')}</p>
+          <button
+            className="btn btn--primary"
+            onClick={() => void loginGoogle().catch(() => setMsg(t('online.error')))}
+          >
+            {t('online.signInGoogle')}
+          </button>
+        </div>
+      )}
+      {on.authReturn === 'error' && <p role="status">{t('online.error')}</p>}
       <label className="field field--check">
         <input
           type="checkbox"
@@ -103,7 +124,9 @@ export function OnlinePanel() {
         <button
           className="btn btn--danger"
           onClick={() =>
-            void signOut().then(() => on.set({ account: null, connected: false, lastSyncAt: null }))
+            void signOut().then(() =>
+              on.set({ account: null, connected: false, lastSyncAt: null, conflict: null, authReturn: null }),
+            )
           }
         >
           {t('online.signOut')}
@@ -111,6 +134,40 @@ export function OnlinePanel() {
       </div>
       {msg && <p role="status">{msg}</p>}
     </>
+  );
+}
+
+/** Al entrar con una cuenta que ya tiene otra partida en la nube: el jugador elige cuál conservar. */
+export function SaveConflictDialog() {
+  const { t } = useTranslation();
+  const conflict = useOnline((s) => s.conflict);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+  if (!conflict) return null;
+  const pick = (keep: () => Promise<boolean>): void => {
+    setBusy(true);
+    void keep().then((ok) => {
+      setBusy(false);
+      setFailed(!ok);
+    });
+  };
+  return (
+    <div className="overlay save-conflict" role="dialog" aria-modal="true">
+      <h2 className="overlay__title">{t('online.conflict.title')}</h2>
+      <p className="endless__text">{t('online.conflict.text')}</p>
+      <div className="overlay__actions">
+        <button className="btn btn--primary" autoFocus disabled={busy} onClick={() => pick(pullSave)}>
+          {t('online.conflict.cloud', {
+            n: conflict.cloudRuns,
+            when: new Date(conflict.cloudAt).toLocaleString(),
+          })}
+        </button>
+        <button className="btn" disabled={busy} onClick={() => pick(pushSave)}>
+          {t('online.conflict.local', { n: conflict.localRuns })}
+        </button>
+      </div>
+      {failed && <p role="status">{t('online.error')}</p>}
+    </div>
   );
 }
 

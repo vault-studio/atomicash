@@ -3,7 +3,7 @@ import { CHAR_IDS, LIMITS, checkNickname, checkRun } from '../supabase/functions
 import { BOSSES, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { STAT_SURVIVOR_IDS } from '../src/config/survivors';
-import { ONLINE_ENABLED, toSubmission } from '../src/online/online';
+import { ONLINE_ENABLED, takeAuthReturn, toSubmission } from '../src/online/online';
 import { createWorld, results } from '../src/engine/world';
 import { HIT_RAW, hitEnemy } from '../src/engine/systems/combat';
 import { spawnBoss } from '../src/engine/systems/spawning';
@@ -86,5 +86,29 @@ describe('apodos', () => {
 describe('modo sin conexión', () => {
   it('sin variables de entorno la capa online está apagada', () => {
     expect(ONLINE_ENABLED).toBe(false);
+  });
+});
+
+describe('vuelta del login de Google', () => {
+  const at = (search: string, hash = ''): { ret: ReturnType<typeof takeAuthReturn>; cleaned: boolean } => {
+    let cleaned = false;
+    Object.assign(globalThis, {
+      window: {
+        location: { search, hash, pathname: '/' },
+        history: { replaceState: () => (cleaned = true) },
+      },
+    });
+    const ret = takeAuthReturn();
+    return { ret, cleaned };
+  };
+
+  it('reconoce la cuenta de Google ya vinculada a otro jugador y limpia la URL', () => {
+    const q = '?error=server_error&error_code=identity_already_exists';
+    expect(at(q, '#' + q.slice(1))).toEqual({ ret: 'identity-taken', cleaned: true });
+  });
+
+  it('cualquier otro error es genérico y sin error no toca la URL', () => {
+    expect(at('', '#error=access_denied').ret).toBe('error');
+    expect(at('', '#access_token=abc&refresh_token=def')).toEqual({ ret: null, cleaned: false });
   });
 });

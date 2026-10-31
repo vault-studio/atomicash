@@ -1876,3 +1876,21 @@ button.card--survivor {
   border-radius: 50%;
   background: #1a1a12;
 }
+
+/* Conflicto de partidas al entrar con Google (encima de cualquier pantalla) */
+.save-conflict {
+  position: fixed;
+  z-index: 50;
+  background: rgba(8, 10, 6, 0.92);
+  text-align: center;
+}
+
+.online-taken {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--crt);
+}
+
+.online-taken p {
+  margin: 0 0 8px;
+}

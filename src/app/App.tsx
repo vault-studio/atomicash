@@ -28,6 +28,7 @@ import { Supplies } from './screens/bunker/Supplies';
 import { Tree } from './screens/bunker/Tree';
 import { Survivors } from './screens/bunker/Survivors';
 import { Workshop } from './screens/bunker/Workshop';
+import { SaveConflictDialog } from './screens/bunker/Online';
 import { RunReward } from './screens/run/RunReward';
 
 type View = BunkerView | 'bunker';
@@ -155,6 +156,7 @@ export function App() {
   return (
     <>
       {screen}
+      <SaveConflictDialog />
       <div className="rotate">{t('app.rotate')}</div>
     </>
   );

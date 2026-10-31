@@ -706,6 +706,14 @@
       "error": "Could not save the nickname."
     },
     "linkGoogle": "Link with Google",
+    "signInGoogle": "I have an account: sign in with Google",
+    "identityTaken": "That Google account already has a saved game. Sign in with it to pick up where you left off.",
+    "conflict": {
+      "title": "TWO SAVES",
+      "text": "Your cloud save is different from the one on this device. Choose which to keep; the other gets replaced.",
+      "cloud": "Use the cloud save ({{n}} expeditions, {{when}})",
+      "local": "Keep this device's save ({{n}} expeditions)"
+    },
     "autoSubmit": "Send my expeditions to the leaderboard",
     "push": "Upload save to cloud",
     "pull": "Download save from cloud",
