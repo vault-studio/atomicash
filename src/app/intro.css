@@ -184,17 +184,17 @@
   opacity: 0;
   animation:
     intro-blink 0.5s steps(1) 0.75s infinite,
-    intro-frame 1ms steps(1) var(--impact) forwards;
+    intro-gone 1ms var(--impact) forwards;
 }
 
 .intro__frame {
   opacity: 0;
-  animation: intro-frame var(--dur) steps(1) calc(var(--impact) + var(--at)) forwards;
+  animation: intro-frame var(--dur) calc(var(--impact) + var(--at));
 }
 
 .intro__cloud {
   opacity: 0;
-  animation: intro-show 1ms steps(1) calc(var(--impact) + var(--at)) forwards;
+  animation: intro-show 1ms calc(var(--impact) + var(--at)) forwards;
 }
 
 .intro__boil {
@@ -223,7 +223,7 @@
   filter: drop-shadow(0 0 0.35cqh var(--ph-hi));
   animation:
     intro-fall 0.9s steps(3) calc(var(--impact) - 0.9s + var(--lag) * 60ms) both,
-    intro-frame 1ms steps(1) var(--impact) forwards;
+    intro-gone 1ms var(--impact) forwards;
 }
 
 /* Subtítulo a máquina con cursor de bloque. */
@@ -369,19 +369,26 @@
 /* ---------- Fotogramas ---------- */
 
 /* Visible solo mientras dura (va con `forwards`): fotogramas sueltos y cosas que desaparecen. */
+/* Fotogramas sueltos con valores fijos (sin interpolar): un `from → to` de 1 ms con steps(1) se quedaba en el
+ * `from` al pasar de largo en tiempo real. Visible solo mientras dura (sin `fill`). */
 @keyframes intro-frame {
-  from {
+  from,
+  to {
     opacity: 1;
   }
+}
+
+/* Desaparece y se queda así (con `forwards`): la bomba y el cursor al impacto. */
+@keyframes intro-gone {
+  from,
   to {
     opacity: 0;
   }
 }
 
+/* Aparece y se queda (con `forwards`): el hongo definitivo. */
 @keyframes intro-show {
-  from {
-    opacity: 0;
-  }
+  from,
   to {
     opacity: 1;
   }
