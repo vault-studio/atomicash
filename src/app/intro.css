@@ -343,6 +343,29 @@
   box-shadow: inset 0 0 6cqh rgba(0, 0, 0, 0.9);
 }
 
+/* ---------- Monitor apagado: espera el primer toque (sin él el navegador no deja sonar la música) ---------- */
+
+.intro--off {
+  display: grid;
+  place-items: center;
+}
+
+.intro__power {
+  font-family: var(--mono);
+  font-size: min(3.4cqw, 6.5cqh);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ph-hi);
+  text-shadow: 0 0 0.35em var(--glow);
+  animation: intro-power 1.1s steps(1) infinite;
+}
+
+@keyframes intro-power {
+  60% {
+    opacity: 0.15;
+  }
+}
+
 /* ---------- Fotogramas ---------- */
 
 /* Visible solo mientras dura (va con `forwards`): fotogramas sueltos y cosas que desaparecen. */

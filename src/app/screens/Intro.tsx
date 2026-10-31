@@ -516,9 +516,31 @@ interface IntroProps {
   onDone: () => void;
 }
 
-/** Arranque del juego en un monitor de búnker: cae una bomba en el hueco de la T de «ATOMIC ASH» y su hongo se
- *  queda como la T. Se salta con un toque o una tecla. */
+/** Arranque del juego. El navegador no deja sonar nada antes del primer gesto, así que el monitor espera apagado
+ *  a que se pulse: ese toque desbloquea el audio (main.tsx), arranca la música del menú y enciende la intro. */
 export function Intro({ onDone }: IntroProps) {
+  const { t } = useTranslation();
+  const [on, setOn] = useState(false);
+
+  useEffect(() => {
+    if (on) return;
+    const power = (): void => setOn(true);
+    window.addEventListener('keydown', power);
+    return () => window.removeEventListener('keydown', power);
+  }, [on]);
+
+  if (on) return <IntroShow onDone={onDone} />;
+  return (
+    <div className="intro intro--off" onPointerUp={() => setOn(true)}>
+      <div className="intro__power">{t('app.introPower')}</div>
+      <div className="intro__glass" />
+    </div>
+  );
+}
+
+/** El monitor de búnker encendido: cae una bomba en el hueco de la T de «ATOMIC ASH» y su hongo se queda como la
+ *  T. Se salta con un toque o una tecla. */
+function IntroShow({ onDone }: IntroProps) {
   const { t } = useTranslation();
   const [leaving, setLeaving] = useState(false);
 
