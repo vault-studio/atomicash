@@ -241,8 +241,8 @@ describe('tragaperras del cofre especial', () => {
     }
     w.choice = null;
     CACHE_ROLL.tiers.forEach(([p], k) => expect(Math.abs(hits[k]! / N - p)).toBeLessThan(0.006));
-    expect(sum / N).toBeGreaterThan(340);
-    expect(sum / N).toBeLessThan(390);
+    expect(sum / N).toBeGreaterThan(230);
+    expect(sum / N).toBeLessThan(265);
     expect(CACHE_ROLL.tiers.reduce((a, [p]) => a + p, 0)).toBeCloseTo(1);
   });
 });

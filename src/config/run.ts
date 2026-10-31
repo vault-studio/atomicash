@@ -106,21 +106,18 @@ export const COUPONS = { dropChance: 0.01, drop: 5, r: 6, cache: 100 } as const;
 
 /**
  * Tragaperras del cofre especial: cupones al azar en vez de una cantidad fija (y siempre un nivel).
- * Cada tramo es `[probabilidad, mínimo, máximo]` (ambos incluidos); las probabilidades suman 1. Media ≈ 366.
- * `jackpot` (999) es el premio gordo y desde `big` la máquina celebra un gran premio.
+ * Cada tramo es `[probabilidad, mínimo, máximo]` (ambos incluidos); las probabilidades suman 1. Media ≈ 246.
+ * `jackpot` (500) es el premio gordo y desde `big` la máquina celebra un gran premio.
  */
 export const CACHE_ROLL = {
   tiers: [
-    [0.01, 999, 999],
-    [0.03, 901, 998],
-    [0.06, 601, 900],
-    [0.15, 501, 599],
-    [0.2, 351, 499],
-    [0.4, 151, 349],
-    [0.15, 50, 149],
+    [0.05, 500, 500],
+    [0.25, 351, 499],
+    [0.3, 151, 349],
+    [0.4, 50, 149],
   ],
-  jackpot: 999,
-  big: 601,
+  jackpot: 500,
+  big: 351,
 } as const;
 
 /**
