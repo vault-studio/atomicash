@@ -9,10 +9,13 @@ export default defineConfig({
   // No se usa como publicDir para no copiar conceptos ni .glb al build; el plugin artAssets
   // solo publica sprites/, icons/ y manifest.json. El JS/CSS compilado va a `static/`.
   publicDir: false,
-  build: { assetsDir: 'static' },
+  // `privacidad.html` es la política de privacidad que piden Google OAuth y Google Play (Vercel la sirve en /privacidad).
+  build: { assetsDir: 'static', rollupOptions: { input: ['index.html', 'privacidad.html'] } },
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Los tests no ven las claves de `.env.local`: el online se prueba siempre apagado.
+    env: { VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' },
     // Permite forzar el GC en los tests de allocations (tests/alloc.test.ts).
     pool: 'forks',
     execArgv: ['--expose-gc'],

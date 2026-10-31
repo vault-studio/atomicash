@@ -30,7 +30,12 @@ export function OnlinePanel() {
     return (
       <>
         <p>
-          <small>{t('online.privacy')}</small>
+          <small>
+            {t('online.privacy')}{' '}
+            <a href="/privacidad" target="_blank" rel="noreferrer">
+              {t('online.privacyLink')}
+            </a>
+          </small>
         </p>
         <button className="btn" disabled={on.status === 'busy'} onClick={() => void connect()}>
           {t(on.status === 'busy' ? 'online.connecting' : 'online.connect')}

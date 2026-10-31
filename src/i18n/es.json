@@ -688,6 +688,7 @@
     "ranking": "RANKING",
     "disabled": "Modo local: esta versión no tiene servidor configurado. La partida se guarda en este dispositivo; usa Exportar/Importar para moverla.",
     "privacy": "Conectar crea una cuenta de invitado en nuestro servidor (Supabase) para guardar tu partida en la nube y aparecer en el ranking con un apodo. No se pide ningún dato personal hasta que vincules Google.",
+    "privacyLink": "Política de privacidad",
     "connect": "Conectar como invitado",
     "connecting": "Conectando…",
     "error": "Sin conexión con el servidor. El juego sigue funcionando en local.",
