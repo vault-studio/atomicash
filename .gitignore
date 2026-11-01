@@ -5,3 +5,6 @@ ARTE/
 NOVEDADES/
 
 *.tsbuildinfo
+
+# Capacitor Android (regenerable)
+android/

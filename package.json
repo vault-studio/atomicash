@@ -17,6 +17,9 @@
     "sim": "node sim.js"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@fontsource/bungee": "^5.3.0",
     "@fontsource/pixelify-sans": "^5.3.0",
     "@fontsource/vt323": "^5.3.0",
