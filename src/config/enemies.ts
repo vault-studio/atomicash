@@ -1,5 +1,6 @@
 // Balance de enemigos y jefes del Acto 1. Valores de partida del prototipo (atomic-ash-proto.html).
-import { ENTITIES, type BossId, type EnemyId, type EntityId } from './entities';
+import { TUNING as T, type DeepReadonly, type Retype } from './tuning';
+import { ENTITIES, type EntityId } from './entities';
 
 export interface EnemyStats {
   readonly hp: number;
@@ -23,31 +24,16 @@ export interface EnemyStats {
   readonly metal?: boolean;
 }
 
-export const ENEMY_STATS = {
-  dron: { hp: 8, dmg: 4, speed: 122, xp: 1, metal: true },
-  necrofago: { hp: 25, dmg: 8, speed: 78, xp: 1 },
-  saqueador: { hp: 40, dmg: 10, speed: 100, xp: 2 },
-  tirador: { hp: 30, dmg: 8, speed: 72, xp: 2 },
-  reptador: { hp: 35, dmg: 9, speed: 112, xp: 2, rad: 5 },
-  hinchado: { hp: 50, dmg: 0, speed: 58, xp: 2 },
-  cortacesped: { hp: 60, dmg: 12, speed: 88, xp: 5, metal: true },
-  torreta: { hp: 120, dmg: 10, speed: 0, xp: 5, kbRes: 0, metal: true },
-  babosa: { hp: 70, dmg: 8, speed: 50, xp: 3, kbRes: 0.6 },
-  aspiradora: { hp: 60, dmg: 10, speed: 80, xp: 2, metal: true },
-  aspiradora_cria: { hp: 6, dmg: 3, speed: 150, xp: 0, r: 6, metal: true },
-  // Tanque: lento, aguanta mucho (vida y chapa) y casi no se deja empujar.
-  blindado: { hp: 80, dmg: 14, speed: 58, xp: 4, kbRes: 0.25, armor: 0.6, metal: true },
-  // Apoyo: se queda a distancia y enfurece a los de alrededor con sus sermones.
-  predicador: { hp: 45, dmg: 6, speed: 74, xp: 4 },
-  // Ariete: muy lenta, embiste con la pala, aguanta mucho y no se deja empujar.
-  excavadora: { hp: 160, dmg: 18, speed: 46, xp: 7, kbRes: 0.1, armor: 0.4, metal: true },
-  // Jefes: no escalan con el tiempo ni se reciclan.
-  rey_rata: { hp: 3000, dmg: 18, speed: 76, xp: 60, kbRes: 0, boss: true },
-  // Choque fijo: el sprite es enorme (entities.ts) pero solo el casco recibe balas, y un radio así de grande
-  // agrandaría todas las consultas de la rejilla.
-  dirigible: { hp: 7000, dmg: 0, speed: 70, xp: 0, kbRes: 0, boss: true, flying: true, metal: true, r: 90 },
-  coloso: { hp: 20000, dmg: 26, speed: 44, xp: 0, kbRes: 0, boss: true, metal: true },
-} as const satisfies Partial<Record<EnemyId | BossId, EnemyStats>>;
+/**
+ * Valores en `src/data/tuning.json` → `enemies`. Notas por campo:
+ * - `blindado`: Tanque: lento, aguanta mucho (vida y chapa) y casi no se deja empujar.
+ * - `predicador`: Apoyo: se queda a distancia y enfurece a los de alrededor con sus sermones.
+ * - `excavadora`: Ariete: muy lenta, embiste con la pala, aguanta mucho y no se deja empujar.
+ * - `rey_rata`: Jefes: no escalan con el tiempo ni se reciclan.
+ * - `dirigible`: Choque fijo: el sprite es enorme (entities.ts) pero solo el casco recibe balas, y un radio así
+ *   de grande agrandaría todas las consultas de la rejilla.
+ */
+export const ENEMY_STATS: Readonly<Record<keyof typeof T.enemies, EnemyStats>> = T.enemies;
 
 export type StatEnemyId = keyof typeof ENEMY_STATS;
 export const STAT_ENEMY_IDS = Object.keys(ENEMY_STATS) as StatEnemyId[];
@@ -58,100 +44,36 @@ export const MOB_IDS = STAT_ENEMY_IDS.filter((id) => !(ENEMY_STATS[id] as EnemyS
 
 export const statsOf = (id: StatEnemyId): EnemyStats => ENEMY_STATS[id];
 
-/** Parámetros de comportamiento (F2-03). Los tiempos van en segundos y las distancias en px de mundo. */
-export const AI = {
-  /**
-   * Se acerca hasta `hold` (algo menos que `range`) y ahí se planta quieto a disparar; `fireCd` ≈ su animación de
-   * disparo. Plantado, no vuelve a andar hasta que te alejas `hold + resume` (si no, da pasitos de correr en el sitio).
-   */
-  tirador: { hold: 600, resume: 60, fireCd: 1.4, bulletSpd: 230, range: 700 },
-  hinchado: { boomR: 95, boomEnemyDmg: 30, boomPlayerDmg: 10, boomRad: 8 },
-  cortacesped: { every: 4, aim: 0.45, dashSpd: 340, dash: 0.7, range: 500 },
-  torreta: { every: 2.6, burst: 3, burstGap: 0.15, bulletSpd: 260, range: 700, sloganChance: 0.3 },
-  babosa: { trailEvery: 0.4, trailR: 26, trailLife: 4, trailRad: 5 },
-  aspiradora: { children: 4, childType: 'aspiradora_cria', childDist: 18 },
-  /**
-   * Sermón cada `every` s si el jugador está a menos de `range`: enfurece (RAGE) al instante a los enemigos normales
-   * que tenga a `r` px. DECISIÓN: conviene matarlo primero, por eso no pega casi nada y se queda detrás.
-   */
-  predicador: { keepMin: 190, keepMax: 250, strafe: 0.35, every: 6, range: 520, r: 210, sloganChance: 0.6 },
-  /**
-   * Ciclo: se para a llamar a las ratas (`summonStop` s) y luego encadena `chain` embestidas, cada una con su aviso
-   * (`aim`) y separadas solo `gap` s. `every` es lo que tarda en actuar al aparecer.
-   * DECISIÓN: antes alternaba una embestida y una llamada cada 3,8 s y pasaba casi todo el combate persiguiendo.
-   */
-  rey_rata: {
-    every: 1.2,
-    summon: 7,
-    summonType: 'dron',
-    summonDist: 70,
-    summonStop: 1,
-    chain: 3,
-    aim: 0.55,
-    gap: 0.25,
-    dashSpd: 440,
-    dash: 0.7,
-    /** Fase 2 (por debajo de `p2`): más embestidas por ciclo, avisos más cortos y más ratas. */
-    p2: 0.5,
-    chainP2: 4,
-    aimP2: 0.4,
-    gapP2: 0.12,
-    summonP2: 10,
-  },
-  dirigible: {
-    /**
-     * Altura de vuelo en pantalla (los demás voladores usan ENEMY_RULES.flyHeight). El sprite es tan grande que ya
-     * queda muy por encima de su sombra; con más altura se saldría de la vista.
-     */
-    lift: 0,
-    orbitR: 280,
-    every: 4,
-    everyP2: 3,
-    p2: 0.5,
-    paraCount: 2,
-    paraMin: 150,
-    paraMax: 300,
-    paraWarn: 1.2,
-    paraR: 40,
-    paraDmg: 15,
-    bombCount: 6,
-    bombSpacing: 70,
-    bombR: 60,
-    bombWarn: 1.2,
-    bombDmg: 22,
-    p2Summon: 6,
-    p2SummonType: 'dron',
-    p2SummonDist: 340,
-    dropXp: 100,
-    /** Anchura del pasillo que marca el bombardeo en el suelo. */
-    laneR: 34,
-  },
-  coloso: {
-    every: 3,
-    everyP3: 2.1,
-    spdP3: 1.35,
-    p2: 0.66,
-    p3: 0.33,
-    /**
-     * Salto: despega desde donde está y cae donde estaba el jugador al saltar, en `stompWarn` s, con una onda de
-     * `stompR`. DECISIÓN: zona grande pero que da tiempo: el más lento (190 px/s) sale en 1 s y le quedan 0,6 s
-     * para reaccionar.
-     */
-    stompR: 190,
-    stompWarn: 1.6,
-    stompDmg: 34,
-    /** Altura del salto en pantalla (px), para el dibujo. */
-    jumpH: 140,
-    debrisR: 46,
-    debrisWarn: 1.1,
-    debrisDmg: 20,
-    debrisBase: 5,
-    debrisPerPhase: 2,
-    debrisSpread: 180,
-    summonGhouls: 6,
-    summonDist: 120,
-  },
-} as const;
+/**
+ * Parámetros de comportamiento (F2-03). Los tiempos van en segundos y las distancias en px de mundo.
+ *
+ * Valores en `src/data/tuning.json` → `ai`. Notas por campo:
+ * - `tirador`: Se acerca hasta `hold` (algo menos que `range`) y ahí se planta quieto a disparar; `fireCd` ≈ su
+ *   animación de disparo. Plantado, no vuelve a andar hasta que te alejas `hold + resume` (si no, da pasitos de
+ *   correr en el sitio).
+ * - `predicador`: Sermón cada `every` s si el jugador está a menos de `range`: enfurece (RAGE) al instante a los
+ *   enemigos normales que tenga a `r` px. DECISIÓN: conviene matarlo primero, por eso no pega casi nada y se queda
+ *   detrás.
+ * - `rey_rata`: Ciclo: se para a llamar a las ratas (`summonStop` s) y luego encadena `chain` embestidas, cada
+ *   una con su aviso (`aim`) y separadas solo `gap` s. `every` es lo que tarda en actuar al aparecer. DECISIÓN:
+ *   antes alternaba una embestida y una llamada cada 3,8 s y pasaba casi todo el combate persiguiendo.
+ * - `rey_rata.p2`: Fase 2 (por debajo de `p2`): más embestidas por ciclo, avisos más cortos y más ratas.
+ * - `dirigible.lift`: Altura de vuelo en pantalla (los demás voladores usan ENEMY_RULES.flyHeight). El sprite es
+ *   tan grande que ya queda muy por encima de su sombra; con más altura se saldría de la vista.
+ * - `dirigible.laneR`: Anchura del pasillo que marca el bombardeo en el suelo.
+ * - `coloso.stompR`: Salto: despega desde donde está y cae donde estaba el jugador al saltar, en `stompWarn` s,
+ *   con una onda de `stompR`. DECISIÓN: zona grande pero que da tiempo: el más lento (190 px/s) sale en 1 s y le
+ *   quedan 0,6 s para reaccionar.
+ * - `coloso.jumpH`: Altura del salto en pantalla (px), para el dibujo.
+ */
+export const AI = T.ai as Retype<
+  typeof T.ai,
+  {
+    rey_rata: { summonType: StatEnemyId };
+    aspiradora: { childType: StatEnemyId };
+    dirigible: { p2SummonType: StatEnemyId };
+  }
+>;
 
 /** Sprite según la fase del jefe (biblia de arte: variantes `_dmg`, `_p2`, `_p3`). */
 export const BOSS_VARIANTS: Readonly<
@@ -169,11 +91,7 @@ export const BOSS_VARIANTS: Readonly<
  * Cada jefe sale al llegar a su minuto (`at`, en s) o a su número de bajas (`kills`), lo que pase antes.
  * DECISIÓN: quien mata rápido no espera al reloj; quien va lento tiene el jefe a su hora igualmente.
  */
-export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> = {
-  rey_rata: { at: 180, kills: 200 },
-  dirigible: { at: 360, kills: 500 },
-  coloso: { at: 600, kills: 1000 },
-};
+export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> = T.bosses;
 
 /**
  * Furia: cualquier enemigo normal (ni jefe ni élite) que siga vivo `after` s después de aparecer se enfurece, se
@@ -184,7 +102,7 @@ export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> =
  * DECISIÓN: para que no compense dejar a los bichos dando vueltas, y que de verdad puedan matarte (cañón de cristal:
  * pega mucho, pero con poca vida extra se le puede tumbar antes de que llegue).
  */
-export const RAGE = { after: 10, minLevel: 3, dmg: 2.5, speed: 1.8, speedCap: 0.95, hp: 1.5 } as const;
+export const RAGE: DeepReadonly<typeof T.rage> = T.rage;
 
 export const ENEMY_RULES = {
   /** Enemigos simultáneos; al superarlo se recicla el más lejano (05_TECH.md §3). */
@@ -252,29 +170,15 @@ export const ELITE_IDS: readonly EliteId[] = ['blindado', 'veloz', 'radiactivo',
  * DECISIÓN: el cofre especial (tragaperras de cupones y un nivel) es sobre todo de los edificios limpios; los cofres
  * de objeto son de los jefes y solo hay dos huecos, así que un élite no puede quitarle el hueco a un jefe.
  */
-export const ELITES = {
-  first: 50,
-  everyMin: 30,
-  everyMax: 50,
-  cacheChance: 0.2,
-  /** Multiplicadores sobre el enemigo normal. */
-  hp: 14,
-  r: 1.35,
-  xp: 12,
-  /** Empuje que recibe (fracción). */
-  kb: 0.3,
-  /** Escala del sprite en el render. */
-  scale: 1.3,
-  /** Tipos que nunca salen de élite (no se mueven o son crías). */
-  exclude: ['torreta', 'aspiradora_cria'] as readonly StatEnemyId[],
-  /** Segundos que sigue la barra en el HUD desde el último golpe. */
-  barTime: 4,
-  blindado: { color: 0xc8ccd0, dmgTaken: 0.5 },
-  veloz: { color: 0x7fd8ff, speed: 1.7 },
-  radiactivo: { color: 0x9dff00, auraR: 140, auraRad: 14 },
-  divisor: { color: 0xff8a2a, split: 4, splitDist: 26 },
-  vampirico: { color: 0xd7263d, healOnHit: 0.15, regen: 0.01 },
-} as const;
+/**
+ * Valores en `src/data/tuning.json` → `elites`. Notas por campo:
+ * - `hp`: Multiplicadores sobre el enemigo normal.
+ * - `kb`: Empuje que recibe (fracción).
+ * - `scale`: Escala del sprite en el render.
+ * - `exclude`: Tipos que nunca salen de élite (no se mueven o son crías).
+ * - `barTime`: Segundos que sigue la barra en el HUD desde el último golpe.
+ */
+export const ELITES = T.elites as Retype<typeof T.elites, { exclude: readonly StatEnemyId[] }>;
 
 /** Fracciones de vida donde cambia de fase cada jefe (marcas de la barra del HUD). */
 export const BOSS_PHASES: Readonly<Record<BossKind, readonly number[]>> = {

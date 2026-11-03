@@ -1,5 +1,6 @@
 // Parámetros de la run. Todo número de balance vive en src/config (AGENTS.md §3).
 // Valores de partida del prototipo (atomic-ash-proto.html).
+import { TUNING as T, type DeepReadonly } from './tuning';
 export const RUN = {
   /** Paso fijo del motor (05_TECH.md §3). */
   tickHz: 60,
@@ -27,29 +28,19 @@ export const RUN = {
   stormDpsGrowth: 5,
 } as const;
 
-export const PLAYER = {
-  /** Radio de colisión del jugador en px de mundo. */
-  radius: 12,
-  /** Por debajo de esta magnitud de entrada se considera quieto. */
-  moveDeadzone: 0.05,
-  magnetBase: 72,
-  /** Invulnerabilidad tras recibir un golpe, en s. */
-  invuln: 0.45,
-  /** Tiempo entre golpes de contacto del mismo enemigo, en s. */
-  contactCd: 0.7,
-  /** Armas a la vez: la inicial y dos más. */
-  weaponSlots: 3,
-  /** Huecos de objeto: uno por cada jefe que suelta cofre (Rey Rata y Dirigible). */
-  itemSlots: 2,
-  maxWeaponLevel: 5,
-  /** Cambios de tarjetas gratis por run. */
-  rerolls: 1,
-  /** Consumibles con los que empieza una partida rápida (sin Mochila). */
-  startConsumables: { stim: 2, iodine: 2, grenade: 3, turbo: 1 },
-  consumableMax: 9,
-  /** Segundos desde la muerte hasta la pantalla de resultados (animación death). */
-  deathDelay: 1.6,
-} as const;
+/**
+ * Valores en `src/data/tuning.json` → `player`. Notas por campo:
+ * - `radius`: Radio de colisión del jugador en px de mundo.
+ * - `moveDeadzone`: Por debajo de esta magnitud de entrada se considera quieto.
+ * - `invuln`: Invulnerabilidad tras recibir un golpe, en s.
+ * - `contactCd`: Tiempo entre golpes de contacto del mismo enemigo, en s.
+ * - `weaponSlots`: Armas a la vez: la inicial y dos más.
+ * - `itemSlots`: Huecos de objeto: uno por cada jefe que suelta cofre (Rey Rata y Dirigible).
+ * - `rerolls`: Cambios de tarjetas gratis por run.
+ * - `startConsumables`: Consumibles con los que empieza una partida rápida (sin Mochila).
+ * - `deathDelay`: Segundos desde la muerte hasta la pantalla de resultados (animación death).
+ */
+export const PLAYER: DeepReadonly<typeof T.player> = T.player;
 
 /**
  * El daño recibido escala con el tiempo: de `start` a `max` al llegar a `reachAtFrac` de la run.
@@ -57,7 +48,7 @@ export const PLAYER = {
  * defensas, un superviviente de 100 PV aguanta 5–6 golpes de los normales (necrófago 16, saqueador 20). Casco,
  * chaleco y sutura son los que lo compensan.
  */
-export const DMG_TAKEN = { start: 2, max: 3, reachAtFrac: 0.75 } as const;
+export const DMG_TAKEN: DeepReadonly<typeof T.dmgTaken> = T.dmgTaken;
 
 export const CAPS = {
   cdReduction: 0.6,

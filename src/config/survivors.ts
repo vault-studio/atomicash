@@ -1,6 +1,7 @@
 // Balance de los supervivientes. Los valores vienen del prototipo (atomic-ash-proto.html).
 // DECISIÓN: los IDs son los de la biblia de arte (dot, mae, errante, benny), no los de 03_CONTENT.md
 // (mechanic, nurse, courier), porque la biblia es más reciente y fija las rutas de los assets.
+import { TUNING as T } from './tuning';
 import type { SurvivorId } from './entities';
 import type { WeaponId } from './weapons';
 
@@ -34,48 +35,15 @@ export interface SurvivorStats {
   readonly extraWeaponSlots?: number;
 }
 
-export const SURVIVORS = {
-  dot: {
-    hp: 100,
-    speed: 200,
-    rarity: 'common',
-    weapon: 'pistola_clavos',
-    exclusiveWeapon: 'martillo_pilon',
-    meleePct: 0.15,
-  },
-  mae: {
-    hp: 110,
-    speed: 190,
-    rarity: 'common',
-    weapon: 'jeringa',
-    exclusiveWeapon: 'desfibrilador',
-    regen: 0.5,
-  },
-  errante: {
-    hp: 120,
-    speed: 205,
-    rarity: 'common',
-    weapon: 'escopeta_chatarra',
-    exclusiveWeapon: 'nucleo_cobalto',
-    radGain: 0.7,
-  },
-  benny: {
-    hp: 90,
-    speed: 230,
-    rarity: 'common',
-    weapon: 'pistola_clavos',
-    exclusiveWeapon: 'petardos',
-    speedPct: 0.1,
-    magnetPct: 0.2,
-  },
-  // DECISIÓN: 03_CONTENT.md da a Gus una sartén y a Ilse un rayo que aún no existen; usan el cóctel y el
-  // Geiger hasta que haya arte y diseño de esas armas.
-  silas: { hp: 100, speed: 210, rarity: 'rare', weapon: 'rifle_cerrojo', bossPct: 0.2 },
-  gus: { hp: 130, speed: 180, rarity: 'rare', weapon: 'coctel', consDurPct: 0.5 },
-  ilse: { hp: 85, speed: 200, rarity: 'epic', weapon: 'geiger', radDmgMult: 2 },
-  kip: { hp: 150, speed: 170, rarity: 'epic', weapon: 'tesla', radImmune: true },
-  rosalind: { hp: 120, speed: 200, rarity: 'legendary', weapon: 'megafono', extraWeaponSlots: 1 },
-} as const satisfies Record<SurvivorId, SurvivorStats>;
+/**
+ * Valores en `src/data/tuning.json` → `survivors`. Notas por campo:
+ * - `silas`: DECISIÓN: 03_CONTENT.md da a Gus una sartén y a Ilse un rayo que aún no existen; usan el cóctel y
+ *   el Geiger hasta que haya arte y diseño de esas armas.
+ */
+export const SURVIVORS: Readonly<Record<keyof typeof T.survivors, SurvivorStats>> = T.survivors as Record<
+  keyof typeof T.survivors,
+  SurvivorStats
+>;
 
 export const survivorStats = (id: StatSurvivorId): SurvivorStats => SURVIVORS[id];
 

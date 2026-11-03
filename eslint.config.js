@@ -22,7 +22,8 @@ export default tseslint.config(
     ignores: [
       'dist',
       'node_modules',
-      'sim.js',
+      'android',
+      'out',
       'make-manifest.mjs',
       'atomic-ash-proto.html',
       'assets',
