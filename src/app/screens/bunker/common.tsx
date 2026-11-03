@@ -17,12 +17,14 @@ export const RARITY_COLOR: Record<SurvivorRarity, string> = {
 interface ScreenProps {
   title: string;
   onBack?: () => void;
+  /** Botones al final de la cabecera, tras los cupones. */
+  actions?: React.ReactNode;
   /** Pestañas bajo la cabecera (pantallas que agrupan varias secciones). */
   nav?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function Screen({ title, onBack, nav, children }: ScreenProps) {
+export function Screen({ title, onBack, actions, nav, children }: ScreenProps) {
   const { t } = useTranslation();
   const credits = useSaveData((d) => d.profile.credits);
   return (
@@ -35,6 +37,7 @@ export function Screen({ title, onBack, nav, children }: ScreenProps) {
         )}
         <h1>{title}</h1>
         <span className="credits">{t('bunker.credits', { n: credits })}</span>
+        {actions}
       </header>
       {nav}
       {children}

@@ -643,6 +643,9 @@
     "graphics": "GRAPHICS",
     "crtFilter": "CRT filter (scanlines and vignette)",
     "damageNumbers": "Damage numbers",
+    "fullscreen": "Fullscreen",
+    "fullscreenExit": "Exit fullscreen",
+    "fullscreenHint": "Fullscreen: on iPhone, open the game in Safari and use Share → Add to Home Screen.",
     "access": "ACCESSIBILITY",
     "reduceMotion": "Reduce motion (no camera shake or flicker)",
     "lang": {

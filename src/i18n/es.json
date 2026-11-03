@@ -643,6 +643,9 @@
     "graphics": "GRÁFICOS",
     "crtFilter": "Filtro CRT (líneas y viñeta)",
     "damageNumbers": "Números de daño",
+    "fullscreen": "Pantalla completa",
+    "fullscreenExit": "Salir de pantalla completa",
+    "fullscreenHint": "Pantalla completa: en iPhone, abre el juego en Safari y usa Compartir → Añadir a pantalla de inicio.",
     "access": "ACCESIBILIDAD",
     "reduceMotion": "Reducir movimiento (sin temblor de cámara ni parpadeos)",
     "lang": {

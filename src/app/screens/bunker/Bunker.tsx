@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next';
 import { MISSIONS } from '../../../config/meta';
 import { useSaveData } from '../../../store/save';
+import { FullscreenButton } from '../../fullscreen';
 import { Screen } from './common';
 
 export const BUNKER_VIEWS = ['expedition', 'supplies', 'stores', 'board', 'settings'] as const;
@@ -18,7 +19,7 @@ export function Bunker({ onGo }: Props) {
   const claimable = daily.filter((m) => !m.claimed && m.progress >= MISSIONS[m.id].goal).length;
 
   return (
-    <Screen title={t('app.title')}>
+    <Screen title={t('app.title')} actions={<FullscreenButton />}>
       <p>{t('app.subtitle')}</p>
       {active && <p className="bunker__active">{t('bunker.active', { name: t(`entities.${active}`) })}</p>}
       <nav className="bunker__menu">

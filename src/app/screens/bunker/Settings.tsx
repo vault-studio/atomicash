@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { LANGUAGES } from '../../../i18n';
 import { exportSave, importSave, type Settings as S } from '../../../meta/save';
 import { useSave } from '../../../store/save';
+import { FullscreenButton, NEEDS_INSTALL } from '../../fullscreen';
 import { Screen } from './common';
 import { OnlinePanel } from './Online';
 
@@ -73,6 +74,12 @@ export function Settings({ onBack }: { onBack: () => void }) {
       <h2>{t('settings.graphics')}</h2>
       {toggle('crtFilter')}
       {toggle('damageNumbers')}
+      <FullscreenButton />
+      {NEEDS_INSTALL && (
+        <p>
+          <small>{t('settings.fullscreenHint')}</small>
+        </p>
+      )}
       <h2>{t('settings.access')}</h2>
       {toggle('reduceMotion')}
       <label className="field">
