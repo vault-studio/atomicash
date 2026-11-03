@@ -2,9 +2,10 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { artAssets } from './tools/artAssets.ts';
 import { pwa } from './tools/pwa.ts';
+import { devTuning } from './tools/devTuning.ts';
 
 export default defineConfig({
-  plugins: [react(), artAssets(), pwa()],
+  plugins: [react(), artAssets(), pwa(), devTuning()],
   // DECISIÓN: `assets/` es la carpeta de arte de la biblia (concept, models, sprites, icons).
   // No se usa como publicDir para no copiar conceptos ni .glb al build; el plugin artAssets
   // solo publica sprites/, icons/ y manifest.json. El JS/CSS compilado va a `static/`.

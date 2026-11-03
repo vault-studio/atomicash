@@ -4,6 +4,7 @@ import { RUN } from '../config/run';
 import type { StatSurvivorId } from '../config/survivors';
 import type { WeaponId } from '../config/weapons';
 import { applyChoice } from '../engine/systems/progression';
+import type { RunStats } from '../engine/runStats';
 import type { InputState, World } from '../engine/types';
 import { createWorld, results, tick, type RunResults, type WorldOptions } from '../engine/world';
 
@@ -26,9 +27,11 @@ export interface SimResult extends RunResults {
   hp: number;
   /** Nivel, vida y enemigos vivos al final de cada minuto. */
   perMin: { level: number; hp: number; alive: number; kills: number }[];
+  rs: RunStats;
 }
 
 const KITE_R = 300;
+const DODGE_R = 260;
 
 /** Movimiento del bot. Determinista: solo lee el mundo. */
 export function botInput(w: World, kind: BotKind, out: InputState): InputState {
@@ -61,6 +64,21 @@ export function botInput(w: World, kind: BotKind, out: InputState): InputState {
     ax += (dx / d) * k;
     ay += (dy / d) * k;
   }
+  // Balas que vienen hacia él: se aparta de su trayectoria (perpendicular), como haría un jugador.
+  for (let i = 0; i < w.ebullets.count; i++) {
+    const b = w.ebullets.items[i]!;
+    const dx = p.x - b.x;
+    const dy = p.y - b.y;
+    const d2 = dx * dx + dy * dy;
+    if (d2 > DODGE_R * DODGE_R || dx * b.vx + dy * b.vy <= 0) continue;
+    const vl = Math.hypot(b.vx, b.vy) || 1;
+    const nx = -b.vy / vl;
+    const ny = b.vx / vl;
+    const side = dx * nx + dy * ny >= 0 ? 1 : -1;
+    const k = 6 * (1 - Math.sqrt(d2) / DODGE_R);
+    ax += nx * side * k;
+    ay += ny * side * k;
+  }
   for (let i = 0; i < w.tele.count; i++) {
     const t = w.tele.items[i]!;
     const dx = p.x - t.x;
@@ -85,7 +103,7 @@ export function botInput(w: World, kind: BotKind, out: InputState): InputState {
 }
 
 /** Elección automática: primero fusiones, luego armas nuevas, luego la primera tarjeta. Tras el Coloso, terminar. */
-function autoChoose(w: World): void {
+export function autoChoose(w: World): void {
   const ch = w.choice!;
   if (ch.type === 'endless') return applyChoice(w, 1);
   let i = ch.cards.findIndex((c) => c.kind === 'fusion');
@@ -113,5 +131,5 @@ export function simulate(o: SimOptions): SimResult {
       nextMin += 60;
     }
   }
-  return { ...results(w), bot, hp: Math.max(0, Math.round(w.player.hp)), perMin };
+  return { ...results(w), bot, hp: Math.max(0, Math.round(w.player.hp)), perMin, rs: w.rs };
 }

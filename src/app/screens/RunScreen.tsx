@@ -4,7 +4,13 @@ import { TEST_PHASE } from '../../config/run';
 import type { StatSurvivorId } from '../../config/survivors';
 import type { Choice, World } from '../../engine/types';
 import type { RunResults, WorldOptions } from '../../engine/world';
-import { startRun, type HudSnapshot, type RunSession, type RunSettings } from '../runSession';
+import {
+  startRun,
+  type HudSnapshot,
+  type InputOverride,
+  type RunSession,
+  type RunSettings,
+} from '../runSession';
 import { Cards } from './run/Cards';
 import { Hud } from './run/Hud';
 import { PauseStats } from './run/PauseStats';
@@ -30,9 +36,25 @@ interface Props {
   onExit: () => void;
   /** Se llama una vez al terminar cada run (para guardar progreso). Devuelve contenido extra del ticket. */
   onFinish?: (r: RunResults) => React.ReactNode;
+  /** Depurador: se llama con la sesión recién creada, antes del primer paso. */
+  onSession?: (s: RunSession) => void;
+  /** Depurador: sustituye a la entrada del jugador. */
+  inputOverride?: InputOverride;
+  /** Depurador: sin hongo de carga, la run empieza al instante. */
+  noLoader?: boolean;
 }
 
-export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, onFinish }: Props) {
+export function RunScreen({
+  charId,
+  fixedSeed,
+  settings,
+  worldOptions,
+  onExit,
+  onFinish,
+  onSession,
+  inputOverride,
+  noLoader,
+}: Props) {
   const { t } = useTranslation();
   const hostRef = useRef<HTMLDivElement>(null);
   const sessionRef = useRef<RunSession | null>(null);
@@ -54,10 +76,14 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
   const settingsRef = useRef(settings);
   const optionsRef = useRef(worldOptions);
   const finishRef = useRef(onFinish);
+  const sessionCbRef = useRef(onSession);
+  const overrideRef = useRef(inputOverride);
   useEffect(() => {
     settingsRef.current = settings;
     optionsRef.current = worldOptions;
     finishRef.current = onFinish;
+    sessionCbRef.current = onSession;
+    overrideRef.current = inputOverride;
   });
 
   useEffect(() => {
@@ -70,12 +96,18 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
     setResult(null);
     setChoice(null);
     setPaused(false);
-    setMinDone(false);
-    setLoaderGone(false);
-    const minTimer = setTimeout(() => setMinDone(true), LOADER_MIN_MS);
+    setMinDone(!!noLoader);
+    setLoaderGone(!!noLoader);
+    const minTimer = noLoader ? undefined : setTimeout(() => setMinDone(true), LOADER_MIN_MS);
     void startRun(
       host,
-      { charId, seed, settings: settingsRef.current, ...optionsRef.current },
+      {
+        charId,
+        seed,
+        settings: settingsRef.current,
+        ...optionsRef.current,
+        inputOverride: overrideRef.current,
+      },
       {
         onHud: setHud,
         onChoice: (c) => {
@@ -89,6 +121,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
       else {
         session = s;
         sessionRef.current = s;
+        sessionCbRef.current?.(s);
         setWorld(s.world);
         setReady(true);
       }
@@ -99,7 +132,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
       session?.dispose();
       sessionRef.current = null;
     };
-  }, [charId, runKey, seed]);
+  }, [charId, runKey, seed, noLoader]);
 
   useEffect(() => {
     sessionRef.current?.apply(settings);
@@ -160,7 +193,7 @@ export function RunScreen({ charId, fixedSeed, settings, worldOptions, onExit, o
   return (
     <div className="run">
       <div className="run__canvas" ref={hostRef} />
-      {!loaderGone && <ExpeditionLoader leaving={loaded} />}
+      {!loaderGone && !noLoader && <ExpeditionLoader leaving={loaded} />}
       {ready && hud && world && <Hud hud={hud} world={world} onPause={pause} onConsume={consume} />}
       {TEST_PHASE && ready && !result && !choice && !paused && (
         // Fase de test: saca al Coloso en cualquier momento. tabIndex -1 para que el espacio no lo vuelva a pulsar.

@@ -152,6 +152,12 @@ function createSoundTap(): (w: World, frameSec: number) => void {
   };
 }
 
+/**
+ * Sustituye a la entrada del jugador en cada paso fijo (depurador, piloto automático). Devuelve `true` si ha rellenado
+ * `out`; con `false` se usa la entrada normal.
+ */
+export type InputOverride = (w: World, out: InputState) => boolean;
+
 export interface RunSession {
   readonly world: World;
   choose(i: number): void;
@@ -160,6 +166,8 @@ export interface RunSession {
   lock(i: number): void;
   consume(i: number): void;
   setPaused(p: boolean): void;
+  /** Escala el tiempo que recibe el paso fijo (1 = normal, 0 = congelado). Para el depurador. */
+  setSpeed(mult: number): void;
   /** Fase de test: saca al Coloso cerca del jugador. */
   spawnColossus(): void;
   apply(settings: RunSettings): void;
@@ -170,6 +178,8 @@ export interface RunOptions extends WorldOptions {
   charId: StatSurvivorId;
   seed: number;
   settings: RunSettings;
+  /** Si existe, sustituye a la entrada del jugador (depurador). */
+  inputOverride?: InputOverride;
 }
 
 function objectiveSnap(w: World): HudSnapshot['objective'] {
@@ -262,6 +272,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
   // Solo horizontal (04_ART_UI.md §3): en un móvil en vertical la run se congela tras el aviso de giro.
   const portrait = window.matchMedia(PORTRAIT_QUERY);
   let paused = false;
+  let speed = 1;
   let ended = false;
   /** Segundos que le quedan a la cinemática de victoria (o de derrota). */
   let victoryLeft = 0;
@@ -394,11 +405,13 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     }
     const view = renderer.viewHalfExtent();
     setView(world, view.halfW, view.halfH);
-    const alpha = advance(fs, frameSec, (dt) => {
-      const d = controls.read();
-      const m = screenToWorldDir(d.x, d.y);
-      input.moveX = m.x;
-      input.moveY = m.y;
+    const alpha = advance(fs, frameSec * speed, (dt) => {
+      if (!opts.inputOverride?.(world, input)) {
+        const d = controls.read();
+        const m = screenToWorldDir(d.x, d.y);
+        input.moveX = m.x;
+        input.moveY = m.y;
+      }
       tick(world, input, dt);
       steps++;
     });
@@ -454,6 +467,9 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
       paused = p;
       audio.setPaused(p);
       if (p) controls.release();
+    },
+    setSpeed(mult) {
+      speed = Math.max(0, mult);
     },
     spawnColossus() {
       if (ended || world.player.deadAt !== null) return;

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, type ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 // Tipografías OFL de 04_ART_UI.md §1, empaquetadas (local-first, sin CDN).
@@ -39,8 +39,13 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 const root = document.getElementById('root');
 if (!root) throw new Error('Falta #root en index.html');
 
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const reactRoot = createRoot(root);
+const mount = (screen: ReactNode): void => reactRoot.render(<StrictMode>{screen}</StrictMode>);
+
+// Depurador (T2): con `?dev` la run arranca sin intro ni búnker y con el panel encima. La rama entera desaparece del
+// build de producción (`import.meta.env.DEV` es false), así que ni el panel ni su CSS llegan al bundle.
+if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('dev')) {
+  void import('./app/debug/DevApp').then(({ DevApp }) => mount(<DevApp />));
+} else {
+  mount(<App />);
+}

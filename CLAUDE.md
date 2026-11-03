@@ -36,8 +36,8 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
 - Desarrollo: `npm run dev` (puerto 5173; en el panel de vista previa: `atomicash-dev`).
 - Tests: `npm test` · tipos: `npm run typecheck` · lint: `npm run lint` · build: `npm run build`.
 - Simulación con semilla fija: `npm run sim` (bot por personaje, 600 s; JSON en `out/sim/`; referencia en `tests/sim/__snapshots__`).
-- Smoke test: `npm run smoke` (pendiente de T3; 60 s de partida, errores de consola y captura).
-- Depurador: solo `import.meta.env.DEV`; tecla F1 (pendiente de T2). Atajos ya existentes en partida (DEV):
+- Smoke test: `npm run smoke` (60 s de partida con piloto automático, errores de consola, captura en `out/smoke.png`).
+- Depurador: `npm run dev` y abrir `/?dev&char=dot&seed=1&god=1&bot=kite&speed=2&weapons=llave:3` (F1 panel). Atajos (DEV):
   K morir, J 100 enemigos, L subir nivel, G invencible, B jefe, T +60 s, E élite, H horda, F3 debug del render.
 
 ## Git

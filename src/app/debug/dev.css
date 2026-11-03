@@ -1,0 +1,214 @@
+/* Depurador (solo desarrollo): negro y verde fósforo, compacto, a la derecha, con scroll propio. */
+.dev-panel {
+  --dev-fg: #7dff4a;
+  --dev-dim: #3f9a2c;
+  --dev-line: #1d5a16;
+  --dev-warn: #ffb03a;
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  width: min(360px, 92vw);
+  background: rgba(0, 0, 0, 0.93);
+  border: 1px solid var(--dev-line);
+  color: var(--dev-fg);
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.dev-panel button,
+.dev-panel input,
+.dev-panel select,
+.dev-panel textarea {
+  font: inherit;
+  color: var(--dev-fg);
+  background: #000;
+  border: 1px solid var(--dev-line);
+  border-radius: 0;
+  padding: 2px 6px;
+  min-width: 0;
+}
+
+.dev-panel button {
+  cursor: pointer;
+}
+.dev-panel button:hover {
+  background: #0c2a08;
+}
+.dev-panel input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  accent-color: var(--dev-fg);
+}
+.dev-panel input[type='range'] {
+  flex: 1;
+  padding: 0;
+  accent-color: var(--dev-fg);
+}
+.dev-panel textarea {
+  flex: 1;
+  resize: vertical;
+  font-size: 15px;
+}
+
+.dev-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--dev-line);
+  letter-spacing: 0.1em;
+}
+.dev-head .dev-x {
+  margin-left: auto;
+}
+
+.dev-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--dev-line);
+}
+.dev-tabs button {
+  flex: 1;
+  border: 0;
+  border-right: 1px solid var(--dev-line);
+}
+.dev-tabs button.is-on {
+  background: var(--dev-fg);
+  color: #000;
+}
+
+.dev-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dev-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--dev-line);
+}
+.dev-sec h3 {
+  margin: 0;
+  font-weight: 400;
+  color: var(--dev-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.dev-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dev-row > span:first-child {
+  width: 68px;
+  flex: none;
+}
+.dev-row > input[type='text'],
+.dev-row > input[type='search'],
+.dev-row > select {
+  flex: 1;
+}
+.dev-row > input[type='number'] {
+  width: 64px;
+}
+.dev-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dev-num {
+  width: 36px;
+  text-align: right;
+}
+
+.dev-dim {
+  color: var(--dev-dim);
+}
+.dev-warn {
+  color: var(--dev-warn);
+}
+.dev-status {
+  padding: 4px 6px;
+  border: 1px solid var(--dev-line);
+  background: #031003;
+  overflow-wrap: anywhere;
+}
+.dev-big {
+  padding: 5px;
+  background: var(--dev-fg) !important;
+  color: #000 !important;
+}
+.dev-file {
+  display: block;
+  padding: 2px 6px;
+  border: 1px solid var(--dev-line);
+  cursor: pointer;
+}
+.dev-file input {
+  display: none;
+}
+
+/* Árbol de «Valores» */
+.dev-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dev-node {
+  display: flex;
+  flex-direction: column;
+}
+.dev-fold {
+  text-align: left;
+  border: 0 !important;
+  padding: 1px 0 !important;
+}
+.dev-kids {
+  margin-left: 10px;
+  padding-left: 6px;
+  border-left: 1px solid var(--dev-line);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.dev-leaf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dev-leaf > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dev-leaf > input[type='number'],
+.dev-leaf > input[type='text'] {
+  width: 120px;
+  flex: none;
+  text-align: right;
+}
+.dev-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+.dev-idx {
+  color: var(--dev-dim);
+  flex: none;
+}
+.dev-bad {
+  border-color: #ff4a3a !important;
+}
