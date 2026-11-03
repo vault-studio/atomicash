@@ -511,7 +511,8 @@
       "dmgPerLvl": 0.15,
       "hitCd": 0.45,
       "spin": 3.2,
-      "color": "#d8d8d8"
+      "color": "#d8d8d8",
+      "spec": "horde"
     },
     "pistola_clavos": {
       "kind": "bullet",
@@ -521,7 +522,8 @@
       "cdPerLvl": 0.9,
       "speed": 560,
       "spread": 0.1,
-      "color": "#e6e6a8"
+      "color": "#e6e6a8",
+      "spec": "boss"
     },
     "jeringa": {
       "kind": "fan",
@@ -532,7 +534,8 @@
       "fan": 0.55,
       "healBase": 1,
       "healPerLvl": 0.5,
-      "color": "#9fe6ff"
+      "color": "#9fe6ff",
+      "spec": "horde"
     },
     "coctel": {
       "kind": "lob",
@@ -552,7 +555,12 @@
         "stacks": 3,
         "stay": 1
       },
-      "color": "#ff8a2a"
+      "color": "#ff8a2a",
+      "spec": "horde",
+      "slow": {
+        "mult": 0.6,
+        "dur": 1
+      }
     },
     "tesla": {
       "kind": "chain",
@@ -563,7 +571,8 @@
       "jump": 160,
       "jumps": 4,
       "jumpsPerLvl": 2,
-      "color": "#7fd8ff"
+      "color": "#7fd8ff",
+      "spec": "horde"
     },
     "geiger": {
       "kind": "aura",
@@ -573,7 +582,8 @@
       "r": 72,
       "rPerLvl": 14,
       "rPerRad": 0.9,
-      "color": "#7dff6a"
+      "color": "#7dff6a",
+      "spec": "horde"
     },
     "escopeta_chatarra": {
       "kind": "shotgun",
@@ -585,7 +595,8 @@
       "cone": 0.8,
       "speed": 620,
       "life": 0.38,
-      "color": "#ffd27a"
+      "color": "#ffd27a",
+      "spec": "horde"
     },
     "megafono": {
       "kind": "cone",
@@ -597,7 +608,9 @@
       "anglePerLvl": 0.15,
       "kb": 2,
       "kbPerLvl": 0.3,
-      "color": "#f3e9d2"
+      "color": "#f3e9d2",
+      "spec": "elite",
+      "interrupt": true
     },
     "rifle_cerrojo": {
       "kind": "rifle",
@@ -608,7 +621,8 @@
       "pierce": 3,
       "speed": 900,
       "color": "#c9b27a",
-      "armorPierce": 6
+      "armorPierce": 6,
+      "spec": "boss"
     },
     "martillo_pilon": {
       "kind": "slam",
@@ -621,7 +635,9 @@
       "dmgPerLvl": 0.2,
       "kb": 2.2,
       "color": "#e8a33a",
-      "armorPierce": 4
+      "armorPierce": 4,
+      "spec": "elite",
+      "interrupt": true
     },
     "petardos": {
       "kind": "mines",
@@ -648,7 +664,8 @@
       "samples": 6,
       "crowdR": 90,
       "maxMines": 80,
-      "color": "#ff5a5a"
+      "color": "#ff5a5a",
+      "spec": "horde"
     },
     "desfibrilador": {
       "kind": "zap",
@@ -660,7 +677,8 @@
       "dmgPerLvl": 0.15,
       "regenBonus": 0.4,
       "kb": 0.8,
-      "color": "#ffe14a"
+      "color": "#ffe14a",
+      "spec": "elite"
     },
     "nucleo_cobalto": {
       "kind": "orb",
@@ -673,7 +691,8 @@
       "dmgPerLvl": 0.2,
       "pierce": 1,
       "radBonus": 0.02,
-      "color": "#4aff9a"
+      "color": "#4aff9a",
+      "spec": "boss"
     },
     "dinamo": {
       "kind": "orbit",
@@ -687,7 +706,8 @@
       "spin": 3.6,
       "chainJumps": 3,
       "chainDmg": 18,
-      "color": "#7fd8ff"
+      "color": "#7fd8ff",
+      "spec": "horde"
     },
     "remachadora": {
       "kind": "bullet",
@@ -700,7 +720,9 @@
       "speed": 720,
       "spread": 0.08,
       "color": "#ffb347",
-      "armorPierce": 4
+      "armorPierce": 4,
+      "spec": "elite",
+      "interrupt": true
     },
     "nucleo_inestable": {
       "kind": "unstable",
@@ -713,7 +735,8 @@
       "bolts": 2,
       "boltDmg": 25,
       "boltRadBonus": 0.01,
-      "color": "#b6ff3a"
+      "color": "#b6ff3a",
+      "spec": "horde"
     },
     "dardos_incendiarios": {
       "kind": "firedarts",
@@ -728,7 +751,8 @@
       "poolDmg": 4,
       "poolDur": 1.5,
       "healBase": 2,
-      "color": "#ff9f5a"
+      "color": "#ff9f5a",
+      "spec": "horde"
     }
   },
   "waves": [

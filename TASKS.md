@@ -44,10 +44,10 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 5 — Armas, builds y blindaje (CAMBIOS §5)
 
-| #   | Tarea                                                                                   | Reutiliza                         | Crea                      | Pruebas                             | Estado                                                                                                     |
-| --- | --------------------------------------------------------------------------------------- | --------------------------------- | ------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| T13 | Blindaje plano por impacto (hoy es un multiplicador) + daño contra blindaje por arma    | `armor`, élite `blindado`         | `applyArmor`              | unitarios de daño y blindaje        | ✅ blindado 6, excavadora 8, élite +4; `armorPierce` en rifle, martillo y remachadora; `armor.minFrac` 0,2 |
-| T14 | Especialización hordas / jefes / élites y control (empuje, ralentización, interrupción) | armas existentes, `stun` de minas | campos por nivel en datos | sim por build: ninguna gana en todo | ⬜                                                                                                         |
+| #   | Tarea                                                                                   | Reutiliza                         | Crea                      | Pruebas                             | Estado                                                                                                                                     |
+| --- | --------------------------------------------------------------------------------------- | --------------------------------- | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| T13 | Blindaje plano por impacto (hoy es un multiplicador) + daño contra blindaje por arma    | `armor`, élite `blindado`         | `applyArmor`              | unitarios de daño y blindaje        | ✅ blindado 6, excavadora 8, élite +4; `armorPierce` en rifle, martillo y remachadora; `armor.minFrac` 0,2                                 |
+| T14 | Especialización hordas / jefes / élites y control (empuje, ralentización, interrupción) | armas existentes, `stun` de minas | campos por nivel en datos | sim por build: ninguna gana en todo | ✅ `spec` por arma, `slow` (cóctel), `interrupt` (megáfono, martillo, remachadora); charcos solapados no suman; `tests/sim/builds.test.ts` |
 
 ## Fase 6 — Estadísticas completas (CAMBIOS §6.4)
 
@@ -63,7 +63,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Bugs conocidos
 
-- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» ya fallaba en `main` (f606252, comprobado 2026-11-03 en un worktree): hay un GC durante el combate. Reproducir: `npx vitest run tests/alloc.test.ts`. La combinación «martillo_pilon…» que rompió T5–T7 vuelve a pasar desde T8.
+- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» ya fallaba en `main` (f606252): `updateEnemies` corre desoptimizado («insufficient type feedback») y reserva números. En T14 se arreglaron otras causas (campos que nacían enteros, `hitAt` opcional, jefes por bajas en la prueba) y la combinación «martillo_pilon…» vuelve a pasar.
 - Depurador › Valores: solo edita claves que ya existen en `tuning.json` (no se puede añadir `rage`/`dash` a un enemigo que no los tenga; hay que añadirlos al archivo).
 
 ## Preguntas resueltas
@@ -73,4 +73,4 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Siguiente tarea recomendada
 
-T14 y T16.
+T16 (balance; Gus perdió fuerza al no sumarse los charcos del cóctel).

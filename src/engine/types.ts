@@ -151,6 +151,9 @@ export interface Enemy {
   stun: number;
   /** Congelado por la crio-granada: ni se mueve ni ataca, en s. */
   frozen: number;
+  /** Ralentizado por un arma: segundos que le quedan y multiplicador de su velocidad. */
+  slowT: number;
+  slowK: number;
   /** Contador de rotación de ataques del jefe. */
   act: number;
   alt: boolean;
@@ -166,9 +169,9 @@ export interface Enemy {
   elite: EliteId | null;
   /** Marcha en formación (hordas): segundos que sigue en línea recta por (dx, dy) antes de perseguir. */
   march: number;
+  /** Tiempo de la run del primer golpe recibido en esta vida (para el tiempo para matar; -1 = sin golpes). */
+  hitAt: number;
   /** Último golpe de cada arma orbital, por hueco. */
-  /** Tiempo de la run del primer golpe recibido en esta vida (para el tiempo para matar). */
-  hitAt?: number;
   readonly hitT: Float64Array;
   /** Quemaduras del cóctel: tiempo que le queda a cada una (0 = hueco libre) y su daño por segundo. */
   readonly burnT: Float64Array;
@@ -177,6 +180,8 @@ export interface Enemy {
   burnTick: number;
   /** Tick (`World.ticks`) en que pisó fuego por última vez y cuánto lleva seguido dentro. */
   fireAt: number;
+  /** Último golpe de charco (s de partida): varios charcos solapados no suman (uno por intervalo). */
+  poolAt: number;
   fireIn: number;
 }
 

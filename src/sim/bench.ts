@@ -17,11 +17,24 @@ export interface BenchBuild {
   weapons: readonly { id: WeaponId; lvl: number }[];
 }
 
-/** Lo que aparece en cada escenario: tipo, cuántos y a qué distancia del jugador (en anillo). */
-const SETUP: Record<Scenario, { type: StatEnemyId; n: number; r: number }> = {
-  horde: { type: 'necrofago', n: 120, r: 260 },
-  boss: { type: 'rey_rata', n: 1, r: 300 },
-  armored: { type: 'blindado', n: 10, r: 260 },
+/**
+ * Lo que aparece en cada escenario: grupos (tipo y cuántos) en anillo a `r` del jugador, con la vida del segundo `at`
+ * de la partida (los jefes no escalan). Se limpia cuando no queda ninguno de esos tipos (no cuentan las crías).
+ */
+const SETUP: Record<
+  Scenario,
+  { groups: readonly { type: StatEnemyId; n: number }[]; r: number; at: number }
+> = {
+  horde: { groups: [{ type: 'necrofago', n: 120 }], r: 260, at: 0 },
+  boss: { groups: [{ type: 'rey_rata', n: 1 }], r: 300, at: 0 },
+  armored: {
+    groups: [
+      { type: 'blindado', n: 8 },
+      { type: 'excavadora', n: 4 },
+    ],
+    r: 260,
+    at: 420,
+  },
 };
 
 const LIMIT = 120;
@@ -38,17 +51,24 @@ export function benchScenario(build: BenchBuild, sc: Scenario, seed = 1): number
   w.weapons = build.weapons.map((x) => createWeapon(x.id, x.lvl));
   const S = SETUP[sc];
   const p = w.player;
-  for (let i = 0; i < S.n; i++) {
-    const a = (i / S.n) * Math.PI * 2;
-    spawnEnemy(w, S.type, p.x + Math.cos(a) * S.r, p.y + Math.sin(a) * S.r, false);
-  }
+  w.time = S.at;
+  const n = S.groups.reduce((s, g) => s + g.n, 0);
+  let k = 0;
+  for (const g of S.groups)
+    for (let i = 0; i < g.n; i++, k++) {
+      const a = (k / n) * Math.PI * 2;
+      spawnEnemy(w, g.type, p.x + Math.cos(a) * S.r, p.y + Math.sin(a) * S.r, false);
+    }
   const step = 1 / RUN.tickHz;
-  while (w.time < LIMIT) {
+  while (w.time - S.at < LIMIT) {
     if (w.choice) w.choice = null;
     tick(w, { moveX: 0, moveY: 0 }, step);
     let left = 0;
-    for (let i = 0; i < w.enemies.count; i++) if (w.enemies.items[i]!.type === S.type) left++;
-    if (left === 0) return Math.round(w.time * 10) / 10;
+    for (let i = 0; i < w.enemies.count; i++) {
+      const e = w.enemies.items[i]!;
+      if (!e.dead && S.groups.some((g) => g.type === e.type)) left++;
+    }
+    if (left === 0) return Math.round((w.time - S.at) * 10) / 10;
   }
   return LIMIT;
 }

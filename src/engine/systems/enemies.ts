@@ -50,29 +50,29 @@ export const SLOGAN_COUNT = 6;
 const MORTAR_SRC = hurtIndex('mortero');
 
 export function createEnemy(): Enemy {
+  // Todo número que pueda llevar decimales arranca con uno (spawnEnemy pone el valor real): si arrancara entero, V8
+  // cambiaría el mapa del Enemy la primera vez que guarde un decimal, a media partida, y desharía lo optimizado del
+  // bucle de IA (reserva memoria).
   return {
     id: 0,
     type: 'dron',
-    x: 0,
-    y: 0,
-    prevX: 0,
-    prevY: 0,
-    r: 0,
-    hp: 0,
-    maxHp: 0,
-    speed: 0,
-    // Decimal de partida: la furia multiplica el daño (p. ej. 9 × 2,5) y, si fuera entero, V8 cambiaría el mapa del Enemy a media partida.
+    x: 0.5,
+    y: 0.5,
+    prevX: 0.5,
+    prevY: 0.5,
+    r: 0.5,
+    hp: 0.5,
+    maxHp: 0.5,
+    speed: 0.5,
     dmg: 0.5,
     xp: 0,
     facingX: Math.SQRT1_2,
     facingY: Math.SQRT1_2,
     moving: false,
-    born: 0,
+    born: 0.5,
     dead: false,
     irr: false,
     rage: false,
-    // Con decimales de partida (spawnEnemy los pone a 0): si arrancan como enteros, V8 cambia el mapa del Enemy la
-    // primera vez que guardan un decimal, a media partida, y deshace lo optimizado del bucle de IA (reserva memoria).
     rageT: 0.5,
     rageCd: 0.5,
     chase: 0.5,
@@ -81,34 +81,38 @@ export function createEnemy(): Enemy {
     boss: false,
     flying: false,
     gar: -1,
-    atkCd: 0,
-    kbx: 0,
-    kby: 0,
-    flash: 0,
+    atkCd: 0.5,
+    kbx: 0.5,
+    kby: 0.5,
+    flash: 0.5,
     mode: MODE_CHASE,
-    mt: 0,
-    dx: 0,
-    dy: 0,
-    burst: 0,
-    bt: 0,
-    stun: 0,
-    frozen: 0,
+    mt: 0.5,
+    dx: 0.5,
+    dy: 0.5,
+    burst: 0.5,
+    bt: 0.5,
+    stun: 0.5,
+    frozen: 0.5,
+    slowT: 0.5,
+    slowK: 0.5,
     act: 0,
     alt: false,
     phase: 1,
-    lastAtk: -9,
+    lastAtk: 0.5,
     atkAnim: 'attack',
-    trail: 0,
-    timer: 0,
+    trail: 0.5,
+    timer: 0.5,
     side: 1,
     elite: null,
-    march: 0,
+    march: 0.5,
     hitT: new Float64Array(ORBIT_SLOTS),
     burnT: new Float64Array(WEAPONS.coctel.burn.stacks),
     burnD: new Float64Array(WEAPONS.coctel.burn.stacks),
-    burnTick: 0,
+    burnTick: 0.5,
     fireAt: -2,
-    fireIn: 0,
+    poolAt: 0.5,
+    hitAt: 0.5,
+    fireIn: 0.5,
   };
 }
 
@@ -222,6 +226,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.bt = 0;
   e.stun = 0;
   e.frozen = 0;
+  e.slowT = 0;
+  e.slowK = 1;
   e.act = 0;
   e.alt = false;
   e.phase = 1;
@@ -236,6 +242,8 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.burnT.fill(0);
   e.burnTick = 0;
   e.fireAt = -2;
+  e.poolAt = -9;
+  e.hitAt = -1;
   e.fireIn = 0;
   if (boss) w.bossAlive++;
   return e;
@@ -432,11 +440,38 @@ let vy = 0;
 
 /** Velocidad efectiva: un enfurecido corre a max(la suya, la del jugador × `RAGE.speed`), así que puede alcanzarlo. */
 function speedOf(w: World, e: Enemy): number {
-  if (!e.rage) return e.speed;
+  if (!e.rage) return e.speed * e.slowK;
   // Inline (sin llamar a rageSpeed): este es el camino caliente y las llamadas con decimales reservan memoria.
   const ovr = ENEMY_STATS[e.type].rage;
   const run = w.st.speed * (ovr !== undefined && ovr.speed !== undefined ? ovr.speed : RAGE.speed);
-  return run > e.speed ? run : e.speed;
+  return (run > e.speed ? run : e.speed) * e.slowK;
+}
+
+/**
+ * Interrumpe la habilidad que esté preparando o lanzando (CAMBIOS §5, control): la embestida vuelve a perseguir con su
+ * enfriamiento entero, el interceptor corta su carrera y el mortero reinicia la carga. Los jefes no se interrumpen.
+ */
+export function interruptEnemy(e: Enemy): boolean {
+  if (e.boss) return false;
+  const dash = ENEMY_STATS[e.type].dash;
+  if (dash !== undefined && e.mode !== MODE_CHASE) {
+    e.mode = MODE_CHASE;
+    e.timer = dash.every;
+    return true;
+  }
+  if (e.type === 'interceptor' && e.mode === MODE_CHASE) {
+    // Corta la carrera: frena y pierde lo acumulado para aturdir.
+    e.mode = MODE_AIM;
+    e.timer = AI.interceptor.recover;
+    e.mt = 0;
+    e.alt = false;
+    return true;
+  }
+  if (e.type === 'mortero' && e.timer < AI.mortero.every) {
+    e.timer = AI.mortero.every;
+    return true;
+  }
+  return false;
 }
 
 const aimPt: Vec = { x: 0, y: 0 };
@@ -845,6 +880,10 @@ export function updateEnemies(w: World, dt: number): void {
       continue;
     }
     if (!e.boss && !e.elite) rageTick(w, e, dt);
+    if (e.slowT > 0) {
+      e.slowT -= dt;
+      if (e.slowT <= 0) e.slowK = 1;
+    }
 
     const dx = p.x - e.x;
     const dy = p.y - e.y;

@@ -32,7 +32,15 @@ export interface WeaponBase {
   readonly color: string;
   /** Blindaje que ignora cada impacto (ver `applyArmor`). */
   readonly armorPierce?: number;
+  /** Para qué está hecha (CAMBIOS §5): hordas, jefes o élites y blindados. */
+  readonly spec?: WeaponSpec;
+  /** Control: cada impacto ralentiza al enemigo a `mult` de su velocidad durante `dur` s (no a los jefes). */
+  readonly slow?: { readonly mult: number; readonly dur: number };
+  /** Control: cada impacto interrumpe la habilidad que esté preparando (ver `interruptEnemy`). */
+  readonly interrupt?: boolean;
 }
+
+export type WeaponSpec = 'horde' | 'boss' | 'elite';
 
 /**
  * Valores en `src/data/tuning.json` → `weapons`. Notas por campo:

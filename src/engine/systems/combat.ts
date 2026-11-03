@@ -24,7 +24,7 @@ import { hurtIndex, noteHurt, noteKill } from '../runStats';
 import { applyArmor } from '../rules';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
-import { spawnEnemy } from './enemies';
+import { interruptEnemy, spawnEnemy } from './enemies';
 import { colossusDown, objectiveKill } from './modes';
 
 /** Opciones de `hitEnemy` como bits para no crear objetos en cada golpe. */
@@ -134,7 +134,7 @@ export function hitEnemy(
   fy = 0,
 ): number {
   if (e.dead) return 0;
-  if (e.hitAt === undefined || e.hitAt < e.born) e.hitAt = w.time;
+  if (e.hitAt < e.born) e.hitAt = w.time;
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
@@ -151,19 +151,22 @@ export function hitEnemy(
     crit = true;
   }
   // Blindaje plano al golpe final (tras el crítico): los golpes fuertes y los que perforan rinden más.
+  const wd = (WEAPONS as Readonly<Record<string, WeaponBase>>)[src];
   const armor =
     ((ENEMY_STATS[e.type] as EnemyStats).armor ?? 0) + (e.elite === 'blindado' ? ELITES.blindado.armor : 0);
-  if (armor > 0)
-    d = applyArmor(
-      d,
-      armor,
-      (WEAPONS as Readonly<Record<string, WeaponBase>>)[src]?.armorPierce ?? 0,
-      ARMOR.minFrac,
-    );
+  if (armor > 0) d = applyArmor(d, armor, wd?.armorPierce ?? 0, ARMOR.minFrac);
   // Sin contar el exceso del último golpe: el ranking no puede superar la vida real del jefe.
   if (e.boss) w.bossDmg += Math.min(d, Math.max(0, e.hp));
   e.hp -= d;
   e.flash = 0.08;
+  // Control del arma (CAMBIOS §5): ralentizar e interrumpir habilidades. Los jefes no.
+  if (wd !== undefined && !e.boss) {
+    if (wd.slow !== undefined) {
+      e.slowK = Math.min(e.slowK, wd.slow.mult);
+      if (e.slowT < wd.slow.dur) e.slowT = wd.slow.dur;
+    }
+    if (wd.interrupt === true) interruptEnemy(e);
+  }
   sfx(w, (ENEMY_STATS[e.type] as EnemyStats).metal ? SFX.hitMetal : SFX.hit, e.x, e.y);
   w.dmgTotal += d;
   if (d > w.maxHit) w.maxHit = d;
@@ -309,7 +312,7 @@ function countKill(w: World): void {
 
 export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (e.dead) return;
-  noteKill(w.rs, e.type, w.time, e.hitAt !== undefined && e.hitAt >= e.born ? e.hitAt : -1);
+  noteKill(w.rs, e.type, w.time, e.hitAt >= e.born ? e.hitAt : -1);
   e.dead = true;
   w.kills++;
   countKill(w);

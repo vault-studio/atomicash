@@ -723,7 +723,10 @@ export function updateFirePools(w: World, dt: number): void {
       const k = queryEnemies(w, pl.x, pl.y, pl.r, out);
       for (let q = 0; q < k; q++) {
         const e = w.enemies.items[out[q]!]!;
-        if (!e.flying) hitEnemy(w, e, pl.dmg, pl.src, 0);
+        // Uno por intervalo aunque pise varios charcos solapados: el daño de zona no se apila en un solo blanco.
+        if (e.flying || w.time - e.poolAt < pl.tickCd * 0.99) continue;
+        e.poolAt = w.time;
+        hitEnemy(w, e, pl.dmg, pl.src, 0);
       }
     }
     if (pl.life <= 0) w.pools.releaseAt(i);
