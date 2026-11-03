@@ -22,14 +22,18 @@ import { addCoupons, addPickup, heal, hitEnemy, killEnemy, nearest, queryEnemies
 import { compactEnemies } from './enemies';
 import { chooseEndless } from './modes';
 import { createWeapon } from './weapons';
+import { noteLevel, notePick, noteXp } from '../runStats';
 
 // ---------- XP ----------
 
 export function gainXp(w: World, v: number, raw = false): void {
-  w.xp += raw ? v : v * w.st.xpMult;
+  const xp = raw ? v : v * w.st.xpMult;
+  w.xp += xp;
+  noteXp(w.rs, w.time, xp);
   while (w.xp >= w.xpNext) {
     w.xp -= w.xpNext;
     w.level++;
+    noteLevel(w.rs, w.level, w.time);
     w.xpNext = xpForLevel(w.level);
     w.pendingLevels++;
   }
@@ -340,6 +344,7 @@ export function applyChoice(w: World, i: number): void {
   if (ch.type === 'endless') return chooseEndless(w, i === 0);
   const c = ch.cards[i];
   if (!c) return;
+  notePick(w.rs, w.time, c.kind, 'id' in c ? c.id : c.kind);
   switch (c.kind) {
     case 'up': {
       const wp = w.weapons.find((x) => x.id === c.id);

@@ -34,6 +34,45 @@ export interface EnemyStats {
   readonly flying?: boolean;
   /** Máquina, chapa u hormigón: los golpes y la muerte suenan a metal en vez de a carne. */
   readonly metal?: boolean;
+  /** Furia propia: campos sueltos sobre el perfil por defecto (`RAGE`) o `{ enabled: false }` para no enfurecerse. */
+  readonly rage?: RageOverride;
+  /** Habilidad de carrera/embestida con aviso (ver `DashSpec`). Si falta, no tiene. */
+  readonly dash?: DashSpec;
+}
+
+/**
+ * Perfil de furia (CAMBIOS §1). Condiciones: `chaseAfter` s persiguiendo, vida por debajo de `hpBelow` (fracción) o
+ * muerte de un aliado a menos de `allyDeathR` px; las que valen 0 están desactivadas. Efectos mientras dura (`dur` s):
+ * corre a max(su velocidad, la del jugador × `speed`) y pega `dmg` veces más; `hp` multiplica su vida solo la primera
+ * vez. Al acabar no puede volver a enfurecerse hasta pasados `cd` s.
+ */
+export interface RageProfile {
+  readonly minLevel: number;
+  readonly chaseAfter: number;
+  readonly hpBelow: number;
+  readonly allyDeathR: number;
+  readonly speed: number;
+  readonly dmg: number;
+  readonly hp: number;
+  readonly dur: number;
+  readonly cd: number;
+}
+
+/** Lo que un enemigo cambia del perfil por defecto; `enabled: false` lo deja sin furia. */
+export type RageOverride = Partial<RageProfile> & { readonly enabled?: boolean };
+
+/**
+ * Embestida por datos: cada `every` s, si el jugador está a menos de `range` px, se queda parado `aim` s (con el
+ * pasillo marcado en el suelo) y luego corre `dur` s a `speed` px/s en la dirección fijada al empezar el aviso.
+ * `lead` = s máximos de anticipación: 0 apunta a donde está el jugador, > 0 a donde va a estar.
+ */
+export interface DashSpec {
+  readonly every: number;
+  readonly aim: number;
+  readonly speed: number;
+  readonly dur: number;
+  readonly range: number;
+  readonly lead: number;
 }
 
 /**
@@ -106,15 +145,15 @@ export const BOSS_VARIANTS: Readonly<
 export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> = T.bosses;
 
 /**
- * Furia: cualquier enemigo normal (ni jefe ni élite) que siga vivo `after` s después de aparecer se enfurece, se
- * pone rojo, pega y corre más y su vida (la que le queda y la máxima) se multiplica por `hp`. Su velocidad nunca pasa
- * de `speedCap` × la del jugador: te alcanza si te paras o te encierran, pero corriendo bien se le escapa. No hay furia (ni
- * por tiempo ni por sermón) hasta que el jugador llega al nivel `minLevel`; a partir de ahí los `after` s cuentan
- * desde ese momento para los que ya estaban, así no se enfurecen todos de golpe al subir de nivel.
- * DECISIÓN: para que no compense dejar a los bichos dando vueltas, y que de verdad puedan matarte (cañón de cristal:
- * pega mucho, pero con poca vida extra se le puede tumbar antes de que llegue).
+ * Furia: perfil por defecto (ver `RageProfile`); cada enemigo puede cambiar campos en `enemies.<id>.rage` o apagarla
+ * con `{ "enabled": false }`. Nunca se enfurecen jefes ni élites. No hay furia (ni por condición ni por sermón) hasta
+ * que el jugador llega al nivel `minLevel`; los `chaseAfter` s de persecución cuentan desde ese momento, así no se
+ * enfurecen todos de golpe al subir de nivel. El sermón del predicador la fuerza aunque esté en enfriamiento.
+ * DECISIÓN: temporal (`dur` y `cd`) en vez de para siempre, para que el jugador pueda reaccionar; y corre a
+ * `speed` × la velocidad del jugador (> 1) para que de verdad alcance, no solo para que te empuje a moverte.
+ * DECISIÓN: cañón de cristal: pega mucho (`dmg`), pero con poca vida extra (`hp`) se le puede tumbar antes de que llegue.
  */
-export const RAGE: DeepReadonly<typeof T.rage> = T.rage;
+export const RAGE: DeepReadonly<RageProfile> = T.rage;
 
 export const ENEMY_RULES = {
   /** Enemigos simultáneos; al superarlo se recicla el más lejano (05_TECH.md §3). */

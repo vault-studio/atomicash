@@ -2,6 +2,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { FileTab } from './FileTab';
+import { StatsTab } from './StatsTab';
 import { GameTab } from './GameTab';
 import { ValuesTab } from './ValuesTab';
 import type { DevCtx, DevTab } from './devTypes';
@@ -14,6 +15,7 @@ export const DEV_TABS: readonly DevTab[] = [
   { id: 'game', label: 'Partida', render: (ctx) => <GameTab ctx={ctx} /> },
   { id: 'values', label: 'Valores', render: (ctx) => <ValuesTab ctx={ctx} /> },
   { id: 'file', label: 'Archivo', render: (ctx) => <FileTab ctx={ctx} /> },
+  { id: 'stats', label: 'Stats', render: (ctx) => <StatsTab ctx={ctx} /> },
 ];
 
 /** Campos donde se escribe: con uno enfocado, el panel se queda las teclas (WASD, flechas, K, J...). */

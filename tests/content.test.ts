@@ -179,7 +179,7 @@ describe('IA de enemigos (03_CONTENT.md)', () => {
       tick(w, STILL, STEP);
       maxSpeed = Math.max(maxSpeed, Math.abs(e.x - x) / STEP);
     }
-    expect(maxSpeed).toBeGreaterThan(AI.cortacesped.dashSpd * 0.9);
+    expect(maxSpeed).toBeGreaterThan(ENEMY_STATS.cortacesped.dash!.speed * 0.9);
   });
 
   it('la torreta no se mueve y dispara ráfagas', () => {

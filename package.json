@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "manifest": "node make-manifest.mjs",
     "sim": "vitest run tests/sim",
-    "smoke": "node tests/smoke/smoke.mjs"
+    "smoke": "node tests/smoke/smoke.mjs",
+    "balance": "vitest run tests/sim/balance"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",

@@ -25,13 +25,13 @@ describe('archivo de datos (tuning.json)', () => {
   });
 
   it('aplicar cambia los valores en sitio y volver a defaults los restaura', () => {
-    const skipped = applyTuning({ enemies: { dron: { hp: 99 } }, rage: { after: 3 } });
+    const skipped = applyTuning({ enemies: { dron: { hp: 99 } }, rage: { chaseAfter: 3 } });
     expect(skipped).toEqual([]);
     expect(ENEMY_STATS.dron.hp).toBe(99);
-    expect(RAGE.after).toBe(3);
+    expect(RAGE.chaseAfter).toBe(3);
     resetTuning();
     expect(ENEMY_STATS.dron.hp).toBe(tuningDefaults().enemies.dron.hp);
-    expect(RAGE.after).toBe(tuningDefaults().rage.after);
+    expect(RAGE.chaseAfter).toBe(tuningDefaults().rage.chaseAfter);
   });
 
   it('ignora claves desconocidas y tipos que no encajan sin romper nada', () => {

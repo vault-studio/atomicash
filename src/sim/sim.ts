@@ -4,7 +4,7 @@ import { RUN } from '../config/run';
 import type { StatSurvivorId } from '../config/survivors';
 import type { WeaponId } from '../config/weapons';
 import { applyChoice } from '../engine/systems/progression';
-import type { RunStats } from '../engine/runStats';
+import { buildReport, type RunReport } from '../engine/runReport';
 import type { InputState, World } from '../engine/types';
 import { createWorld, results, tick, type RunResults, type WorldOptions } from '../engine/world';
 
@@ -27,7 +27,7 @@ export interface SimResult extends RunResults {
   hp: number;
   /** Nivel, vida y enemigos vivos al final de cada minuto. */
   perMin: { level: number; hp: number; alive: number; kills: number }[];
-  rs: RunStats;
+  report: RunReport;
 }
 
 const KITE_R = 300;
@@ -131,5 +131,5 @@ export function simulate(o: SimOptions): SimResult {
       nextMin += 60;
     }
   }
-  return { ...results(w), bot, hp: Math.max(0, Math.round(w.player.hp)), perMin, rs: w.rs };
+  return { ...results(w), bot, hp: Math.max(0, Math.round(w.player.hp)), perMin, report: buildReport(w) };
 }

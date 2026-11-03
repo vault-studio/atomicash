@@ -218,14 +218,14 @@ describe('radiación', () => {
 });
 
 describe('furia', () => {
-  it('los normales se enfurecen a los 10 s: más daño, velocidad y vida', () => {
+  it('los normales se enfurecen tras `chaseAfter` s: más daño y vida, y se les pasa a los `dur` s', () => {
     const w = quiet();
     w.level = RAGE.minLevel;
     const e = spawnEnemy(w, 'dron', w.player.x + 2000, w.player.y, false);
     const s = ENEMY_STATS.dron;
-    run(w, RAGE.after - 0.5);
+    run(w, RAGE.chaseAfter - 0.5);
     expect(e.rage).toBe(false);
-    expect(e.speed).toBe(s.speed);
+    expect(e.dmg).toBe(s.dmg);
     const hp = e.hp;
     const maxHp = e.maxHp;
     run(w, 1);
@@ -233,44 +233,29 @@ describe('furia', () => {
     expect(e.hp).toBeCloseTo(hp * RAGE.hp);
     expect(e.maxHp).toBeCloseTo(maxHp * RAGE.hp);
     expect(e.dmg).toBeCloseTo(s.dmg * RAGE.dmg);
-    expect(e.speed).toBeCloseTo(s.speed * RAGE.speed);
-    run(w, 5);
-    expect(e.speed).toBeCloseTo(s.speed * RAGE.speed);
+    run(w, RAGE.dur);
+    expect(e.rage).toBe(false);
+    expect(e.dmg).toBeCloseTo(s.dmg);
   });
 
   it('no hay furia hasta el nivel mínimo, y luego cuenta desde que se alcanza', () => {
     const w = quiet();
     w.level = RAGE.minLevel - 1;
     const e = spawnEnemy(w, 'dron', w.player.x + 2000, w.player.y, false);
-    run(w, RAGE.after + 5);
+    run(w, RAGE.chaseAfter + 5);
     expect(e.rage).toBe(false);
     w.level = RAGE.minLevel;
-    run(w, RAGE.after - 0.5);
+    run(w, RAGE.chaseAfter - 0.5);
     expect(e.rage).toBe(false);
     run(w, 1);
     expect(e.rage).toBe(true);
-  });
-
-  it('enfurecido, nunca corre más que `speedCap` × la velocidad del jugador', () => {
-    const w = quiet();
-    w.level = RAGE.minLevel;
-    // La cría es la más rápida: enfurecida superaría al jugador sin el tope.
-    const e = spawnEnemy(w, 'aspiradora_cria', w.player.x + 1000, w.player.y, false);
-    run(w, RAGE.after + 0.5);
-    expect(e.rage).toBe(true);
-    expect(e.speed).toBeGreaterThan(w.st.speed);
-    e.x = e.prevX = w.player.x + 1000;
-    e.y = e.prevY = w.player.y;
-    const x = e.x;
-    run(w, 1);
-    expect(x - e.x).toBeGreaterThan(w.st.speed * RAGE.speedCap * 0.9);
-    expect(x - e.x).toBeLessThanOrEqual(w.st.speed * RAGE.speedCap + 1);
   });
 
   it('ni jefes ni élites se enfurecen', () => {
     const w = quiet();
+    w.level = RAGE.minLevel;
     const elite = spawnElite(w);
-    run(w, RAGE.after + 1);
+    run(w, RAGE.chaseAfter + 1);
     expect(elite.rage).toBe(false);
   });
 });

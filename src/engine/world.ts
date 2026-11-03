@@ -1,8 +1,8 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
 import type { ConsumableId, ItemId } from '../config/items';
-import { ELITES, ENEMY_RULES } from '../config/enemies';
+import { ELITES, ENEMY_RULES, ENEMY_STATS, type EnemyStats } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
-import { CAPS, CREDITS, JUICE, PLAYER, RUN, SUMMARY, xpForLevel } from '../config/run';
+import { CAPS, CREDITS, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import type { TreeMod } from '../config/tree';
@@ -15,7 +15,9 @@ import { banner, createBeam, createBoom, createParticle, createText, updateFx } 
 import { Pool } from './pool';
 import { createRng } from './rng';
 import { tickStun } from './rules';
-import { createRunStats, hurtIndex, noteHurt } from './runStats';
+import { createRunStats, hurtIndex, noteHurt, samplePressure, surroundedBy } from './runStats';
+
+const sectorOcc = new Uint8Array(32);
 import { SpatialHash } from './spatialHash';
 import { createStats, recalc } from './stats';
 import { addRad, createPickup, heal, resolveBlasts } from './systems/combat';
@@ -206,7 +208,6 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     xp: 0,
     level: 1,
     xpNext: xpForLevel(1),
-    rageFrom: Infinity,
     kills: 0,
     coupons: 0,
     dmgTotal: 0,
@@ -265,6 +266,26 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
+/**
+ * Los pesados (rol `heavy`) ocupan espacio de verdad: el jugador no los atraviesa (CAMBIOS §4). El resto de enemigos
+ * solo se separan entre sí, sin colisión con el jugador, para que las hordas sigan fluyendo.
+ */
+function blockByHeavies(w: World): void {
+  const p = w.player;
+  for (let i = 0; i < w.enemies.count; i++) {
+    const e = w.enemies.items[i]!;
+    if (e.dead || e.flying || (ENEMY_STATS[e.type] as EnemyStats).role !== 'heavy') continue;
+    const dx = p.x - e.x;
+    const dy = p.y - e.y;
+    const min = p.r + e.r;
+    const d2 = dx * dx + dy * dy;
+    if (d2 >= min * min) continue;
+    const d = Math.sqrt(d2) || 1;
+    p.x = e.x + (dx / d) * min;
+    p.y = e.y + (dy / d) * min;
+  }
+}
+
 function updatePlayer(w: World, input: InputState, dt: number): void {
   const p = w.player;
   p.prevX = p.x;
@@ -287,6 +308,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
     p.x += ux * k;
     p.y += uy * k;
     blockCircle(w, p, p.r, ux, uy, 1);
+    blockByHeavies(w);
     p.vx = (p.x - p.prevX) / dt;
     p.vy = (p.y - p.prevY) / dt;
   }
@@ -325,10 +347,11 @@ function updateRadiation(w: World, dt: number): void {
   const tier = radTier(p.rad);
   if (tier.drain && !immune) {
     p.hp -= tier.drain * dt;
-    noteHurt(w.rs, hurtIndex('rad'), tier.drain * dt);
+    noteHurt(w.rs, hurtIndex('rad'), tier.drain * dt, w.time);
   }
   if (p.rad >= RAD.max && !immune) {
     banner(w, 'banner.radDeath');
+    w.rs.lastSrc = hurtIndex('rad');
     killPlayer(w);
   }
 }
@@ -363,6 +386,15 @@ export function tick(w: World, input: InputState, dt: number): void {
   updateMines(w, dt);
   resolveBlasts(w);
   updateEnemies(w, dt);
+  if (w.time >= w.rs.nextPressure) {
+    w.rs.nextPressure = w.time + PRESSURE.every;
+    samplePressure(
+      w.rs,
+      w.time,
+      w.enemies.count,
+      surroundedBy(w, PRESSURE.r, PRESSURE.sectors, PRESSURE.minSectors, sectorOcc),
+    );
+  }
   updateEnemyBullets(w, dt);
   updateTelegraphs(w, dt);
   updateBarrels(w, dt);
@@ -386,7 +418,7 @@ export function tick(w: World, input: InputState, dt: number): void {
     if (!p.god) {
       const d = (RUN.stormDps + RUN.stormDpsGrowth * (w.time - RUN.stormStart)) * dt;
       p.hp -= d;
-      noteHurt(w.rs, hurtIndex('tormenta'), d);
+      noteHurt(w.rs, hurtIndex('tormenta'), d, w.time);
     }
   }
   if (p.god && p.hp < 1) p.hp = 1;

@@ -3,7 +3,7 @@
 import type { Container } from 'pixi.js';
 import { ENTITIES, type AnimId, type EntityId } from '../config/entities';
 import { AI, ELITES } from '../config/enemies';
-import { RUN_COLORS } from '../config/render';
+import { RAGE_VIEW, RUN_COLORS } from '../config/render';
 import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
 import type { Enemy, World } from '../engine/types';
@@ -102,7 +102,7 @@ export class EnemyLayer {
       const x = e.prevX + (e.x - e.prevX) * alpha;
       const y = e.prevY + (e.y - e.prevY) * alpha;
       v.position.set(isoX(x, y), isoY(x, y));
-      v.scale.set(e.elite ? ELITES.scale : 1);
+      v.scale.set(e.elite ? ELITES.scale : e.rage ? RAGE_VIEW.scale : 1);
       v.zIndex = x + y + (e.flying ? 1e6 : 0);
       const dir = dirIndex(e.facingX, e.facingY);
       const since = w.time - e.lastAtk;
@@ -114,10 +114,13 @@ export class EnemyLayer {
       else if (!e.moving && atkMeta && !this.lib.meta(id, 'idle'))
         v.show(ATTACK_ANIMS[e.atkAnim]!, dir, 0, 0);
       else v.show(e.moving ? MOVE_ANIMS : IDLE_ANIMS, dir, w.time - e.born, 0);
+      // Al final de la furia parpadea (rojo / normal) para que se lea que se le va a pasar.
+      const calming =
+        e.rage && e.rageT < RAGE_VIEW.warn && Math.floor(w.time * RAGE_VIEW.blinkHz * 2) % 2 === 0;
       const tint =
         e.frozen > 0
           ? RUN_COLORS.frozen
-          : e.rage
+          : e.rage && !calming
             ? RUN_COLORS.rage
             : e.irr
               ? RUN_COLORS.irradiated

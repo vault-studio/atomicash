@@ -121,8 +121,15 @@ export interface Enemy {
   dead: boolean;
   /** Variante irradiada. */
   irr: boolean;
-  /** Enfurecido (ver `RAGE`): ya lleva aplicados sus bonus de daño y velocidad. */
+  /** Enfurecido (ver `RAGE` y engine/rage.ts): ya lleva aplicado su bonus de daño; la velocidad se calcula al moverse. */
   rage: boolean;
+  /** Estado del ciclo de furia: segundos que le quedan, de enfriamiento, de persecución y veces que se ha enfurecido. */
+  rageT: number;
+  rageCd: number;
+  chase: number;
+  rageN: number;
+  /** Daño de contacto que tenía antes de la furia en curso, para devolvérselo al calmarse. */
+  rageDmg: number;
   boss: boolean;
   flying: boolean;
   /** Guarnición a la que pertenece (índice en `World.garrisons`), o −1. */
@@ -160,6 +167,8 @@ export interface Enemy {
   /** Marcha en formación (hordas): segundos que sigue en línea recta por (dx, dy) antes de perseguir. */
   march: number;
   /** Último golpe de cada arma orbital, por hueco. */
+  /** Tiempo de la run del primer golpe recibido en esta vida (para el tiempo para matar). */
+  hitAt?: number;
   readonly hitT: Float64Array;
   /** Quemaduras del cóctel: tiempo que le queda a cada una (0 = hueco libre) y su daño por segundo. */
   readonly burnT: Float64Array;
@@ -547,8 +556,6 @@ export interface World {
   xp: number;
   level: number;
   xpNext: number;
-  /** Momento en que el jugador llegó a `RAGE.minLevel` (Infinity hasta entonces): la furia cuenta desde aquí. */
-  rageFrom: number;
   kills: number;
   /** Cupones recogidos en la partida. */
   coupons: number;

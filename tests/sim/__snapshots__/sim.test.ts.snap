@@ -3,38 +3,38 @@
 exports[`simulación con semilla fija > referencia benny (semilla 1, 600 s) 1`] = `
 {
   "bosses": 0,
-  "dmg": 4617,
+  "dmg": 2790,
   "hp": 0,
-  "kills": 117,
-  "level": 8,
-  "perMin": "5/59/36/43 7/16/76/91",
-  "time": 134.2,
-  "weapons": "pistola_clavos1,llave2,escopeta_chatarra2",
+  "kills": 74,
+  "level": 7,
+  "perMin": "5/80/37/42",
+  "time": 91.5,
+  "weapons": "pistola_clavos1,llave2,escopeta_chatarra3",
 }
 `;
 
 exports[`simulación con semilla fija > referencia dot (semilla 1, 600 s) 1`] = `
 {
-  "bosses": 1,
-  "dmg": 15660,
+  "bosses": 2,
+  "dmg": 71509,
   "hp": 0,
-  "kills": 300,
-  "level": 16,
-  "perMin": "5/100/25/54 13/95/13/172 15/85/5/287",
-  "time": 192.5,
-  "weapons": "pistola_clavos4,jeringa5,tesla5",
+  "kills": 845,
+  "level": 32,
+  "perMin": "6/87/20/59 11/87/10/175 17/100/31/294 24/120/7/446 28/107/7/546 30/91/75/721",
+  "time": 391.2,
+  "weapons": "pistola_clavos5,jeringa5,tesla5",
 }
 `;
 
 exports[`simulación con semilla fija > referencia gus (semilla 1, 600 s) 1`] = `
 {
   "bosses": 1,
-  "dmg": 25888,
-  "hp": 0,
-  "kills": 428,
-  "level": 20,
-  "perMin": "4/75/17/62 8/41/14/171 11/11/1/292 19/29/7/401",
-  "time": 252.7,
+  "dmg": 78184,
+  "hp": 111,
+  "kills": 817,
+  "level": 33,
+  "perMin": "5/72/15/64 10/52/12/177 17/80/8/292 21/76/6/412 24/101/1/534 25/111/1/548 28/111/5/580 29/111/9/656 32/111/8/735 33/111/7/817",
+  "time": 600,
   "weapons": "coctel5,tesla5,geiger5",
 }
 `;

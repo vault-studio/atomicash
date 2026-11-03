@@ -19,7 +19,7 @@ import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
-import { hurtIndex, noteHurt } from '../runStats';
+import { hurtIndex, noteHurt, noteKill } from '../runStats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
@@ -132,6 +132,7 @@ export function hitEnemy(
   fy = 0,
 ): number {
   if (e.dead) return 0;
+  if (e.hitAt === undefined || e.hitAt < e.born) e.hitAt = w.time;
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
@@ -298,6 +299,7 @@ function countKill(w: World): void {
 
 export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (e.dead) return;
+  noteKill(w.rs, e.type, w.time, e.hitAt !== undefined && e.hitAt >= e.born ? e.hitAt : -1);
   e.dead = true;
   w.kills++;
   countKill(w);
@@ -423,7 +425,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false, src 
   const d =
     Math.max(1, raw * tm - st.armor) * (1 - st.red) * (w.dailyMod === 'glass' ? DAILY.glass.taken : 1);
   p.hp -= d;
-  noteHurt(w.rs, src, d);
+  noteHurt(w.rs, src, d, w.time);
   p.inv = PLAYER.invuln;
   // Un golpe recibido corta la racha (si ya multiplicaba, se avisa).
   if (w.streak >= STREAK.tiers[STREAK.tiers.length - 1]!.at) banner(w, 'banner.streakLost');

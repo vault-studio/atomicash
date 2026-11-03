@@ -164,6 +164,12 @@ export function streakMult(n: number): number {
 /** Resumen final: tramos de la gráfica de daño, en s. */
 export const SUMMARY = { bucket: 30, window: 5 } as const;
 
+/**
+ * Estadística de presión (CAMBIOS §6.4): cada `every` s se mira si el jugador está rodeado, es decir, con enemigos a
+ * menos de `r` px en al menos `minSectors` de `sectors` sectores alrededor.
+ */
+export const PRESSURE = { every: 0.5, r: 220, sectors: 8, minSectors: 7 } as const;
+
 export const FX = {
   maxTexts: 120,
   textLife: 0.8,

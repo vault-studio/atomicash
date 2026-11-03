@@ -11,7 +11,9 @@ import {
   enemyRadius,
   RAGE,
   type EliteId,
+  type DashSpec,
   type EnemyStats,
+  type RageOverride,
   type StatEnemyId,
 } from '../../config/enemies';
 import { WEAPONS } from '../../config/weapons';
@@ -34,6 +36,7 @@ import {
 } from '../types';
 import { blockCircle, hitsObstacle } from '../obstacles';
 import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
+import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
 import { SFX, sfx } from '../sfx';
@@ -55,7 +58,8 @@ export function createEnemy(): Enemy {
     hp: 0,
     maxHp: 0,
     speed: 0,
-    dmg: 0,
+    // Decimal de partida: la furia multiplica el daño (p. ej. 9 × 2,5) y, si fuera entero, V8 cambiaría el mapa del Enemy a media partida.
+    dmg: 0.5,
     xp: 0,
     facingX: Math.SQRT1_2,
     facingY: Math.SQRT1_2,
@@ -64,6 +68,13 @@ export function createEnemy(): Enemy {
     dead: false,
     irr: false,
     rage: false,
+    // Con decimales de partida (spawnEnemy los pone a 0): si arrancan como enteros, V8 cambia el mapa del Enemy la
+    // primera vez que guardan un decimal, a media partida, y deshace lo optimizado del bucle de IA (reserva memoria).
+    rageT: 0.5,
+    rageCd: 0.5,
+    chase: 0.5,
+    rageN: 0,
+    rageDmg: 0.5,
     boss: false,
     flying: false,
     gar: -1,
@@ -130,8 +141,6 @@ function firstTimer(type: StatEnemyId): number {
   switch (type) {
     case 'tirador':
       return AI.tirador.fireCd;
-    case 'cortacesped':
-      return AI.cortacesped.every;
     case 'torreta':
       return AI.torreta.every;
     case 'predicador':
@@ -143,7 +152,8 @@ function firstTimer(type: StatEnemyId): number {
     case 'coloso':
       return AI.coloso.every;
     default:
-      return 0;
+      // Quien tiene embestida por datos empieza con su primer enfriamiento.
+      return ENEMY_STATS[type].dash?.every ?? 0;
   }
 }
 
@@ -193,6 +203,7 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.dead = false;
   e.irr = isIrr;
   e.rage = false;
+  e.rageT = e.rageCd = e.chase = e.rageN = e.rageDmg = 0;
   e.boss = boss;
   e.flying = s.flying === true;
   e.gar = -1;
@@ -240,34 +251,86 @@ export function removeEnemyAt(w: World, i: number): void {
   w.enemies.releaseAt(i);
 }
 
-/** Retira del pool los enemigos muertos en este tick. */
+/** Efectos de empezar la furia: más daño de contacto y, la primera vez, más vida (la velocidad se calcula en `speedOf`). */
+function onRageStart(w: World, e: Enemy, ovr: RageOverride | undefined): void {
+  if (e.rageN === 1) {
+    const hp = ovr !== undefined && ovr.hp !== undefined ? ovr.hp : RAGE.hp;
+    e.hp *= hp;
+    e.maxHp *= hp;
+  }
+  e.rageDmg = e.dmg;
+  e.dmg *= ovr !== undefined && ovr.dmg !== undefined ? ovr.dmg : RAGE.dmg;
+  w.rs.rages++;
+}
+
+/** Un tick del ciclo de furia de  (aparte de updateEnemies: sus ramas raras no deben deshacer lo optimizado del bucle). */
+function rageTick(w: World, e: Enemy, dt: number): void {
+  const ovr = ENEMY_STATS[e.type].rage;
+  const r = rageStep(e, dt, RAGE, ovr, w.level);
+  if (r === RAGE_START) onRageStart(w, e, ovr);
+  else if (r === RAGE_END) onRageEnd(e);
+}
+
+/** Al calmarse recupera su daño; la vida extra se queda. */
+function onRageEnd(e: Enemy): void {
+  e.dmg = e.rageDmg;
+}
+
+/**
+ * Muerte de un aliado (CAMBIOS §1): por cada enemigo normal muerto en este tick, los cercanos con `allyDeathR` se
+ * enfurecen. Se recorre antes de retirar los muertos; no toca `killEnemy`.
+ */
+function allyDeaths(w: World): void {
+  const items = w.enemies.items;
+  const n = w.enemies.count;
+  let any = false;
+  for (let i = 0; i < n && !any; i++) {
+    const a = items[i] as Enemy;
+    any = a.dead && !a.boss && !a.elite;
+  }
+  if (!any) return;
+  for (let j = 0; j < n; j++) {
+    const o = items[j] as Enemy;
+    if (o.dead || o.rage || o.boss || o.elite) continue;
+    const ovr = ENEMY_STATS[o.type].rage;
+    const r = ovr !== undefined && ovr.allyDeathR !== undefined ? ovr.allyDeathR : RAGE.allyDeathR;
+    if (!(r > 0)) continue;
+    const r2 = r * r;
+    for (let i = 0; i < n; i++) {
+      const a = items[i] as Enemy;
+      if (!a.dead || a.boss || a.elite) continue;
+      const dx = o.x - a.x;
+      const dy = o.y - a.y;
+      if (dx * dx + dy * dy >= r2) continue;
+      if (rageTrigger(o, RAGE, ovr, w.level) === RAGE_START) onRageStart(w, o, ovr);
+      break;
+    }
+  }
+}
+
+/** Retira del pool los enemigos muertos en este tick (antes, los que mueren le enfurecen a sus vecinos). */
 export function compactEnemies(w: World): void {
   const pool = w.enemies;
+  allyDeaths(w);
   for (let i = pool.count - 1; i >= 0; i--) if ((pool.items[i] as Enemy).dead) pool.releaseAt(i);
 }
 
-/** Furia (RAGE): rojo, pega, corre y aguanta más. Solo una vez por enemigo. */
-function enrage(e: Enemy): void {
-  e.rage = true;
-  e.hp *= RAGE.hp;
-  e.maxHp *= RAGE.hp;
-  e.dmg *= RAGE.dmg;
-  e.speed *= RAGE.speed;
-}
-
-/** Sermón del predicador: enfurece a los enemigos normales que tiene cerca (ni jefes ni élites, como la furia; tampoco antes de `RAGE.minLevel`). */
+/** Sermón del predicador: enfurece a los enemigos normales que tiene cerca (ni jefes ni élites; tampoco antes del nivel mínimo ni a quien no puede), aunque estén en enfriamiento. */
 function sermon(w: World, e: Enemy): void {
   const A = AI.predicador;
   const items = w.enemies.items;
-  const n = w.level >= RAGE.minLevel ? w.enemies.count : 0;
+  const n = w.enemies.count;
   for (let i = 0; i < n; i++) {
     const o = items[i] as Enemy;
     if (o === e || o.dead || o.rage || o.boss || o.elite) continue;
     const dx = o.x - e.x;
     const dy = o.y - e.y;
     if (dx * dx + dy * dy < A.r * A.r) {
-      enrage(o);
-      o.flash = 0.15;
+      const ovr = ENEMY_STATS[o.type].rage;
+      if (rageForce(o, RAGE, ovr, w.level) === RAGE_START) {
+        onRageStart(w, o, ovr);
+        o.flash = 0.15;
+      }
     }
   }
   burst(w, e.x, e.y, 14, GORE.predicador, 1.4);
@@ -362,12 +425,66 @@ function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, di
 let vx = 0;
 let vy = 0;
 
-/** Velocidad efectiva: la de un enfurecido no pasa de `RAGE.speedCap` × la del jugador. */
-const speedOf = (w: World, e: Enemy): number =>
-  e.rage ? Math.min(e.speed, w.st.speed * RAGE.speedCap) : e.speed;
+/** Velocidad efectiva: un enfurecido corre a max(la suya, la del jugador × `RAGE.speed`), así que puede alcanzarlo. */
+function speedOf(w: World, e: Enemy): number {
+  if (!e.rage) return e.speed;
+  // Inline (sin llamar a rageSpeed): este es el camino caliente y las llamadas con decimales reservan memoria.
+  const ovr = ENEMY_STATS[e.type].rage;
+  const run = w.st.speed * (ovr !== undefined && ovr.speed !== undefined ? ovr.speed : RAGE.speed);
+  return run > e.speed ? run : e.speed;
+}
 
 const aimPt: Vec = { x: 0, y: 0 };
 const head: Vec = { x: 0, y: 0 };
+
+/**
+ * Embestida por datos (CAMBIOS §1, `enemies.<id>.dash`): vale para cualquier tipo. Cada `every` s, si el jugador está a
+ * menos de `range`, se para `aim` s con el pasillo marcado en el suelo y corre `dur` s a `speed`. La dirección se fija
+ * al empezar el aviso: hacia el jugador (`lead` 0) o hacia donde va a estar (`interceptPoint`, hasta `lead` s). Pone
+ * `vx`/`vy` y devuelve true mientras apunta o embiste; si no, devuelve false y manda la IA normal del tipo.
+ */
+function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: number, dt: number): boolean {
+  if (e.mode === MODE_CHASE) {
+    e.timer -= dt;
+    if (e.timer > 0 || d >= D.range) return false;
+    e.mode = MODE_AIM;
+    e.mt = D.aim;
+    e.dx = ux;
+    e.dy = uy;
+    if (D.lead > 0) {
+      const p = w.player;
+      interceptPoint(e.x, e.y, p.x, p.y, p.vx, p.vy, D.speed, D.lead, aimPt);
+      const tx = aimPt.x - e.x;
+      const ty = aimPt.y - e.y;
+      const tl = Math.sqrt(tx * tx + ty * ty);
+      if (tl > 1e-6) {
+        e.dx = tx / tl;
+        e.dy = ty / tl;
+      }
+    }
+    dashLane(w, e, D.aim, D.speed, D.dur);
+    markAttack(w, e);
+    vx = vy = 0;
+    return true;
+  }
+  if (e.mode === MODE_AIM) {
+    vx = vy = 0;
+    e.mt -= dt;
+    if (e.mt <= 0) {
+      e.mode = MODE_DASH;
+      e.mt = D.dur;
+    }
+    return true;
+  }
+  vx = e.dx * D.speed;
+  vy = e.dy * D.speed;
+  e.mt -= dt;
+  if (e.mt <= 0) {
+    e.mode = MODE_CHASE;
+    e.timer = D.every;
+  }
+  return true;
+}
 
 /**
  * Interceptor (CAMBIOS §2): corre mucho más que el jugador pero gira despacio, y apunta a donde va a estar (le corta
@@ -426,6 +543,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
   curSrc = hurtIndex(e.type);
   const spd = speedOf(w, e);
   const irrRad = e.irr ? IRRADIATED.rad : 0;
+  const dash = ENEMY_STATS[e.type].dash;
+  if (dash !== undefined && dashTick(w, e, dash, d, ux, uy, dt)) return;
   switch (e.type) {
     case 'interceptor':
       interceptor(w, e, d, ux, uy, spd, dt);
@@ -467,50 +586,38 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       }
       break;
     }
-    case 'cortacesped':
     case 'rey_rata': {
-      const A = e.type === 'rey_rata' ? AI.rey_rata : AI.cortacesped;
+      const A = AI.rey_rata;
       if (e.mode === MODE_CHASE) {
         vx = ux * spd;
         vy = uy * spd;
         e.timer -= dt;
-        if (e.type === 'cortacesped') {
-          if (e.timer <= 0 && d < AI.cortacesped.range) {
+        if (e.phase === 1 && e.hp / e.maxHp < A.p2) {
+          e.phase = 2;
+          banner(w, 'banner.ratPhase');
+          addShake(w, 6);
+          ring(w, 'necrofago', e.x, e.y, 4, A.summonDist + 30);
+        }
+        const p2 = e.phase >= 2;
+        // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
+        if (e.mt > 0) {
+          vx = vy = 0;
+          e.mt -= dt;
+        } else if (e.timer <= 0) {
+          if (e.burst > 0) {
+            e.burst--;
             e.mode = MODE_AIM;
-            e.mt = A.aim;
+            e.mt = p2 ? A.aimP2 : A.aim;
             e.dx = ux;
             e.dy = uy;
-            markAttack(w, e);
-          }
-        } else {
-          const R = AI.rey_rata;
-          if (e.phase === 1 && e.hp / e.maxHp < R.p2) {
-            e.phase = 2;
-            banner(w, 'banner.ratPhase');
-            addShake(w, 6);
-            ring(w, 'necrofago', e.x, e.y, 4, R.summonDist + 30);
-          }
-          const p2 = e.phase >= 2;
-          // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
-          if (e.mt > 0) {
-            vx = vy = 0;
-            e.mt -= dt;
-          } else if (e.timer <= 0) {
-            if (e.burst > 0) {
-              e.burst--;
-              e.mode = MODE_AIM;
-              e.mt = p2 ? R.aimP2 : R.aim;
-              e.dx = ux;
-              e.dy = uy;
-              dashLane(w, e, e.mt, R.dashSpd, R.dash);
-              markAttack(w, e, 'attack_1');
-            } else {
-              markAttack(w, e, 'attack_2');
-              ring(w, R.summonType, e.x, e.y, p2 ? R.summonP2 : R.summon, R.summonDist);
-              e.mt = R.summonStop;
-              e.timer = R.summonStop;
-              e.burst = p2 ? R.chainP2 : R.chain;
-            }
+            dashLane(w, e, e.mt, A.dashSpd, A.dash);
+            markAttack(w, e, 'attack_1');
+          } else {
+            markAttack(w, e, 'attack_2');
+            ring(w, A.summonType, e.x, e.y, p2 ? A.summonP2 : A.summon, A.summonDist);
+            e.mt = A.summonStop;
+            e.timer = A.summonStop;
+            e.burst = p2 ? A.chainP2 : A.chain;
           }
         }
       } else if (e.mode === MODE_AIM) {
@@ -526,9 +633,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         e.mt -= dt;
         if (e.mt <= 0) {
           e.mode = MODE_CHASE;
-          if (e.type === 'cortacesped') e.timer = AI.cortacesped.every;
           // El Rey Rata enlaza la siguiente embestida casi sin pausa.
-          else e.timer = e.phase >= 2 ? AI.rey_rata.gapP2 : AI.rey_rata.gap;
+          e.timer = e.phase >= 2 ? A.gapP2 : A.gap;
         }
       }
       break;
@@ -714,7 +820,6 @@ export function updateEnemies(w: World, dt: number): void {
   const out = w.scratch;
   const kd = Math.exp(-KNOCKBACK.decay * dt);
   const alive = p.deadAt === null;
-  if (w.rageFrom === Infinity && w.level >= RAGE.minLevel) w.rageFrom = w.time;
 
   for (let i = 0; i < n; i++) {
     const e = items[i] as Enemy;
@@ -723,13 +828,13 @@ export function updateEnemies(w: World, dt: number): void {
     e.prevY = e.y;
     e.flash -= dt;
     e.atkCd -= dt;
-    if (!e.rage && !e.boss && !e.elite && w.time - Math.max(e.born, w.rageFrom) >= RAGE.after) enrage(e);
-    // Congelado por la crio-granada: ni se mueve ni ataca.
+    // Congelado por la crio-granada: ni se mueve ni ataca (ni cuenta su furia).
     if (e.frozen > 0) {
       e.frozen -= dt;
       e.moving = false;
       continue;
     }
+    if (!e.boss && !e.elite) rageTick(w, e, dt);
 
     const dx = p.x - e.x;
     const dy = p.y - e.y;

@@ -1,6 +1,6 @@
 # TASKS — cambios de jugabilidad
 
-Rama: `cambios-jugabilidad` · Roadmap: `docs/CAMBIOS.md` · Estado: **fase de preparación hecha, esperando aprobación**.
+Rama: `cambios-jugabilidad` · Roadmap: `docs/CAMBIOS.md` · Estado: **en curso (T0–T10 y T15 hechas)**.
 
 Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el director) · ⛔ bloqueada
 
@@ -24,16 +24,16 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 2 — Velocidad de los enemigos (CAMBIOS §1)
 
-| #   | Tarea                                                                                                                                                      | Reutiliza                                                   | Crea                         | Pruebas                           | Estado |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------- | --------------------------------- | ------ |
-| T8  | Furia configurable por enemigo: condición (vida %, aliado cercano muere, X s persiguiendo), duración, enfriamiento, velocidad > jugador, indicador visible | `RAGE`, `enrage()`, tinte rojo                              | condiciones y ciclo de furia | unitarios de condición/ciclo; sim | ⬜     |
-| T9  | Habilidad de velocidad (carrera/embestida) telegrafiada, con apuntado predictivo opcional                                                                  | embestida del cortacésped y del Rey Rata (`aim`, `dashSpd`) | habilidad genérica por datos | unitarios de apuntado; sim        | ⬜     |
+| #   | Tarea                                                                                                                                                      | Reutiliza                                                   | Crea                         | Pruebas                           | Estado                                                                         |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| T8  | Furia configurable por enemigo: condición (vida %, aliado cercano muere, X s persiguiendo), duración, enfriamiento, velocidad > jugador, indicador visible | `RAGE`, `enrage()`, tinte rojo                              | condiciones y ciclo de furia | unitarios de condición/ciclo; sim | ✅ furia por defecto + excepciones por enemigo; aliado muerto solo en reptador |
+| T9  | Habilidad de velocidad (carrera/embestida) telegrafiada, con apuntado predictivo opcional                                                                  | embestida del cortacésped y del Rey Rata (`aim`, `dashSpd`) | habilidad genérica por datos | unitarios de apuntado; sim        | ✅                                                                             |
 
 ## Fase 3 — Roles y cercos (CAMBIOS §4)
 
 | #   | Tarea                                                                 | Reutiliza                           | Crea                                         | Pruebas                             | Estado |
 | --- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------- | ----------------------------------- | ------ |
-| T10 | Campo `role` por enemigo; pesados que bloquean de verdad (solo ellos) | `kbRes`, separación en `enemies.ts` | colisión jugador–pesado                      | unitarios; rendimiento (alloc.test) | ⬜     |
+| T10 | Campo `role` por enemigo; pesados que bloquean de verdad (solo ellos) | `kbRes`, separación en `enemies.ts` | colisión jugador–pesado                      | unitarios; rendimiento (alloc.test) | ✅     |
 | T11 | Cercos compuestos por roles, siempre con al menos una salida          | `HORDES.ring/wall/stampede`         | composición por datos, comprobación de hueco | unitario «siempre hay salida»       | ⬜     |
 
 ## Fase 4 — Tiradores especiales (CAMBIOS §3)
@@ -51,9 +51,9 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 6 — Estadísticas completas (CAMBIOS §6.4)
 
-| #   | Tarea                                                                                                                                                     | Reutiliza                       | Crea                 | Pruebas                | Estado |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------- | ---------------------- | ------ |
-| T15 | Colector de estadísticas (supervivencia, daño por fuente/arma, TTK, ritmo, presión, esquivas, decisiones) + exportar JSON/CSV desde el depurador y la sim | `dmgBy`, `SUMMARY`, `results()` | `engine/runStats.ts` | unitarios del colector | ⬜     |
+| #   | Tarea                                                                                                                                                     | Reutiliza                       | Crea                 | Pruebas                | Estado                                                          |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------- | ---------------------- | --------------------------------------------------------------- |
+| T15 | Colector de estadísticas (supervivencia, daño por fuente/arma, TTK, ritmo, presión, esquivas, decisiones) + exportar JSON/CSV desde el depurador y la sim | `dmgBy`, `SUMMARY`, `results()` | `engine/runStats.ts` | unitarios del colector | ✅ pestaña Estadísticas, `npm run balance`, `tools/simdiff.mjs` |
 
 ## Fase 7 — Balance final (CAMBIOS §7)
 
@@ -63,7 +63,8 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Bugs conocidos
 
-- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» falla en `main` (dos de dos ejecuciones, 2026-11-03): hay un GC durante el combate. Reproducir: `npx vitest run tests/alloc.test.ts`. Pendiente de mirar en T0 (no es de esta rama).
+- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» ya fallaba en `main` (f606252, comprobado 2026-11-03 en un worktree): hay un GC durante el combate. Reproducir: `npx vitest run tests/alloc.test.ts`. La combinación «martillo_pilon…» que rompió T5–T7 vuelve a pasar desde T8.
+- Depurador › Valores: solo edita claves que ya existen en `tuning.json` (no se puede añadir `rage`/`dash` a un enemigo que no los tenga; hay que añadirlos al archivo).
 
 ## Preguntas resueltas
 
@@ -72,4 +73,4 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Siguiente tarea recomendada
 
-T0 → T1 (el director), luego T1b con `data-migrator` (haiku).
+T11 (cercos con planRing en las hordas), luego T12 → T14 y T16.

@@ -107,21 +107,38 @@
       "hp": 25,
       "dmg": 8,
       "speed": 78,
-      "xp": 1
+      "xp": 1,
+      "rage": {
+        "allyDeathR": 0
+      }
     },
     "saqueador": {
       "role": "chaser",
       "hp": 40,
       "dmg": 10,
       "speed": 100,
-      "xp": 2
+      "xp": 2,
+      "rage": {
+        "hpBelow": 0.5
+      },
+      "dash": {
+        "every": 5,
+        "aim": 0.5,
+        "speed": 300,
+        "dur": 0.5,
+        "range": 380,
+        "lead": 0.6
+      }
     },
     "tirador": {
       "role": "shooter",
       "hp": 30,
       "dmg": 8,
       "speed": 72,
-      "xp": 2
+      "xp": 2,
+      "rage": {
+        "enabled": false
+      }
     },
     "reptador": {
       "role": "chaser",
@@ -129,7 +146,10 @@
       "dmg": 9,
       "speed": 112,
       "xp": 2,
-      "rad": 5
+      "rad": 5,
+      "rage": {
+        "allyDeathR": 160
+      }
     },
     "hinchado": {
       "role": "normal",
@@ -144,7 +164,15 @@
       "dmg": 12,
       "speed": 88,
       "xp": 5,
-      "metal": true
+      "metal": true,
+      "dash": {
+        "every": 4,
+        "aim": 0.45,
+        "speed": 340,
+        "dur": 0.7,
+        "range": 500,
+        "lead": 0
+      }
     },
     "torreta": {
       "role": "shooter",
@@ -153,7 +181,10 @@
       "speed": 0,
       "xp": 5,
       "kbRes": 0,
-      "metal": true
+      "metal": true,
+      "rage": {
+        "enabled": false
+      }
     },
     "babosa": {
       "role": "heavy",
@@ -161,7 +192,10 @@
       "dmg": 8,
       "speed": 50,
       "xp": 3,
-      "kbRes": 0.6
+      "kbRes": 0.6,
+      "rage": {
+        "enabled": false
+      }
     },
     "aspiradora": {
       "role": "normal",
@@ -169,7 +203,10 @@
       "dmg": 10,
       "speed": 80,
       "xp": 2,
-      "metal": true
+      "metal": true,
+      "rage": {
+        "enabled": false
+      }
     },
     "aspiradora_cria": {
       "role": "chaser",
@@ -178,7 +215,10 @@
       "speed": 150,
       "xp": 0,
       "r": 6,
-      "metal": true
+      "metal": true,
+      "rage": {
+        "enabled": false
+      }
     },
     "blindado": {
       "role": "heavy",
@@ -188,14 +228,20 @@
       "xp": 4,
       "kbRes": 0.25,
       "armor": 0.6,
-      "metal": true
+      "metal": true,
+      "rage": {
+        "enabled": false
+      }
     },
     "predicador": {
       "role": "normal",
       "hp": 45,
       "dmg": 6,
       "speed": 74,
-      "xp": 4
+      "xp": 4,
+      "rage": {
+        "enabled": false
+      }
     },
     "excavadora": {
       "role": "heavy",
@@ -205,7 +251,10 @@
       "xp": 7,
       "kbRes": 0.1,
       "armor": 0.4,
-      "metal": true
+      "metal": true,
+      "rage": {
+        "enabled": false
+      }
     },
     "interceptor": {
       "role": "interceptor",
@@ -214,7 +263,10 @@
       "speed": 340,
       "xp": 3,
       "metal": true,
-      "cap": 2
+      "cap": 2,
+      "rage": {
+        "enabled": false
+      }
     },
     "rey_rata": {
       "hp": 3000,
@@ -258,13 +310,6 @@
       "boomEnemyDmg": 30,
       "boomPlayerDmg": 10,
       "boomRad": 8
-    },
-    "cortacesped": {
-      "every": 4,
-      "aim": 0.45,
-      "dashSpd": 340,
-      "dash": 0.7,
-      "range": 500
     },
     "torreta": {
       "every": 2.6,
@@ -366,12 +411,15 @@
     }
   },
   "rage": {
-    "after": 10,
-    "minLevel": 3,
-    "dmg": 2.5,
-    "speed": 1.8,
-    "speedCap": 0.95,
-    "hp": 1.5
+    "minLevel": 6,
+    "chaseAfter": 15,
+    "hpBelow": 0,
+    "allyDeathR": 0,
+    "speed": 1.1,
+    "dmg": 1.2,
+    "hp": 1.5,
+    "dur": 3,
+    "cd": 15
   },
   "elites": {
     "first": 50,

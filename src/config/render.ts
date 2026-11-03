@@ -191,6 +191,12 @@ export const RUN_COLORS = {
 } as const;
 
 /**
+ * Enemigo enfurecido: se ve más grande (`scale`) mientras dura, y en el último `warn` s parpadea entre rojo y normal
+ * a `blinkHz` veces por segundo para avisar de que se le va a pasar.
+ */
+export const RAGE_VIEW = { scale: 1.25, warn: 1, blinkHz: 6 } as const;
+
+/**
  * Baldosas de suelo recortadas de las láminas de ARTE/ con tools/slice_tiles.py (rombo
  * 2:1 de 256×128). `tiles.json` dice qué baldosa lleva lago de ácido, cuánto sobresale por arriba y si lo que
  * sobresale va aparte (`top`) para ordenarlo con los personajes.

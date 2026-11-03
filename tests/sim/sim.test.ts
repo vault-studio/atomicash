@@ -2,19 +2,25 @@
 // cambio de balance la actualiza a propósito (`npx vitest run tests/sim -u`). Con SIM_OUT=<carpeta> guarda los JSON.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { ROSTER } from '../../src/config/survivors';
+import { reportsToCsv } from '../../src/engine/runReport';
 import { simulate, type SimResult } from '../../src/sim/sim';
 
 const SEED = 1;
 const SECONDS = 600;
 const out = process.env.SIM_OUT ?? (process.env.npm_lifecycle_event === 'sim' ? 'out/sim' : undefined);
 
+const all: SimResult[] = [];
 function save(name: string, r: SimResult): void {
+  all.push(r);
   if (!out) return;
   mkdirSync(out, { recursive: true });
-  writeFileSync(join(out, `${name}.json`), JSON.stringify(r, null, 2));
+  writeFileSync(join(out, `${name}.json`), JSON.stringify(r.report, null, 2));
 }
+afterAll(() => {
+  if (out && all.length) writeFileSync(join(out, 'summary.csv'), reportsToCsv(all.map((r) => r.report)));
+});
 
 /** Lo que compara la instantánea (sin los arrays largos por tramo). */
 const summary = (r: SimResult) => ({
