@@ -5,8 +5,8 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
 
 ## Alcance cerrado (no ampliar sin consultar)
 
-- 3 personajes: Dot, Mae, El Errante. Solo el Acto 1, «Las Afueras».
-- Enemigos y jefes: solo humanoides o robots/máquinas.
+- 3 personajes: Dot, Gus y Benny (`ROSTER`). Solo el Acto 1, «Las Afueras». (Decisión del usuario sobre CAMBIOS.md.)
+- Enemigos y jefes: humanoides, robots/máquinas o mutantes ya existentes (babosa, reptador, hinchado). Nuevos: humanoides o robots.
 - Roadmap y fuente de verdad: `docs/CAMBIOS.md` (no reescribirlo; solo marcar apartados hechos).
 - Estado real de las tareas: `TASKS.md`. Decisiones de arquitectura: `docs/DECISIONS.md` (no reabrirlas).
 
