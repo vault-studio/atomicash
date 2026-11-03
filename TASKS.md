@@ -61,9 +61,15 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 | --- | --------------------------------------------------------------------------------- | --------------- | ---- | ----------------------------------------- | ----------------------------------------------------------------------------- |
 | T16 | Pasadas de balance con semilla fija por personaje y build, pocos valores cada vez | sim + depurador | —    | comparación de estadísticas antes/después | ✅ bot «kite» esquiva charcos y rastros; sin cambios de valores (ver Balance) |
 
+## Tras la primera prueba del usuario (2026-11-03)
+
+- ✅ La embestida (saqueador, cortacésped, Rey Rata) siempre llega: corre en línea recta hasta dejar al jugador `over` px atrás (tope `maxDur` por si algo la frena), en vez de durar un tiempo fijo que se quedaba corto.
+- ✅ Aturdido no se dispara (cambia CAMBIOS §2, que decía que el autoataque seguía).
+- Efecto en balance (bot «kite» que ahora también esquiva el pasillo marcado, build propia): media 410 → 361 s; Dot 409 s (1/6), Gus 261 s (0/6), Benny 412 s (3/6). Daño del saqueador por partida 6 → 30. Muertes repartidas; 6 semillas dan mucho ruido.
+
 ## Bugs conocidos
 
-- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» ya fallaba en `main` (f606252): `updateEnemies` corre desoptimizado («insufficient type feedback») y reserva números. En T14 se arreglaron otras causas (campos que nacían enteros, `hitAt` opcional, jefes por bajas en la prueba) y la combinación «martillo_pilon…» vuelve a pasar.
+- `tests/alloc.test.ts` › «combate sin GC: llave, pistola_clavos, escopeta_chatarra, tesla» ya fallaba en `main` (f606252; tras los cambios del 2026-11-03 pasa, pero puede volver): `updateEnemies` corre desoptimizado («insufficient type feedback») y reserva números. En T14 se arreglaron otras causas (campos que nacían enteros, `hitAt` opcional, jefes por bajas en la prueba) y la combinación «martillo_pilon…» vuelve a pasar.
 - Depurador › Valores: solo edita claves que ya existen en `tuning.json` (no se puede añadir `rage`/`dash` a un enemigo que no los tenga; hay que añadirlos al archivo).
 
 ## Preguntas resueltas

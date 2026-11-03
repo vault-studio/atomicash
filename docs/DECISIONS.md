@@ -18,3 +18,6 @@ Una línea por decisión, con su motivo. No reabrir las ya registradas.
 - 2026-11-03 · Un enemigo recibe como mucho un golpe de charco por intervalo aunque pise varios · los charcos solapados multiplicaban ×4 el daño a un solo blanco y el cóctel ganaba en todo.
 - 2026-11-03 · Todo campo numérico que pueda llevar decimales nace decimal (0,5 en `createEnemy`, −0 en el mundo) · si nace entero, V8 cambia el mapa a media partida y desoptimiza el bucle.
 - 2026-11-03 · El bot «kite» de la sim rodea charcos y rastros radiactivos · se ven en pantalla; sin eso la radiación dominaba las muertes y el balance medía un defecto del bot.
+- 2026-11-03 · La embestida termina al dejar atrás al jugador (`over` px, proyectado sobre su pasillo), no por tiempo; `maxDur` es solo red de seguridad · el usuario la vio quedarse corta; si el jugador corre por el pasillo más que ella, acaba.
+- 2026-11-03 · Aturdido, el jugador no ataca (`updateWeapons` no corre) · decisión del usuario tras probarlo; sustituye a CAMBIOS §2 «el autoataque sigue activo».
+- 2026-11-03 · El bot «kite» se aparta del pasillo de las embestidas (segmento), no solo de su origen · el pasillo se ve en pantalla.

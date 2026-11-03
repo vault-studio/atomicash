@@ -637,7 +637,8 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
 }
 
 export function updateWeapons(w: World, dt: number): void {
-  if (w.player.deadAt !== null) return;
+  // Aturdido no ataca (decisión del usuario tras probarlo; CAMBIOS §2 decía que el autoataque seguía).
+  if (w.player.deadAt !== null || w.player.stun > 0) return;
   // El array puede cambiar solo al elegir tarjeta (con el motor parado), así que se recorre tal cual.
   for (let i = 0; i < w.weapons.length; i++) updateWeapon(w, w.weapons[i]!, dt);
 }

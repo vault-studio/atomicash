@@ -54,13 +54,16 @@ describe('interceptor', () => {
     expect(w.rs.stuns).toBe(0);
   });
 
-  it('el autoataque sigue durante el aturdimiento', () => {
+  it('aturdido no ataca; al pasar el aturdimiento vuelve a disparar', () => {
     applyTuning({ spawn: { rateMult: 0 } });
     const w = createWorld('dot', 3, { hazards: false });
     w.player.god = true;
-    w.player.stun = 5;
-    w.player.stunImmune = 5;
+    w.player.stun = 2;
+    w.player.stunImmune = 2;
     spawnEnemy(w, 'necrofago', w.player.x + 150, w.player.y);
+    run(w, 1.9);
+    expect(w.dmgTotal).toBe(0);
+    expect(w.shots.count).toBe(0);
     run(w, 2);
     expect(w.dmgTotal).toBeGreaterThan(0);
   });

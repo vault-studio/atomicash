@@ -298,7 +298,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
     return;
   }
   tickStun(p, dt);
-  // Aturdido: no se mueve, pero las armas siguen disparando (CAMBIOS §2).
+  // Aturdido: no se mueve ni dispara (las armas lo miran en `updateWeapons`).
   const mag = p.stun > 0 ? 0 : Math.sqrt(input.moveX * input.moveX + input.moveY * input.moveY);
   p.moving = mag > PLAYER.moveDeadzone;
   if (p.moving) {

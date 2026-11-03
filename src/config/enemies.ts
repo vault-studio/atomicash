@@ -63,14 +63,16 @@ export type RageOverride = Partial<RageProfile> & { readonly enabled?: boolean }
 
 /**
  * Embestida por datos: cada `every` s, si el jugador está a menos de `range` px, se queda parado `aim` s (con el
- * pasillo marcado en el suelo) y luego corre `dur` s a `speed` px/s en la dirección fijada al empezar el aviso.
+ * pasillo marcado en el suelo) y luego corre a `speed` px/s en la dirección fijada al empezar el aviso, siempre hasta
+ * dejarlo `over` px atrás aunque huya por el pasillo (como mucho `maxDur` s, por si algo la frena).
  * `lead` = s máximos de anticipación: 0 apunta a donde está el jugador, > 0 a donde va a estar.
  */
 export interface DashSpec {
   readonly every: number;
   readonly aim: number;
   readonly speed: number;
-  readonly dur: number;
+  readonly over: number;
+  readonly maxDur: number;
   readonly range: number;
   readonly lead: number;
 }
@@ -107,7 +109,9 @@ export const statsOf = (id: StatEnemyId): EnemyStats => ENEMY_STATS[id];
  *   detrás.
  * - `rey_rata`: Ciclo: se para a llamar a las ratas (`summonStop` s) y luego encadena `chain` embestidas, cada
  *   una con su aviso (`aim`) y separadas solo `gap` s. `every` es lo que tarda en actuar al aparecer. DECISIÓN:
- *   antes alternaba una embestida y una llamada cada 3,8 s y pasaba casi todo el combate persiguiendo.
+ *   antes alternaba una embestida y una llamada cada 3,8 s y pasaba casi todo el combate persiguiendo. Cada embestida
+ *   llega hasta el jugador y sigue `dashOver` px (como `DashSpec.over`;
+ *   tope `dashMax` s).
  * - `rey_rata.p2`: Fase 2 (por debajo de `p2`): más embestidas por ciclo, avisos más cortos y más ratas.
  * - `dirigible.lift`: Altura de vuelo en pantalla (los demás voladores usan ENEMY_RULES.flyHeight). El sprite es
  *   tan grande que ya queda muy por encima de su sombra; con más altura se saldría de la vista.

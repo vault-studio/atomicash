@@ -83,8 +83,11 @@ export function botInput(w: World, kind: BotKind, out: InputState): InputState {
   }
   for (let i = 0; i < w.tele.count; i++) {
     const t = w.tele.items[i]!;
-    const dx = p.x - t.x;
-    const dy = p.y - t.y;
+    // Pasillo (embestidas): se aparta del punto más cercano del segmento, no solo de su origen.
+    const l2 = t.lx * t.lx + t.ly * t.ly;
+    const s = l2 > 0 ? Math.max(0, Math.min(1, ((p.x - t.x) * t.lx + (p.y - t.y) * t.ly) / l2)) : 0;
+    const dx = p.x - (t.x + t.lx * s);
+    const dy = p.y - (t.y + t.ly * s);
     const d = Math.hypot(dx, dy) || 1;
     if (d < t.r + 40) {
       ax += (dx / d) * 20;

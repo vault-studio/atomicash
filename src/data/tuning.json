@@ -128,7 +128,8 @@
         "every": 5,
         "aim": 0.5,
         "speed": 300,
-        "dur": 0.5,
+        "over": 60,
+        "maxDur": 6,
         "range": 380,
         "lead": 0.6
       }
@@ -172,7 +173,8 @@
         "every": 4,
         "aim": 0.45,
         "speed": 340,
-        "dur": 0.7,
+        "over": 80,
+        "maxDur": 6,
         "range": 500,
         "lead": 0
       }
@@ -385,7 +387,8 @@
       "aim": 0.55,
       "gap": 0.25,
       "dashSpd": 440,
-      "dash": 0.7,
+      "dashOver": 100,
+      "dashMax": 4,
       "p2": 0.5,
       "chainP2": 4,
       "aimP2": 0.4,

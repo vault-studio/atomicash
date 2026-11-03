@@ -8,7 +8,7 @@ import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engin
 import { IRRADIATED, RAD } from '../src/config/radiation';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { announceHorde, spawnElite } from '../src/engine/systems/spawning';
-import type { Enemy, InputState, World } from '../src/engine/types';
+import { MODE_CHASE, type Enemy, type InputState, type World } from '../src/engine/types';
 import { isOnScreen } from '../src/engine/view';
 import { createWorld, tick } from '../src/engine/world';
 
@@ -107,11 +107,12 @@ describe('hordas en formación', () => {
 describe('avisos de los jefes', () => {
   it('el Rey Rata llama a las ratas parado y luego encadena embestidas avisadas, más en fase 2', () => {
     const R = AI.rey_rata;
-    // Cuenta los pasillos de embestida nuevos (los avisos sin daño con dirección) durante `sec` segundos.
-    const lanes = (w: World, sec: number): number => {
+    // Cuenta los pasillos de embestida nuevos (los avisos sin daño con dirección) hasta que acaba la tanda de `b`
+    // (cada carrera dura lo que tarde en llegar al jugador, así que no se mide por tiempo).
+    const lanes = (w: World, b: Enemy): number => {
       let n = 0;
       let before = 0;
-      for (let i = 0; i < Math.round(sec * RUN.tickHz); i++) {
+      for (let i = 0; i < 20 * RUN.tickHz && !(n > 0 && b.burst === 0 && b.mode === MODE_CHASE); i++) {
         w.spawnAcc = -1e9;
         tick(w, STILL, STEP);
         const now = w.tele.items.slice(0, w.tele.count).filter((t) => t.lx !== 0 || t.ly !== 0).length;
@@ -120,8 +121,6 @@ describe('avisos de los jefes', () => {
       }
       return n;
     };
-    const charge = (aim: number, gap: number): number => aim + R.dash + gap;
-
     const w = quiet();
     const e = spawnEnemy(w, 'rey_rata', w.player.x + 600, w.player.y);
     e.timer = 0;
@@ -133,7 +132,9 @@ describe('avisos de los jefes', () => {
     run(w, R.summonStop / 2);
     expect(e.x).toBe(x0);
     // Luego, `chain` embestidas casi seguidas, cada una con su pasillo sin daño.
-    expect(lanes(w, R.summonStop / 2 + charge(R.aim, R.gap) * R.chain)).toBe(R.chain);
+    expect(lanes(w, e)).toBe(R.chain);
+    // Ya no queda nada de la tanda: lo siguiente es volver a llamar a las ratas.
+    expect(e.burst).toBe(0);
     expect(w.tele.items.slice(0, w.tele.count).every((t) => t.dmg === 0)).toBe(true);
 
     const w2 = quiet();
@@ -143,7 +144,7 @@ describe('avisos de los jefes', () => {
     run(w2, STEP * 2);
     expect(b.phase).toBe(2);
     expect(b.burst).toBe(R.chainP2);
-    expect(lanes(w2, R.summonStop + charge(R.aimP2, R.gapP2) * R.chainP2)).toBe(R.chainP2);
+    expect(lanes(w2, b)).toBe(R.chainP2);
   });
 });
 

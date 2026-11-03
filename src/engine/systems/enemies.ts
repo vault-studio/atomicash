@@ -422,9 +422,23 @@ function leapTick(w: World, e: Enemy, dt: number): void {
 }
 
 /** Marca en el suelo el pasillo de una embestida (solo aviso: el daño lo hace el contacto). */
-function dashLane(w: World, e: Enemy, aim: number, spd: number, dur: number): void {
-  const len = spd * dur + e.r;
-  telegraph(w, e.x, e.y, e.r, aim, 0, null, e.dx * len, e.dy * len);
+function dashLane(w: World, e: Enemy, aim: number, len: number): void {
+  const l = len + e.r;
+  telegraph(w, e.x, e.y, e.r, aim, 0, null, e.dx * l, e.dy * l);
+}
+
+/** Distancia (px) hasta el jugador medida sobre el pasillo de la embestida (`dx`, `dy`); negativa si ya lo ha pasado. */
+function alongLane(w: World, e: Enemy): number {
+  return (w.player.x - e.x) * e.dx + (w.player.y - e.y) * e.dy;
+}
+
+/**
+ * La embestida nunca se queda corta: sigue en línea recta hasta dejar al jugador `over` px atrás. Solo acaba antes si
+ * él corre por el pasillo más deprisa que ella (`spd`), porque entonces no lo alcanzaría nunca.
+ */
+function dashDone(w: World, e: Enemy, spd: number, over: number): boolean {
+  const p = w.player;
+  return alongLane(w, e) + over <= 0 || p.vx * e.dx + p.vy * e.dy >= spd;
 }
 
 function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, dist: number): void {
@@ -479,9 +493,10 @@ const head: Vec = { x: 0, y: 0 };
 
 /**
  * Embestida por datos (CAMBIOS §1, `enemies.<id>.dash`): vale para cualquier tipo. Cada `every` s, si el jugador está a
- * menos de `range`, se para `aim` s con el pasillo marcado en el suelo y corre `dur` s a `speed`. La dirección se fija
- * al empezar el aviso: hacia el jugador (`lead` 0) o hacia donde va a estar (`interceptPoint`, hasta `lead` s). Pone
- * `vx`/`vy` y devuelve true mientras apunta o embiste; si no, devuelve false y manda la IA normal del tipo.
+ * menos de `range`, se para `aim` s con el pasillo marcado en el suelo y corre a `speed` hasta dejar atrás al jugador
+ * (`dashDone`; como mucho `maxDur` s, que `mt` cuenta). La dirección se fija al empezar el aviso: hacia el jugador (`lead` 0) o hacia donde va a estar
+ * (`interceptPoint`, hasta `lead` s). Pone `vx`/`vy` y devuelve true mientras apunta o embiste; si no, devuelve false
+ * y manda la IA normal del tipo.
  */
 function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: number, dt: number): boolean {
   if (e.mode === MODE_CHASE) {
@@ -491,6 +506,7 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
     e.mt = D.aim;
     e.dx = ux;
     e.dy = uy;
+    let reach = d;
     if (D.lead > 0) {
       const p = w.player;
       interceptPoint(e.x, e.y, p.x, p.y, p.vx, p.vy, D.speed, D.lead, aimPt);
@@ -500,9 +516,12 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
       if (tl > 1e-6) {
         e.dx = tx / tl;
         e.dy = ty / tl;
+        reach = tl;
       }
     }
-    dashLane(w, e, D.aim, D.speed, D.dur);
+    // El pasillo marca hasta el jugador o el punto apuntado (el más lejano) y `over` más; la carrera real lo sigue.
+    const along = alongLane(w, e);
+    dashLane(w, e, D.aim, (along > reach ? along : reach) + D.over);
     markAttack(w, e);
     vx = vy = 0;
     return true;
@@ -512,15 +531,16 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
     e.mt -= dt;
     if (e.mt <= 0) {
       e.mode = MODE_DASH;
-      e.mt = D.dur;
+      e.mt = D.maxDur;
     }
     return true;
   }
   vx = e.dx * D.speed;
   vy = e.dy * D.speed;
   e.mt -= dt;
-  if (e.mt <= 0) {
+  if (e.mt <= 0 || dashDone(w, e, D.speed, D.over)) {
     e.mode = MODE_CHASE;
+    e.mt = 0;
     e.timer = D.every;
   }
   return true;
@@ -655,7 +675,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             e.mt = p2 ? A.aimP2 : A.aim;
             e.dx = ux;
             e.dy = uy;
-            dashLane(w, e, e.mt, A.dashSpd, A.dash);
+            // Como la embestida por datos: llega hasta el jugador y sigue `dashOver` px (`dashDone`).
+            dashLane(w, e, e.mt, d + A.dashOver);
             markAttack(w, e, 'attack_1');
           } else {
             markAttack(w, e, 'attack_2');
@@ -670,14 +691,16 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         e.mt -= dt;
         if (e.mt <= 0) {
           e.mode = MODE_DASH;
-          e.mt = A.dash;
+          e.mt = A.dashMax;
         }
       } else {
         vx = e.dx * A.dashSpd;
         vy = e.dy * A.dashSpd;
         e.mt -= dt;
-        if (e.mt <= 0) {
+        if (e.mt <= 0 || dashDone(w, e, A.dashSpd, A.dashOver)) {
           e.mode = MODE_CHASE;
+          // Si acaba antes del tope, `mt` no debe leerse en persecución como «parado llamando a las ratas».
+          e.mt = 0;
           // El Rey Rata enlaza la siguiente embestida casi sin pausa.
           e.timer = e.phase >= 2 ? A.gapP2 : A.gap;
         }

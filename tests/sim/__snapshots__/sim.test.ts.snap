@@ -3,38 +3,38 @@
 exports[`simulación con semilla fija > referencia benny (semilla 1, 600 s) 1`] = `
 {
   "bosses": 3,
-  "dmg": 106068,
-  "hp": 70,
-  "kills": 1036,
-  "level": 39,
-  "perMin": "4/73/21/58 11/64/5/184 17/90/9/294 21/90/7/431 29/90/16/596 33/90/22/849 37/90/1/1006",
-  "time": 451.5,
+  "dmg": 116267,
+  "hp": 34,
+  "kills": 1077,
+  "level": 38,
+  "perMin": "4/73/21/58 11/73/16/169 15/38/6/278 21/77/35/401 26/12/3/556 29/86/45/670 33/86/29/879 37/105/2/1040",
+  "time": 521.3,
   "weapons": "pistola_clavos5,rifle_cerrojo5,coctel5",
 }
 `;
 
 exports[`simulación con semilla fija > referencia dot (semilla 1, 600 s) 1`] = `
 {
-  "bosses": 3,
-  "dmg": 135925,
-  "hp": 104,
-  "kills": 1101,
-  "level": 42,
-  "perMin": "4/100/28/51 11/88/36/153 15/100/6/294 22/100/10/409 25/100/15/590 27/84/19/648 31/100/23/798 33/81/32/1041",
-  "time": 515,
+  "bosses": 2,
+  "dmg": 64622,
+  "hp": 0,
+  "kills": 717,
+  "level": 31,
+  "perMin": "4/100/28/51 10/98/49/141 13/39/11/283 20/100/11/399 22/89/23/569 25/73/12/598 29/100/17/653",
+  "time": 460.2,
   "weapons": "pistola_clavos5,jeringa5,geiger5",
 }
 `;
 
 exports[`simulación con semilla fija > referencia gus (semilla 1, 600 s) 1`] = `
 {
-  "bosses": 2,
-  "dmg": 105841,
-  "hp": 0,
-  "kills": 1023,
-  "level": 39,
-  "perMin": "5/93/26/59 14/150/8/166 17/170/13/342 27/170/14/466 29/110/10/540 32/79/60/764 39/145/11/1002",
-  "time": 459.2,
-  "weapons": "dardos_incendiarios5,remachadora5,rifle_cerrojo5",
+  "bosses": 1,
+  "dmg": 36066,
+  "hp": 2,
+  "kills": 554,
+  "level": 27,
+  "perMin": "4/116/23/56 8/130/13/182 13/130/6/299 21/130/10/423 26/37/11/535",
+  "time": 335,
+  "weapons": "megafono5,dardos_incendiarios5,tesla5",
 }
 `;

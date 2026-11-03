@@ -45,7 +45,8 @@ describe('embestida por datos', () => {
     const lane = w.tele.items[0]!;
     expect(lane.dur).toBe(D.aim);
     expect(lane.dmg).toBe(0);
-    expect(Math.hypot(lane.lx, lane.ly)).toBeCloseTo(D.speed * D.dur + e.r, 3);
+    // Hasta el jugador (a 300 px) y `over` más, más su radio.
+    expect(Math.hypot(lane.lx, lane.ly)).toBeCloseTo(300 + D.over + e.r, 3);
     // Parado todo el aviso.
     const x0 = e.x;
     const y0 = e.y;
@@ -61,13 +62,34 @@ describe('embestida por datos', () => {
     expect(t).toBeGreaterThanOrEqual(D.aim - STEP);
     expect(t).toBeLessThanOrEqual(D.aim + 2 * STEP);
     expect(e.mode).toBe(MODE_DASH);
-    // Embiste a `speed` px/s durante `dur` s y luego vuelve a perseguir y reinicia el enfriamiento.
+    // Embiste a `speed` px/s hasta pasar `over` px al jugador y luego vuelve a perseguir y reinicia el enfriamiento.
     const xs = e.x;
     step(w);
     expect((xs - e.x) / STEP).toBeCloseTo(D.speed, 0);
     while (e.mode === MODE_DASH) step(w);
     expect(e.mode).toBe(MODE_CHASE);
     expect(e.timer).toBe(D.every);
+    expect(e.x).toBeLessThan(p.x - D.over + D.speed * STEP);
+  });
+
+  it('siempre llega hasta el jugador: desde el borde de `range` y aunque huya por el pasillo durante el aviso', () => {
+    for (const id of ['cortacesped', 'saqueador'] as const) {
+      const D = ENEMY_STATS[id].dash!;
+      const w = quietWorld();
+      const p = w.player;
+      const e = spawnEnemy(w, id, p.x + D.range - 10, p.y, false);
+      ready(e);
+      step(w);
+      expect(e.mode).toBe(MODE_AIM);
+      // Huye en línea recta alejándose, por el propio pasillo.
+      while (e.mode === MODE_AIM) step(w, -1, 0);
+      let passed = false;
+      while (e.mode === MODE_DASH) {
+        step(w, -1, 0);
+        if (e.x < p.x) passed = true;
+      }
+      expect(passed).toBe(true);
+    }
   });
 
   it('la dirección se fija al empezar el aviso: si el jugador se aparta, falla', () => {
@@ -141,7 +163,8 @@ describe('embestida por datos', () => {
       every: 3,
       aim: 0.3,
       speed: 500,
-      dur: 0.4,
+      over: 40,
+      maxDur: 2,
       range: 400,
       lead: 0,
     };
