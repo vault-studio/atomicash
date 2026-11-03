@@ -89,7 +89,8 @@ const DEFS = {
   aspiradora_cria: { category: 'enemies', size: 0.4, color: '#D8C090', method: 'rigid', act: 1 },
   excavadora: { category: 'enemies', size: 1.8, color: '#C9A04A', method: 'rigid', act: 1 },
   blindado: { category: 'enemies', size: 1.5, color: '#7A7A7A', method: 'mixamo', act: 1 },
-  mortero: { category: 'enemies', size: 1.6, color: '#8A6A4A', method: 'rigid_mixamo', act: 2 },
+  // Tirador especial (CAMBIOS §3). Sin sprite todavía: placeholder.
+  mortero: { category: 'enemies', size: 1.6, color: '#8A6A4A', method: 'rigid_mixamo', act: 1 },
   predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 1 },
   // Robot de carrera (CAMBIOS §2). Sin sprite todavía: placeholder.
   interceptor: { category: 'enemies', size: 1.1, color: '#3FE0FF', method: 'rigid', act: 1 },

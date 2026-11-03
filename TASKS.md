@@ -38,9 +38,9 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 4 — Tiradores especiales (CAMBIOS §3)
 
-| #   | Tarea                                                                                                                        | Reutiliza                                                             | Crea                   | Pruebas                                            | Estado |
-| --- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------- | -------------------------------------------------- | ------ |
-| T12 | Línea de impactos por delante del jugador según su dirección, cada uno marcado en el suelo; minuto configurable; placeholder | bombardeo en pasillo del Dirigible (`bombCount`, `bombWarn`, `laneR`) | rol `tirador_especial` | unitarios de colocación; sim: esquivados/recibidos | ⬜     |
+| #   | Tarea                                                                                                                        | Reutiliza                                                             | Crea                   | Pruebas                                            | Estado                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------- | -------------------------------------------------- | --------------------------------------------------------------------- |
+| T12 | Línea de impactos por delante del jugador según su dirección, cada uno marcado en el suelo; minuto configurable; placeholder | bombardeo en pasillo del Dirigible (`bombCount`, `bombWarn`, `laneR`) | rol `tirador_especial` | unitarios de colocación; sim: esquivados/recibidos | ✅ `mortero` (Acto 1, desde 240 s, máx. 2), `ai.mortero`; placeholder |
 
 ## Fase 5 — Armas, builds y blindaje (CAMBIOS §5)
 
@@ -73,4 +73,4 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Siguiente tarea recomendada
 
-T12 → T14 y T16.
+T13 → T14 y T16.

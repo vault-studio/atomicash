@@ -268,6 +268,18 @@
         "enabled": false
       }
     },
+    "mortero": {
+      "role": "shooter",
+      "hp": 45,
+      "dmg": 14,
+      "speed": 60,
+      "xp": 3,
+      "cap": 2,
+      "spawnFrom": 240,
+      "rage": {
+        "enabled": false
+      }
+    },
     "rey_rata": {
       "hp": 3000,
       "dmg": 18,
@@ -304,6 +316,17 @@
       "fireCd": 1.4,
       "bulletSpd": 230,
       "range": 700
+    },
+    "mortero": {
+      "hold": 520,
+      "range": 650,
+      "every": 5,
+      "shells": 4,
+      "warn": 1,
+      "stagger": 0.25,
+      "shellR": 42,
+      "shellDmg": 14,
+      "minGap": 70
     },
     "hinchado": {
       "boomR": 95,
@@ -762,7 +785,8 @@
         "aspiradora": 2,
         "dron": 3,
         "blindado": 1,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -778,7 +802,8 @@
         "reptador": 3,
         "blindado": 2,
         "predicador": 1,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -790,7 +815,8 @@
         "necrofago": 4,
         "saqueador": 3,
         "reptador": 2,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -807,7 +833,8 @@
         "necrofago": 3,
         "blindado": 2,
         "predicador": 1,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -824,7 +851,8 @@
         "reptador": 3,
         "blindado": 2,
         "predicador": 2,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -836,7 +864,8 @@
         "saqueador": 3,
         "reptador": 3,
         "dron": 5,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -854,7 +883,8 @@
         "tirador": 2,
         "blindado": 3,
         "predicador": 1,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
@@ -872,7 +902,8 @@
         "hinchado": 2,
         "blindado": 3,
         "predicador": 2,
-        "interceptor": 1
+        "interceptor": 1,
+        "mortero": 1
       }
     }
   ],

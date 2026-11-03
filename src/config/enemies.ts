@@ -205,6 +205,7 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   predicador: [0xa8382a, 0x6a2a20, 0xf0e070],
   excavadora: SPARKS,
   interceptor: SPARKS,
+  mortero: [0xa8382a, 0x6a2a20, 0x8a6a4a],
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,

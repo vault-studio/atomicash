@@ -39,12 +39,15 @@ import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
 import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
+import { mortarThink, mortarVel } from './shooters';
 import { SFX, sfx } from '../sfx';
 
 const TAU = Math.PI * 2;
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 /** Eslóganes de la torreta (i18n `slogans.<n>`). */
 export const SLOGAN_COUNT = 6;
+/** Fuente de los impactos del mortero (para contar los recibidos y los esquivados). */
+const MORTAR_SRC = hurtIndex('mortero');
 
 export function createEnemy(): Enemy {
   return {
@@ -147,6 +150,8 @@ function firstTimer(type: StatEnemyId): number {
       return AI.predicador.every;
     case 'rey_rata':
       return AI.rey_rata.every;
+    case 'mortero':
+      return AI.mortero.every * 0.5;
     case 'dirigible':
       return AI.dirigible.every;
     case 'coloso':
@@ -566,6 +571,11 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       }
       break;
     }
+    case 'mortero':
+      if (mortarThink(w, e, d, ux, uy, spd, dt, curSrc)) markAttack(w, e);
+      vx = mortarVel.x;
+      vy = mortarVel.y;
+      break;
     case 'predicador': {
       const A = AI.predicador;
       if (d > A.keepMax) {
@@ -978,7 +988,12 @@ export function updateTelegraphs(w: World, dt: number): void {
     const dx = p.x - x;
     const dy = p.y - y;
     const rr = r + p.r;
-    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, dmg, 0, false, src);
+    const hit = dx * dx + dy * dy < rr * rr;
+    if (hit) hurtPlayer(w, dmg, 0, false, src);
+    if (src === MORTAR_SRC) {
+      if (hit) w.rs.shellsHit++;
+      else w.rs.shellsDodged++;
+    }
     if (spawn) spawnEnemy(w, spawn, x, y, false);
   }
 }
