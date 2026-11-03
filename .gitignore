@@ -8,3 +8,6 @@ NOVEDADES/
 
 # Capacitor Android (regenerable)
 android/
+
+# Salidas de la simulación, smoke test y depurador
+out/

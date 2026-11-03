@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "manifest": "node make-manifest.mjs",
-    "sim": "node sim.js"
+    "sim": "vitest run tests/sim"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
