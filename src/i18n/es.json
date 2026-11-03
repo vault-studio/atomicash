@@ -477,11 +477,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDICIÓN",
-      "desc": "Salir al páramo, tu plantel y su árbol"
+      "desc": "Salir al páramo"
     },
     "stores": {
       "cmd": "INTENDENCIA",
-      "desc": "Taller, mercader y mochila"
+      "desc": "Equipo y provisiones"
     },
     "workshop": {
       "cmd": "TALLER",
@@ -497,7 +497,7 @@
     },
     "supplies": {
       "cmd": "SUMINISTROS",
-      "desc": "Cajas por zona"
+      "desc": "Desbloqueo y mejoras de personajes"
     },
     "board": {
       "cmd": "TABLÓN",

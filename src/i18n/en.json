@@ -477,11 +477,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDITION",
-      "desc": "Head out, your roster and their tree"
+      "desc": "Head out to the wasteland"
     },
     "stores": {
       "cmd": "QUARTERMASTER",
-      "desc": "Workshop, merchant and backpack"
+      "desc": "Gear and provisions"
     },
     "workshop": {
       "cmd": "WORKSHOP",
@@ -497,7 +497,7 @@
     },
     "supplies": {
       "cmd": "SUPPLIES",
-      "desc": "Crates by zone"
+      "desc": "Unlock and upgrade survivors"
     },
     "board": {
       "cmd": "BOARD",
