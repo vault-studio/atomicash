@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   GACHA,
+  IMPLANTS,
+  MERCHANT,
   RARITIES,
   SAVE,
   STARS,
@@ -12,13 +14,15 @@ import {
 import { ROSTER, SURVIVORS } from '../src/config/survivors';
 import {
   applyRun,
-  buyOffer,
+  buyConsumable,
+  buyImplant,
   buyUpgrade,
   chooseStarter,
   claimMission,
   dayKey,
   grantSurvivor,
-  merchantStock,
+  learnStarter,
+  learnableStarters,
   pullBoxes,
   refreshDaily,
   rollRarity,
@@ -196,49 +200,43 @@ describe('taller', () => {
   });
 });
 
-describe('mercader', () => {
-  it('el inventario es el mismo todo el día y cambia al siguiente', () => {
+describe('intendencia y taller del personaje', () => {
+  it('los consumibles se compran por paquetes y entran en la mochila', () => {
     const s = defaultSave();
-    grantSurvivor(s, 'dot');
-    const a = merchantStock(s, new Date(2026, 9, 28, 0, 1)).map((o) => o.key);
-    const b = merchantStock(s, new Date(2026, 9, 28, 23, 59)).map((o) => o.key);
-    expect(a).toEqual(b);
-    const days = new Set<string>();
-    for (let d = 1; d < 15; d++)
-      days.add(
-        merchantStock(s, new Date(2026, 9, d, 12))
-          .map((o) => o.key)
-          .join(),
-      );
-    expect(days.size).toBeGreaterThan(1);
+    s.profile.credits = 1e6;
+    const before = s.inventory.consumables.stim;
+    expect(buyConsumable(s, 'stim')).toBe(true);
+    expect(s.inventory.consumables.stim).toBe(before + MERCHANT.consumablePack);
+    expect(s.profile.credits).toBe(1e6 - MERCHANT.consumablePrice.stim * MERCHANT.consumablePack);
+    s.profile.credits = 0;
+    expect(buyConsumable(s, 'stim')).toBe(false);
   });
 
-  it('los implantes van al activo y los manuales cambian el arma inicial', () => {
+  it('el implante va al personaje elegido y sustituye al anterior', () => {
     const s = defaultSave();
     chooseStarter(s, 'dot');
     s.profile.credits = 1e6;
-    const stock = merchantStock(s, NOW);
-    const imp = stock.find((o) => o.kind === 'implant')!;
-    expect(buyOffer(s, imp.key, NOW)).toBe(true);
-    expect(s.survivors.dot!.implant).toBe(imp.kind === 'implant' ? imp.id : null);
-    expect(buyOffer(s, imp.key, NOW)).toBe(false);
-    const man = stock.find((o) => o.kind === 'manual');
-    expect(man?.kind).toBe('manual');
-    if (man?.kind !== 'manual') return;
-    expect(buyOffer(s, man.key, NOW)).toBe(true);
-    setStarter(s, 'dot', man.weapon);
-    const w = createWorld('dot', 1, runOptionsFor(s, 'dot'));
-    expect(w.weapons[0]!.id).toBe(man.weapon);
+    expect(buyImplant(s, 'gus', 'cortex')).toBe(true);
+    expect(s.survivors.gus!.implant).toBe('cortex');
+    expect(s.survivors.dot!.implant).toBeNull();
+    expect(buyImplant(s, 'gus', 'cortex')).toBe(false);
+    expect(buyImplant(s, 'gus', 'pulmon')).toBe(true);
+    expect(s.survivors.gus!.implant).toBe('pulmon');
+    expect(s.profile.credits).toBe(1e6 - IMPLANTS.cortex.price - IMPLANTS.pulmon.price);
   });
 
-  it('los consumibles entran en la mochila', () => {
+  it('aprender un arma inicial la deja elegible y cambia la de la run', () => {
     const s = defaultSave();
+    chooseStarter(s, 'dot');
     s.profile.credits = 1e6;
-    const c = merchantStock(s, NOW).find((o) => o.kind === 'consumable')!;
-    if (c.kind !== 'consumable') return;
-    const before = s.inventory.consumables[c.id];
-    expect(buyOffer(s, c.key, NOW)).toBe(true);
-    expect(s.inventory.consumables[c.id]).toBe(before + c.qty);
+    const weapon = learnableStarters('dot')[0]!;
+    expect(learnableStarters('dot')).not.toContain(SURVIVORS.dot.weapon);
+    expect(learnStarter(s, 'dot', SURVIVORS.dot.weapon)).toBe(false);
+    expect(learnStarter(s, 'dot', weapon)).toBe(true);
+    expect(learnStarter(s, 'dot', weapon)).toBe(false);
+    setStarter(s, 'dot', weapon);
+    const w = createWorld('dot', 1, runOptionsFor(s, 'dot'));
+    expect(w.weapons[0]!.id).toBe(weapon);
   });
 });
 

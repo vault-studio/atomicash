@@ -11,15 +11,12 @@ import { STARTERS } from '../config/meta';
 import type { StatSurvivorId } from '../config/survivors';
 import { RunScreen } from './screens/RunScreen';
 import { Intro } from './screens/Intro';
-import { Backpack } from './screens/bunker/Backpack';
 import { Board } from './screens/bunker/Board';
-import { Bunker, STORE_TABS, type BunkerView, type StoreTab } from './screens/bunker/Bunker';
-import { Tabs } from './screens/bunker/common';
+import { Bunker, type BunkerView } from './screens/bunker/Bunker';
 import { Expedition } from './screens/bunker/Expedition';
-import { Merchant } from './screens/bunker/Merchant';
 import { Settings } from './screens/bunker/Settings';
+import { Stores } from './screens/bunker/Stores';
 import { Supplies } from './screens/bunker/Supplies';
-import { Workshop } from './screens/bunker/Workshop';
 import { SaveConflictDialog } from './screens/bunker/Online';
 import { RunReward } from './screens/run/RunReward';
 
@@ -30,8 +27,6 @@ export function App() {
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
   const [view, setView] = useState<View>('bunker');
-  /** Pestaña abierta en Intendencia (se recuerda al volver al Búnker). */
-  const [storeTab, setStoreTab] = useState<StoreTab>('workshop');
   /** Superviviente elegido al salir de expedición; null mientras se elige. */
   const [runChar, setRunChar] = useState<StatSurvivorId | null>(null);
   /** Reto diario en curso (null en una expedición normal). */
@@ -105,10 +100,6 @@ export function App() {
     [act],
   );
 
-  const storeNav = (
-    <Tabs ids={STORE_TABS} current={storeTab} onTab={setStoreTab} label={(id) => t(`bunker.${id}.cmd`)} />
-  );
-
   let screen: React.ReactNode;
   if (!starterChosen) screen = null;
   else if (view === 'expedition' && !runChar)
@@ -124,10 +115,8 @@ export function App() {
         onFinish={finish}
       />
     );
-  else if (view === 'stores') {
-    const Store = { workshop: Workshop, merchant: Merchant, backpack: Backpack }[storeTab];
-    screen = <Store onBack={back} nav={storeNav} />;
-  } else if (view === 'supplies') screen = <Supplies onBack={back} />;
+  else if (view === 'stores') screen = <Stores onBack={back} />;
+  else if (view === 'supplies') screen = <Supplies onBack={back} />;
   else if (view === 'board') screen = <Board onBack={back} />;
   else if (view === 'settings') screen = <Settings onBack={back} />;
   else screen = <Bunker onGo={setView} />;

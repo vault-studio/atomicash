@@ -7,7 +7,6 @@ import {
   DAILY_COUNT,
   GACHA,
   IMPLANTS,
-  IMPLANT_IDS,
   IRRADIATED_PULL,
   MERCHANT,
   MISSIONS,
@@ -368,66 +367,33 @@ export function checkAchievements(s: SaveData): AchievementId[] {
   return out;
 }
 
-// ---------- mercader ----------
+// ---------- intendencia y taller del personaje ----------
 
-export type Offer =
-  | { key: string; kind: 'consumable'; id: ConsumableId; qty: number; price: number }
-  | { key: string; kind: 'implant'; id: ImplantId; price: number }
-  | { key: string; kind: 'manual'; char: StatSurvivorId; weapon: WeaponId; price: number };
-
-/** Inventario del día: mismo para todo el día local, cambia a medianoche. */
-export function merchantStock(s: SaveData, now: Date): Offer[] {
-  const day = dayKey(now);
-  const rng = createRng(hashSeed('merchant:' + day));
-  const offers: Offer[] = [];
-  for (const id of pickN(rng, CONSUMABLE_IDS, MERCHANT.consumables))
-    offers.push({
-      key: `c:${id}`,
-      kind: 'consumable',
-      id,
-      qty: MERCHANT.consumablePack,
-      price: MERCHANT.consumablePrice[id] * MERCHANT.consumablePack,
-    });
-  for (const id of pickN(rng, IMPLANT_IDS, MERCHANT.implants))
-    offers.push({ key: `i:${id}`, kind: 'implant', id, price: IMPLANTS[id].price });
-  // Los manuales se eligen entre los supervivientes que tienes, con armas que aún no saben.
-  const pairs: { char: StatSurvivorId; weapon: WeaponId }[] = [];
-  for (const char of owned(s))
-    for (const weapon of MERCHANT.manualWeapons)
-      if (weapon !== SURVIVORS[char].weapon) pairs.push({ char, weapon });
-  for (const p of pickN(rng, pairs, MERCHANT.manuals))
-    offers.push({ key: `m:${p.char}:${p.weapon}`, kind: 'manual', ...p, price: MERCHANT.manualPrice });
-  return offers;
+/** Compra un paquete de un consumible (`MERCHANT.consumablePack` unidades) para la mochila. */
+export function buyConsumable(s: SaveData, id: ConsumableId): boolean {
+  if (!spend(s, MERCHANT.consumablePrice[id] * MERCHANT.consumablePack)) return false;
+  s.inventory.consumables[id] += MERCHANT.consumablePack;
+  return true;
 }
 
-function refreshShop(s: SaveData, now: Date): void {
-  const day = dayKey(now);
-  if (s.shop.day !== day) {
-    s.shop.day = day;
-    s.shop.bought = [];
-  }
+/** Pone un implante a un superviviente (sustituye al que tuviera). */
+export function buyImplant(s: SaveData, char: StatSurvivorId, id: ImplantId): boolean {
+  const o = s.survivors[char];
+  if (!o || o.implant === id || !spend(s, IMPLANTS[id].price)) return false;
+  o.implant = id;
+  return true;
 }
 
-export function isSoldOut(s: SaveData, o: Offer, now: Date): boolean {
-  if (s.shop.day !== dayKey(now)) return false;
-  if (s.shop.bought.includes(o.key)) return o.kind !== 'consumable';
-  if (o.kind === 'manual') return s.survivors[o.char]?.learnedStarters.includes(o.weapon) ?? true;
-  return false;
-}
+/** Armas iniciales que un superviviente puede aprender (las de `MERCHANT.manualWeapons` menos la suya). */
+export const learnableStarters = (char: StatSurvivorId): WeaponId[] =>
+  MERCHANT.manualWeapons.filter((w) => w !== SURVIVORS[char].weapon);
 
-/** Compra una oferta. Los implantes van al superviviente activo y sustituyen al que tuviera. */
-export function buyOffer(s: SaveData, key: string, now: Date): boolean {
-  refreshShop(s, now);
-  const o = merchantStock(s, now).find((x) => x.key === key);
-  if (!o || isSoldOut(s, o, now)) return false;
-  const target =
-    o.kind === 'manual' ? s.survivors[o.char] : s.profile.active ? s.survivors[s.profile.active] : undefined;
-  if (o.kind !== 'consumable' && !target) return false;
-  if (!spend(s, o.price)) return false;
-  s.shop.bought.push(o.key);
-  if (o.kind === 'consumable') s.inventory.consumables[o.id] += o.qty;
-  else if (o.kind === 'implant') target!.implant = o.id;
-  else target!.learnedStarters.push(o.weapon);
+/** Aprende un arma inicial alternativa para un superviviente. */
+export function learnStarter(s: SaveData, char: StatSurvivorId, weapon: WeaponId): boolean {
+  const o = s.survivors[char];
+  if (!o || !learnableStarters(char).includes(weapon) || o.learnedStarters.includes(weapon)) return false;
+  if (!spend(s, MERCHANT.manualPrice)) return false;
+  o.learnedStarters.push(weapon);
   return true;
 }
 

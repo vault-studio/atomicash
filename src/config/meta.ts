@@ -78,16 +78,18 @@ export const IMPLANTS = {
 } as const satisfies Record<ImplantId, ImplantDef>;
 export const IMPLANT_IDS = Object.keys(IMPLANTS) as ImplantId[];
 
+/**
+ * Intendencia y taller del personaje. DECISIÓN (2026-11-04): el mercader ambulante con ofertas que rotaban cada día
+ * desaparece; los consumibles se compran siempre en Intendencia (por paquetes) y los implantes y las armas
+ * iniciales, en la ficha de cada personaje.
+ */
 export const MERCHANT = {
-  /** Ofertas por día. */
-  consumables: 3,
-  implants: 2,
-  manuals: 2,
   consumablePrice: { stim: 40, iodine: 30, grenade: 50, turbo: 60 } satisfies Record<ConsumableId, number>,
-  /** Unidades por oferta de consumible. */
+  /** Unidades por compra de consumible. */
   consumablePack: 2,
+  /** Precio de aprender un arma inicial (arsenal de la ficha). */
   manualPrice: 600,
-  /** Armas que pueden enseñar los manuales (no fusiones ni exclusivas). */
+  /** Armas que se pueden aprender como inicial (no fusiones ni exclusivas). */
   manualWeapons: [
     'llave',
     'pistola_clavos',

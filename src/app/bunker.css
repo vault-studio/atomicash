@@ -1570,8 +1570,12 @@ button.card--survivor {
 
 .sheet__tabs {
   display: flex;
-  margin-left: auto;
   border-bottom: 2px solid var(--crt);
+}
+
+.sheet__credits {
+  font-size: clamp(16px, 2.8vh, 24px);
+  white-space: nowrap;
 }
 
 .sheet__body {
@@ -1749,6 +1753,487 @@ button.card--survivor {
   color: var(--crt);
   border: 1px solid var(--crt);
   padding: 4px 6px;
+}
+
+/* Cabecera de bloque con su botón «i» en la esquina; el botón sobresale del margen para no agrandar la fila. */
+.sheet__bhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: none;
+}
+
+.info-btn {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin: -12px -6px -12px 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffe14a;
+  border: 2px solid #ffe14a;
+  font-family: var(--title-font);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.info-btn:hover,
+.info-btn:focus-visible {
+  background: rgba(255, 225, 74, 0.18);
+  outline: none;
+}
+
+/* Arma inicial: icono, nombre y selector centrados en el recuadro. */
+.sheet__center {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 28px);
+}
+
+.sheet__center .sheet__weapon {
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: center;
+  text-align: center;
+}
+
+.sheet__center .sheet__weapon strong {
+  font-size: clamp(18px, 3.6vh, 44px);
+  overflow-wrap: anywhere;
+}
+
+.sheet__center .sheet__weapon select {
+  max-width: 100%;
+}
+
+/* Pantalla baja (móvil en horizontal): bloques más justos; si no caben, la ficha hace scroll. */
+@media (max-height: 520px) {
+  .sheet__cols {
+    grid-template-rows: repeat(2, minmax(150px, 1fr));
+  }
+  .sheet__block {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+  .sheet__bonus {
+    font-size: 16px;
+  }
+  .sheet__stars {
+    font-size: 24px;
+  }
+}
+
+/* Taller: tres bloques con lista. En pantallas estrechas, Mejoras ocupa la columna izquierda entera. */
+.sheet__cols--shop {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.sheet__block--tall {
+  grid-row: span 2;
+}
+
+@media (min-width: 1200px) and (min-height: 521px) {
+  .sheet__cols--shop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .sheet__block--tall {
+    grid-row: auto;
+  }
+}
+
+/* Móvil en horizontal: el Taller usa todo el ancho (sin retrato) para que las filas respiren. */
+@media (max-height: 520px) {
+  .sheet__body--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sheet__body--wide .sheet__side {
+    display: none;
+  }
+  .sheet__cols--shop .sheet__hint {
+    display: none;
+  }
+  /* Sin scroll dentro de cada caja (se veía fila y media): crecen con su lista y hace scroll la ficha entera. */
+  .sheet__cols--shop {
+    flex: none;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+  .sheet__cols--shop .wk {
+    flex: none;
+    overflow: visible;
+  }
+  .wk__row {
+    min-height: 52px;
+    padding: 2px 8px;
+  }
+}
+
+.sheet__block--list {
+  justify-content: flex-start;
+}
+
+.sheet__hint {
+  flex: none;
+  margin: 0;
+  font-size: clamp(16px, 2.2vh, 20px);
+  line-height: 1.2;
+  opacity: 0.8;
+}
+
+.wk {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.wk__row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 8px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+}
+
+.wk__row.is-current {
+  border-color: #ffe14a;
+  background: rgba(255, 225, 74, 0.08);
+}
+
+.wk__icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid rgba(60, 255, 107, 0.4);
+}
+
+.wk__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.wk__text strong {
+  font-weight: normal;
+  font-size: clamp(16px, 2.6vh, 22px);
+  line-height: 1.1;
+  color: var(--crema);
+}
+
+.wk__row.is-current .wk__text strong {
+  color: #ffe14a;
+}
+
+.wk__text small {
+  font-size: 16px;
+  line-height: 1.15;
+  opacity: 0.8;
+}
+
+.wk__btn {
+  flex: none;
+  min-width: 96px;
+  padding: 6px 10px;
+  font-size: clamp(16px, 2.2vh, 20px);
+  white-space: nowrap;
+}
+
+/* Intendencia: una ficha grande por consumible, con el mismo marco que la ficha del personaje. */
+.stores__rule {
+  flex: none;
+  margin: 0;
+  font-size: clamp(16px, 2.6vh, 24px);
+  line-height: 1.2;
+  color: var(--crema);
+}
+
+.stores__grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: clamp(8px, 1.4vw, 16px);
+}
+
+@media (max-width: 640px) {
+  .stores__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stores__card {
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.stores__icon {
+  flex: none;
+  width: clamp(56px, 17vh, 150px);
+  height: clamp(56px, 17vh, 150px);
+  object-fit: cover;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  box-shadow: 0 4px 0 #000;
+}
+
+.sheet__block.stores__card h3 {
+  font-family: var(--title-font);
+  font-size: clamp(18px, 3.4vh, 32px);
+  line-height: 1.1;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+  letter-spacing: 0.04em;
+}
+
+.stores__desc {
+  margin: 0;
+  font-size: clamp(16px, 2.4vh, 22px);
+  line-height: 1.15;
+  color: var(--crt);
+}
+
+.stores__count {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px clamp(10px, 1.6vw, 24px);
+  font-size: clamp(16px, 2.2vh, 20px);
+}
+
+.stores__count b {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(22px, 4.6vh, 44px);
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.stores__foot {
+  flex: none;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 1vh, 10px);
+}
+
+.stores__buy {
+  flex: none;
+  align-self: stretch;
+  min-height: clamp(48px, 7vh, 72px);
+  font-size: clamp(16px, 2.4vh, 24px);
+}
+
+/* Pantalla baja (móvil en horizontal): 2×2, icono a la izquierda y pie con cifras y botón; la rejilla hace scroll. */
+@media (max-height: 520px) {
+  .stores__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(140px, 1fr);
+    overflow-y: auto;
+  }
+  .stores__card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'icon name'
+      'icon desc'
+      'foot foot';
+    grid-template-rows: auto 1fr auto;
+    align-items: center;
+    text-align: left;
+    column-gap: 12px;
+    overflow: hidden;
+  }
+  .stores__icon {
+    grid-area: icon;
+    width: 64px;
+    height: 64px;
+    align-self: start;
+  }
+  .sheet__block.stores__card h3 {
+    grid-area: name;
+    align-self: end;
+  }
+  .stores__desc {
+    grid-area: desc;
+    align-self: start;
+  }
+  .stores__foot {
+    grid-area: foot;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .stores__count {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .stores__count b {
+    font-size: 20px;
+  }
+  .stores__buy {
+    align-self: auto;
+    min-width: 130px;
+    min-height: 48px;
+  }
+}
+
+/* Ventana flotante de ayuda (botón «i»): diálogo modal centrado sobre un fondo oscurecido. */
+.infod {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: rgba(0, 0, 0, 0.78);
+}
+
+.infod__box {
+  width: min(760px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--crt);
+  background: linear-gradient(160deg, #10200f, var(--crt-bg) 70%);
+  box-shadow:
+    0 0 24px rgba(60, 255, 107, 0.25),
+    inset 0 0 24px rgba(60, 255, 107, 0.06);
+  color: var(--crema);
+}
+
+.infod__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px 8px 18px;
+  border-bottom: 2px solid rgba(60, 255, 107, 0.45);
+}
+
+.infod__head h2 {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: clamp(20px, 3.6vh, 32px);
+  letter-spacing: 0.08em;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.infod__close {
+  flex: none;
+  min-width: 96px;
+  min-height: 48px;
+  font-size: 18px;
+}
+
+.infod__body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 18px 16px;
+  font-size: clamp(16px, 2.8vh, 22px);
+  line-height: 1.3;
+}
+
+.infod__body p {
+  margin: 0 0 10px;
+}
+
+.infod__body h3 {
+  margin: 10px 0 4px;
+  font-size: clamp(16px, 2.6vh, 22px);
+  font-weight: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ocre);
+}
+
+.infod__body ul {
+  margin: 0 0 10px;
+  padding-left: 1.2em;
+  color: var(--crt);
+}
+
+.infod__weapon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.infod__weapon img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+}
+
+.infod__weapon strong {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(20px, 3.6vh, 30px);
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.infod__table {
+  width: 100%;
+  margin: 0 0 10px;
+  border-collapse: collapse;
+}
+
+.infod__table th {
+  padding: 4px 8px;
+  text-align: left;
+  font-weight: normal;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ocre);
+  border-bottom: 1px solid rgba(60, 255, 107, 0.45);
+}
+
+.infod__table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(60, 255, 107, 0.18);
+  color: var(--crt);
+}
+
+.infod__table td:first-child {
+  color: #ffe14a;
+}
+
+.infod__table small {
+  font-size: 16px;
+  color: var(--crema);
+}
+
+.infod__table tr.is-current td {
+  background: rgba(255, 225, 74, 0.12);
+  color: #ffe14a;
 }
 
 /* Pestañas de las pantallas agrupadas (Expedición, Intendencia). */

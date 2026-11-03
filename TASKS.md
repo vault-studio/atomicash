@@ -74,6 +74,8 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Expedición y Supervivientes en una pantalla (retrato grande + cuadrícula de retratos) y ficha del personaje: nivel y su bonificación, estrellas y su bonificación, pasiva, arma inicial y su árbol.
 - ✅ Árbol por personaje pagado con sus chapas (las fichas de los duplicados de las cajas); el de cuenta desaparece y devuelve sus cupones. Mods nuevos: arma inicial, cuerpo a cuerpo y duración de consumibles.
 - ✅ Suministros pasa al menú principal; Intendencia queda con taller, mercader y mochila.
+- ✅ Ficha: botón «i» en Nivel, Estrellas y Arma inicial con ventana de lo que da cada uno; arma inicial centrada.
+- ✅ Taller dentro de la ficha (pestañas Ficha · Taller · Árbol): mejoras de cupones, implante y arsenal (aprender y elegir armas iniciales). Intendencia queda en una pantalla de consumibles (comprar packs; mochila y lo que se lleva a la expedición en la misma ficha). Desaparece el mercader con rotación diaria.
 
 ## Bugs conocidos
 

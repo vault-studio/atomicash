@@ -483,18 +483,6 @@
       "cmd": "INTENDENCIA",
       "desc": "Equipo y provisiones"
     },
-    "workshop": {
-      "cmd": "TALLER",
-      "desc": "Mejoras por personaje"
-    },
-    "merchant": {
-      "cmd": "MERCADER",
-      "desc": "Estimulantes, implantes y manuales"
-    },
-    "backpack": {
-      "cmd": "MOCHILA",
-      "desc": "Consumibles"
-    },
     "supplies": {
       "cmd": "SUMINISTROS",
       "desc": "Desbloqueo y mejoras de personajes"
@@ -528,10 +516,7 @@
     "starUp": "Subir estrella"
   },
   "workshop": {
-    "only": "Las mejoras solo se aplican cuando juegas con {{name}}.",
     "max": "Máx.",
-    "implant": "Implante:",
-    "none": "ninguno (cómpralos al Mercader)",
     "hp": {
       "name": "Chaleco acolchado",
       "desc": "+{{n}} PV por nivel"
@@ -555,7 +540,14 @@
     "cons": {
       "name": "Riñonera",
       "desc": "+{{n}} de cada consumible por expedición"
-    }
+    },
+    "implantNow": "Instalado: {{name}}. El nuevo sustituye al actual.",
+    "implantNone": "Sin implante. Solo puede llevar uno.",
+    "installed": "Instalado",
+    "learned": "Aprendida",
+    "notLearned": "Sin aprender",
+    "inUse": "En uso",
+    "use": "Usar"
   },
   "stats": {
     "dmg": "daño",
@@ -574,19 +566,6 @@
     "iman": "Placa imantada",
     "reflejos": "Reflejos de relé",
     "blindaje": "Costillas de plomo"
-  },
-  "merchant": {
-    "restock": "Género nuevo en {{time}}",
-    "sold": "Agotado",
-    "forActive": "se instala en {{name}}",
-    "manual": "Manual: {{weapon}}",
-    "manualFor": "para {{name}} (arma inicial alternativa)"
-  },
-  "backpack": {
-    "rule": "Cada expedición se lleva hasta {{n}} de cada consumible.",
-    "have": "Tienes {{n}}",
-    "takes": "llevas {{n}}",
-    "hint": "Lo que no gastes vuelve a la Mochila. Más en el Mercader."
   },
   "zones": {
     "paramo": "Las Afueras"
@@ -893,6 +872,42 @@
     "stars": "Estrellas",
     "passive": "Pasiva",
     "weapon": "Arma principal",
-    "go": "Salir de expedición"
+    "go": "Salir de expedición",
+    "tabWorkshop": "Taller",
+    "upgrades": "Mejoras",
+    "upgradesHint": "Solo se aplican cuando sales con este personaje.",
+    "implant": "Implante",
+    "arsenal": "Arsenal",
+    "arsenalHint": "Aprende armas para empezar la expedición con ellas."
+  },
+  "info": {
+    "open": "Más información: {{name}}",
+    "close": "Cerrar",
+    "current": "(actual)",
+    "level": {
+      "gain": "Cada nivel por encima del 1 da +{{hp}} PV y +{{dmg}} % de daño. Nivel máximo: {{max}}.",
+      "xp": "El personaje gana XP en cada expedición: {{sec}} por segundo sobrevivido, {{kill}} por baja y {{boss}} por jefe abatido.",
+      "col": "Nivel"
+    },
+    "stars": {
+      "gain": "Cada estrella por encima de la primera suma +{{pct}} % a los PV, el daño y la velocidad.",
+      "colStars": "Estrellas",
+      "colBonus": "Bonificación",
+      "colCost": "Para subir",
+      "cost": "{{n}} chapas",
+      "shards": "Las chapas salen de los personajes repetidos en Suministros, según su rareza: {{list}}. También pagan el árbol del personaje."
+    },
+    "starter": {
+      "fusions": "Combinaciones",
+      "fusion": "{{a}} + {{b}} → {{result}}",
+      "noFusions": "No se combina con ninguna otra arma.",
+      "tree": "La rama de arriba del árbol del personaje mejora el daño de esta arma."
+    }
+  },
+  "stores": {
+    "rule": "Cada expedición se lleva hasta {{n}} de cada consumible. Lo que no gastes vuelve a la mochila.",
+    "have": "en la mochila",
+    "takes": "a la expedición",
+    "buy": "+{{qty}} · {{price, number}} cup."
   }
 }

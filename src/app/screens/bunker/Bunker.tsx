@@ -7,10 +7,6 @@ import { Screen } from './common';
 export const BUNKER_VIEWS = ['expedition', 'supplies', 'stores', 'board', 'settings'] as const;
 export type BunkerView = (typeof BUNKER_VIEWS)[number];
 
-/** Pestañas de Intendencia (los suministros tienen entrada propia). */
-export const STORE_TABS = ['workshop', 'merchant', 'backpack'] as const;
-export type StoreTab = (typeof STORE_TABS)[number];
-
 interface Props {
   onGo: (v: BunkerView) => void;
 }

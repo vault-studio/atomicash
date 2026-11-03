@@ -67,7 +67,6 @@ export interface SaveData {
   inventory: { consumables: Record<ConsumableId, number> };
   gacha: { pity: Record<ZoneId, number>; pulls: number };
   missions: { day: string; daily: MissionProgress[]; achievements: Partial<Record<AchievementId, boolean>> };
-  shop: { day: string; bought: string[] };
   /** Reto diario: día UTC del último intento, mejor marca de ese día y si ya se cobró el premio. */
   daily: { day: string; best: { dmg: number; time: number; kills: number } | null; rewarded: boolean };
   settings: Settings;
@@ -119,7 +118,6 @@ export function defaultSave(): SaveData {
     inventory: { consumables: { ...BACKPACK.start } },
     gacha: { pity: Object.fromEntries(ZONE_IDS.map((z) => [z, 0])) as Record<ZoneId, number>, pulls: 0 },
     missions: { day: '', daily: [], achievements: {} },
-    shop: { day: '', bought: [] },
     daily: { day: '', best: null, rewarded: false },
     settings: defaultSettings(),
   };
@@ -178,7 +176,6 @@ export function normalize(raw: unknown): SaveData {
   const pity = isObj(g.pity) ? g.pity : isObj(g.pityCounter) ? g.pityCounter : {};
   const m = isObj(raw.missions) ? raw.missions : {};
   const ach = isObj(m.achievements) ? m.achievements : {};
-  const sh = isObj(raw.shop) ? raw.shop : {};
   const st = isObj(raw.settings) ? raw.settings : {};
   const tr = isObj(raw.tree) ? raw.tree : {};
   const dl = isObj(raw.daily) ? raw.daily : {};
@@ -242,10 +239,6 @@ export function normalize(raw: unknown): SaveData {
       achievements: Object.fromEntries(
         ACHIEVEMENT_IDS.filter((a) => ach[a] === true).map((a) => [a, true]),
       ) as SaveData['missions']['achievements'],
-    },
-    shop: {
-      day: str(sh.day, ''),
-      bought: Array.isArray(sh.bought) ? sh.bought.filter((x): x is string => typeof x === 'string') : [],
     },
     daily: {
       day: str(dl.day, ''),

@@ -483,18 +483,6 @@
       "cmd": "QUARTERMASTER",
       "desc": "Gear and provisions"
     },
-    "workshop": {
-      "cmd": "WORKSHOP",
-      "desc": "Per-survivor upgrades"
-    },
-    "merchant": {
-      "cmd": "MERCHANT",
-      "desc": "Stims, implants and manuals"
-    },
-    "backpack": {
-      "cmd": "BACKPACK",
-      "desc": "Consumables"
-    },
     "supplies": {
       "cmd": "SUPPLIES",
       "desc": "Unlock and upgrade survivors"
@@ -528,10 +516,7 @@
     "starUp": "Star up"
   },
   "workshop": {
-    "only": "Upgrades only apply when you play as {{name}}.",
     "max": "Max",
-    "implant": "Implant:",
-    "none": "none (buy them from the Merchant)",
     "hp": {
       "name": "Padded vest",
       "desc": "+{{n}} HP per level"
@@ -555,7 +540,14 @@
     "cons": {
       "name": "Fanny pack",
       "desc": "+{{n}} of each consumable per expedition"
-    }
+    },
+    "implantNow": "Installed: {{name}}. A new one replaces it.",
+    "implantNone": "No implant. Only one can be worn.",
+    "installed": "Installed",
+    "learned": "Learned",
+    "notLearned": "Not learned",
+    "inUse": "In use",
+    "use": "Use"
   },
   "stats": {
     "dmg": "damage",
@@ -574,19 +566,6 @@
     "iman": "Magnet plate",
     "reflejos": "Relay reflexes",
     "blindaje": "Lead ribs"
-  },
-  "merchant": {
-    "restock": "New stock in {{time}}",
-    "sold": "Sold out",
-    "forActive": "installed on {{name}}",
-    "manual": "Manual: {{weapon}}",
-    "manualFor": "for {{name}} (alternative starting weapon)"
-  },
-  "backpack": {
-    "rule": "Each expedition takes up to {{n}} of each consumable.",
-    "have": "You have {{n}}",
-    "takes": "taking {{n}}",
-    "hint": "Whatever you don't use comes back. More at the Merchant."
   },
   "zones": {
     "paramo": "The Outskirts"
@@ -893,6 +872,42 @@
     "stars": "Stars",
     "passive": "Passive",
     "weapon": "Main weapon",
-    "go": "Head out"
+    "go": "Head out",
+    "tabWorkshop": "Workshop",
+    "upgrades": "Upgrades",
+    "upgradesHint": "They only apply when you head out with this character.",
+    "implant": "Implant",
+    "arsenal": "Arsenal",
+    "arsenalHint": "Learn weapons to start the expedition with them."
+  },
+  "info": {
+    "open": "More info: {{name}}",
+    "close": "Close",
+    "current": "(current)",
+    "level": {
+      "gain": "Each level above 1 gives +{{hp}} HP and +{{dmg}}% damage. Max level: {{max}}.",
+      "xp": "The character earns XP on every expedition: {{sec}} per second survived, {{kill}} per kill and {{boss}} per boss defeated.",
+      "col": "Level"
+    },
+    "stars": {
+      "gain": "Each star above the first adds +{{pct}}% to HP, damage and speed.",
+      "colStars": "Stars",
+      "colBonus": "Bonus",
+      "colCost": "To upgrade",
+      "cost": "{{n}} tags",
+      "shards": "Tags come from duplicate characters in Supplies, by rarity: {{list}}. They also pay for the character tree."
+    },
+    "starter": {
+      "fusions": "Combinations",
+      "fusion": "{{a}} + {{b}} → {{result}}",
+      "noFusions": "It does not combine with any other weapon.",
+      "tree": "The top branch of the character's tree improves this weapon's damage."
+    }
+  },
+  "stores": {
+    "rule": "Each expedition takes up to {{n}} of each consumable. Whatever you do not use goes back to the backpack.",
+    "have": "in the backpack",
+    "takes": "going out",
+    "buy": "+{{qty}} · {{price, number}} cp"
   }
 }
