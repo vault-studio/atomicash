@@ -607,7 +607,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           }
         } else {
           markAttack(w, e, 'attack_2');
-          spawnEnemy(w, 'torreta', e.x + 110, e.y, false);
+          spawnEnemy(w, 'torreta', e.x + A.turretDist, e.y, false);
           ring(w, 'necrofago', e.x, e.y, A.summonGhouls, A.summonDist);
         }
       }

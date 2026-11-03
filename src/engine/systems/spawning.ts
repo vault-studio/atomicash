@@ -201,8 +201,9 @@ function releaseHorde(w: World): void {
 function updateSpecials(w: World, dt: number): void {
   // Élites y hordas descansan mientras hay un jefe (se retrasan, no se pierden).
   if (w.bossAlive > 0) {
-    if (w.nextElite < w.time + 10) w.nextElite = w.time + 10;
-    if (!w.horde && w.nextHorde < w.time + 10) w.nextHorde = w.time + 10;
+    if (w.nextElite < w.time + SPAWN.specialsBossDelay) w.nextElite = w.time + SPAWN.specialsBossDelay;
+    if (!w.horde && w.nextHorde < w.time + SPAWN.specialsBossDelay)
+      w.nextHorde = w.time + SPAWN.specialsBossDelay;
   }
   const often = w.endless ? ENDLESS.specialsMult : 1;
   if (w.time >= w.nextElite) {

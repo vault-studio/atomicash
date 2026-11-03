@@ -328,7 +328,8 @@
       "debrisPerPhase": 2,
       "debrisSpread": 180,
       "summonGhouls": 6,
-      "summonDist": 120
+      "summonDist": 120,
+      "turretDist": 110
     }
   },
   "rage": {
@@ -788,7 +789,8 @@
     "staticMax": 600,
     "bossRateMult": 0,
     "rateMult": 0.7,
-    "maxSlime": 120
+    "maxSlime": 120,
+    "specialsBossDelay": 10
   },
   "hordes": {
     "first": 50,
