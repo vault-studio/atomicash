@@ -903,14 +903,36 @@
       "count": 22,
       "perMin": 2.5,
       "max": 48,
-      "types": [
+      "gap": 0.7,
+      "heavyEvery": 6,
+      "mix": [
         {
           "from": 0,
-          "type": "necrofago"
+          "types": {
+            "necrofago": 5,
+            "dron": 2,
+            "babosa": 1
+          }
         },
         {
-          "from": 300,
-          "type": "saqueador"
+          "from": 180,
+          "types": {
+            "necrofago": 4,
+            "saqueador": 2,
+            "tirador": 1,
+            "blindado": 1
+          }
+        },
+        {
+          "from": 360,
+          "types": {
+            "saqueador": 3,
+            "necrofago": 2,
+            "reptador": 1,
+            "tirador": 1,
+            "blindado": 1,
+            "excavadora": 1
+          }
         }
       ]
     },

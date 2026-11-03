@@ -57,18 +57,22 @@ export type EventKind = 'supply' | 'swarm' | 'rain';
  * - `ring`: anillo que se cierra desde fuera de cámara.
  * - `stampede`: estampida que cruza la pantalla en línea recta (apunta a donde estabas).
  * - `wall`: muro que avanza en formación hacia el jugador y luego persigue.
- * El tipo de enemigo sale de `types` según el minuto (el último cuyo `from` se ha pasado).
+ * El tipo de enemigo sale de `types` según el minuto (el último cuyo `from` se ha pasado). El anillo es un cerco de
+ * varios roles (CAMBIOS §4): sale de `mix` (pesos por tipo según el minuto) y siempre deja una salida.
  */
 /**
  * Valores en `src/data/tuning.json` → `hordes`. Notas por campo:
  * - `margin`: Margen fuera de cámara donde aparecen, en px de mundo.
+ * - `ring.gap`: Anchura (rad) de la salida libre del cerco. `ring.heavyEvery`: un pesado cada tantos puestos.
+ * - `ring.mix`: Pesos por tipo; vale la última entrada cuyo `from` (s) se ha pasado. Pesado = rol `heavy`.
  * - `stampede.width`: Anchura del rebaño (perpendicular a la marcha) y separación entre filas.
  * - `wall.extra`: Segundos extra de marcha en formación tras llegar a la altura del jugador.
  */
 type HordeTypes = { types: readonly { from: number; type: StatEnemyId }[] };
+export type RingMix = readonly { from: number; types: Partial<Record<StatEnemyId, number>> }[];
 export const HORDES = T.hordes as Retype<
   typeof T.hordes,
-  { order: readonly HordeKind[]; ring: HordeTypes; stampede: HordeTypes; wall: HordeTypes }
+  { order: readonly HordeKind[]; ring: { mix: RingMix }; stampede: HordeTypes; wall: HordeTypes }
 >;
 
 export type HordeKind = 'ring' | 'stampede' | 'wall';

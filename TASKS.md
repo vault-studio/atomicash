@@ -31,10 +31,10 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 3 — Roles y cercos (CAMBIOS §4)
 
-| #   | Tarea                                                                 | Reutiliza                           | Crea                                         | Pruebas                             | Estado |
-| --- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------- | ----------------------------------- | ------ |
-| T10 | Campo `role` por enemigo; pesados que bloquean de verdad (solo ellos) | `kbRes`, separación en `enemies.ts` | colisión jugador–pesado                      | unitarios; rendimiento (alloc.test) | ✅     |
-| T11 | Cercos compuestos por roles, siempre con al menos una salida          | `HORDES.ring/wall/stampede`         | composición por datos, comprobación de hueco | unitario «siempre hay salida»       | ⬜     |
+| #   | Tarea                                                                 | Reutiliza                           | Crea                                         | Pruebas                             | Estado                                                                     |
+| --- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| T10 | Campo `role` por enemigo; pesados que bloquean de verdad (solo ellos) | `kbRes`, separación en `enemies.ts` | colisión jugador–pesado                      | unitarios; rendimiento (alloc.test) | ✅                                                                         |
+| T11 | Cercos compuestos por roles, siempre con al menos una salida          | `HORDES.ring/wall/stampede`         | composición por datos, comprobación de hueco | unitario «siempre hay salida»       | ✅ `hordes.ring.mix` por minuto, salida `gap`, un pesado cada `heavyEvery` |
 
 ## Fase 4 — Tiradores especiales (CAMBIOS §3)
 
@@ -73,4 +73,4 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Siguiente tarea recomendada
 
-T11 (cercos con planRing en las hordas), luego T12 → T14 y T16.
+T12 → T14 y T16.

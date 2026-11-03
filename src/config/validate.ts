@@ -2,7 +2,7 @@
 import { ENTITIES, ENTITY_IDS, isEntityId, type SurvivorId } from './entities';
 import { ENEMY_RULES, ENEMY_STATS, type EnemyStats } from './enemies';
 import { SURVIVORS, hasStats } from './survivors';
-import { WAVES } from './waves';
+import { HORDES, WAVES } from './waves';
 import { WEAPONS } from './weapons';
 
 const SNAKE_ASCII = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
@@ -54,6 +54,19 @@ export function validateConfig(): string[] {
       if (!Object.prototype.hasOwnProperty.call(ENEMY_STATS, id))
         errors.push(`waves[${i}]: ${id} no tiene stats de enemigo`);
     }
+  });
+  HORDES.ring.mix.forEach((m, i) => {
+    const mix = Object.entries(m.types);
+    if (i === 0 && m.from !== 0) errors.push('hordes.ring.mix[0]: debe empezar en 0');
+    if (
+      !mix.some(
+        ([id, wgt]) => (wgt ?? 0) > 0 && ENEMY_STATS[id as keyof typeof ENEMY_STATS]?.role !== 'heavy',
+      )
+    )
+      errors.push(`hordes.ring.mix[${i}]: sin tipos que no sean pesados`);
+    for (const [id] of mix)
+      if (!Object.prototype.hasOwnProperty.call(ENEMY_STATS, id))
+        errors.push(`hordes.ring.mix[${i}]: ${id} no existe`);
   });
   return errors;
 }

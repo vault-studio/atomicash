@@ -10,6 +10,7 @@ import {
   type StatEnemyId,
 } from '../../config/enemies';
 import { tuningVersion } from '../../config/tuning';
+import { planRing } from '../encircle';
 import { underCap } from '../rules';
 import { BUILDINGS } from '../../config/props';
 import { DAILY, ENDLESS } from '../../config/modes';
@@ -190,15 +191,24 @@ function releaseHorde(w: World): void {
   const t = w.time;
   const M = HORDES.margin;
   if (h.kind === 'ring') {
+    // Cerco de varios roles con una salida (CAMBIOS §4). Solo al soltar la horda: aquí sí se pueden crear listas.
     const H = HORDES.ring;
-    const n = hordeCount(H, t);
-    const type = hordeType(H.types, t);
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * TAU;
-      const ux = Math.cos(a);
-      const uy = Math.sin(a);
+    let mix = H.mix[0]!.types;
+    for (const m of H.mix) if (t >= m.from) mix = m.types;
+    const ids = Object.keys(mix) as StatEnemyId[];
+    const plan = planRing(
+      hordeCount(H, t),
+      H.gap,
+      H.heavyEvery,
+      ids.map((id) => mix[id]!),
+      ids.map((id) => ENEMY_STATS[id].role === 'heavy'),
+      w.rng,
+    );
+    for (let i = 0; i < plan.angles.length; i++) {
+      const ux = Math.cos(plan.angles[i]!);
+      const uy = Math.sin(plan.angles[i]!);
       const d = offscreenDistance(w, ux, uy) + M;
-      spawnEnemy(w, type, p.x + ux * d, p.y + uy * d);
+      spawnEnemy(w, ids[plan.slots[i]!]!, p.x + ux * d, p.y + uy * d);
     }
     return;
   }

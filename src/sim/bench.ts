@@ -1,7 +1,7 @@
 // Banco de builds por escenario (CAMBIOS §5): cada build se mide contra una horda, un jefe y un grupo de blindados, sin
 // oleadas ni azar del director. Sirve para comprobar que ninguna build es la mejor en todo.
 import { RUN } from '../config/run';
-import type { StatEnemyId } from '../config/enemies';
+import { BOSS_IDS, type StatEnemyId } from '../config/enemies';
 import { applyTuning } from '../config/tuning';
 import type { WeaponId } from '../config/weapons';
 import { spawnEnemy } from '../engine/systems/enemies';
@@ -34,7 +34,7 @@ export function benchScenario(build: BenchBuild, sc: Scenario, seed = 1): number
   w.player.god = true;
   w.xpNext = Infinity;
   w.nextElite = w.nextHorde = w.nextEvent = Infinity;
-  for (const k of Object.keys(w.bossSpawned) as (keyof World['bossSpawned'])[]) w.bossSpawned[k] = true;
+  for (const k of BOSS_IDS) w.bossSpawned[k] = true;
   w.weapons = build.weapons.map((x) => createWeapon(x.id, x.lvl));
   const S = SETUP[sc];
   const p = w.player;
