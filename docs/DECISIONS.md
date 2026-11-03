@@ -13,3 +13,4 @@ Una línea por decisión, con su motivo. No reabrir las ya registradas.
 - 2026-11-03 · No se consultó a un subagente `opus` para la arquitectura · el director ya es Opus; la consulta duplicaría el contexto sin aportar.
 - 2026-11-03 · Plantel de esta rama: Dot, Gus y Benny, no Dot, Mae y El Errante como dice CAMBIOS.md · decisión del usuario; son los que tienen sprites.
 - 2026-11-03 · Babosa, Reptador e Hinchado se quedan en el Acto 1 como mutantes · decisión del usuario; se revisará al añadir actos.
+- Blindaje plano por impacto tras el crítico (`applyArmor`), con `armorPierce` por arma y un mínimo global `armor.minFrac`; sustituye al multiplicador.

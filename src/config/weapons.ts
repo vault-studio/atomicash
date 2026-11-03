@@ -30,6 +30,8 @@ export interface WeaponBase {
   readonly melee?: boolean;
   /** Color del placeholder y de los proyectiles. */
   readonly color: string;
+  /** Blindaje que ignora cada impacto (ver `applyArmor`). */
+  readonly armorPierce?: number;
 }
 
 /**

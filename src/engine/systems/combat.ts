@@ -1,5 +1,6 @@
 // Daño a enemigos y al jugador, bajas, chatarra (XP) y radiación. Sin allocations en el camino caliente.
 import {
+  ARMOR,
   AI,
   ELITES,
   ENEMY_STATS,
@@ -15,11 +16,12 @@ import { BUILDINGS } from '../../config/props';
 import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
-import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
+import { SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponBase } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
 import { hurtIndex, noteHurt, noteKill } from '../runStats';
+import { applyArmor } from '../rules';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
@@ -136,12 +138,10 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
-  d *= (ENEMY_STATS[e.type] as EnemyStats).armor ?? 1;
   if (w.dailyMod === 'glass' && !(flags & HIT_RAW)) d *= DAILY.glass.dealt;
   // Único «Cazador» del árbol: más daño a jefes y élites.
   if ((e.boss || e.elite) && w.mods.hunter) d *= 1 + w.mods.hunter / 100;
   if (e.elite) {
-    if (e.elite === 'blindado') d *= ELITES.blindado.dmgTaken;
     w.eliteFocus = e.id;
     w.eliteFocusAt = w.time;
   }
@@ -150,6 +150,16 @@ export function hitEnemy(
     d *= st.critMult;
     crit = true;
   }
+  // Blindaje plano al golpe final (tras el crítico): los golpes fuertes y los que perforan rinden más.
+  const armor =
+    ((ENEMY_STATS[e.type] as EnemyStats).armor ?? 0) + (e.elite === 'blindado' ? ELITES.blindado.armor : 0);
+  if (armor > 0)
+    d = applyArmor(
+      d,
+      armor,
+      (WEAPONS as Readonly<Record<string, WeaponBase>>)[src]?.armorPierce ?? 0,
+      ARMOR.minFrac,
+    );
   // Sin contar el exceso del último golpe: el ranking no puede superar la vida real del jefe.
   if (e.boss) w.bossDmg += Math.min(d, Math.max(0, e.hp));
   e.hp -= d;

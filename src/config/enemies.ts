@@ -25,7 +25,7 @@ export interface EnemyStats {
   readonly r?: number;
   /** Resistencia al empuje: multiplica el empuje recibido (0 = inamovible). */
   readonly kbRes?: number;
-  /** Multiplica el daño que recibe (0,6 = blindaje que para el 40 %). */
+  /** Blindaje plano: resta esto a cada impacto (ver `applyArmor` y `ARMOR.minFrac`). */
   readonly armor?: number;
   /** RAD que da su golpe de contacto. */
   readonly rad?: number;
@@ -231,6 +231,9 @@ export const ELITE_IDS: readonly EliteId[] = ['blindado', 'veloz', 'radiactivo',
  * - `exclude`: Tipos que nunca salen de élite (no se mueven o son crías).
  * - `barTime`: Segundos que sigue la barra en el HUD desde el último golpe.
  */
+/** Blindaje (CAMBIOS §5): ningún impacto baja de `minFrac` de su daño, por mucho blindaje que haya. */
+export const ARMOR = T.armor;
+
 export const ELITES = T.elites as Retype<typeof T.elites, { exclude: readonly StatEnemyId[] }>;
 
 /** Fracciones de vida donde cambia de fase cada jefe (marcas de la barra del HUD). */

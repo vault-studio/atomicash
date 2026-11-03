@@ -44,10 +44,10 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 5 — Armas, builds y blindaje (CAMBIOS §5)
 
-| #   | Tarea                                                                                   | Reutiliza                         | Crea                      | Pruebas                             | Estado |
-| --- | --------------------------------------------------------------------------------------- | --------------------------------- | ------------------------- | ----------------------------------- | ------ |
-| T13 | Blindaje plano por impacto (hoy es un multiplicador) + daño contra blindaje por arma    | `armor`, élite `blindado`         | `applyArmor`              | unitarios de daño y blindaje        | ⬜     |
-| T14 | Especialización hordas / jefes / élites y control (empuje, ralentización, interrupción) | armas existentes, `stun` de minas | campos por nivel en datos | sim por build: ninguna gana en todo | ⬜     |
+| #   | Tarea                                                                                   | Reutiliza                         | Crea                      | Pruebas                             | Estado                                                                                                     |
+| --- | --------------------------------------------------------------------------------------- | --------------------------------- | ------------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| T13 | Blindaje plano por impacto (hoy es un multiplicador) + daño contra blindaje por arma    | `armor`, élite `blindado`         | `applyArmor`              | unitarios de daño y blindaje        | ✅ blindado 6, excavadora 8, élite +4; `armorPierce` en rifle, martillo y remachadora; `armor.minFrac` 0,2 |
+| T14 | Especialización hordas / jefes / élites y control (empuje, ralentización, interrupción) | armas existentes, `stun` de minas | campos por nivel en datos | sim por build: ninguna gana en todo | ⬜                                                                                                         |
 
 ## Fase 6 — Estadísticas completas (CAMBIOS §6.4)
 
@@ -73,4 +73,4 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Siguiente tarea recomendada
 
-T13 → T14 y T16.
+T14 y T16.

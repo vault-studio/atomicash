@@ -93,6 +93,9 @@
     "max": 3,
     "reachAtFrac": 0.75
   },
+  "armor": {
+    "minFrac": 0.2
+  },
   "enemies": {
     "dron": {
       "role": "chaser",
@@ -227,7 +230,7 @@
       "speed": 58,
       "xp": 4,
       "kbRes": 0.25,
-      "armor": 0.6,
+      "armor": 6,
       "metal": true,
       "rage": {
         "enabled": false
@@ -250,7 +253,7 @@
       "speed": 46,
       "xp": 7,
       "kbRes": 0.1,
-      "armor": 0.4,
+      "armor": 8,
       "metal": true,
       "rage": {
         "enabled": false
@@ -462,7 +465,7 @@
     "barTime": 4,
     "blindado": {
       "color": 13159632,
-      "dmgTaken": 0.5
+      "armor": 4
     },
     "veloz": {
       "color": 8378623,
@@ -604,7 +607,8 @@
       "cd": 1.6,
       "pierce": 3,
       "speed": 900,
-      "color": "#c9b27a"
+      "color": "#c9b27a",
+      "armorPierce": 6
     },
     "martillo_pilon": {
       "kind": "slam",
@@ -616,7 +620,8 @@
       "dmg": 22,
       "dmgPerLvl": 0.2,
       "kb": 2.2,
-      "color": "#e8a33a"
+      "color": "#e8a33a",
+      "armorPierce": 4
     },
     "petardos": {
       "kind": "mines",
@@ -694,7 +699,8 @@
       "pierce": 4,
       "speed": 720,
       "spread": 0.08,
-      "color": "#ffb347"
+      "color": "#ffb347",
+      "armorPierce": 4
     },
     "nucleo_inestable": {
       "kind": "unstable",

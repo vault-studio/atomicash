@@ -61,11 +61,11 @@ describe('élites', () => {
     expect(kinds.filter((k) => k === 'cache')).toHaveLength(1);
   });
 
-  it('el blindado recibe la mitad de daño y el divisor se parte al morir', () => {
+  it('el blindado resta su blindaje a cada golpe y el divisor se parte al morir', () => {
     const w = quiet();
     const e = spawnEnemy(w, 'saqueador', w.player.x + 300, w.player.y);
     e.elite = 'blindado';
-    expect(hitEnemy(w, e, 10, 'llave', 4)).toBe(10 * ELITES.blindado.dmgTaken);
+    expect(hitEnemy(w, e, 10, 'llave', 4)).toBe(10 - ELITES.blindado.armor);
     e.elite = 'divisor';
     killEnemy(w, e, 'llave');
     expect(alive(w).filter((o) => o.type === 'saqueador')).toHaveLength(ELITES.divisor.split);
