@@ -886,11 +886,13 @@
     "tabSheet": "Ficha",
     "tabTree": "Árbol",
     "level": "Nivel",
-    "levelBonus": "+{{hp}} PV · +{{dmg}} % de daño",
+    "bonusHp": "+{{n}} PV",
+    "bonusDmg": "+{{n}} % daño",
+    "bonusSpd": "+{{n}} % velocidad",
+    "noBonus": "Sin bonificación todavía",
     "stars": "Estrellas",
-    "starsBonus": "+{{n}} % a PV, daño y velocidad",
-    "starsNone": "Sin bonificación todavía",
     "passive": "Pasiva",
+    "weapon": "Arma principal",
     "go": "Salir de expedición"
   }
 }

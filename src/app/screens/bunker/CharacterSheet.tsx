@@ -27,7 +27,24 @@ function Gauge({ label, value, max, full }: { label: string; value: number; max:
   );
 }
 
-/** Pestaña Ficha: nivel, estrellas, pasiva y arma inicial. */
+/** Bonificaciones en lista grande; si todas son 0, «sin bonificación todavía». */
+function Bonuses({ rows }: { rows: [key: string, n: number][] }) {
+  const { t } = useTranslation();
+  const on = rows.filter(([, n]) => n > 0);
+  if (!on.length) return <p className="sheet__none">{t('sheet.noBonus')}</p>;
+  return (
+    <ul className="sheet__bonus">
+      {on.map(([k, n]) => (
+        <li key={k}>{t(`sheet.${k}`, { n })}</li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Pestaña Ficha: cuatro bloques que llenan el hueco (2×2): nivel y estrellas con su cifra en grande y lo que dan,
+ * pasiva y arma inicial con su icono grande.
+ */
 function SheetTab({ id }: { id: RosterId }) {
   const { t } = useTranslation();
   const o = useSaveData((d) => d.survivors[id]);
@@ -44,9 +61,16 @@ function SheetTab({ id }: { id: RosterId }) {
   return (
     <div className="sheet__cols">
       <section className="sheet__block">
-        <h3>
-          {t('sheet.level')} {o.level}
-        </h3>
+        <h3>{t('sheet.level')}</h3>
+        <div className="sheet__row">
+          <strong className="sheet__big">{o.level}</strong>
+          <Bonuses
+            rows={[
+              ['bonusHp', (o.level - 1) * SURVIVOR_LEVEL.hpPerLevel],
+              ['bonusDmg', (o.level - 1) * SURVIVOR_LEVEL.dmgPerLevel],
+            ]}
+          />
+        </div>
         <Gauge
           label={
             maxLevel ? t('collection.maxLevel') : t('collection.xp', { xp: Math.floor(o.xp), next: nextXp })
@@ -55,57 +79,65 @@ function SheetTab({ id }: { id: RosterId }) {
           max={maxLevel ? 1 : nextXp}
           full={maxLevel}
         />
-        <p className="sheet__fx">
-          {t('sheet.levelBonus', {
-            hp: (o.level - 1) * SURVIVOR_LEVEL.hpPerLevel,
-            dmg: (o.level - 1) * SURVIVOR_LEVEL.dmgPerLevel,
-          })}
-        </p>
       </section>
 
       <section className="sheet__block">
-        <h3>
-          {t('sheet.stars')} <Stars n={o.stars} />
-        </h3>
-        <p className="sheet__fx">
-          {starPct > 0 ? t('sheet.starsBonus', { n: starPct }) : t('sheet.starsNone')}
-        </p>
-        <Gauge
-          label={cost === null ? t('collection.maxStars') : t('collection.shards', { n: o.shards, cost })}
-          value={o.shards}
-          max={cost ?? 1}
-          full={cost === null}
-        />
-        <button
-          className="btn sheet__btn"
-          disabled={cost === null || o.shards < cost}
-          onClick={() => act((d) => starUp(d, id))}
-        >
-          ★ {t('collection.starUp')}
-        </button>
+        <h3>{t('sheet.stars')}</h3>
+        <div className="sheet__row">
+          <span className="sheet__stars">
+            <Stars n={o.stars} />
+          </span>
+          <Bonuses
+            rows={[
+              ['bonusHp', starPct],
+              ['bonusDmg', starPct],
+              ['bonusSpd', starPct],
+            ]}
+          />
+        </div>
+        <div className="sheet__row sheet__row--end">
+          <Gauge
+            label={cost === null ? t('collection.maxStars') : t('collection.shards', { n: o.shards, cost })}
+            value={o.shards}
+            max={cost ?? 1}
+            full={cost === null}
+          />
+          <button
+            className="btn sheet__btn"
+            disabled={cost === null || o.shards < cost}
+            onClick={() => act((d) => starUp(d, id))}
+          >
+            ★ {t('collection.starUp')}
+          </button>
+        </div>
       </section>
 
       <section className="sheet__block">
         <h3>{t('sheet.passive')}</h3>
-        <p className="sheet__fx">{t(`passives.${id}`)}</p>
+        <p className="sheet__passive">{t(`passives.${id}`)}</p>
       </section>
 
       <section className="sheet__block">
         <h3>{t('collection.starter')}</h3>
-        <label className="sheet__starter">
-          <img className="wicon" src={weaponIcon(starter)} alt="" />
-          <select
-            value={starter}
-            aria-label={t('collection.starter')}
-            onChange={(e) => act((d) => setStarter(d, id, e.target.value as (typeof starters)[number]))}
-          >
-            {starters.map((w) => (
-              <option key={w} value={w}>
-                {t(`weapons.${w}.name`)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="sheet__row">
+          <img className="sheet__wicon" src={weaponIcon(starter)} alt="" />
+          <div className="sheet__weapon">
+            <strong>{t(`weapons.${starter}.name`)}</strong>
+            {starters.length > 1 && (
+              <select
+                value={starter}
+                aria-label={t('collection.starter')}
+                onChange={(e) => act((d) => setStarter(d, id, e.target.value as (typeof starters)[number]))}
+              >
+                {starters.map((w) => (
+                  <option key={w} value={w}>
+                    {t(`weapons.${w}.name`)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
       </section>
     </div>
   );

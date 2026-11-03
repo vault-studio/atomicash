@@ -1006,6 +1006,39 @@ button.card--survivor {
   font-size: 18px;
 }
 
+/* Pasiva y arma principal en la placa del retrato (Expedición). */
+.hero__details {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  font-size: clamp(16px, 2.4vh, 22px);
+  line-height: 1.15;
+}
+
+.hero__details dt {
+  color: var(--ocre);
+  font-size: 0.8em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero__details dd {
+  margin: 0;
+  color: var(--crema);
+}
+
+.hero__weapon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero__weapon img {
+  width: clamp(28px, 5vh, 48px);
+  height: clamp(28px, 5vh, 48px);
+  border: 1px solid rgba(60, 255, 107, 0.45);
+}
+
 .hero__level {
   color: var(--crt);
 }
@@ -1573,65 +1606,145 @@ button.card--survivor {
   overflow: hidden;
 }
 
+/* Ficha: 2×2 que llena todo el alto; cifras y textos escalan con la pantalla. */
 .sheet__cols {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: 10px;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: clamp(8px, 1.4vw, 16px);
 }
 
 .sheet__block {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 12px 10px;
-  border: 1px solid rgba(60, 255, 107, 0.4);
-  background: rgba(0, 0, 0, 0.4);
+  justify-content: space-between;
+  gap: clamp(6px, 1.6vh, 16px);
+  padding: clamp(8px, 2vh, 22px) clamp(10px, 1.6vw, 26px);
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  background: linear-gradient(160deg, rgba(20, 40, 22, 0.55), rgba(0, 0, 0, 0.55));
+  box-shadow: inset 0 0 24px rgba(60, 255, 107, 0.06);
   color: var(--crema);
+  overflow: hidden;
 }
 
 .sheet__block h3 {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
   margin: 0;
   color: var(--ocre);
-  font-size: 18px;
+  font-size: clamp(16px, 2.8vh, 28px);
   font-weight: normal;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.sheet__fx {
+.sheet__row {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 32px);
+  min-height: 0;
+}
+
+.sheet__row--end {
+  align-items: flex-end;
+}
+
+.sheet__row--end .gauge {
+  flex: 1;
+}
+
+/* Nivel en grande. */
+.sheet__big {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(44px, 13vh, 140px);
+  line-height: 0.9;
+  color: #ffe14a;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 18px rgba(255, 225, 74, 0.35);
+}
+
+.sheet__stars {
+  font-size: clamp(26px, 7vh, 72px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow: 0 3px 0 #000;
+}
+
+.sheet__bonus {
+  display: grid;
+  gap: 2px;
   margin: 0;
-  font-size: 18px;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(18px, 3.4vh, 34px);
+  line-height: 1.1;
+  color: var(--crt);
+}
+
+.sheet__none {
+  margin: 0;
+  font-size: clamp(16px, 2.8vh, 26px);
+  opacity: 0.7;
+}
+
+.sheet__passive {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: clamp(20px, 4.4vh, 44px);
   line-height: 1.15;
+  color: var(--crt);
+}
+
+.sheet__block .gauge {
+  font-size: clamp(16px, 2.4vh, 24px);
+}
+
+.sheet__block .gauge__bar {
+  height: clamp(10px, 1.8vh, 18px);
 }
 
 .sheet__btn {
-  min-height: 48px;
-  padding: 4px 12px;
-  font-size: 18px;
+  min-height: clamp(48px, 7vh, 72px);
+  padding: 4px clamp(12px, 1.6vw, 28px);
+  font-size: clamp(18px, 2.6vh, 26px);
+  white-space: nowrap;
 }
 
-.sheet__starter {
+/* Arma inicial: icono grande, nombre y, si tiene más de una, el selector. */
+.sheet__wicon {
+  width: clamp(72px, 20vh, 200px);
+  height: clamp(72px, 20vh, 200px);
+  flex: none;
+  object-fit: cover;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  box-shadow: 0 4px 0 #000;
+}
+
+.sheet__weapon {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
 }
 
-.sheet__starter .wicon {
-  width: 56px;
-  height: 56px;
-  flex: none;
-  border: 1px solid rgba(60, 255, 107, 0.35);
+.sheet__weapon strong {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(20px, 4.4vh, 44px);
+  line-height: 1.1;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
 }
 
-.sheet__starter select {
-  flex: 1;
-  min-width: 0;
+.sheet__weapon select {
   min-height: 48px;
-  font-size: 18px;
+  font-size: clamp(16px, 2.4vh, 22px);
   background: var(--crt-bg);
   color: var(--crt);
   border: 1px solid var(--crt);

@@ -886,11 +886,13 @@
     "tabSheet": "Sheet",
     "tabTree": "Tree",
     "level": "Level",
-    "levelBonus": "+{{hp}} HP · +{{dmg}}% damage",
+    "bonusHp": "+{{n}} HP",
+    "bonusDmg": "+{{n}}% damage",
+    "bonusSpd": "+{{n}}% speed",
+    "noBonus": "No bonus yet",
     "stars": "Stars",
-    "starsBonus": "+{{n}}% to HP, damage and speed",
-    "starsNone": "No bonus yet",
     "passive": "Passive",
+    "weapon": "Main weapon",
     "go": "Head out"
   }
 }

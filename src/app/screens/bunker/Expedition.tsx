@@ -69,7 +69,7 @@ export function Expedition({ onStart, onDaily, onBack }: Props) {
       <div className="pick__body">
         <div className="pick__hero">
           <div className="pick__art">
-            <HeroPortrait id={sel} />
+            <HeroPortrait id={sel} details />
           </div>
           <button
             className="btn btn--primary pick__go"
