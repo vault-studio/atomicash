@@ -302,6 +302,21 @@ export const FX_ART = {
     purge: 0xff5a3c,
   },
   tele: { circle: { r: 2.1 }, disc: { r: 2.1, alpha: 0.4 } },
+  /**
+   * Pasillo de embestida: franja de tierra levantada sin borde duro (`bands`: semiancho relativo y opacidad, de fuera
+   * adentro) y galones que avanzan hacia donde va la carga (`gap` px entre ellos, `speed` px/s); los que ya ha
+   * alcanzado el aviso se encienden. `dust` es el color de la tierra; el rojo del aviso va en los galones.
+   */
+  lane: {
+    dust: 0x3a1a0c,
+    bands: [
+      { w: 1.3, a: 0.14 },
+      { w: 1, a: 0.18 },
+      { w: 0.65, a: 0.22 },
+    ],
+    glow: { w: 0.55, a: 0.26 },
+    chevron: { gap: 46, speed: 90, len: 0.45, wing: 0.7, width: 3, dim: 0.22, lit: 0.85 },
+  },
   pool: {
     fire: { r: 2.3, ay: 0.62, fps: 10 },
     acid: { r: 2.3, ay: 0.58, fps: 7 },

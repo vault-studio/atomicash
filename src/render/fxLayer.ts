@@ -147,19 +147,7 @@ export class FxLayer {
       // El último cuarto parpadea: ya va a caer.
       const blink = f > 0.75 ? 0.5 + 0.5 * Math.sin(t * 40) : 1;
       if (tl.lx !== 0 || tl.ly !== 0) {
-        // Pasillo: rectángulo de anchura 2r a lo largo de (lx, ly), que se llena desde el origen.
-        const len = Math.sqrt(tl.lx * tl.lx + tl.ly * tl.ly);
-        const nx = (-tl.ly / len) * tl.r;
-        const ny = (tl.lx / len) * tl.r;
-        groundQuad(g, tl.x, tl.y, tl.lx, tl.ly, nx, ny).stroke({
-          width: 2,
-          color: RUN_COLORS.tele,
-          alpha: 0.8 * blink,
-        });
-        groundQuad(g, tl.x, tl.y, tl.lx * f, tl.ly * f, nx, ny).fill({
-          color: RUN_COLORS.tele,
-          alpha: 0.22 * blink,
-        });
+        this.drawLane(g, tl.x, tl.y, tl.lx, tl.ly, tl.r, f, blink, t);
         continue;
       }
       if (sg?.has('tele_circle')) {
@@ -560,6 +548,59 @@ export class FxLayer {
     }
     sg?.end();
     sa?.end();
+  }
+
+  /**
+   * Pasillo de embestida de (x, y) a (x + lx, y + ly), semiancho r: franja de tierra levantada que se difumina hacia
+   * los lados, un brillo rojo que avanza con la carga (f de 0 a 1) y galones que marchan hacia donde irá.
+   */
+  private drawLane(
+    g: Graphics,
+    x: number,
+    y: number,
+    lx: number,
+    ly: number,
+    r: number,
+    f: number,
+    blink: number,
+    t: number,
+  ): void {
+    const L = FX_ART.lane;
+    const len = Math.sqrt(lx * lx + ly * ly);
+    const ux = lx / len;
+    const uy = ly / len;
+    const nx = -uy * r;
+    const ny = ux * r;
+    for (const b of L.bands)
+      groundQuad(g, x, y, lx, ly, nx * b.w, ny * b.w).fill({ color: L.dust, alpha: b.a });
+    if (f > 0)
+      groundQuad(g, x, y, lx * f, ly * f, nx * L.glow.w, ny * L.glow.w).fill({
+        color: RUN_COLORS.tele,
+        alpha: L.glow.a * blink,
+      });
+    const C = L.chevron;
+    const hl = r * C.len;
+    const reach = len * f;
+    // Los galones nacen y mueren suaves en los extremos para que no aparezcan de golpe.
+    for (let s = r * 0.5 + ((t * C.speed) % C.gap); s < len - hl; s += C.gap) {
+      const edge = Math.min(1, (s - r * 0.5) / C.gap, (len - hl - s) / C.gap);
+      const cx = x + ux * s;
+      const cy = y + uy * s;
+      const tx = cx + ux * hl;
+      const ty = cy + uy * hl;
+      const bx = cx - ux * hl;
+      const by = cy - uy * hl;
+      g.moveTo(isoX(bx + nx * C.wing, by + ny * C.wing), isoY(bx + nx * C.wing, by + ny * C.wing))
+        .lineTo(isoX(tx, ty), isoY(tx, ty))
+        .lineTo(isoX(bx - nx * C.wing, by - ny * C.wing), isoY(bx - nx * C.wing, by - ny * C.wing))
+        .stroke({
+          width: C.width,
+          color: RUN_COLORS.tele,
+          alpha: (s <= reach ? C.lit * blink : C.dim) * edge,
+          cap: 'round',
+          join: 'round',
+        });
+    }
   }
 
   /**

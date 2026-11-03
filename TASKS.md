@@ -76,6 +76,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Suministros pasa al menú principal; Intendencia queda con taller, mercader y mochila.
 - ✅ Ficha: botón «i» en Nivel, Estrellas y Arma inicial con ventana de lo que da cada uno; arma inicial centrada.
 - ✅ Taller dentro de la ficha (pestañas Ficha · Taller · Árbol): mejoras de cupones, implante y arsenal (aprender y elegir armas iniciales). Intendencia queda en una pantalla de consumibles (comprar packs; mochila y lo que se lleva a la expedición en la misma ficha). Desaparece el mercader con rotación diaria.
+- ✅ Pasillo de embestida sin aspecto de depuración: franja de tierra difuminada, brillo rojo que avanza con la carga y galones que marchan hacia donde irá (`FX_ART.lane`).
 
 ## Bugs conocidos
 
