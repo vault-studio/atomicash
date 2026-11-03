@@ -2,7 +2,19 @@
 import { TUNING as T, type DeepReadonly, type Retype } from './tuning';
 import { ENTITIES, type EntityId } from './entities';
 
+/**
+ * Papel en el cerco (CAMBIOS §4): perseguidores presionan, interceptores cortan rutas, pesados bloquean, normales
+ * rellenan huecos y tiradores obligan a moverse.
+ */
+export type EnemyRole = 'chaser' | 'interceptor' | 'heavy' | 'normal' | 'shooter';
+
 export interface EnemyStats {
+  readonly role?: EnemyRole;
+  /** Máximo en pantalla a la vez (0 o ausente = sin límite). */
+  readonly cap?: number;
+  /** Segundo de la run desde el que puede salir en oleadas, y hasta cuál (ausente = siempre). */
+  readonly spawnFrom?: number;
+  readonly spawnUntil?: number;
   readonly hp: number;
   /** Daño de contacto. */
   readonly dmg: number;
@@ -33,7 +45,7 @@ export interface EnemyStats {
  * - `dirigible`: Choque fijo: el sprite es enorme (entities.ts) pero solo el casco recibe balas, y un radio así
  *   de grande agrandaría todas las consultas de la rejilla.
  */
-export const ENEMY_STATS: Readonly<Record<keyof typeof T.enemies, EnemyStats>> = T.enemies;
+export const ENEMY_STATS = T.enemies as Readonly<Record<keyof typeof T.enemies, EnemyStats>>;
 
 export type StatEnemyId = keyof typeof ENEMY_STATS;
 export const STAT_ENEMY_IDS = Object.keys(ENEMY_STATS) as StatEnemyId[];
@@ -153,6 +165,7 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   blindado: [0xb8bec6, 0x6c7178, 0xa8382a],
   predicador: [0xa8382a, 0x6a2a20, 0xf0e070],
   excavadora: SPARKS,
+  interceptor: SPARKS,
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,

@@ -33,6 +33,8 @@ import {
   type World,
 } from '../types';
 import { blockCircle, hitsObstacle } from '../obstacles';
+import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
+import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
 import { SFX, sfx } from '../sfx';
 
@@ -96,7 +98,20 @@ export function createEnemy(): Enemy {
   };
 }
 
-export const createBullet = (): EnemyBullet => ({ x: 0, y: 0, vx: 0, vy: 0, r: 0, dmg: 0, rad: 0, life: 0 });
+export const createBullet = (): EnemyBullet => ({
+  x: 0,
+  y: 0,
+  vx: 0,
+  vy: 0,
+  r: 0,
+  dmg: 0,
+  rad: 0,
+  life: 0,
+  src: -1,
+});
+
+/** Fuente (índice en HURT_SOURCES) del enemigo que está actuando: la heredan sus balas y avisos. */
+let curSrc = -1;
 export const createTele = (): Telegraph => ({
   x: 0,
   y: 0,
@@ -107,6 +122,7 @@ export const createTele = (): Telegraph => ({
   dur: 0,
   dmg: 0,
   spawn: null,
+  src: -1,
 });
 export const createSlime = (): Slime => ({ x: 0, y: 0, r: 0, life: 0, max: 0, rad: 0 });
 
@@ -282,6 +298,7 @@ export function fireBullet(
   b.r = ENEMY_RULES.bulletR;
   b.dmg = dmg;
   b.rad = rad;
+  b.src = curSrc;
   b.life = ENEMY_RULES.bulletLife;
 }
 
@@ -306,6 +323,7 @@ function telegraph(
   t.dur = dur;
   t.dmg = dmg;
   t.spawn = spawn;
+  t.src = curSrc;
 }
 
 /** Salto del Coloso: aviso donde está ahora el jugador y velocidad para llegar justo al acabar el aviso. */
@@ -348,11 +366,70 @@ let vy = 0;
 const speedOf = (w: World, e: Enemy): number =>
   e.rage ? Math.min(e.speed, w.st.speed * RAGE.speedCap) : e.speed;
 
+const aimPt: Vec = { x: 0, y: 0 };
+const head: Vec = { x: 0, y: 0 };
+
+/**
+ * Interceptor (CAMBIOS §2): corre mucho más que el jugador pero gira despacio, y apunta a donde va a estar (le corta
+ * la ruta de salida). `mt` = segundos que lleva de carrera; si alcanza al jugador tras `stunCharge` s, lo aturde.
+ * Al alcanzarlo o pasar de largo (esquivado) frena `recover` s y vuelve a empezar la carrera.
+ */
+function interceptor(w: World, e: Enemy, d: number, ux: number, uy: number, spd: number, dt: number): void {
+  const A = AI.interceptor;
+  const p = w.player;
+  if (e.dx === 0 && e.dy === 0) {
+    e.dx = ux;
+    e.dy = uy;
+  }
+  interceptPoint(e.x, e.y, p.x, p.y, p.vx, p.vy, spd, A.lead, aimPt);
+  const tx = aimPt.x - e.x;
+  const ty = aimPt.y - e.y;
+  const tl = Math.hypot(tx, ty) || 1;
+  turnToward(e.dx, e.dy, tx / tl, ty / tl, A.turn * dt, head);
+  e.dx = head.x;
+  e.dy = head.y;
+  if (e.mode === MODE_AIM) {
+    // Frenando tras una carrera.
+    vx = e.dx * spd * A.recoverSpeed;
+    vy = e.dy * spd * A.recoverSpeed;
+    e.timer -= dt;
+    if (e.timer <= 0) {
+      e.mode = MODE_CHASE;
+      e.mt = 0;
+      e.alt = false;
+    }
+    return;
+  }
+  vx = e.dx * spd;
+  vy = e.dy * spd;
+  e.mt += dt;
+  if (d < p.r + e.r) {
+    w.rs.chargesHit++;
+    if (e.atkCd <= 0) hurtPlayer(w, e.dmg, 0, false, curSrc);
+    if (e.mt >= A.stunCharge && tryStun(p, A.stunDur, A.stunImmunity)) w.rs.stuns++;
+    e.mode = MODE_AIM;
+    e.timer = A.recover;
+    // Frenando no pega: el daño es el del choque de la carrera.
+    e.atkCd = Math.max(e.atkCd, A.recover);
+    markAttack(w, e);
+  } else if (d < A.missR) e.alt = true;
+  else if (e.alt && e.dx * ux + e.dy * uy < 0) {
+    // Pasó rozando y ya se aleja: esquivado.
+    w.rs.chargesDodged++;
+    e.mode = MODE_AIM;
+    e.timer = A.recover;
+  }
+}
+
 function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number): void {
   const p = w.player;
+  curSrc = hurtIndex(e.type);
   const spd = speedOf(w, e);
   const irrRad = e.irr ? IRRADIATED.rad : 0;
   switch (e.type) {
+    case 'interceptor':
+      interceptor(w, e, d, ux, uy, spd, dt);
+      break;
     case 'tirador': {
       const A = AI.tirador;
       if (d > (e.moving ? A.hold : A.hold + A.resume)) {
@@ -743,7 +820,7 @@ export function updateEnemies(w: World, dt: number): void {
     // Contacto.
     if (alive && !e.flying && e.dmg > 0 && e.type !== 'torreta' && d < p.r + e.r && e.atkCd <= 0) {
       const s: EnemyStats = ENEMY_STATS[e.type];
-      const r = hurtPlayer(w, e.dmg, (s.rad ?? 0) + (e.irr ? IRRADIATED.rad : 0));
+      const r = hurtPlayer(w, e.dmg, (s.rad ?? 0) + (e.irr ? IRRADIATED.rad : 0), false, hurtIndex(e.type));
       if (r !== 0) {
         e.atkCd = PLAYER.contactCd;
         if (!e.boss) markAttack(w, e);
@@ -771,7 +848,7 @@ export function updateEnemyBullets(w: World, dt: number): void {
     const rr = p.r + b.r;
     if (dx * dx + dy * dy < rr * rr) {
       pool.releaseAt(i);
-      hurtPlayer(w, b.dmg, b.rad);
+      hurtPlayer(w, b.dmg, b.rad, false, b.src);
     }
   }
 }
@@ -788,6 +865,7 @@ export function updateTelegraphs(w: World, dt: number): void {
     const r = t.r;
     const dmg = t.dmg;
     const spawn = t.spawn;
+    const src = t.src;
     pool.releaseAt(i);
     if (dmg <= 0 && !spawn) continue;
     boom(w, x, y, r, 0.25, FX.colors.tele);
@@ -795,7 +873,7 @@ export function updateTelegraphs(w: World, dt: number): void {
     const dx = p.x - x;
     const dy = p.y - y;
     const rr = r + p.r;
-    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, dmg);
+    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, dmg, 0, false, src);
     if (spawn) spawnEnemy(w, spawn, x, y, false);
   }
 }

@@ -72,13 +72,19 @@ export function mergeInto(
 }
 
 /** Aplica un JSON de balance (completo o parcial) sobre los valores vigentes. Devuelve las rutas ignoradas. */
-export const applyTuning = (src: unknown): string[] =>
-  mergeInto(TUNING as unknown as Record<string, unknown>, src);
+export function applyTuning(src: unknown): string[] {
+  version++;
+  return mergeInto(TUNING as unknown as Record<string, unknown>, src);
+}
 
 /** Vuelve a los valores por defecto (los del archivo). */
 export function resetTuning(): void {
   applyTuning(structuredClone(DEFAULTS));
 }
+
+let version = 0;
+/** Sube cada vez que cambian los valores: quien precalcule algo a partir de ellos lo rehace al verlo cambiar. */
+export const tuningVersion = (): number => version;
 
 /** Valores vigentes, listos para exportar a `tuning.json`. */
 export const exportTuning = (): string => JSON.stringify(TUNING, null, 2) + '\n';

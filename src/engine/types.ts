@@ -1,4 +1,5 @@
 import type { EntityId } from '../config/entities';
+import type { RunStats } from './runStats';
 import type { EliteId, StatEnemyId } from '../config/enemies';
 import type { ConsumableId, ItemId } from '../config/items';
 import type { DailyMod, ObjectiveKind } from '../config/modes';
@@ -77,6 +78,12 @@ export interface Player {
   lastHit: number;
   /** Depuración: no recibe daño. */
   god: boolean;
+  /** Velocidad real del último tick, en px/s (la usan los enemigos que predicen hacia dónde va). */
+  vx: number;
+  vy: number;
+  /** Aturdido (no se mueve; el autoataque sigue) y su inmunidad posterior restante, en s. */
+  stun: number;
+  stunImmune: number;
 }
 
 /** Modo de los enemigos que embisten: perseguir, apuntar (quieto) y embestir. */
@@ -204,6 +211,8 @@ export interface EnemyBullet {
   dmg: number;
   rad: number;
   life: number;
+  /** Quién la disparó (índice en HURT_SOURCES), para las estadísticas. */
+  src: number;
 }
 
 export interface Lob {
@@ -259,6 +268,8 @@ export interface Telegraph {
   dur: number;
   dmg: number;
   spawn: StatEnemyId | null;
+  /** Quién lo lanzó (índice en HURT_SOURCES), para las estadísticas. */
+  src: number;
 }
 
 /** Rastro radiactivo de babosa. */
@@ -500,6 +511,8 @@ export interface World {
   readonly pools: Pool<FirePool>;
   readonly mines: Pool<Mine>;
   readonly tele: Pool<Telegraph>;
+  /** Estadísticas de la partida (depurador y simulación). */
+  readonly rs: RunStats;
   readonly slimes: Pool<Slime>;
   /** Charcos alrededor del jugador (el mapa no tiene bordes; ver engine/hazards.ts). */
   hazards: readonly Hazard[];

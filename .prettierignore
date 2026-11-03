@@ -12,3 +12,4 @@ GAME_BALANCE.md
 src/data/tuning.json
 android
 out
+tests/_*

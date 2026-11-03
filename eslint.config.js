@@ -24,6 +24,7 @@ export default tseslint.config(
       'node_modules',
       'android',
       'out',
+      'tests/_*',
       'make-manifest.mjs',
       'atomic-ash-proto.html',
       'assets',

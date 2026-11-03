@@ -19,6 +19,7 @@ import { SOURCE_INDEX, WEAPONS, type DamageSource } from '../../config/weapons';
 import type { EntityId } from '../../config/entities';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
+import { hurtIndex, noteHurt } from '../runStats';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, Pickup, PickupKind, World } from '../types';
 import { spawnEnemy } from './enemies';
@@ -210,7 +211,7 @@ export function resolveBlasts(w: World): void {
     const dx = x - p.x;
     const dy = y - p.y;
     const rr = A.boomR + p.r;
-    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, A.boomPlayerDmg, A.boomRad);
+    if (dx * dx + dy * dy < rr * rr) hurtPlayer(w, A.boomPlayerDmg, A.boomRad, false, hurtIndex('hinchado'));
   }
 }
 
@@ -407,7 +408,8 @@ export function rollFieldPickup(u: number): FieldPickupId {
 }
 
 /** Daño al jugador. Devuelve el daño hecho, −1 si lo esquivó y 0 si era invulnerable. */
-export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): number {
+/** `src`: fuente para las estadísticas (índice en HURT_SOURCES, ver runStats.ts). */
+export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false, src = -1): number {
   const p = w.player;
   const st = w.st;
   if (p.inv > 0 || p.god || p.deadAt !== null) return 0;
@@ -421,6 +423,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false): num
   const d =
     Math.max(1, raw * tm - st.armor) * (1 - st.red) * (w.dailyMod === 'glass' ? DAILY.glass.taken : 1);
   p.hp -= d;
+  noteHurt(w.rs, src, d);
   p.inv = PLAYER.invuln;
   // Un golpe recibido corta la racha (si ya multiplicaba, se avisa).
   if (w.streak >= STREAK.tiers[STREAK.tiers.length - 1]!.at) banner(w, 'banner.streakLost');

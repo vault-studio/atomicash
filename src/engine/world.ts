@@ -14,6 +14,8 @@ import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
+import { tickStun } from './rules';
+import { createRunStats, hurtIndex, noteHurt } from './runStats';
 import { SpatialHash } from './spatialHash';
 import { createStats, recalc } from './stats';
 import { addRad, createPickup, heal, resolveBlasts } from './systems/combat';
@@ -139,6 +141,10 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
       healBudget: 0,
       lastHit: -9,
       god: false,
+      vx: 0,
+      vy: 0,
+      stun: 0,
+      stunImmune: 0,
     },
     st: createStats(),
     over: false,
@@ -176,6 +182,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     pools: new Pool(createFirePool, 64),
     mines: new Pool(createMine, 80),
     tele: new Pool(createTele, 48),
+    rs: createRunStats(),
     slimes: new Pool(createSlime, 120),
     hazards: [],
     hazardsOn: opts.hazards !== false,
@@ -262,11 +269,14 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   const p = w.player;
   p.prevX = p.x;
   p.prevY = p.y;
+  p.vx = p.vy = 0;
   if (p.deadAt !== null) {
     p.moving = false;
     return;
   }
-  const mag = Math.sqrt(input.moveX * input.moveX + input.moveY * input.moveY);
+  tickStun(p, dt);
+  // Aturdido: no se mueve, pero las armas siguen disparando (CAMBIOS §2).
+  const mag = p.stun > 0 ? 0 : Math.sqrt(input.moveX * input.moveX + input.moveY * input.moveY);
   p.moving = mag > PLAYER.moveDeadzone;
   if (p.moving) {
     const ux = input.moveX / mag;
@@ -277,6 +287,8 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
     p.x += ux * k;
     p.y += uy * k;
     blockCircle(w, p, p.r, ux, uy, 1);
+    p.vx = (p.x - p.prevX) / dt;
+    p.vy = (p.y - p.prevY) / dt;
   }
   p.inv -= dt;
   p.turbo -= dt;
@@ -311,7 +323,10 @@ function updateRadiation(w: World, dt: number): void {
   p.rad = clamp(p.rad, 0, RAD.max);
   const immune = p.god || !!(survivorStats(w.charId) as SurvivorStats).radImmune;
   const tier = radTier(p.rad);
-  if (tier.drain && !immune) p.hp -= tier.drain * dt;
+  if (tier.drain && !immune) {
+    p.hp -= tier.drain * dt;
+    noteHurt(w.rs, hurtIndex('rad'), tier.drain * dt);
+  }
   if (p.rad >= RAD.max && !immune) {
     banner(w, 'banner.radDeath');
     killPlayer(w);
@@ -368,7 +383,11 @@ export function tick(w: World, input: InputState, dt: number): void {
       w.storm = true;
       banner(w, 'banner.storm');
     }
-    if (!p.god) p.hp -= (RUN.stormDps + RUN.stormDpsGrowth * (w.time - RUN.stormStart)) * dt;
+    if (!p.god) {
+      const d = (RUN.stormDps + RUN.stormDpsGrowth * (w.time - RUN.stormStart)) * dt;
+      p.hp -= d;
+      noteHurt(w.rs, hurtIndex('tormenta'), d);
+    }
   }
   if (p.god && p.hp < 1) p.hp = 1;
   if (p.hp <= 0 && p.deadAt === null) killPlayer(w);

@@ -1,5 +1,16 @@
 // Director de la run: oleadas fuera de cámara (F1-05), eventos, jefes (F2-05/F2-07), élites y hordas en formación.
-import { BOSSES, BOSS_IDS, ELITES, ELITE_IDS, ENEMY_RULES, type StatEnemyId } from '../../config/enemies';
+import {
+  BOSSES,
+  BOSS_IDS,
+  ELITES,
+  ELITE_IDS,
+  ENEMY_RULES,
+  ENEMY_STATS,
+  type EnemyStats,
+  type StatEnemyId,
+} from '../../config/enemies';
+import { tuningVersion } from '../../config/tuning';
+import { underCap } from '../rules';
 import { BUILDINGS } from '../../config/props';
 import { DAILY, ENDLESS } from '../../config/modes';
 import { EVENTS, HORDES, SPAWN, WAVES, type HordeKind, type WaveDef } from '../../config/waves';
@@ -24,29 +35,62 @@ export function currentWaveIndex(t: number): number {
   return idx;
 }
 
-// Pesos de cada oleada precalculados para no recorrer objetos en cada aparición.
-const MIX = WAVES.map((wave) => {
-  const types: StatEnemyId[] = [];
-  const weights: number[] = [];
-  let total = 0;
-  for (const [id, wgt] of Object.entries(wave.mix) as [StatEnemyId, number][]) {
-    if (wgt > 0) {
-      types.push(id);
-      weights.push(wgt);
-      total += wgt;
-    }
+// Pesos de cada oleada precalculados para no recorrer objetos en cada aparición; se rehacen si el depurador cambia
+// los valores (`tuningVersion`).
+let mix: { types: StatEnemyId[]; weights: number[] }[] = [];
+let mixVersion = -1;
+function waveMix(i: number): { types: StatEnemyId[]; weights: number[] } {
+  if (mixVersion !== tuningVersion()) {
+    mixVersion = tuningVersion();
+    mix = WAVES.map((wave) => {
+      const types: StatEnemyId[] = [];
+      const weights: number[] = [];
+      for (const [id, wgt] of Object.entries(wave.mix) as [StatEnemyId, number][]) {
+        if (wgt > 0) {
+          types.push(id);
+          weights.push(wgt);
+        }
+      }
+      return { types, weights };
+    });
   }
-  return { types, weights, total };
-});
+  return mix[i]!;
+}
 
-function pickType(w: World, waveIdx: number): StatEnemyId {
-  const m = MIX[waveIdx]!;
-  let r = w.rng() * m.total;
-  for (let i = 0; i < m.types.length; i++) {
-    r -= m.weights[i]!;
-    if (r < 0) return m.types[i]!;
+/** Vivos de un tipo (solo se cuenta para los que tienen tope). */
+function aliveOf(w: World, type: StatEnemyId): number {
+  let n = 0;
+  for (let i = 0; i < w.enemies.count; i++) {
+    const e = w.enemies.items[i]!;
+    if (!e.dead && e.type === type) n++;
   }
-  return m.types[m.types.length - 1]!;
+  return n;
+}
+
+/** ¿Puede salir ahora en oleada? Ventana de tiempo (`spawnFrom`/`spawnUntil`) y tope en pantalla (`cap`). */
+function spawnable(w: World, type: StatEnemyId): boolean {
+  const s: EnemyStats = ENEMY_STATS[type];
+  if (s.spawnFrom !== undefined && w.time < s.spawnFrom) return false;
+  if (s.spawnUntil !== undefined && w.time >= s.spawnUntil) return false;
+  return underCap(s.cap ? aliveOf(w, type) : 0, s.cap);
+}
+
+/** Tipo al azar según los pesos de la oleada, entre los que pueden salir; null si ninguno. */
+function pickType(w: World, waveIdx: number): StatEnemyId | null {
+  const m = waveMix(waveIdx);
+  let total = 0;
+  for (let i = 0; i < m.types.length; i++) if (spawnable(w, m.types[i]!)) total += m.weights[i]!;
+  if (total <= 0) return null;
+  let r = w.rng() * total;
+  let last: StatEnemyId | null = null;
+  for (let i = 0; i < m.types.length; i++) {
+    const t = m.types[i]!;
+    if (!spawnable(w, t)) continue;
+    last = t;
+    r -= m.weights[i]!;
+    if (r < 0) return t;
+  }
+  return last;
 }
 
 /** Elige un punto fuera de cámara alrededor del jugador y lo escribe en `out` (el mapa no tiene bordes). */
@@ -107,8 +151,8 @@ function fireEvent(w: World): void {
 export function spawnElite(w: World): Enemy {
   const waveIdx = currentWaveIndex(w.time);
   let type = pickType(w, waveIdx);
-  for (let k = 0; k < 8 && ELITES.exclude.includes(type); k++) type = pickType(w, waveIdx);
-  if (ELITES.exclude.includes(type)) type = 'saqueador';
+  for (let k = 0; k < 8 && (!type || ELITES.exclude.includes(type)); k++) type = pickType(w, waveIdx);
+  if (!type || ELITES.exclude.includes(type)) type = 'saqueador';
   const kind = ELITE_IDS[(w.rng() * ELITE_IDS.length) | 0]!;
   placeOffscreen(w, spot);
   const e = spawnEnemy(w, type, spot.x, spot.y, false);
@@ -306,6 +350,7 @@ export function updateSpawning(w: World, dt: number): void {
       break;
     }
     const type = pickType(w, waveIdx);
+    if (!type) break;
     if (type === 'torreta')
       ringPos(w, (SPAWN.staticMin + SPAWN.staticMax) / 2, (SPAWN.staticMax - SPAWN.staticMin) / 2);
     else placeOffscreen(w, spot);

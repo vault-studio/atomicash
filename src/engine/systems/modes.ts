@@ -2,6 +2,7 @@
 import { BARRELS, DAILY, ENDLESS, OBJECTIVES } from '../../config/modes';
 import { JUICE } from '../../config/run';
 import { addShake, banner, boom, burst, hitStop } from '../fx';
+import { hurtIndex } from '../runStats';
 import { SFX, sfx } from '../sfx';
 import type { Barrel, World } from '../types';
 import { offscreenDistance } from '../view';
@@ -31,7 +32,7 @@ export function explodeBarrel(w: World, i: number): void {
   const p = w.player;
   const dx = p.x - x;
   const dy = p.y - y;
-  if (dx * dx + dy * dy < (R * 0.7) ** 2) hurtPlayer(w, BARRELS.playerDmg);
+  if (dx * dx + dy * dy < (R * 0.7) ** 2) hurtPlayer(w, BARRELS.playerDmg, 0, false, hurtIndex('barril'));
   // Los vecinos se encienden con un instante de retraso: la cadena se ve.
   for (let j = 0; j < w.barrels.count; j++) {
     const o = w.barrels.items[j]!;

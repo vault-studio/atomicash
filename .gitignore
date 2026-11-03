@@ -11,3 +11,4 @@ android/
 
 # Salidas de la simulación, smoke test y depurador
 out/
+tests/_*.test.ts

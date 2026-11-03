@@ -95,6 +95,7 @@
   },
   "enemies": {
     "dron": {
+      "role": "chaser",
       "hp": 8,
       "dmg": 4,
       "speed": 122,
@@ -102,24 +103,28 @@
       "metal": true
     },
     "necrofago": {
+      "role": "normal",
       "hp": 25,
       "dmg": 8,
       "speed": 78,
       "xp": 1
     },
     "saqueador": {
+      "role": "chaser",
       "hp": 40,
       "dmg": 10,
       "speed": 100,
       "xp": 2
     },
     "tirador": {
+      "role": "shooter",
       "hp": 30,
       "dmg": 8,
       "speed": 72,
       "xp": 2
     },
     "reptador": {
+      "role": "chaser",
       "hp": 35,
       "dmg": 9,
       "speed": 112,
@@ -127,12 +132,14 @@
       "rad": 5
     },
     "hinchado": {
+      "role": "normal",
       "hp": 50,
       "dmg": 0,
       "speed": 58,
       "xp": 2
     },
     "cortacesped": {
+      "role": "chaser",
       "hp": 60,
       "dmg": 12,
       "speed": 88,
@@ -140,6 +147,7 @@
       "metal": true
     },
     "torreta": {
+      "role": "shooter",
       "hp": 120,
       "dmg": 10,
       "speed": 0,
@@ -148,6 +156,7 @@
       "metal": true
     },
     "babosa": {
+      "role": "heavy",
       "hp": 70,
       "dmg": 8,
       "speed": 50,
@@ -155,6 +164,7 @@
       "kbRes": 0.6
     },
     "aspiradora": {
+      "role": "normal",
       "hp": 60,
       "dmg": 10,
       "speed": 80,
@@ -162,6 +172,7 @@
       "metal": true
     },
     "aspiradora_cria": {
+      "role": "chaser",
       "hp": 6,
       "dmg": 3,
       "speed": 150,
@@ -170,6 +181,7 @@
       "metal": true
     },
     "blindado": {
+      "role": "heavy",
       "hp": 80,
       "dmg": 14,
       "speed": 58,
@@ -179,12 +191,14 @@
       "metal": true
     },
     "predicador": {
+      "role": "normal",
       "hp": 45,
       "dmg": 6,
       "speed": 74,
       "xp": 4
     },
     "excavadora": {
+      "role": "heavy",
       "hp": 160,
       "dmg": 18,
       "speed": 46,
@@ -192,6 +206,15 @@
       "kbRes": 0.1,
       "armor": 0.4,
       "metal": true
+    },
+    "interceptor": {
+      "role": "interceptor",
+      "hp": 30,
+      "dmg": 5,
+      "speed": 340,
+      "xp": 3,
+      "metal": true,
+      "cap": 2
     },
     "rey_rata": {
       "hp": 3000,
@@ -270,6 +293,16 @@
       "range": 520,
       "r": 210,
       "sloganChance": 0.6
+    },
+    "interceptor": {
+      "turn": 1.5,
+      "lead": 1.2,
+      "stunCharge": 2,
+      "stunDur": 1,
+      "stunImmunity": 4,
+      "recover": 1.4,
+      "recoverSpeed": 0.35,
+      "missR": 140
     },
     "rey_rata": {
       "every": 1.2,
@@ -352,7 +385,8 @@
     "scale": 1.3,
     "exclude": [
       "torreta",
-      "aspiradora_cria"
+      "aspiradora_cria",
+      "interceptor"
     ],
     "barTime": 4,
     "blindado": {
@@ -627,7 +661,9 @@
       "max": 40,
       "mix": {
         "dron": 6,
-        "necrofago": 4
+        "necrofago": 4,
+        "interceptor": 1,
+        "tirador": 1
       }
     },
     {
@@ -637,7 +673,9 @@
       "mix": {
         "dron": 5,
         "necrofago": 5,
-        "saqueador": 2
+        "saqueador": 2,
+        "interceptor": 1,
+        "tirador": 1
       }
     },
     {
@@ -649,7 +687,8 @@
         "saqueador": 3,
         "reptador": 3,
         "dron": 3,
-        "aspiradora": 1
+        "aspiradora": 1,
+        "interceptor": 1
       }
     },
     {
@@ -659,7 +698,8 @@
       "mix": {
         "dron": 5,
         "necrofago": 4,
-        "saqueador": 3
+        "saqueador": 3,
+        "interceptor": 1
       }
     },
     {
@@ -673,7 +713,8 @@
         "hinchado": 2,
         "aspiradora": 2,
         "dron": 3,
-        "blindado": 1
+        "blindado": 1,
+        "interceptor": 1
       }
     },
     {
@@ -688,7 +729,8 @@
         "aspiradora": 3,
         "reptador": 3,
         "blindado": 2,
-        "predicador": 1
+        "predicador": 1,
+        "interceptor": 1
       }
     },
     {
@@ -699,7 +741,8 @@
         "dron": 5,
         "necrofago": 4,
         "saqueador": 3,
-        "reptador": 2
+        "reptador": 2,
+        "interceptor": 1
       }
     },
     {
@@ -715,7 +758,8 @@
         "aspiradora": 2,
         "necrofago": 3,
         "blindado": 2,
-        "predicador": 1
+        "predicador": 1,
+        "interceptor": 1
       }
     },
     {
@@ -731,7 +775,8 @@
         "hinchado": 3,
         "reptador": 3,
         "blindado": 2,
-        "predicador": 2
+        "predicador": 2,
+        "interceptor": 1
       }
     },
     {
@@ -742,7 +787,8 @@
         "necrofago": 4,
         "saqueador": 3,
         "reptador": 3,
-        "dron": 5
+        "dron": 5,
+        "interceptor": 1
       }
     },
     {
@@ -759,7 +805,8 @@
         "reptador": 4,
         "tirador": 2,
         "blindado": 3,
-        "predicador": 1
+        "predicador": 1,
+        "interceptor": 1
       }
     },
     {
@@ -776,7 +823,8 @@
         "reptador": 4,
         "hinchado": 2,
         "blindado": 3,
-        "predicador": 2
+        "predicador": 2,
+        "interceptor": 1
       }
     }
   ],

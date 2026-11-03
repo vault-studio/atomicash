@@ -656,6 +656,11 @@ export class FxLayer {
     if (!sa) return;
     const sx = isoX(p.x, p.y);
     const sy = isoY(p.x, p.y);
+    // Aturdido por un interceptor: las mismas estrellas que los enemigos.
+    if (p.stun > 0) {
+      const E = FX_ART.enemy.stun;
+      sa.put('stun', sa.loop('stun', t, E.fps), sx, sy - p.r * E.head, p.r * E.r);
+    }
     const L = FX_ART.levelup;
     if (this.levelAt >= 0 && t - this.levelAt < L.dur)
       sa.put('levelup', sa.once('levelup', (t - this.levelAt) / L.dur), sx, sy, L.w, { ay: L.ay, add: true });
