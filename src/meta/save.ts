@@ -41,6 +41,9 @@ export interface OwnedSurvivor {
   learnedStarters: WeaponId[];
   /** Arma inicial elegida (null = la suya). */
   starter: WeaponId | null;
+  /** Su árbol: nodos comprados (sin el centro) y chapas gastadas en ellos. */
+  tree: TreeNodeId[];
+  treeSpent: number;
 }
 
 export interface MissionProgress {
@@ -67,8 +70,6 @@ export interface SaveData {
   shop: { day: string; bought: string[] };
   /** Reto diario: día UTC del último intento, mejor marca de ese día y si ya se cobró el premio. */
   daily: { day: string; best: { dmg: number; time: number; kills: number } | null; rewarded: boolean };
-  /** Árbol de pasivas: nodos comprados (sin el centro) y cupones gastados en ellos. */
-  tree: { nodes: TreeNodeId[]; spent: number };
   settings: Settings;
 }
 
@@ -99,6 +100,8 @@ export function newSurvivor(): OwnedSurvivor {
     implant: null,
     learnedStarters: [],
     starter: null,
+    tree: [],
+    treeSpent: 0,
   };
 }
 
@@ -118,7 +121,6 @@ export function defaultSave(): SaveData {
     missions: { day: '', daily: [], achievements: {} },
     shop: { day: '', bought: [] },
     daily: { day: '', best: null, rewarded: false },
-    tree: { nodes: [], spent: 0 },
     settings: defaultSettings(),
   };
 }
@@ -156,6 +158,8 @@ function normSurvivor(raw: unknown): OwnedSurvivor {
       ? raw.learnedStarters.filter((w): w is WeaponId => (WEAPON_IDS as string[]).includes(w as string))
       : [],
     starter: oneOfOrNull(raw.starter, WEAPON_IDS),
+    tree: connectedNodes(raw.tree),
+    treeSpent: Math.floor(num(raw.treeSpent, 0, 0)),
   };
 }
 
@@ -190,7 +194,8 @@ export function normalize(raw: unknown): SaveData {
     version: SAVE.version,
     profile: {
       nickname: typeof p.nickname === 'string' ? p.nickname.slice(0, 20) : null,
-      credits: Math.floor(num(p.credits, d.profile.credits, 0)),
+      // v2 → v3: el árbol de cuenta (pagado con cupones) desaparece; se devuelve lo gastado.
+      credits: Math.floor(num(p.credits, d.profile.credits, 0)) + Math.floor(num(tr.spent, 0, 0)),
       starterChosen,
       active: active && survivors[active] ? active : null,
       stats: {
@@ -247,7 +252,6 @@ export function normalize(raw: unknown): SaveData {
       best: db ? { dmg: num(db.dmg, 0, 0), time: num(db.time, 0, 0), kills: num(db.kills, 0, 0) } : null,
       rewarded: bool(dl.rewarded, false),
     },
-    tree: { nodes: connectedNodes(tr.nodes), spent: Math.floor(num(tr.spent, 0, 0)) },
     settings: {
       musicVol: num(st.musicVol, d.settings.musicVol, 0, 1),
       sfxVol: num(st.sfxVol, d.settings.sfxVol, 0, 1),

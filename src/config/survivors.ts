@@ -65,3 +65,4 @@ export const STAT_SURVIVOR_IDS = Object.keys(SURVIVORS) as StatSurvivorId[];
  * conserva sus stats para cuando tenga sprites.
  */
 export const ROSTER = ['dot', 'gus', 'benny'] as const satisfies readonly StatSurvivorId[];
+export type RosterId = (typeof ROSTER)[number];

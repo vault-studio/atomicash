@@ -102,7 +102,7 @@ export function applyBuild(w: World, build: readonly BuildItem[]): void {
   build.forEach((b, i) => {
     const first = w.weapons[0];
     if (i === 0 && first && first.id === b.id) first.lvl = b.lvl;
-    else if (!w.weapons.some((x) => x.id === b.id)) w.weapons.push(createWeapon(b.id, b.lvl));
+    else if (!w.weapons.some((x) => x.id === b.id)) w.weapons.push(createWeapon(b.id, b.lvl, w.time));
   });
 }
 

@@ -49,8 +49,8 @@ export const createFirePool = (): FirePool => ({
 });
 export const createMine = (): Mine => ({ x: 0, y: 0, sx: 0, sy: 0, fly: 0, flyDur: 0, t: 0, r: 0, dmg: 0 });
 
-export function createWeapon(id: WeaponId, lvl = 1): Weapon {
-  return { id, lvl, cd: 0.3, a: 0, r: 0, cd2: 0 };
+export function createWeapon(id: WeaponId, lvl = 1, got = 0): Weapon {
+  return { id, lvl, cd: 0.3, a: 0, r: 0, cd2: 0, got };
 }
 
 function addShot(

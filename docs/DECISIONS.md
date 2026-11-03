@@ -23,3 +23,4 @@ Una línea por decisión, con su motivo. No reabrir las ya registradas.
 - 2026-11-03 · El bot «kite» se aparta del pasillo de las embestidas (segmento), no solo de su origen · el pasillo se ve en pantalla.
 - 2026-11-03 · Tope del cofre especial por cupones de la partida (`w.coupons` ≥ `capAfter` → uniforme en `capped`), también con «Contrabandista» · decisión del usuario.
 - 2026-11-03 · Jefes en los minutos 2, 4 y 6; los tramos de oleada se reordenan para dejar el minuto de respiro delante de cada jefe · decisión del usuario.
+- 2026-11-03 · Árbol por superviviente (`TREES`, misma forma, distinto contenido) pagado con sus chapas (= fichas de duplicados), coste fijo por tamaño · decisión del usuario; sustituye al árbol de cuenta con cupones (se devuelven al cargar, guardado v3).

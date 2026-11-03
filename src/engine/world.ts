@@ -165,6 +165,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     levelHistory: [],
     items: [],
     weapons: startWeapon ? [createWeapon(startWeapon)] : [],
+    starter: startWeapon ?? null,
     cons: { ...PLAYER.startConsumables, ...opts.consumables },
     consUsed: 0,
     consStart: { ...PLAYER.startConsumables, ...opts.consumables },

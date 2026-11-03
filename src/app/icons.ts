@@ -58,6 +58,11 @@ const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<TreeNode['stat']>, st
   regen: 'traits/suture',
   spd: 'traits/boots',
   xp: 'traits/manual',
+  kb: 'traits/stock',
+  area: 'traits/fuse',
+  cd: 'traits/oil',
+  dodge: 'traits/cat',
+  luck: 'traits/rabbit',
 };
 const TREE_MOD_ICONS: Readonly<Record<NonNullable<TreeNode['mod']>, string>> = {
   coupons: 'coupon',
@@ -67,9 +72,17 @@ const TREE_MOD_ICONS: Readonly<Record<NonNullable<TreeNode['mod']>, string>> = {
   hunter: 'hud/bobble',
   coldBlood: 'traits/cat',
   smuggler: 'chest',
+  melee: 'w:martillo_pilon',
+  consDur: 'hud/turbo',
+  starter: 'w:pistola_clavos',
 };
-/** Icono de un nodo del Árbol; el centro (sin efecto) es la baliza del refugio. */
-export function treeIcon(n: TreeNode): string {
+/**
+ * Icono de un nodo del Árbol; el centro (sin efecto) es la baliza del refugio. Los de arma inicial llevan el icono
+ * de `starter` (el arma inicial del personaje) si se da.
+ */
+export function treeIcon(n: TreeNode, starter?: WeaponId): string {
+  if (n.mod === 'starter' && starter) return weaponIcon(starter);
   const key = (n.stat ? TREE_STAT_ICONS[n.stat] : n.mod ? TREE_MOD_ICONS[n.mod] : null) ?? 'beacon';
+  if (key.startsWith('w:')) return weaponIcon(key.slice(2) as WeaponId);
   return key.includes('/') ? `${BASE}${key}.png` : `${PICKUPS}${key}.png`;
 }

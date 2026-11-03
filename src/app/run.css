@@ -711,31 +711,176 @@
   opacity: 0.4;
 }
 
+/* Armas de la partida: fichas grandes a la derecha y, bajo las tablas, las combinaciones de la elegida. */
+.pstats__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  gap: 8px 16px;
+  align-items: start;
+}
+
+.pstats__left {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pstats__tiles {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pstats__tile {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--crema);
+  border: 2px solid rgba(60, 255, 107, 0.4);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.05;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pstats__tile:hover,
+.pstats__tile:focus-visible {
+  outline: none;
+  border-color: var(--crt);
+}
+
+.pstats__tile.is-sel {
+  border-color: #ffe14a;
+  background: rgba(255, 225, 74, 0.1);
+}
+
+.pstats__wicon {
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+
+.pstats__wtext {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  color: var(--crt);
+}
+
+.pstats__wname {
+  color: var(--crema);
+}
+
+.pstats__wname small {
+  color: var(--crt);
+  opacity: 0.8;
+}
+
+.pstats__panel {
+  min-width: 0;
+  padding: 3px 8px;
+  border: 1px dashed rgba(60, 255, 107, 0.45);
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.pstats__combo,
+.pstats__combos {
+  margin: 0;
+}
+
+.pstats__combos {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.pstats__combos > li > span:first-child {
+  color: var(--ocre);
+}
+
+.pstats__combos em {
+  margin-left: 6px;
+  font-style: normal;
+  opacity: 0.85;
+}
+
+.pstats__combos .is-ready em {
+  color: #ffe14a;
+  opacity: 1;
+}
+
+.pstats__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--crema);
+  vertical-align: middle;
+}
+
+.pstats__chip .wicon {
+  width: 24px;
+  height: 24px;
+}
+
 /* Móvil en horizontal: todo en una pantalla, sin desplazarse. */
 @media (max-height: 460px) {
+  /* Título y botones en una fila para ganar alto. */
   .overlay--pause {
-    gap: 6px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'title actions'
+      'stats stats';
+    align-content: center;
+    align-items: center;
+    gap: 4px 12px;
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
   }
 
   .overlay--pause .overlay__title {
+    grid-area: title;
     font-size: 22px;
   }
 
+  .overlay--pause .overlay__actions {
+    grid-area: actions;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
   .overlay--pause .btn {
-    min-height: 40px;
+    min-height: 48px;
+    padding: 4px 14px;
     font-size: 17px;
   }
 
-  .pstats {
-    padding: 6px 12px 8px;
+  .overlay--pause .pstats {
+    grid-area: stats;
+    justify-self: center;
+    width: 100%;
   }
 
+  .pstats {
+    padding: 4px 12px 6px;
+  }
+
+  /* Sin el busto: el ancho se aprovecha para las tablas y las armas. */
   .pstats--head {
-    padding-left: 130px;
+    padding-left: 12px;
   }
 
   .pstats__head {
-    width: 125px;
+    display: none;
   }
 
   .pstats__name {
@@ -744,12 +889,16 @@
   }
 
   .pstats table {
-    font-size: 15px;
-    line-height: 1.05;
+    font-size: 16px;
+    line-height: 1.03;
   }
 
   .pstats caption {
-    font-size: 12px;
+    font-size: 16px;
+  }
+
+  .pstats__grid {
+    grid-template-columns: minmax(0, 1fr) 224px;
   }
 }
 

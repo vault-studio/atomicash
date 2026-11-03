@@ -70,6 +70,10 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Jefes en los minutos 2, 4 y 6 (`bosses.*.at`); los respiros se mueven con ellos y el resto de tramos de oleada conserva su orden.
 - ✅ 30 % menos de experiencia por baja (`XP.killMult` 3,125 → 2,1875).
 - Efecto en balance de estos tres (bot «kite», build propia): media 361 → 214 s; Dot 166 s (0/6), Gus 224 s (0/6), Benny 253 s (1/6). Nivel medio al acabar 26 → 13. El Rey Rata en el minuto 2 mata 4 de 18 partidas. Pendiente de la prueba del usuario.
+- ✅ Pausa: armas en fichas grandes con daño y DPS desde que se consiguieron; al pulsar una, con qué se combina.
+- ✅ Expedición y Supervivientes en una pantalla (retrato grande + cuadrícula de retratos) y ficha del personaje: nivel y su bonificación, estrellas y su bonificación, pasiva, arma inicial y su árbol.
+- ✅ Árbol por personaje pagado con sus chapas (las fichas de los duplicados de las cajas); el de cuenta desaparece y devuelve sus cupones. Mods nuevos: arma inicial, cuerpo a cuerpo y duración de consumibles.
+- ✅ Suministros pasa al menú principal; Intendencia queda con taller, mercader y mochila.
 
 ## Bugs conocidos
 

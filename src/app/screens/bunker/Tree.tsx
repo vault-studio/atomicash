@@ -1,34 +1,29 @@
-// Árbol de pasivas (dossier §8–9): nodos unidos al centro que se compran con cupones. Vale para todo el plantel.
-// Se dibuja como una pantalla de radar con las tres ramas en su color; cada nodo lleva el dibujo de lo que da y el
-// panel de al lado enseña el elegido, cuánto llevas de cada rama y la suma de todo lo aprendido.
+// Árbol de un superviviente (dossier §8–9): nodos unidos al centro que se compran con las chapas del personaje. Va
+// dentro de su ficha. Se dibuja como una pantalla de radar con las tres ramas en su color; cada nodo lleva el dibujo
+// de lo que da y el panel de al lado enseña el elegido, cuánto llevas de cada rama y la suma de todo lo aprendido.
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { TREE, TREE_IDS, TREE_ROOT, type TreeNode, type TreeNodeId } from '../../../config/tree';
+import { SURVIVORS, type RosterId } from '../../../config/survivors';
+import { TREES, TREE_IDS, TREE_ROOT, type TreeNode, type TreeNodeId } from '../../../config/tree';
 import { allocateNode, canAllocate, resetTree, treeCost } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
-import { pickupIcon, treeIcon } from '../../icons';
-import { Screen } from './common';
+import { treeIcon } from '../../icons';
 
 /** Radio de cada tamaño de nodo, en unidades del dibujo (0–100). */
 const R = { small: 3.4, big: 4.8, unique: 5.8, root: 4.7 } as const;
 
-type Branch = 'combat' | 'survival' | 'scrap' | 'bridge' | 'root';
-const BRANCHES = ['combat', 'survival', 'scrap'] as const;
+type Branch = TreeNode['branch'];
+/** Las tres ramas con nombre (arriba `c`, abajo a la izquierda `s`, abajo a la derecha `k`). */
+const BRANCHES = ['c', 's', 'k'] as const;
 /** Ángulo de cada rama en el dibujo (el mismo que en config/tree.ts). */
-const BRANCH_ANGLE = { combat: -90, survival: 150, scrap: 30 } as const;
+const BRANCH_ANGLE = { c: -90, s: 150, k: 30 } as const;
 const BRANCH_COLOR: Readonly<Record<Branch, string>> = {
-  combat: '#ff6a3a',
-  survival: '#3cff6b',
-  scrap: '#ffc83a',
-  bridge: '#f3e9d2',
+  c: '#ff6a3a',
+  s: '#3cff6b',
+  k: '#ffc83a',
+  b: '#f3e9d2',
   root: '#3cff6b',
 };
-
-/** Rama de un nodo por su ID (c…, s…, k…, b… puente). */
-function branchOf(id: TreeNodeId): Branch {
-  if (id === TREE_ROOT) return 'root';
-  return ({ c: 'combat', s: 'survival', k: 'scrap' } as const)[id[0] as 'c' | 's' | 'k'] ?? 'bridge';
-}
 
 /** Punto a `d` (0–1) del centro en el ángulo `deg`, como `at` de config/tree.ts. */
 function polar(deg: number, d: number): [number, number] {
@@ -171,7 +166,7 @@ export function useNodeEffect(): (n: TreeNode, v?: number) => string {
     n.stat ? t(`tree.stat.${n.stat}`, { v }) : n.mod ? t(`tree.mod.${n.mod}`, { v }) : '';
 }
 
-export function Tree({ onBack }: { onBack: () => void }) {
+export function Tree({ charId }: { charId: RosterId }) {
   const { t } = useTranslation();
   const data = useSave((s) => s.data);
   const act = useSave((s) => s.act);
@@ -179,38 +174,46 @@ export function Tree({ onBack }: { onBack: () => void }) {
   const [sel, setSel] = useState<TreeNodeId>(TREE_ROOT);
   const [confirm, setConfirm] = useState(false);
   const { svgRef, viewBox, zoom, zoomIn, zoomOut, reset, dragged, handlers } = useMapZoom();
-  const owned = new Set<TreeNodeId>([TREE_ROOT, ...data.tree.nodes]);
-  const credits = data.profile.credits;
+  const tree = TREES[charId];
+  const me = data.survivors[charId];
+  const bought = me?.tree ?? [];
+  const owned = new Set<TreeNodeId>([TREE_ROOT, ...bought]);
+  const shards = me?.shards ?? 0;
+  const starter = me?.starter ?? SURVIVORS[charId].weapon;
 
   // Cada unión una sola vez.
   const edges: [TreeNodeId, TreeNodeId][] = [];
-  for (const a of TREE_IDS) for (const b of TREE[a].links as readonly TreeNodeId[]) edges.push([a, b]);
+  for (const a of TREE_IDS) for (const b of tree[a].links as readonly TreeNodeId[]) edges.push([a, b]);
 
   const nameOf = (id: TreeNodeId): string => {
-    const n: TreeNode = TREE[id];
+    const n: TreeNode = tree[id];
     if (id === TREE_ROOT) return t('tree.root');
     return n.stat ? t(`tree.statName.${n.stat}`) : t(`tree.name.${n.mod ?? ''}`);
   };
+  /** Nombre de una rama según el personaje (el puente y el centro no cambian). */
+  const branchName = (b: Branch): string =>
+    b === 'c' || b === 's' || b === 'k'
+      ? t(`tree.branch.${charId}.${b}`)
+      : t(b === 'b' ? 'tree.branch.bridge' : 'tree.branch.root');
 
   // Suma de lo aprendido, agrupado por efecto, en el orden del árbol.
   const bonuses = new Map<string, { node: TreeNode; v: number }>();
   for (const id of TREE_IDS) {
     if (id === TREE_ROOT || !owned.has(id)) continue;
-    const n: TreeNode = TREE[id];
+    const n: TreeNode = tree[id];
     const key = n.stat ?? n.mod ?? '';
     const b = bonuses.get(key);
     if (b) b.v = Math.round((b.v + n.v) * 100) / 100;
     else bonuses.set(key, { node: n, v: n.v });
   }
 
-  const node: TreeNode = TREE[sel];
-  const branch = branchOf(sel);
-  const cost = treeCost(data, sel);
-  const open = canAllocate(data, sel);
+  const node: TreeNode = tree[sel];
+  const branch = node.branch;
+  const cost = treeCost(sel);
+  const open = canAllocate(data, charId, sel);
 
   return (
-    <Screen title={t('bunker.tree.cmd')} onBack={onBack}>
-      <p className="tree__intro">{t('tree.intro', { n: data.tree.nodes.length })}</p>
+    <>
       <div className="tree">
         <div className="tree__stage">
           <svg
@@ -218,7 +221,7 @@ export function Tree({ onBack }: { onBack: () => void }) {
             className={zoom > 1.01 ? 'tree__map is-zoomed' : 'tree__map'}
             viewBox={viewBox}
             role="group"
-            aria-label={t('bunker.tree.cmd')}
+            aria-label={t('sheet.tabTree')}
             {...handlers}
           >
             <defs>
@@ -254,29 +257,13 @@ export function Tree({ onBack }: { onBack: () => void }) {
             <g className="tree__sweep">
               <path d={`M50 50 L50 0.3 A49.7 49.7 0 0 1 ${polar(-60, 1.08).join(' ')} Z`} />
             </g>
-            {/* Nombre de cada rama junto a su única: encima la de arriba, debajo las otras dos. */}
-            {BRANCHES.map((b) => {
-              const [x, y] = polar(BRANCH_ANGLE[b], 0.96);
-              return (
-                <text
-                  key={b}
-                  x={x}
-                  y={b === 'combat' ? y - 8.6 : y + 10.4}
-                  className="tree__label"
-                  fill={BRANCH_COLOR[b]}
-                >
-                  {t(`tree.branch.${b}`)}
-                </text>
-              );
-            })}
-
             {/* Uniones: apagadas, a tiro (una punta aprendida) o encendidas con la energía corriendo. */}
             {edges.map(([a, b]) => {
               const on = owned.has(a) && owned.has(b);
               const near = owned.has(a) || owned.has(b);
-              const far = branchOf(b) === 'bridge' || branchOf(b) === 'root' ? a : b;
-              const c = BRANCH_COLOR[branchOf(far)];
-              const line = { x1: TREE[a].x, y1: TREE[a].y, x2: TREE[b].x, y2: TREE[b].y };
+              const far = tree[b].branch === 'b' || tree[b].branch === 'root' ? a : b;
+              const c = BRANCH_COLOR[tree[far].branch];
+              const line = { x1: tree[a].x, y1: tree[a].y, x2: tree[b].x, y2: tree[b].y };
               return (
                 <g
                   key={`${a}-${b}`}
@@ -290,27 +277,21 @@ export function Tree({ onBack }: { onBack: () => void }) {
             })}
 
             {TREE_IDS.map((id) => {
-              const n: TreeNode = TREE[id];
+              const n: TreeNode = tree[id];
               const has = owned.has(id);
-              const can = !has && canAllocate(data, id);
+              const can = !has && canAllocate(data, charId, id);
               const r = id === TREE_ROOT ? R.root : R[n.size];
               const cls = [
                 'tree__node',
                 `is-${id === TREE_ROOT ? 'root' : n.size}`,
-                has
-                  ? 'is-owned'
-                  : can
-                    ? credits >= treeCost(data, id)
-                      ? 'is-open'
-                      : 'is-poor'
-                    : 'is-locked',
+                has ? 'is-owned' : can ? (shards >= treeCost(id) ? 'is-open' : 'is-poor') : 'is-locked',
                 sel === id ? 'is-sel' : '',
               ].join(' ');
               return (
                 <g
                   key={id}
                   className={cls}
-                  style={colorVar(BRANCH_COLOR[branchOf(id)])}
+                  style={colorVar(BRANCH_COLOR[n.branch])}
                   transform={`translate(${n.x} ${n.y})`}
                   role="button"
                   tabIndex={0}
@@ -322,11 +303,12 @@ export function Tree({ onBack }: { onBack: () => void }) {
                     if (e.key === 'Enter' || e.key === ' ') setSel(id);
                   }}
                 >
+                  <circle r={r + 1.4} className="tree__hit" />
                   {can && <circle r={r + 1.8} className="tree__halo" />}
                   {n.size === 'unique' && <circle r={r + 1.3} className="tree__crown" />}
                   <circle r={r} className="tree__base" />
                   <image
-                    href={treeIcon(n)}
+                    href={treeIcon(n, starter)}
                     x={-r}
                     y={-r}
                     width={r * 2}
@@ -370,12 +352,13 @@ export function Tree({ onBack }: { onBack: () => void }) {
         </div>
 
         <aside className="tree__panel">
+          <p className="tree__shards">{t('tree.shards', { n: shards })}</p>
           <section className={`tree__card is-${branch}`} style={colorVar(BRANCH_COLOR[branch])}>
             <div className="tree__card-head">
-              <img className="tree__card-icon" src={treeIcon(node)} alt="" />
+              <img className="tree__card-icon" src={treeIcon(node, starter)} alt="" />
               <div>
                 <small className="tree__card-branch">
-                  {t(`tree.branch.${branch}`)}
+                  {branchName(branch)}
                   {sel !== TREE_ROOT && <> · {t(`tree.size.${node.size}`)}</>}
                 </small>
                 <strong className="tree__card-name">{nameOf(sel)}</strong>
@@ -388,16 +371,10 @@ export function Tree({ onBack }: { onBack: () => void }) {
               <>
                 <button
                   className="btn btn--primary tree__buy"
-                  disabled={!open || credits < cost}
-                  onClick={() => act((d) => allocateNode(d, sel))}
+                  disabled={!open || shards < cost}
+                  onClick={() => act((d) => allocateNode(d, charId, sel))}
                 >
-                  {open ? (
-                    <>
-                      {t('tree.learn')} <img src={pickupIcon('coupon')} alt="" /> {cost.toLocaleString()}
-                    </>
-                  ) : (
-                    t('tree.locked')
-                  )}
+                  {open ? t('tree.learnCost', { n: cost }) : t('tree.locked')}
                 </button>
                 {!open && <small>{t('tree.needs')}</small>}
               </>
@@ -406,11 +383,11 @@ export function Tree({ onBack }: { onBack: () => void }) {
 
           <section className="tree__branches">
             {BRANCHES.map((b) => {
-              const ids = TREE_IDS.filter((id) => branchOf(id) === b);
+              const ids = TREE_IDS.filter((id) => tree[id].branch === b);
               const got = ids.filter((id) => owned.has(id)).length;
               return (
                 <div key={b} className="tree__branch" style={colorVar(BRANCH_COLOR[b])}>
-                  <span>{t(`tree.branch.${b}`)}</span>
+                  <span>{branchName(b)}</span>
                   <span className="tree__branch-bar">
                     <span style={{ width: `${(got / ids.length) * 100}%` }} />
                   </span>
@@ -430,7 +407,7 @@ export function Tree({ onBack }: { onBack: () => void }) {
               <ul>
                 {[...bonuses.values()].map(({ node: n, v }) => (
                   <li key={n.stat ?? n.mod}>
-                    <img src={treeIcon(n)} alt="" />
+                    <img src={treeIcon(n, starter)} alt="" />
                     {effect(n, v)}
                   </li>
                 ))}
@@ -439,14 +416,14 @@ export function Tree({ onBack }: { onBack: () => void }) {
           </section>
 
           <footer className="tree__foot">
-            <small>{t('tree.spent', { n: data.tree.spent })}</small>
+            <small>{t('tree.spent', { n: me?.treeSpent ?? 0 })}</small>
             {confirm ? (
               <div className="tree__confirm">
-                <span>{t('tree.resetAsk', { n: data.tree.spent })}</span>
+                <span>{t('tree.resetAsk', { n: me?.treeSpent ?? 0 })}</span>
                 <button
                   className="btn"
                   onClick={() => {
-                    act((d) => resetTree(d));
+                    act((d) => resetTree(d, charId));
                     setConfirm(false);
                   }}
                 >
@@ -457,17 +434,13 @@ export function Tree({ onBack }: { onBack: () => void }) {
                 </button>
               </div>
             ) : (
-              <button
-                className="btn"
-                disabled={data.tree.nodes.length === 0}
-                onClick={() => setConfirm(true)}
-              >
+              <button className="btn" disabled={bought.length === 0} onClick={() => setConfirm(true)}>
                 {t('tree.reset')}
               </button>
             )}
           </footer>
         </aside>
       </div>
-    </Screen>
+    </>
   );
 }

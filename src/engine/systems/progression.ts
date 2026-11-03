@@ -360,13 +360,15 @@ export function applyChoice(w: World, i: number): void {
       break;
     }
     case 'new':
-      w.weapons.push(createWeapon(c.id));
+      w.weapons.push(createWeapon(c.id, 1, w.time));
       break;
     case 'fusion': {
       const f = FUSIONS.find((x) => x.result === c.id);
       if (!f) break;
       w.weapons = w.weapons.filter((x) => x.id !== f.a && x.id !== f.b);
-      w.weapons.push(createWeapon(c.id, PLAYER.maxWeaponLevel));
+      // La especialidad del árbol en el arma inicial pasa a su fusión.
+      if (w.starter === f.a || w.starter === f.b) w.starter = c.id;
+      w.weapons.push(createWeapon(c.id, PLAYER.maxWeaponLevel, w.time));
       banner(w, 'banner.fusion', { weapon: c.id });
       break;
     }
@@ -486,7 +488,8 @@ export function consumeItem(w: World, i: number): boolean {
     addShake(w, 6, 12);
     hitStop(w, JUICE.hitStop.grenade);
   } else {
-    p.turbo = CONSUMABLES.turbo.dur * (1 + ((survivorStats(w.charId) as SurvivorStats).consDurPct ?? 0));
+    const ch = survivorStats(w.charId) as SurvivorStats;
+    p.turbo = CONSUMABLES.turbo.dur * (1 + (ch.consDurPct ?? 0) + (w.mods.consDur ?? 0) / 100);
   }
   w.cons[id]--;
   w.consUsed++;

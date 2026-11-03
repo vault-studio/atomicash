@@ -43,6 +43,8 @@ export interface PlayerStats {
   radDecayBonus: number;
   meleeMult: number;
   bossMult: number;
+  /** Daño del arma inicial (y de su fusión), por el árbol del personaje. */
+  starterMult: number;
 }
 
 export interface Player {
@@ -195,6 +197,8 @@ export interface Weapon {
   r: number;
   /** Segundo temporizador (rayos del núcleo inestable). */
   cd2: number;
+  /** Segundo de la run en que se consiguió (para su DPS en la pausa). */
+  got: number;
 }
 
 export const SHOT_HITS = 16;
@@ -496,6 +500,8 @@ export interface World {
   /** Objetos de jefe (hasta PLAYER.itemSlots). */
   items: ItemId[];
   weapons: Weapon[];
+  /** Arma inicial; si se fusiona, pasa a ser la fusión (recibe `st.starterMult`). */
+  starter: WeaponId | null;
   readonly cons: Record<ConsumableId, number>;
   consUsed: number;
   /** Consumibles con los que empezó (para devolver a la Mochila lo que sobre). */

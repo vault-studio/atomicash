@@ -48,11 +48,10 @@
   "pauseStats": {
     "attributes": "Attributes",
     "run": "Run",
-    "weapons": "Weapons · damage dealt",
     "hp": "Health",
     "regen": "Regeneration",
     "armor": "Armor",
-    "red": "Damage reduction",
+    "red": "Reduction",
     "dodge": "Dodge",
     "speed": "Speed",
     "dmg": "Damage",
@@ -72,7 +71,19 @@
     "bosses": "Bosses",
     "dmgTotal": "Total damage",
     "dps": "DPS",
-    "coupons": "Coupons picked up"
+    "coupons": "Coupons",
+    "weaponsTitle": "Weapons",
+    "weaponDmg": "{{n}} damage",
+    "weaponDps": "{{n}} DPS",
+    "fuse": {
+      "with": "Combines with",
+      "from": "Fusion of",
+      "none": "Combines with nothing.",
+      "ready": "Both at max: it can show up now.",
+      "haveNotMax": "You carry it, but both must reach level {{max}}.",
+      "missing": "You don't carry it yet.",
+      "pickWeapon": "Tap a weapon to see what it combines with."
+    }
   },
   "passives": {
     "dot": "+15% melee damage",
@@ -466,15 +477,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDITION",
-      "desc": "Head out and manage your roster"
+      "desc": "Head out, your roster and their tree"
     },
     "stores": {
       "cmd": "QUARTERMASTER",
-      "desc": "Supplies, workshop, merchant and backpack"
-    },
-    "survivors": {
-      "cmd": "SURVIVORS",
-      "desc": "Your collection"
+      "desc": "Workshop, merchant and backpack"
     },
     "workshop": {
       "cmd": "WORKSHOP",
@@ -503,31 +510,20 @@
     "back": "← Bunker",
     "credits": "{{n, number}} coupons",
     "price": "{{n, number}} cp",
-    "active": "Active survivor: {{name}}",
-    "tree": {
-      "cmd": "TREE",
-      "desc": "Passives for the whole roster"
-    }
+    "active": "Active survivor: {{name}}"
   },
   "expedition": {
     "pick": "Who heads into the wasteland?",
-    "passive": "Passive",
-    "weapon": "Weapon",
-    "tabGo": "EXPEDITION"
+    "select": "Select"
   },
   "collection": {
-    "unknown": "???",
-    "notRecruited": "Not recruited. Look for them in Supplies.",
     "level": "Lv. {{n}}",
     "irradiated": "IRRADIATED",
-    "count": "Recruited: {{n}}/{{total}}",
     "xp": "XP {{xp}}/{{next}}",
     "maxLevel": "Max level",
-    "shards": "Shards {{n}}/{{cost}}",
+    "shards": "Tags {{n}}/{{cost}}",
     "maxStars": "Max stars",
     "starter": "Starting weapon",
-    "setActive": "Pick",
-    "isActive": "Active",
     "starUp": "Star up"
   },
   "workshop": {
@@ -598,19 +594,19 @@
     "zone": "{{zone}} crate",
     "rates": "Odds per pull",
     "pity": "Best in the box ({{rarity}}) guaranteed within {{n}} pulls.",
-    "rules": "×10: at least one rare or better per 10. In-game coupons only; no real money. Duplicates give shards.",
+    "rules": "×10: at least one rare or better per 10. In-game coupons only; no real money. Duplicates give tags.",
     "pull": "×{{n}} · {{cost, number}} cp",
     "skip": "Skip",
     "close": "Collect",
     "new": "NEW!",
-    "dup": "+{{n}} shards",
+    "dup": "+{{n}} tags",
     "summary": "{{n}} crates · {{fresh}} new · best: {{rarity}}"
   },
   "board": {
     "daily": "TODAY'S MISSIONS",
     "claimed": "Claimed",
     "achievements": "ACHIEVEMENTS",
-    "reward": "{{credits}} cp + {{shards}} shards",
+    "reward": "{{credits}} cp + {{shards}} tags",
     "profile": "RECORD",
     "runs": "Expeditions",
     "kills": "Kills",
@@ -758,15 +754,14 @@
     "vampirico": "VAMPIRIC"
   },
   "tree": {
-    "intro": "Buy passives with coupons, always next to one you own. They apply to every survivor. Nodes: {{n}}.",
     "root": "Shelter",
     "rootDesc": "The centre of the tree. Everything grows from here.",
     "owned": "Learned",
     "locked": "Locked",
     "needs": "Buy a node linked to this one first.",
-    "spent": "Spent on the tree: {{n}} coupons",
+    "spent": "Spent on the tree: {{n}} tags",
     "reset": "Unlearn all",
-    "resetAsk": "Unlearn everything and get {{n}} coupons back?",
+    "resetAsk": "Unlearn everything and get {{n}} tags back?",
     "resetYes": "Yes, unlearn",
     "resetNo": "No",
     "size": {
@@ -781,7 +776,10 @@
       "reroll": "Second hand",
       "hunter": "Monster hunter",
       "coldBlood": "Cold blood",
-      "smuggler": "Smuggler"
+      "smuggler": "Smuggler",
+      "melee": "Muscle",
+      "consDur": "Full pantry",
+      "starter": "House weapon"
     },
     "stat": {
       "dmg": "+{{v}}% damage",
@@ -791,7 +789,12 @@
       "mag": "+{{v}}% magnet",
       "regen": "+{{v}} HP/s regen",
       "spd": "+{{v}}% speed",
-      "xp": "+{{v}}% experience"
+      "xp": "+{{v}}% experience",
+      "kb": "+{{v}}% knockback",
+      "area": "+{{v}}% area",
+      "cd": "{{v}}% less cooldown",
+      "dodge": "+{{v}}% dodge",
+      "luck": "+{{v}} luck"
     },
     "mod": {
       "coupons": "+{{v}}% coupons during the run",
@@ -800,15 +803,30 @@
       "reroll": "+{{v}} card reroll per run.",
       "hunter": "+{{v}}% damage to bosses and elites.",
       "coldBlood": "When hit you keep {{v}}% of your streak.",
-      "smuggler": "Special chest slot machines roll twice and keep the best."
+      "smuggler": "Special chest slot machines roll twice and keep the best.",
+      "melee": "+{{v}}% melee damage",
+      "consDur": "+{{v}}% consumable duration",
+      "starter": "+{{v}}% damage with the starting weapon (and its fusion)"
     },
     "learn": "Learn",
     "bonuses": "LEARNED",
     "noBonuses": "Nothing yet. Start with a node next to the Shelter.",
     "branch": {
-      "combat": "COMBAT",
-      "survival": "SURVIVAL",
-      "scrap": "SCRAPPING",
+      "dot": {
+        "c": "Workshop",
+        "s": "Melee",
+        "k": "Scrap"
+      },
+      "gus": {
+        "c": "Stovetop",
+        "s": "Pantry",
+        "k": "Wheeling"
+      },
+      "benny": {
+        "c": "Aim",
+        "s": "Sprint",
+        "k": "Errands"
+      },
       "bridge": "BRIDGE",
       "root": "SHELTER"
     },
@@ -820,11 +838,18 @@
       "mag": "Magnet pockets",
       "regen": "Patch-up",
       "spd": "Long stride",
-      "xp": "Veteran"
+      "xp": "Veteran",
+      "kb": "Gun butt",
+      "area": "Wide radius",
+      "cd": "Quick hands",
+      "dodge": "Light feet",
+      "luck": "Rabbit's foot"
     },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
-    "zoomReset": "Show all"
+    "zoomReset": "Show all",
+    "shards": "Tags available: {{n}}",
+    "learnCost": "Learn · {{n}} tags"
   },
   "daily": {
     "title": "DAILY CHALLENGE · {{day}}",
@@ -854,5 +879,17 @@
         "desc": "the wasteland is full of explosive barrels."
       }
     }
+  },
+  "sheet": {
+    "back": "← Expedition",
+    "tabSheet": "Sheet",
+    "tabTree": "Tree",
+    "level": "Level",
+    "levelBonus": "+{{hp}} HP · +{{dmg}}% damage",
+    "stars": "Stars",
+    "starsBonus": "+{{n}}% to HP, damage and speed",
+    "starsNone": "No bonus yet",
+    "passive": "Passive",
+    "go": "Head out"
   }
 }

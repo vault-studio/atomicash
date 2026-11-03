@@ -1,19 +1,19 @@
-// Expedición, pestaña Expedición: elegir con quién, a pantalla completa con los retratos del plantel (la otra pestaña es
-// la colección de supervivientes).
-// El último usado sale marcado.
+// Expedición: elegir con quién salir. A la izquierda el retrato grande del personaje marcado; a la derecha, la
+// cuadrícula de retratos (3 ahora, hecha para 9) y el botón «Seleccionar», que lo deja como activo y abre su ficha.
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ROSTER, type StatSurvivorId } from '../../../config/survivors';
+import { ROSTER, type RosterId, type StatSurvivorId } from '../../../config/survivors';
 import { DAILY } from '../../../config/modes';
+import { setActive } from '../../../meta/actions';
 import { dailyChallenge } from '../../../meta/daily';
-import { useSaveData } from '../../../store/save';
-import { PortraitCard } from './Portraits';
+import { useSave, useSaveData } from '../../../store/save';
+import { CharacterSheet } from './CharacterSheet';
+import { HeroPortrait, portraitOf } from './Portraits';
 
 interface Props {
   onStart: (id: StatSurvivorId) => void;
   onDaily: () => void;
   onBack: () => void;
-  /** Pestañas Expedición / Supervivientes. */
-  nav?: React.ReactNode;
 }
 
 /** Reto del día: superviviente, modificador, tu mejor marca de hoy y el premio del primer intento. */
@@ -43,10 +43,15 @@ function DailyCard({ onPlay }: { onPlay: () => void }) {
   );
 }
 
-export function Expedition({ onStart, onDaily, onBack, nav }: Props) {
+export function Expedition({ onStart, onDaily, onBack }: Props) {
   const { t } = useTranslation();
-  const survivors = useSaveData((d) => d.survivors);
+  const act = useSave((s) => s.act);
   const active = useSaveData((d) => d.profile.active);
+  // Al entrar sale marcado el activo.
+  const [sel, setSel] = useState<RosterId>(() => ROSTER.find((r) => r === active) ?? ROSTER[0]);
+  const [sheet, setSheet] = useState(false);
+
+  if (sheet) return <CharacterSheet id={sel} onBack={() => setSheet(false)} onStart={onStart} />;
 
   return (
     <main className="pick">
@@ -56,25 +61,38 @@ export function Expedition({ onStart, onDaily, onBack, nav }: Props) {
         </button>
         <h1>{t('expedition.pick')}</h1>
       </header>
-      {nav}
       <DailyCard onPlay={onDaily} />
-      <ul className="pick__list">
-        {ROSTER.map((id, i) => {
-          const o = survivors[id];
-          return (
-            <li key={id}>
-              <PortraitCard
-                id={id}
-                level={o?.level ?? 1}
-                weapon={o?.starter ?? undefined}
-                active={active === id}
-                autoFocus={active ? active === id : i === 0}
-                onClick={() => onStart(id)}
-              />
-            </li>
-          );
-        })}
-      </ul>
+      <div className="pick__body">
+        <div className="pick__hero">
+          <HeroPortrait id={sel} />
+        </div>
+        <div className="pick__side">
+          <ul className="pick__grid">
+            {ROSTER.map((id) => (
+              <li key={id}>
+                <button
+                  className={id === sel ? 'pick__tile is-sel' : 'pick__tile'}
+                  aria-pressed={id === sel}
+                  aria-label={t(`entities.${id}`)}
+                  onClick={() => setSel(id)}
+                >
+                  <img src={portraitOf(id)} alt="" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            className="btn btn--primary pick__go"
+            autoFocus
+            onClick={() => {
+              act((d) => setActive(d, sel));
+              setSheet(true);
+            }}
+          >
+            {t('expedition.select')}
+          </button>
+        </div>
+      </div>
     </main>
   );
 }

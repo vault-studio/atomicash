@@ -49,6 +49,7 @@ export function createStats(): PlayerStats {
     radDecayBonus: 0,
     meleeMult: 1,
     bossMult: 1,
+    starterMult: 1,
   };
 }
 
@@ -83,7 +84,8 @@ export function recalc(w: World): void {
   st.kb = 1 + tr.kb / 100;
   st.radGain = (ch.radGain ?? 1) * it.radGain;
   st.radDecayBonus = tr.radDecay;
-  st.meleeMult = 1 + (ch.meleePct ?? 0);
+  st.meleeMult = 1 + (ch.meleePct ?? 0) + (w.mods.melee ?? 0) / 100;
+  st.starterMult = 1 + (w.mods.starter ?? 0) / 100;
   st.bossMult = 1 + (ch.bossPct ?? 0);
   if (st.maxHp !== maxHp && st.maxHp > 0) p.hp = (p.hp * maxHp) / st.maxHp;
   st.maxHp = maxHp;

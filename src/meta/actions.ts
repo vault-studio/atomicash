@@ -32,15 +32,7 @@ import {
   type SurvivorRarity,
 } from '../config/survivors';
 import type { StatKey } from '../config/traits';
-import {
-  TREE,
-  TREE_ROOT,
-  nodeCost,
-  treeNeighbors,
-  type TreeMod,
-  type TreeNode,
-  type TreeNodeId,
-} from '../config/tree';
+import { TREE_ROOT, nodeCost, treeNeighbors, treeOf, type TreeMod, type TreeNodeId } from '../config/tree';
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
 import type { RunResults, WorldOptions } from '../engine/world';
@@ -182,11 +174,13 @@ export function runOptionsFor(s: SaveData, id: StatSurvivorId): WorldOptions {
     add(im.down, im.downVal);
   }
   const mods: Partial<Record<TreeMod, number>> = {};
-  for (const n of s.tree.nodes) {
-    const def: TreeNode = TREE[n];
-    if (def.stat) add(def.stat, def.v);
-    if (def.mod) mods[def.mod] = (mods[def.mod] ?? 0) + def.v;
-  }
+  const tree = treeOf(id);
+  if (tree)
+    for (const n of o.tree) {
+      const def = tree[n];
+      if (def.stat) add(def.stat, def.v);
+      if (def.mod) mods[def.mod] = (mods[def.mod] ?? 0) + def.v;
+    }
   for (const k of Object.keys(bonus) as StatKey[]) if (bonus[k] === 0) delete bonus[k];
   return {
     bonus,
@@ -205,30 +199,36 @@ function backpackFor(s: SaveData, o: OwnedSurvivor): Record<ConsumableId, number
   ) as Record<ConsumableId, number>;
 }
 
-// ---------- árbol de pasivas ----------
+// ---------- árbol de cada superviviente ----------
 
-/** Se puede comprar si no lo tiene y toca el centro o un nodo comprado. */
-export function canAllocate(s: SaveData, id: TreeNodeId): boolean {
-  if (id === TREE_ROOT || s.tree.nodes.includes(id)) return false;
-  return treeNeighbors(id).some((n) => n === TREE_ROOT || s.tree.nodes.includes(n));
+/** Se puede comprar si es de su árbol, no lo tiene y toca el centro o un nodo comprado. */
+export function canAllocate(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
+  const o = s.survivors[char];
+  if (!o || !treeOf(char) || id === TREE_ROOT || o.tree.includes(id)) return false;
+  return treeNeighbors(id).some((n) => n === TREE_ROOT || o.tree.includes(n));
 }
 
-export const treeCost = (s: SaveData, id: TreeNodeId): number => nodeCost(id, s.tree.nodes.length);
+/** Coste en chapas (fichas) del personaje. */
+export const treeCost = (id: TreeNodeId): number => nodeCost(id);
 
-export function allocateNode(s: SaveData, id: TreeNodeId): boolean {
-  if (!canAllocate(s, id)) return false;
-  const cost = treeCost(s, id);
-  if (!spend(s, cost)) return false;
-  s.tree.nodes.push(id);
-  s.tree.spent += cost;
+export function allocateNode(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
+  const o = s.survivors[char];
+  const cost = treeCost(id);
+  if (!o || !canAllocate(s, char, id) || o.shards < cost) return false;
+  o.shards -= cost;
+  o.tree.push(id);
+  o.treeSpent += cost;
   return true;
 }
 
-/** Desaprende todo el árbol y devuelve los cupones gastados. */
-export function resetTree(s: SaveData): number {
-  const back = s.tree.spent;
-  s.profile.credits += back;
-  s.tree = { nodes: [], spent: 0 };
+/** Desaprende todo su árbol y le devuelve las chapas gastadas. */
+export function resetTree(s: SaveData, char: StatSurvivorId): number {
+  const o = s.survivors[char];
+  if (!o) return 0;
+  const back = o.treeSpent;
+  o.shards += back;
+  o.tree = [];
+  o.treeSpent = 0;
   return back;
 }
 

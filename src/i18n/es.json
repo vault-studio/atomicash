@@ -48,11 +48,10 @@
   "pauseStats": {
     "attributes": "Atributos",
     "run": "Partida",
-    "weapons": "Armas · daño hecho",
     "hp": "Vida",
     "regen": "Regeneración",
     "armor": "Armadura",
-    "red": "Reducción de daño",
+    "red": "Reducción",
     "dodge": "Esquiva",
     "speed": "Velocidad",
     "dmg": "Daño",
@@ -72,7 +71,19 @@
     "bosses": "Jefes",
     "dmgTotal": "Daño total",
     "dps": "DPS",
-    "coupons": "Cupones recogidos"
+    "coupons": "Cupones",
+    "weaponsTitle": "Armas",
+    "weaponDmg": "{{n}} de daño",
+    "weaponDps": "{{n}} DPS",
+    "fuse": {
+      "with": "Se combina con",
+      "from": "Fusión de",
+      "none": "No se combina con nada.",
+      "ready": "Las dos al máximo: ya puede salir.",
+      "haveNotMax": "La llevas, pero las dos deben llegar al nivel {{max}}.",
+      "missing": "Aún no la llevas.",
+      "pickWeapon": "Toca un arma para ver con qué se combina."
+    }
   },
   "passives": {
     "dot": "+15 % daño cuerpo a cuerpo",
@@ -466,15 +477,11 @@
   "bunker": {
     "expedition": {
       "cmd": "EXPEDICIÓN",
-      "desc": "Salir al páramo y tu plantel"
+      "desc": "Salir al páramo, tu plantel y su árbol"
     },
     "stores": {
       "cmd": "INTENDENCIA",
-      "desc": "Suministros, taller, mercader y mochila"
-    },
-    "survivors": {
-      "cmd": "SUPERVIVIENTES",
-      "desc": "Tu colección"
+      "desc": "Taller, mercader y mochila"
     },
     "workshop": {
       "cmd": "TALLER",
@@ -503,31 +510,20 @@
     "back": "← Búnker",
     "credits": "{{n, number}} cupones",
     "price": "{{n, number}} cup.",
-    "active": "Superviviente activo: {{name}}",
-    "tree": {
-      "cmd": "ÁRBOL",
-      "desc": "Pasivas para todo el plantel"
-    }
+    "active": "Superviviente activo: {{name}}"
   },
   "expedition": {
     "pick": "¿Quién sale al páramo?",
-    "passive": "Pasiva",
-    "weapon": "Arma",
-    "tabGo": "EXPEDICIÓN"
+    "select": "Seleccionar"
   },
   "collection": {
-    "unknown": "???",
-    "notRecruited": "Sin reclutar. Búscalo en los Suministros.",
     "level": "Nv. {{n}}",
     "irradiated": "IRRADIADO",
-    "count": "Reclutados: {{n}}/{{total}}",
     "xp": "XP {{xp}}/{{next}}",
     "maxLevel": "Nivel máximo",
-    "shards": "Fichas {{n}}/{{cost}}",
+    "shards": "Chapas {{n}}/{{cost}}",
     "maxStars": "Estrellas al máximo",
     "starter": "Arma inicial",
-    "setActive": "Elegir",
-    "isActive": "Activo",
     "starUp": "Subir estrella"
   },
   "workshop": {
@@ -598,19 +594,19 @@
     "zone": "Caja de {{zone}}",
     "rates": "Probabilidades por tirada",
     "pity": "Lo mejor de la caja ({{rarity}}) garantizado en {{n}} tiradas como mucho.",
-    "rules": "×10: al menos un raro o mejor por cada 10. Solo cupones del juego; sin dinero real. Los repetidos dan fichas.",
+    "rules": "×10: al menos un raro o mejor por cada 10. Solo cupones del juego; sin dinero real. Los repetidos dan chapas.",
     "pull": "×{{n}} · {{cost, number}} cup.",
     "skip": "Saltar",
     "close": "Recoger",
     "new": "¡NUEVO!",
-    "dup": "+{{n}} fichas",
+    "dup": "+{{n}} chapas",
     "summary": "{{n}} cajas · {{fresh}} nuevos · lo mejor: {{rarity}}"
   },
   "board": {
     "daily": "MISIONES DE HOY",
     "claimed": "Cobrada",
     "achievements": "LOGROS",
-    "reward": "{{credits}} cup. + {{shards}} fichas",
+    "reward": "{{credits}} cup. + {{shards}} chapas",
     "profile": "EXPEDIENTE",
     "runs": "Expediciones",
     "kills": "Bajas",
@@ -758,15 +754,14 @@
     "vampirico": "VAMPÍRICO"
   },
   "tree": {
-    "intro": "Compra pasivas con cupones, siempre junto a una que ya tengas. Valen para todos los supervivientes. Nodos: {{n}}.",
     "root": "Refugio",
     "rootDesc": "El centro del árbol. Todo sale de aquí.",
     "owned": "Aprendida",
     "locked": "Bloqueada",
     "needs": "Compra antes un nodo unido a este.",
-    "spent": "Gastado en el árbol: {{n}} cupones",
+    "spent": "Gastado en el árbol: {{n}} chapas",
     "reset": "Desaprender todo",
-    "resetAsk": "¿Desaprender todo y recuperar {{n}} cupones?",
+    "resetAsk": "¿Desaprender todo y recuperar {{n}} chapas?",
     "resetYes": "Sí, desaprender",
     "resetNo": "No",
     "size": {
@@ -781,7 +776,10 @@
       "reroll": "Segunda mano",
       "hunter": "Cazador de monstruos",
       "coldBlood": "Sangre fría",
-      "smuggler": "Contrabandista"
+      "smuggler": "Contrabandista",
+      "melee": "Músculo",
+      "consDur": "Despensa llena",
+      "starter": "Arma de la casa"
     },
     "stat": {
       "dmg": "+{{v}} % de daño",
@@ -791,7 +789,12 @@
       "mag": "+{{v}} % de imán",
       "regen": "+{{v}} PV/s de regeneración",
       "spd": "+{{v}} % de velocidad",
-      "xp": "+{{v}} % de experiencia"
+      "xp": "+{{v}} % de experiencia",
+      "kb": "+{{v}} % de retroceso",
+      "area": "+{{v}} % de área",
+      "cd": "{{v}} % menos de enfriamiento",
+      "dodge": "+{{v}} % de esquiva",
+      "luck": "+{{v}} de suerte"
     },
     "mod": {
       "coupons": "+{{v}} % de cupones en la partida",
@@ -800,15 +803,30 @@
       "reroll": "+{{v}} cambio de tarjetas por partida.",
       "hunter": "+{{v}} % de daño a jefes y élites.",
       "coldBlood": "Al recibir un golpe conservas el {{v}} % de la racha.",
-      "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor."
+      "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor.",
+      "melee": "+{{v}} % de daño cuerpo a cuerpo",
+      "consDur": "+{{v}} % de duración de los consumibles",
+      "starter": "+{{v}} % de daño del arma inicial (y de su fusión)"
     },
     "learn": "Aprender",
     "bonuses": "LO APRENDIDO",
     "noBonuses": "Aún nada. Empieza por un nodo junto al Refugio.",
     "branch": {
-      "combat": "COMBATE",
-      "survival": "SUPERVIVENCIA",
-      "scrap": "CHATARRERÍA",
+      "dot": {
+        "c": "Taller",
+        "s": "Cuerpo a cuerpo",
+        "k": "Chatarra"
+      },
+      "gus": {
+        "c": "Fogones",
+        "s": "Despensa",
+        "k": "Trapicheo"
+      },
+      "benny": {
+        "c": "Puntería",
+        "s": "Carrera",
+        "k": "Recados"
+      },
       "bridge": "PUENTE",
       "root": "REFUGIO"
     },
@@ -820,11 +838,18 @@
       "mag": "Bolsillos imantados",
       "regen": "Remiendos",
       "spd": "Zancada",
-      "xp": "Veteranía"
+      "xp": "Veteranía",
+      "kb": "Culatazo",
+      "area": "Radio ampliado",
+      "cd": "Manos rápidas",
+      "dodge": "Pies ligeros",
+      "luck": "Pata de conejo"
     },
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
-    "zoomReset": "Ver todo"
+    "zoomReset": "Ver todo",
+    "shards": "Chapas disponibles: {{n}}",
+    "learnCost": "Aprender · {{n}} chapas"
   },
   "daily": {
     "title": "RETO DIARIO · {{day}}",
@@ -854,5 +879,17 @@
         "desc": "el páramo está lleno de barriles explosivos."
       }
     }
+  },
+  "sheet": {
+    "back": "← Expedición",
+    "tabSheet": "Ficha",
+    "tabTree": "Árbol",
+    "level": "Nivel",
+    "levelBonus": "+{{hp}} PV · +{{dmg}} % de daño",
+    "stars": "Estrellas",
+    "starsBonus": "+{{n}} % a PV, daño y velocidad",
+    "starsNone": "Sin bonificación todavía",
+    "passive": "Pasiva",
+    "go": "Salir de expedición"
   }
 }

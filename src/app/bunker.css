@@ -144,8 +144,7 @@ button.card--survivor {
   min-height: 32px;
 }
 
-.field select,
-.roster__starter select {
+.field select {
   background: var(--crt-bg);
   color: var(--crt);
   border: 1px solid var(--crt);
@@ -751,13 +750,13 @@ button.card--survivor {
   transition-duration: 0.01ms !important;
 }
 
-/* ---------- Elegir superviviente al salir de expedición: pantalla completa con retratos ---------- */
+/* ---------- Expedición: retrato grande del marcado a la izquierda y cuadrícula de retratos a la derecha ---------- */
 .pick {
   position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1.5vh, 14px);
+  gap: clamp(6px, 1.5vh, 12px);
   padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
     max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   background: radial-gradient(ellipse at 50% 0%, #1e2a1c, var(--crt-bg) 70%);
@@ -779,59 +778,146 @@ button.card--survivor {
   text-shadow: 0 2px 0 #000;
 }
 
-.pick__list {
+.pick__body {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(8px, 1.6vw, 20px);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
+  gap: clamp(10px, 1.6vw, 20px);
+}
+
+.pick__hero {
+  min-height: 0;
+}
+
+.pick__side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pick__grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
   margin: 0;
-  padding: 0;
+  padding: 2px;
   list-style: none;
 }
 
-.pick__card {
-  position: relative;
-  width: 100%;
-  height: 100%;
+.pick__tile {
   display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 48px;
   overflow: hidden;
   padding: 0;
   border: 3px solid #3a3020;
   border-radius: 6px;
   background: #000;
-  color: var(--crema);
-  font: inherit;
-  text-align: left;
   cursor: pointer;
-  box-shadow: 0 6px 0 #000;
-  transition:
-    transform 0.15s,
-    border-color 0.15s;
+  box-shadow: 0 4px 0 #000;
 }
 
-.pick__card:hover,
-.pick__card:focus-visible {
+.pick__tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 12%;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.pick__tile:hover img,
+.pick__tile:focus-visible img,
+.pick__tile.is-sel img {
+  opacity: 1;
+}
+
+.pick__tile:focus-visible {
   outline: none;
   border-color: #ffe14a;
-  transform: translateY(-3px);
 }
 
-.pick__card.is-active {
+.pick__tile.is-sel {
   border-color: var(--crt);
+  box-shadow:
+    0 4px 0 #000,
+    0 0 14px rgba(60, 255, 107, 0.45);
 }
 
-.pick__img {
+.pick__go,
+.sheet__go {
+  min-height: 56px;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+}
+
+/* Retrato grande con su placa (Expedición y ficha): se rellena el hueco que dejen los demás elementos. */
+.hero {
+  --rarity: #9a9a8a;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  overflow: hidden;
+  border: 3px solid #3a3020;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at 50% 30%, #2a3324, #0a0f0b 75%);
+  box-shadow:
+    0 6px 0 #000,
+    0 0 0 1px var(--rarity) inset;
+}
+
+.hero.is-irradiated {
+  box-shadow:
+    0 6px 0 #000,
+    0 0 22px rgba(125, 255, 58, 0.5);
+}
+
+.hero__img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 15%;
+  object-position: 50% 12%;
 }
 
-/* Placa de datos sobre el retrato, como la etiqueta de un cartel de chapa. */
-.pick__info {
+/* Etiqueta de rareza: banderín en la esquina con el color de la rareza. */
+.hero__rarity {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  padding: 2px 12px 2px 10px;
+  background: var(--rarity);
+  color: #120d06;
+  font-family: var(--hud-font);
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%);
+}
+
+.hero__irr {
+  position: absolute;
+  top: 42px;
+  left: 10px;
+  padding: 0 6px;
+  background: rgba(10, 20, 6, 0.8);
+  border: 1px solid #9dff00;
+  color: #c8ff70;
+  font-family: var(--hud-font);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+}
+
+.hero__plate {
   position: absolute;
   left: 0;
   right: 0;
@@ -839,50 +925,38 @@ button.card--survivor {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: clamp(6px, 1.4vh, 12px) clamp(8px, 1.2vw, 14px);
-  background: linear-gradient(to top, rgba(10, 8, 4, 0.94) 70%, rgba(10, 8, 4, 0));
-  font-size: clamp(13px, 2vh, 18px);
-  line-height: 1.15;
+  padding: 28px 12px 8px;
+  background: linear-gradient(to top, rgba(10, 8, 4, 0.95) 55%, rgba(10, 8, 4, 0));
 }
 
-.pick__name {
+.hero__name {
   font-family: var(--title-font);
   font-weight: normal;
-  font-size: clamp(15px, 2.8vh, 24px);
+  font-size: clamp(18px, 3vh, 26px);
+  line-height: 1.1;
   color: #ffe14a;
-  letter-spacing: 0.04em;
+  text-shadow: 0 2px 0 #000;
 }
 
-.pick__level {
+.hero__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.hero__level {
   color: var(--crt);
 }
 
-.pick__row em {
-  font-style: normal;
-  color: var(--ocre);
-  text-transform: uppercase;
-  font-size: 0.85em;
-  letter-spacing: 0.08em;
-}
-
 /* ---------- Árbol: pantalla de radar con las tres ramas ---------- */
-/* La pantalla del árbol no hace scroll: el mapa llena el alto que deja la cabecera. */
-.terminal:has(.tree) {
-  display: flex;
-  flex-direction: column;
-}
-
-.terminal .tree__intro {
-  margin: 6px 0 10px;
-  opacity: 0.8;
-}
-
 .tree {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 320px);
+  gap: 12px;
+  font-size: 17px;
 }
 
 .tree__stage {
@@ -910,11 +984,11 @@ button.card--survivor {
   cursor: grabbing;
 }
 
-/* Botones de zoom, abajo a la izquierda del mapa. */
+/* Botones de zoom, arriba a la izquierda del mapa (las esquinas del disco están vacías). */
 .tree__zoom {
   position: absolute;
   left: 0;
-  bottom: 0;
+  top: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -980,17 +1054,6 @@ button.card--survivor {
   to {
     transform: rotate(360deg);
   }
-}
-
-.tree__label {
-  font-family: var(--title-font);
-  font-size: 3px;
-  letter-spacing: 0.3px;
-  text-anchor: middle;
-  paint-order: stroke;
-  stroke: #050b06;
-  stroke-width: 0.8px;
-  opacity: 0.9;
 }
 
 /* Uniones */
@@ -1140,7 +1203,19 @@ button.card--survivor {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.tree__shards {
+  margin: 0;
+  color: #ffe14a;
+  font-size: 19px;
+}
+
+/* Zona táctil de cada nodo, más ancha que el dibujo. */
+.tree__hit {
+  fill: transparent;
 }
 
 .tree__card {
@@ -1172,6 +1247,7 @@ button.card--survivor {
 
 .tree__card-branch {
   display: block;
+  font-size: 16px;
   color: var(--c);
   letter-spacing: 0.08em;
 }
@@ -1179,22 +1255,24 @@ button.card--survivor {
 .tree__card-name {
   display: block;
   font-family: var(--title-font);
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   line-height: 1.1;
   color: var(--crema);
 }
 
-.terminal .tree__card-fx {
+.tree__card-fx {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 17px;
+  line-height: 1.15;
 }
 
-.terminal .tree__card-state {
+.tree__card-state {
   margin: 0;
   color: var(--c);
 }
 
 .tree__buy {
+  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1216,7 +1294,7 @@ button.card--survivor {
 
 .tree__branch {
   display: grid;
-  grid-template-columns: 9em 1fr auto;
+  grid-template-columns: 8em 1fr auto;
   align-items: center;
   gap: 8px;
   color: var(--c);
@@ -1241,13 +1319,13 @@ button.card--survivor {
   color: var(--crema);
 }
 
-.terminal .tree__bonuses h3 {
+.tree__bonuses h3 {
   margin: 0 0 8px;
   color: var(--crt);
   letter-spacing: 0.1em;
 }
 
-.terminal .tree__bonuses p {
+.tree__bonuses p {
   margin: 0;
   opacity: 0.75;
 }
@@ -1281,6 +1359,13 @@ button.card--survivor {
   margin-top: auto;
 }
 
+.tree__foot .btn,
+.tree__confirm .btn {
+  min-height: 48px;
+  padding: 4px 14px;
+  font-size: 17px;
+}
+
 .tree__confirm {
   display: flex;
   flex-wrap: wrap;
@@ -1290,7 +1375,7 @@ button.card--survivor {
 
 @media (max-width: 760px), (max-height: 520px) {
   .tree {
-    grid-template-columns: minmax(0, 1fr) 230px;
+    grid-template-columns: minmax(0, 1fr) 240px;
   }
   .tree__card-icon {
     width: 56px;
@@ -1313,7 +1398,7 @@ button.card--survivor {
   flex: 1;
   display: grid;
   gap: 2px;
-  font-size: clamp(14px, 2.2vh, 18px);
+  font-size: clamp(16px, 2.4vh, 19px);
 }
 
 .daily__text strong {
@@ -1331,189 +1416,12 @@ button.card--survivor {
   opacity: 0.8;
 }
 
-/* ---------- Supervivientes: fichas con el retrato grande ---------- */
-.roster {
-  list-style: none;
-  margin: 12px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: clamp(10px, 1.6vw, 20px);
-}
-
-.roster__card {
-  --rarity: #9a9a8a;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 3px solid #3a3020;
-  border-radius: 6px;
-  background: #0a0f0b;
-  box-shadow:
-    0 6px 0 #000,
-    0 0 0 1px var(--rarity) inset;
-  color: var(--crema);
-}
-
-.roster__card.is-active {
-  border-color: var(--crt);
-  box-shadow:
-    0 6px 0 #000,
-    0 0 18px rgba(60, 255, 107, 0.35);
-}
-
-.roster__card.is-irradiated {
-  background: #0c160a !important;
-  box-shadow:
-    0 6px 0 #000,
-    0 0 22px rgba(125, 255, 58, 0.5);
-}
-
-.roster__art {
-  position: relative;
-  height: clamp(200px, 46vh, 400px);
-  overflow: hidden;
-  background: radial-gradient(ellipse at 50% 30%, #2a3324, #0a0f0b 75%);
-}
-
-.roster__img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 12%;
-  transition: transform 0.3s;
-}
-
-.roster__card:hover .roster__img {
-  transform: scale(1.04);
-}
-
-.roster__card.is-locked .roster__img {
-  filter: brightness(0) drop-shadow(0 0 6px rgba(60, 255, 107, 0.4));
-  opacity: 0.85;
-}
-
-.roster__card.is-irradiated .roster__art::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 60%, rgba(125, 255, 58, 0.28), transparent 70%);
-  mix-blend-mode: screen;
-  animation: roster-irr 2.4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes roster-irr {
-  50% {
-    opacity: 0.45;
-  }
-}
-
-/* Etiqueta de rareza: banderín en la esquina con el color de la rareza. */
-.roster__rarity {
-  position: absolute;
-  top: 10px;
-  left: 0;
-  padding: 2px 12px 2px 10px;
-  background: var(--rarity);
-  color: #120d06;
-  font-family: var(--hud-font);
-  font-size: 0.95rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 50%, 100% 100%, 0 100%);
-  z-index: 1;
-}
-
-/* Sello de goma «ACTIVO», torcido como en un expediente. */
-.roster__stamp {
-  position: absolute;
-  top: 12px;
-  right: 10px;
-  padding: 0 8px;
-  border: 3px solid var(--crt);
-  border-radius: 4px;
-  color: var(--crt);
-  font-family: var(--title-font);
-  font-size: 0.9rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transform: rotate(8deg);
-  background: rgba(5, 16, 8, 0.6);
-  text-shadow: 0 0 6px rgba(60, 255, 107, 0.6);
-  z-index: 1;
-}
-
-.roster__irr {
-  position: absolute;
-  top: 44px;
-  left: 10px;
-  padding: 0 6px;
-  background: rgba(10, 20, 6, 0.8);
-  border: 1px solid #9dff00;
-  color: #c8ff70;
-  font-family: var(--hud-font);
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  z-index: 1;
-}
-
-.roster__plate {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 26px 12px 8px;
-  background: linear-gradient(to top, rgba(10, 8, 4, 0.95) 55%, rgba(10, 8, 4, 0));
-}
-
-.roster__name {
-  font-family: var(--title-font);
-  font-weight: normal;
-  font-size: clamp(16px, 2.6vh, 22px);
-  line-height: 1.1;
-  color: #ffe14a;
-  text-shadow: 0 2px 0 #000;
-}
-
-.roster__meta {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.15rem;
-}
-
-.roster__level {
-  color: var(--crt);
-}
-
-.roster__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  border-top: 2px solid var(--rarity);
-}
-
-.terminal .roster__passive {
-  opacity: 0.9;
-  color: var(--crema);
-  font-size: 1.05rem;
-  line-height: 1.15;
-}
-
+/* ---------- Barras de progreso (ficha del personaje) ---------- */
 .gauge {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.95rem;
+  font-size: 17px;
 }
 
 .gauge__label {
@@ -1539,38 +1447,134 @@ button.card--survivor {
   box-shadow: 0 0 8px rgba(255, 225, 74, 0.6);
 }
 
-.roster__starter {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  align-items: center;
-  gap: 2px 8px;
-  font-size: 0.95rem;
-  color: var(--ocre);
+/* ---------- Ficha del personaje ---------- */
+.sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.5vh, 12px);
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 0%, #1e2a1c, var(--crt-bg) 70%);
+  color: var(--crt);
 }
 
-.roster__starter .wicon {
-  grid-row: span 2;
-  width: 40px;
-  height: 40px;
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sheet__head h1 {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: clamp(18px, 3.2vh, 28px);
+  letter-spacing: 0.08em;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.sheet__tabs {
+  display: flex;
+  margin-left: auto;
+  border-bottom: 2px solid var(--crt);
+}
+
+.sheet__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: clamp(150px, 26%, 260px) minmax(0, 1fr);
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.sheet__side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet__portrait {
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet__main {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El árbol no hace scroll: el mapa llena el alto que queda. */
+.sheet__main:has(.tree) {
+  overflow: hidden;
+}
+
+.sheet__cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 10px;
+}
+
+.sheet__block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px 10px;
+  border: 1px solid rgba(60, 255, 107, 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--crema);
+}
+
+.sheet__block h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+  color: var(--ocre);
+  font-size: 18px;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sheet__fx {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.sheet__btn {
+  min-height: 48px;
+  padding: 4px 12px;
+  font-size: 18px;
+}
+
+.sheet__starter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sheet__starter .wicon {
+  width: 56px;
+  height: 56px;
+  flex: none;
   border: 1px solid rgba(60, 255, 107, 0.35);
 }
 
-.roster__starter select {
+.sheet__starter select {
+  flex: 1;
   min-width: 0;
-}
-
-.roster__actions {
-  margin-top: auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.roster__actions .btn {
-  min-height: 40px;
-  padding: 4px 8px;
-  font-size: 1rem;
+  min-height: 48px;
+  font-size: 18px;
+  background: var(--crt-bg);
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  padding: 4px 6px;
 }
 
 /* Pestañas de las pantallas agrupadas (Expedición, Intendencia). */
@@ -1583,7 +1587,7 @@ button.card--survivor {
 }
 
 .tabs__tab {
-  min-height: 44px;
+  min-height: 48px;
   padding: 6px 18px;
   margin-bottom: -2px;
   background: transparent;
