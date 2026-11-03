@@ -21,7 +21,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
 
 ---
 
-## 1. Velocidad de los enemigos
+## 1. Velocidad de los enemigos ✅ (T8–T9)
 - **Enfurecimiento:** algunos enemigos, al enfurecerse, corren más que los personajes y pueden alcanzarlos de verdad.
   - Condición propuesta (configurable): al bajar de cierto porcentaje de vida, al morir un aliado cercano o tras X segundos persiguiendo al jugador.
   - Debe verse claramente: cambio de color o tamaño, o un indicador encima.
@@ -31,7 +31,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
   - Siempre telegrafiadas: una pausa breve o marca en el suelo antes de lanzarse.
 - Todos los valores (velocidad base, velocidad enfurecido, duración, enfriamiento, condición) se editan desde el depurador.
 
-## 2. Interceptores
+## 2. Interceptores ✅ (T5–T6)
 - Disponibles desde el principio de la partida.
 - Mucho más rápidos que el jugador, pero giran despacio. Se esquivan con un cambio de dirección brusco en el momento justo.
 - Intentan cerrar una de las rutas de salida del jugador en vez de ir directos a él.
@@ -41,7 +41,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
 - Máximo 2 interceptores en pantalla a la vez.
 - Valores configurables: velocidad, velocidad de giro, duración mínima de carrera para aturdir, duración del aturdimiento, inmunidad posterior y límite en pantalla.
 
-## 3. Tiradores
+## 3. Tiradores ✅ (T7, T12)
 - **Tiradores normales:** disponibles desde el principio. Disparan o crean una zona de peligro que obliga a moverse.
 - **Tiradores especiales:** en vez de una sola zona, lanzan varios disparos a la vez que caen en línea por delante del jugador, siguiendo la dirección en la que se mueve. Si no cambia de dirección, se los come todos.
   - Cada impacto se marca en el suelo antes de caer, con tiempo suficiente para reaccionar.
@@ -49,7 +49,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
 - Contrarrestan el correr en línea recta, igual que los interceptores contrarrestan el correr en círculos.
 - Valores configurables: número de disparos, separación, tiempo de aviso, daño, cadencia, alcance y minuto de aparición.
 
-## 4. Roles de enemigos y cercos
+## 4. Roles de enemigos y cercos ✅ (T10–T11)
 - **Perseguidores:** avanzan hacia el jugador y mantienen la presión. Castigan quedarse quieto.
 - **Interceptores:** cierran una de las rutas de salida (apartado 2).
 - **Pesados:** lentos, con mucha vida, ocupan espacio y cuesta atravesarlos. Bloquean huecos del cerco.
@@ -58,7 +58,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
 - Los cercos combinan varios roles y siempre dejan al menos una salida posible, aunque cueste encontrarla. Nunca debe haber una situación sin salida.
 - No hace falta colisión física entre todos los enemigos: las hordas deben seguir moviéndose con fluidez. Solo los pesados bloquean de verdad.
 
-## 5. Armas y builds
+## 5. Armas y builds ✅ (T13–T14)
 - Tres especializaciones claras:
   - **Hordas:** daño de área o en cadena, poco daño por impacto.
   - **Jefes:** mucho daño concentrado en un solo objetivo.
@@ -67,7 +67,7 @@ Que sobrevivir exija leer a los enemigos y moverse con intención, y que cada bu
 - Cada build debe tener una debilidad real. Por ejemplo, la de hordas sufre contra jefes y blindados, y la de jefes se ve desbordada por las hordas.
 - Comprobar con las estadísticas del depurador que ninguna build es la mejor en todas las situaciones.
 
-## 6. Depurador
+## 6. Depurador ✅ (T0–T3, T15)
 Panel de desarrollo aparte del juego normal (superposición o pantalla propia, la que sea más sencilla de implementar) que solo existe en modo desarrollo.
 
 ### 6.1 Valores en datos
@@ -103,7 +103,7 @@ Se recogen en cada partida y se pueden exportar (JSON o CSV) para comparar build
 - **Esquivas:** aturdimientos recibidos, cargas de interceptor esquivadas frente a recibidas, impactos de tiradores esquivados frente a recibidos.
 - **Decisiones:** mejoras elegidas y en qué minuto.
 
-## 7. Dificultad justa
+## 7. Dificultad justa ✅ (T16)
 - Todo ataque importante se telegrafía y da tiempo para reaccionar.
 - Nada de daño inevitable, ataques invisibles ni situaciones sin salida.
 - Ajustar primero los comportamientos y después los números.

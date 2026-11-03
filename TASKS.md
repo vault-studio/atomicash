@@ -1,6 +1,6 @@
 # TASKS — cambios de jugabilidad
 
-Rama: `cambios-jugabilidad` · Roadmap: `docs/CAMBIOS.md` · Estado: **en curso (T0–T10 y T15 hechas)**.
+Rama: `cambios-jugabilidad` · Roadmap: `docs/CAMBIOS.md` · Estado: **T0–T16 hechas; pendiente de revisión del usuario antes de tocar `main`**.
 
 Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el director) · ⛔ bloqueada
 
@@ -57,9 +57,9 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 
 ## Fase 7 — Balance final (CAMBIOS §7)
 
-| #   | Tarea                                                                             | Reutiliza       | Crea | Pruebas                                   | Estado |
-| --- | --------------------------------------------------------------------------------- | --------------- | ---- | ----------------------------------------- | ------ |
-| T16 | Pasadas de balance con semilla fija por personaje y build, pocos valores cada vez | sim + depurador | —    | comparación de estadísticas antes/después | ⬜     |
+| #   | Tarea                                                                             | Reutiliza       | Crea | Pruebas                                   | Estado                                                                        |
+| --- | --------------------------------------------------------------------------------- | --------------- | ---- | ----------------------------------------- | ----------------------------------------------------------------------------- |
+| T16 | Pasadas de balance con semilla fija por personaje y build, pocos valores cada vez | sim + depurador | —    | comparación de estadísticas antes/después | ✅ bot «kite» esquiva charcos y rastros; sin cambios de valores (ver Balance) |
 
 ## Bugs conocidos
 
@@ -71,6 +71,13 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 1. Plantel (2026-11-03): por ahora Dot, Gus y Benny (el `ROSTER` actual). Mae y El Errante no entran. Sin tarea de plantel.
 2. Babosa, Reptador e Hinchado son mutantes y se quedan todos en el Acto 1 por ahora; quizá cambien de acto cuando haya más actos.
 
+## Balance (T16, 2026-11-03)
+
+`npm run balance` (126 partidas, 6 semillas) y `node tools/simdiff.mjs out/balance`. Bot «kite», build propia:
+Dot 451 s (4/6 victorias), Gus 423 s (2/6), Benny 357 s (4/6). Daño recibido repartido (Coloso 17 %, interceptor 16 %,
+barril 13 %, saqueador 11 %). Cargas del interceptor: 3,6 recibidas / 3,9 esquivadas por partida. El mortero casi nunca
+acierta al bot (cambia de rumbo sin parar): revisarlo jugando. Empezar con tesla es la peor build inicial (195–346 s).
+
 ## Siguiente tarea recomendada
 
-T16 (balance; Gus perdió fuerza al no sumarse los charcos del cóctel).
+Probar jugando (`npm run dev`, depurador F1) mortero, cercos y furia; decidir si se lleva la rama a `main`.

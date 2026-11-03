@@ -32,6 +32,8 @@ export interface SimResult extends RunResults {
 
 const KITE_R = 300;
 const DODGE_R = 260;
+/** Distancia (px) al borde de un charco o rastro a la que el bot empieza a apartarse. */
+const AVOID_MARGIN = 60;
 
 /** Movimiento del bot. Determinista: solo lee el mundo. */
 export function botInput(w: World, kind: BotKind, out: InputState): InputState {
@@ -88,6 +90,19 @@ export function botInput(w: World, kind: BotKind, out: InputState): InputState {
       ax += (dx / d) * 20;
       ay += (dy / d) * 20;
     }
+  }
+  // Charcos radiactivos y rastros de babosa: se ven, así que un jugador los rodea en vez de cruzarlos.
+  for (const h of w.hazards) avoid(p.x - h.x, p.y - h.y, h.r);
+  for (let i = 0; i < w.slimes.count; i++) {
+    const s = w.slimes.items[i]!;
+    avoid(p.x - s.x, p.y - s.y, s.r);
+  }
+  function avoid(dx: number, dy: number, r: number): void {
+    const d = Math.hypot(dx, dy) || 1;
+    if (d > r + AVOID_MARGIN) return;
+    const k = 12 * (1 - Math.max(0, d - r) / AVOID_MARGIN);
+    ax += (dx / d) * k;
+    ay += (dy / d) * k;
   }
   // Giro tangencial y una leve atracción al punto de inicio para no alejarse sin fin.
   const tx = -ay * 0.6;

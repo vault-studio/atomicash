@@ -17,3 +17,4 @@ Una línea por decisión, con su motivo. No reabrir las ya registradas.
 - 2026-11-03 · Especialización de armas como dato (`spec`) y control genérico por arma (`slow`, `interrupt`) aplicado en `hitEnemy` · un solo sitio y editable en el depurador; los jefes no se ralentizan ni se interrumpen.
 - 2026-11-03 · Un enemigo recibe como mucho un golpe de charco por intervalo aunque pise varios · los charcos solapados multiplicaban ×4 el daño a un solo blanco y el cóctel ganaba en todo.
 - 2026-11-03 · Todo campo numérico que pueda llevar decimales nace decimal (0,5 en `createEnemy`, −0 en el mundo) · si nace entero, V8 cambia el mapa a media partida y desoptimiza el bucle.
+- 2026-11-03 · El bot «kite» de la sim rodea charcos y rastros radiactivos · se ven en pantalla; sin eso la radiación dominaba las muertes y el balance medía un defecto del bot.
