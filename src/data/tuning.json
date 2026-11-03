@@ -492,15 +492,15 @@
   },
   "bosses": {
     "rey_rata": {
-      "at": 180,
+      "at": 120,
       "kills": 200
     },
     "dirigible": {
-      "at": 360,
+      "at": 240,
       "kills": 500
     },
     "coloso": {
-      "at": 600,
+      "at": 360,
       "kills": 1000
     }
   },
@@ -784,6 +784,17 @@
     },
     {
       "from": 120,
+      "rate": 2.2,
+      "max": 90,
+      "mix": {
+        "dron": 5,
+        "necrofago": 4,
+        "saqueador": 3,
+        "interceptor": 1
+      }
+    },
+    {
+      "from": 180,
       "rate": 2.6,
       "max": 100,
       "mix": {
@@ -796,18 +807,20 @@
       }
     },
     {
-      "from": 180,
-      "rate": 2.2,
-      "max": 90,
+      "from": 240,
+      "rate": 3,
+      "max": 120,
       "mix": {
         "dron": 5,
         "necrofago": 4,
         "saqueador": 3,
-        "interceptor": 1
+        "reptador": 2,
+        "interceptor": 1,
+        "mortero": 1
       }
     },
     {
-      "from": 240,
+      "from": 300,
       "rate": 3.2,
       "max": 130,
       "mix": {
@@ -823,7 +836,20 @@
       }
     },
     {
-      "from": 300,
+      "from": 360,
+      "rate": 4,
+      "max": 180,
+      "mix": {
+        "necrofago": 4,
+        "saqueador": 3,
+        "reptador": 3,
+        "dron": 5,
+        "interceptor": 1,
+        "mortero": 1
+      }
+    },
+    {
+      "from": 420,
       "rate": 3.8,
       "max": 160,
       "mix": {
@@ -840,20 +866,7 @@
       }
     },
     {
-      "from": 360,
-      "rate": 3,
-      "max": 120,
-      "mix": {
-        "dron": 5,
-        "necrofago": 4,
-        "saqueador": 3,
-        "reptador": 2,
-        "interceptor": 1,
-        "mortero": 1
-      }
-    },
-    {
-      "from": 420,
+      "from": 480,
       "rate": 4.4,
       "max": 190,
       "mix": {
@@ -871,7 +884,7 @@
       }
     },
     {
-      "from": 510,
+      "from": 570,
       "rate": 5,
       "max": 220,
       "mix": {
@@ -884,19 +897,6 @@
         "reptador": 3,
         "blindado": 2,
         "predicador": 2,
-        "interceptor": 1,
-        "mortero": 1
-      }
-    },
-    {
-      "from": 600,
-      "rate": 4,
-      "max": 180,
-      "mix": {
-        "necrofago": 4,
-        "saqueador": 3,
-        "reptador": 3,
-        "dron": 5,
         "interceptor": 1,
         "mortero": 1
       }

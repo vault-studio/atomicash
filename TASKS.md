@@ -66,6 +66,10 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ La embestida (saqueador, cortacésped, Rey Rata) siempre llega: corre en línea recta hasta dejar al jugador `over` px atrás (tope `maxDur` por si algo la frena), en vez de durar un tiempo fijo que se quedaba corto.
 - ✅ Aturdido no se dispara (cambia CAMBIOS §2, que decía que el autoataque seguía).
 - Efecto en balance (bot «kite» que ahora también esquiva el pasillo marcado, build propia): media 410 → 361 s; Dot 409 s (1/6), Gus 261 s (0/6), Benny 412 s (3/6). Daño del saqueador por partida 6 → 30. Muertes repartidas; 6 semillas dan mucho ruido.
+- ✅ Cofre especial: con 500 cupones ya recogidos en la partida, las tiradas siguientes dan entre 50 y 200 (`CACHE_ROLL.capAfter`/`capped`).
+- ✅ Jefes en los minutos 2, 4 y 6 (`bosses.*.at`); los respiros se mueven con ellos y el resto de tramos de oleada conserva su orden.
+- ✅ 30 % menos de experiencia por baja (`XP.killMult` 3,125 → 2,1875).
+- Efecto en balance de estos tres (bot «kite», build propia): media 361 → 214 s; Dot 166 s (0/6), Gus 224 s (0/6), Benny 253 s (1/6). Nivel medio al acabar 26 → 13. El Rey Rata en el minuto 2 mata 4 de 18 partidas. Pendiente de la prueba del usuario.
 
 ## Bugs conocidos
 

@@ -72,14 +72,16 @@ describe('oleadas', () => {
     const first = runCollecting(w, 59);
     expect(new Set(first.map((s) => s.type))).toEqual(new Set(Object.keys(WAVES[0]!.mix)));
 
-    // Saltamos al minuto 4: la oleada de 240 s incluye tiradores e hinchados.
+    // Saltamos al minuto 5: la oleada de 300 s incluye tiradores e hinchados (sin jefes, que tienen su hora).
     const w2 = createWorld('dot', 7, { hazards: false });
-    w2.time = 240;
-    w2.bossSpawned.rey_rata = true;
+    w2.time = 300;
+    w2.bossSpawned.rey_rata = w2.bossSpawned.dirigible = true;
     // Élites y hordas tienen sus propios tipos (ver fase2.test.ts).
     w2.nextElite = w2.nextHorde = Infinity;
     const later = runCollecting(w2, 30);
-    const allowed = new Set(Object.keys(WAVES[4]!.mix));
+    const wave = [...WAVES].reverse().find((x) => x.from <= 300)!;
+    expect(wave.mix.tirador).toBeGreaterThan(0);
+    const allowed = new Set(Object.keys(wave.mix));
     expect(later.length).toBeGreaterThan(0);
     for (const s of later) expect(allowed.has(s.type), s.type).toBe(true);
   });

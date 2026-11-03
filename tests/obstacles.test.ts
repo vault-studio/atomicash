@@ -245,4 +245,35 @@ describe('tragaperras del cofre especial', () => {
     expect(sum / N).toBeLessThan(265);
     expect(CACHE_ROLL.tiers.reduce((a, [p]) => a + p, 0)).toBeCloseTo(1);
   });
+
+  it('con `capAfter` cupones ya recogidos solo da entre `capped[0]` y `capped[1]`', () => {
+    const [lo, hi] = CACHE_ROLL.capped;
+    for (const smuggler of [false, true]) {
+      // «Contrabandista» tira dos veces: tampoco pasa del tope.
+      const w = createWorld('dot', 7, { hazards: false, mods: smuggler ? { smuggler: 1 } : {} });
+      w.coupons = CACHE_ROLL.capAfter - 1;
+      let max = 0;
+      for (let i = 0; i < 2000; i++) {
+        openCacheChoice(w);
+        const c = w.choice!.cards[0]!;
+        max = Math.max(max, c.kind === 'coupons' ? c.n : 0);
+      }
+      // Justo por debajo del tope, todavía puede salir más de `hi`.
+      expect(max).toBeGreaterThan(hi);
+      w.coupons = CACHE_ROLL.capAfter;
+      let seenLo = Infinity;
+      let seenHi = 0;
+      for (let i = 0; i < 2000; i++) {
+        openCacheChoice(w);
+        const c = w.choice!.cards[0]!;
+        const n = c.kind === 'coupons' ? c.n : -1;
+        expect(n).toBeGreaterThanOrEqual(lo);
+        expect(n).toBeLessThanOrEqual(hi);
+        seenLo = Math.min(seenLo, n);
+        seenHi = Math.max(seenHi, n);
+      }
+      expect(seenLo).toBeLessThan(lo + 10);
+      expect(seenHi).toBeGreaterThan(hi - 10);
+    }
+  });
 });

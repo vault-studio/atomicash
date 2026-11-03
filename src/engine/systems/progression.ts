@@ -309,9 +309,17 @@ export function openItemChoice(w: World): void {
   if (cards.length) w.choice = { type: 'item', cards };
 }
 
-/** Cofre especial: tragaperras de cupones. La UI hace girar los rodillos y al cobrar se suma un nivel. */
+/**
+ * Cofre especial: tragaperras de cupones. La UI hace girar los rodillos y al cobrar se suma un nivel. Con
+ * `CACHE_ROLL.capAfter` cupones ya recogidos en la partida, el premio sale de `CACHE_ROLL.capped`.
+ */
 export function openCacheChoice(w: World): void {
+  const capped = w.coupons >= CACHE_ROLL.capAfter;
   const roll = (x: number): number => {
+    if (capped) {
+      const [lo, hi] = CACHE_ROLL.capped;
+      return lo + Math.floor(w.rng() * (hi - lo + 1));
+    }
     let tier: readonly [number, number, number] = CACHE_ROLL.tiers[CACHE_ROLL.tiers.length - 1]!;
     for (const t of CACHE_ROLL.tiers) {
       if (x < t[0]) {

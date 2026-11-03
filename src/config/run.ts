@@ -74,8 +74,9 @@ export const XP = {
   pullSpeed: 250,
   pullAccel: 900,
   /** Multiplicador de la experiencia que suelta cada enemigo (ver SPAWN.rateMult). */
-  // DECISIÓN: ×1,25 sobre el 2,5 anterior para subir de nivel un 25 % más rápido.
-  killMult: 3.125,
+  // DECISIÓN: ×1,25 sobre el 2,5 anterior para subir de nivel un 25 % más rápido; luego (usuario) un 30 % menos
+  // de experiencia para que cueste más subir: 3,125 × 0,7.
+  killMult: 2.1875,
   /**
    * Bolitas que suelta un enemigo normal y uno irradiado (los raros); se reparten toda su experiencia.
    * DECISIÓN: una sola bolita por baja, que vale lo que antes varias: menos ruido en el suelo y más fácil de leer.
@@ -99,6 +100,8 @@ export const COUPONS = { dropChance: 0.01, drop: 5, r: 6, cache: 100 } as const;
  * Tragaperras del cofre especial: cupones al azar en vez de una cantidad fija (y siempre un nivel).
  * Cada tramo es `[probabilidad, mínimo, máximo]` (ambos incluidos); las probabilidades suman 1. Media ≈ 246.
  * `jackpot` (500) es el premio gordo y desde `big` la máquina celebra un gran premio.
+ * DECISIÓN (usuario): con `capAfter` cupones ya recogidos en la partida, las siguientes tiradas dan solo entre
+ * `capped[0]` y `capped[1]` (uniforme).
  */
 export const CACHE_ROLL = {
   tiers: [
@@ -109,6 +112,8 @@ export const CACHE_ROLL = {
   ],
   jackpot: 500,
   big: 351,
+  capAfter: 500,
+  capped: [50, 200],
 } as const;
 
 /**

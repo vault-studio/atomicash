@@ -14,13 +14,14 @@ export interface WaveDef {
   readonly mix: Readonly<Partial<Record<StatEnemyId, number>>>;
 }
 
-// DECISIÓN: cada jefe llega con un minuto de respiro (menos enemigos y de los flojos) a su hora (BOSSES.at); entre
-// respiros, la dificultad sube al mismo ritmo que antes. Si el jefe sale antes por bajas, el respiro sigue a su hora.
+// DECISIÓN: cada jefe llega con un minuto de respiro (menos enemigos y de los flojos) a su hora (BOSSES.at). Los jefes
+// salen en los minutos 2, 4 y 6 (usuario); los demás tramos conservan su orden y se corren para dejar sitio a los
+// respiros. Si el jefe sale antes por bajas, el respiro sigue a su hora.
 /**
  * Valores en `src/data/tuning.json` → `waves`. Notas por campo:
- * - `…`: Respiro: Rey Rata (minuto 3)
- * - `…`: Respiro: Dirigible (minuto 6)
- * - `…`: Respiro: Coloso (minuto 10)
+ * - `…`: Respiro: Rey Rata (minuto 2)
+ * - `…`: Respiro: Dirigible (minuto 4)
+ * - `…`: Respiro: Coloso (minuto 6)
  */
 export const WAVES: readonly WaveDef[] = T.waves;
 
