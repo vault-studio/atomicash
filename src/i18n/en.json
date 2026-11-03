@@ -514,7 +514,8 @@
   },
   "expedition": {
     "pick": "Who heads into the wasteland?",
-    "select": "Select"
+    "select": "Select",
+    "locked": "Locked"
   },
   "collection": {
     "level": "Lv. {{n}}",

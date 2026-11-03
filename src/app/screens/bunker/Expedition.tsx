@@ -1,5 +1,6 @@
-// Expedición: elegir con quién salir. A la izquierda el retrato grande del personaje marcado; a la derecha, la
-// cuadrícula de retratos (3 ahora, hecha para 9) y el botón «Seleccionar», que lo deja como activo y abre su ficha.
+// Expedición: elegir con quién salir. A la izquierda el retrato grande del personaje marcado; a la derecha, una
+// cuadrícula 3×3 de caras (el plantel y, en el resto de huecos, personajes bloqueados) y el botón «Seleccionar», que lo
+// deja como activo y abre su ficha.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ROSTER, type RosterId, type StatSurvivorId } from '../../../config/survivors';
@@ -8,7 +9,10 @@ import { setActive } from '../../../meta/actions';
 import { dailyChallenge } from '../../../meta/daily';
 import { useSave, useSaveData } from '../../../store/save';
 import { CharacterSheet } from './CharacterSheet';
-import { HeroPortrait, portraitOf } from './Portraits';
+import { HeroPortrait, headOf } from './Portraits';
+
+/** Huecos de la cuadrícula: los que no ocupa el plantel salen bloqueados. */
+const SLOTS = 9;
 
 interface Props {
   onStart: (id: StatSurvivorId) => void;
@@ -60,11 +64,23 @@ export function Expedition({ onStart, onDaily, onBack }: Props) {
           {t('bunker.back')}
         </button>
         <h1>{t('expedition.pick')}</h1>
+        <DailyCard onPlay={onDaily} />
       </header>
-      <DailyCard onPlay={onDaily} />
       <div className="pick__body">
         <div className="pick__hero">
-          <HeroPortrait id={sel} />
+          <div className="pick__art">
+            <HeroPortrait id={sel} />
+          </div>
+          <button
+            className="btn btn--primary pick__go"
+            autoFocus
+            onClick={() => {
+              act((d) => setActive(d, sel));
+              setSheet(true);
+            }}
+          >
+            {t('expedition.select')}
+          </button>
         </div>
         <div className="pick__side">
           <ul className="pick__grid">
@@ -76,21 +92,21 @@ export function Expedition({ onStart, onDaily, onBack }: Props) {
                   aria-label={t(`entities.${id}`)}
                   onClick={() => setSel(id)}
                 >
-                  <img src={portraitOf(id)} alt="" />
+                  <img src={headOf(id)} alt="" />
                 </button>
               </li>
             ))}
+            {Array.from({ length: Math.max(0, SLOTS - ROSTER.length) }, (_, i) => (
+              <li key={`locked-${i}`}>
+                <div className="pick__tile is-locked" aria-label={t('expedition.locked')}>
+                  <span className="pick__lock" aria-hidden="true">
+                    ?
+                  </span>
+                  <small>{t('expedition.locked')}</small>
+                </div>
+              </li>
+            ))}
           </ul>
-          <button
-            className="btn btn--primary pick__go"
-            autoFocus
-            onClick={() => {
-              act((d) => setActive(d, sel));
-              setSheet(true);
-            }}
-          >
-            {t('expedition.select')}
-          </button>
         </div>
       </div>
     </main>

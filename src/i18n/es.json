@@ -514,7 +514,8 @@
   },
   "expedition": {
     "pick": "¿Quién sale al páramo?",
-    "select": "Seleccionar"
+    "select": "Seleccionar",
+    "locked": "Bloqueado"
   },
   "collection": {
     "level": "Nv. {{n}}",
