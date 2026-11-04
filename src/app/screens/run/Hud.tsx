@@ -1,6 +1,6 @@
 // HUD de la run (04_ART_UI.md §2) con estética de terminal de fósforo de los 50: PV y RAD arriba a la izquierda,
 // tiempo y XP arriba al centro, radar, bajas y pausa arriba a la derecha, armas, objetos y consumibles en una tira
-// abajo al centro.
+// abajo (al centro, o a la derecha en pantallas táctiles).
 import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
@@ -213,7 +213,14 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
               key={id}
               className="slot slot--cons"
               disabled={hud.cons[id] <= 0}
-              onClick={() => onConsume(i)}
+              // DECISIÓN: el navegador no genera click si otro dedo sigue en la pantalla (el del joystick), así que el
+              // toque se atiende al pulsar. El click queda para el teclado y los lectores (detail 0).
+              onPointerDown={(e) => {
+                if (e.button === 0) onConsume(i);
+              }}
+              onClick={(e) => {
+                if (e.detail === 0) onConsume(i);
+              }}
               title={`${t(`consumables.${id}.name`)}: ${t(`consumables.${id}.desc`)} (${i + 1})`}
             >
               <img className="slot__icon" src={hudIcon(id)} alt={t(`consumables.${id}.short`)} />

@@ -80,6 +80,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Botón de pantalla completa en el menú principal y en Ajustes (`src/app/fullscreen.tsx`). Oculto si el juego está instalado; en iPhone, Ajustes explica cómo añadirlo a la pantalla de inicio.
 - ✅ HUD de la run a escala de la pantalla del juego (`--u` en `run.css`): compacto en móvil y grande en PC. Armas, objetos y consumibles en una tira abajo al centro, sin panel. PV/RAD ya no pisa el nivel. Botón de test del Coloso oculto (`TEST_PHASE = false`).
 - ✅ Saltar la intro ya no pulsa el menú de debajo (toque y teclado). En PC, PV/RAD, nivel y radar crecen menos que el resto (`--u-top`, `--u-radar`); en móvil no cambian.
+- ✅ En táctil, la tira de armas y equipo va abajo a la derecha, y los consumibles se usan con un segundo dedo mientras el otro mueve el joystick.
 
 ## Bugs conocidos
 
