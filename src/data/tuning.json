@@ -451,7 +451,7 @@
     "cd": 15
   },
   "elites": {
-    "first": 50,
+    "first": 40,
     "everyMin": 30,
     "everyMax": 50,
     "cacheChance": 0.2,
@@ -947,7 +947,7 @@
     "relocateDist": 1500,
     "staticMin": 400,
     "staticMax": 600,
-    "bossRateMult": 0,
+    "bossRateMult": 0.5,
     "rateMult": 0.7,
     "maxSlime": 120,
     "specialsBossDelay": 10
@@ -1072,7 +1072,11 @@
     "rushDur": 2
   },
   "rains": {
-    "first": 130,
+    "times": [
+      30,
+      160,
+      310
+    ],
     "everyMin": 100,
     "everyMax": 140,
     "order": [

@@ -63,11 +63,15 @@ export function updateDownpour(w: World, dt: number): void {
   const d = w.downpour;
   if (!d) {
     if (w.time < w.nextDownpour) return;
-    if (w.bossAlive > 0) w.nextDownpour = w.time + EVENTS.bossQuiet;
-    else if (w.time - w.lastBossAt < EVENTS.bossQuiet) w.nextDownpour = w.lastBossAt + EVENTS.bossQuiet;
+    // Las de hora fija caen a su hora; las de después esperan a que pase el jefe.
+    const fixed = w.downpourIdx < RAINS.times.length;
+    if (!fixed && w.bossAlive > 0) w.nextDownpour = w.time + EVENTS.bossQuiet;
+    else if (!fixed && w.time - w.lastBossAt < EVENTS.bossQuiet)
+      w.nextDownpour = w.lastBossAt + EVENTS.bossQuiet;
     else {
       startDownpour(w);
-      w.nextDownpour = w.time + RAINS.everyMin + w.rng() * (RAINS.everyMax - RAINS.everyMin);
+      w.nextDownpour =
+        RAINS.times[w.downpourIdx] ?? w.time + RAINS.everyMin + w.rng() * (RAINS.everyMax - RAINS.everyMin);
     }
     return;
   }

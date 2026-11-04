@@ -30,8 +30,8 @@ export const BARRELS = {
 export type RainKind = 'scrap' | 'acid';
 
 /**
- * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Empiezan en `first` s y se repiten cada
- * `everyMin`–`everyMax` s, por turnos (`order`); esperan a que pase un jefe. Mientras duran (`dur`), cada `every` s cae
+ * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Caen en los segundos de `times`, haya jefe o no;
+ * después, cada `everyMin`–`everyMax` s, esperando a que pase el jefe. Van por turnos (`order`). Mientras duran (`dur`), cada `every` s cae
  * algo a menos de `radius` del jugador, marcado `warn` s antes (`aimChance`: probabilidad de que vaya a por él). Si
  * alcanza al jugador hace `dmg` y da `rad`.
  * - `rubbleInset`: distancia mínima de los escombros al borde de su casilla (el doble es el hueco para pasar).

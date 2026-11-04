@@ -5,6 +5,7 @@ import { RAINS } from '../src/config/modes';
 import { PROP_LIST, PROP_SHAPES, RUBBLE_PROPS } from '../src/config/props';
 import { HAZARDS, RAD } from '../src/config/radiation';
 import { RUN } from '../src/config/run';
+import { SPAWN } from '../src/config/waves';
 import { cellKey, nearBuilding, worldHazardAt } from '../src/engine/hazards';
 import {
   areaClutter,
@@ -213,9 +214,30 @@ describe('lluvias', () => {
     }
   });
 
-  it('salen por turnos, a su hora, y esperan a que pase el jefe', () => {
+  it('caen a las 0:30, 2:40 y 5:10, por turnos, aunque haya jefe', () => {
     const w = freshWorld();
-    const kind = (): string | undefined => w.downpour?.kind;
+    const seen: [number, string][] = [];
+    w.nextDownpour = RAINS.times[0]!;
+    w.bossAlive = 1;
+    for (const at of RAINS.times) {
+      w.time = at - 1;
+      updateDownpour(w, STEP);
+      expect(w.downpour).toBeNull();
+      w.time = at;
+      updateDownpour(w, STEP);
+      seen.push([at, w.downpour!.kind]);
+      w.downpour = null;
+    }
+    expect(seen).toEqual([
+      [30, 'scrap'],
+      [160, 'acid'],
+      [310, 'scrap'],
+    ]);
+  });
+
+  it('las de después de las horas fijas esperan a que pase el jefe', () => {
+    const w = freshWorld();
+    w.downpourIdx = RAINS.times.length;
     w.nextDownpour = 0;
     w.bossAlive = 1;
     updateDownpour(w, STEP);
@@ -224,12 +246,23 @@ describe('lluvias', () => {
     w.nextDownpour = 0;
     w.time = 1000;
     updateDownpour(w, STEP);
-    expect(kind()).toBe(RAINS.order[0]);
-    w.downpour = null;
-    w.nextDownpour = 0;
-    updateDownpour(w, STEP);
-    expect(kind()).toBe(RAINS.order[1]);
+    expect(w.downpour).not.toBeNull();
     expect(w.nextDownpour).toBeGreaterThanOrEqual(w.time + RAINS.everyMin);
+  });
+
+  it('con un jefe vivo siguen saliendo enemigos, a la mitad de ritmo', () => {
+    const count = (boss: boolean): number => {
+      const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
+      w.player.god = true;
+      w.nextHorde = w.nextElite = w.nextEvent = w.nextObjective = Infinity;
+      w.bossAlive = boss ? 1 : 0;
+      for (let k = 0; k < 30 * 60; k++) tick(w, idle, STEP);
+      return w.enemies.count;
+    };
+    const normal = count(false);
+    const conJefe = count(true);
+    expect(normal).toBeGreaterThan(20);
+    expect(conJefe / normal).toBeCloseTo(SPAWN.bossRateMult, 1);
   });
 
   it('con la misma semilla cae lo mismo', () => {

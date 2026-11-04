@@ -33,8 +33,8 @@ export const WAVES: readonly WaveDef[] = T.waves;
  * - `relocateDist`: Los enemigos más lejos que esto vuelven a aparecer cerca, fuera de cámara (no aplica a
  *   jefes).
  * - `staticMin`: Las torretas aparecen ya dentro de este anillo (no se mueven).
- * - `bossRateMult`: Con un jefe vivo no aparece nadie más (oleadas, eventos ni guarniciones): el combate es solo
- *   contra él y lo que invoca. Lo que ya estaba vivo sigue.
+ * - `bossRateMult`: Con un jefe vivo las oleadas van a este ritmo (eventos, élites, hordas y guarniciones esperan).
+ *   DECISIÓN del usuario: a la mitad; sin ningún enemigo le parecía excesivo.
  * - `rateMult`: Multiplicador global del ritmo de aparición de todas las oleadas. DECISIÓN: menos enemigos que
  *   dan mucha más experiencia (XP.killMult): se sube de nivel más a menudo con menos agobio en pantalla, ahora que
  *   la cámara está más cerca.

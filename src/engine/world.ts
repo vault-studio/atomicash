@@ -244,7 +244,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     objective: null,
     nextObjective: OBJECTIVES.first,
     downpour: null,
-    nextDownpour: RAINS.first,
+    nextDownpour: RAINS.times[0]!,
     downpourIdx: 0,
     objectiveIdx: 0,
     objectivesDone: 0,

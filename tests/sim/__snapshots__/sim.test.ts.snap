@@ -2,39 +2,39 @@
 
 exports[`simulación con semilla fija > referencia benny (semilla 1, 600 s) 1`] = `
 {
-  "bosses": 2,
-  "dmg": 43474,
+  "bosses": 0,
+  "dmg": 6586,
   "hp": 0,
-  "kills": 499,
-  "level": 20,
-  "perMin": "4/90/29/50 9/114/19/167 14/75/1/255 17/28/51/362 18/68/11/432 20/27/37/495",
-  "time": 366.7,
-  "weapons": "pistola_clavos5,rifle_cerrojo4,escopeta_chatarra5",
+  "kills": 166,
+  "level": 10,
+  "perMin": "6/90/25/54 10/90/34/156",
+  "time": 124.4,
+  "weapons": "pistola_clavos1,rifle_cerrojo3,escopeta_chatarra4",
 }
 `;
 
 exports[`simulación con semilla fija > referencia dot (semilla 1, 600 s) 1`] = `
 {
   "bosses": 0,
-  "dmg": 11495,
+  "dmg": 16362,
   "hp": 0,
-  "kills": 259,
-  "level": 10,
-  "perMin": "5/100/23/56 7/83/23/163 10/9/11/249",
-  "time": 186.3,
-  "weapons": "pistola_clavos4,geiger2,megafono2",
+  "kills": 371,
+  "level": 13,
+  "perMin": "4/83/32/47 7/100/62/133 11/67/25/272",
+  "time": 221.4,
+  "weapons": "pistola_clavos3,geiger3,megafono5",
 }
 `;
 
 exports[`simulación con semilla fija > referencia gus (semilla 1, 600 s) 1`] = `
 {
-  "bosses": 2,
-  "dmg": 52126,
-  "hp": 0,
-  "kills": 583,
-  "level": 23,
-  "perMin": "4/116/19/60 10/130/14/172 14/130/6/269 18/128/34/438 19/128/2/484 22/104/13/548 23/51/5/582",
-  "time": 428.7,
-  "weapons": "megafono5,dardos_incendiarios5,pistola_clavos1",
+  "bosses": 1,
+  "dmg": 46834,
+  "hp": 2,
+  "kills": 650,
+  "level": 21,
+  "perMin": "6/108/18/61 9/112/34/152 12/86/9/306 14/104/23/467 21/129/18/561 21/44/47/632",
+  "time": 372.9,
+  "weapons": "megafono5,dardos_incendiarios5,llave2",
 }
 `;

@@ -84,7 +84,8 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Mapa: dos edificios nunca salen juntos (`PROPS.buildingGap`, un bloque libre entre ellos) y alrededor de cada uno queda una casilla sin objetos ni ácido (`PROPS.clearance`). Las zonas de objetivo buscan un sitio despejado. Cofres y cajas siempre a la vista: las del supermercado, de la derecha a la esquina delantera; los que caerían detrás del edificio pasan a su cara visible (`chestSpot`).
 - ✅ En táctil, los botones de consumibles miden 50 px como mínimo (antes 37 en móvil).
 - ✅ Árboles personalizados: Radiación (igual para todos, con los caminos Plomo y Mutación), Pasiva y Oficio de cada personaje y 6 nodos mixtos, 28 nodos en total. 15 puntos: 1 por estrella y 1 cada 3 niveles. Cada nodo cuesta 1 punto y se recolocan gratis. Las chapas gastadas en el árbol viejo se devuelven (guardado v4). Los 18 efectos nuevos tienen icono propio en `assets/icons/tree/`; los 8 efectos antiguos y las 6 mejoras del Taller siguen con iconos prestados.
-- ✅ Destrozos del mapa (`engine/scars.ts`): cada impacto del mortero rompe el suelo y deja escombros; lluvia de chatarra y lluvia de ácido (`systems/rains.ts`, `tuning.json` → `rains`, atajo N), a partir de 130 s y cada 100–140 s, por turnos. El ácido deja lagos con las baldosas de siempre. Placeholders: suelo roto y lo que cae.
+- ✅ Destrozos del mapa (`engine/scars.ts`): cada impacto del mortero rompe el suelo y deja escombros; lluvia de chatarra y lluvia de ácido (`systems/rains.ts`, `tuning.json` → `rains`, atajo N), a las 0:30, 2:40 y 5:10 aunque haya jefe y luego cada 100–140 s, por turnos. El ácido deja lagos con las baldosas de siempre. Placeholders: suelo roto y lo que cae.
+- ✅ Con un jefe vivo las oleadas siguen al 50 % de su ritmo (`bossRateMult`); antes se paraban del todo. Primer élite a los 40 s.
 
 ## Bugs conocidos
 
