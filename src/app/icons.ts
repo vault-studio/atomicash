@@ -46,8 +46,9 @@ export function sourceIcon(src: string): string | undefined {
 }
 
 /**
- * Dibujo de cada nodo del Árbol según lo que da (su primer `gain`). PROVISIONALES: se reutilizan los iconos de
- * rasgos, del HUD, de armas y de los objetos del mapa hasta que haya iconos propios.
+ * Dibujo de cada nodo del Árbol según lo que da (su primer `gain`). Los de `tree/` son propios (assets/icons/tree/,
+ * con el nombre de su efecto; hoja original en ARTE/iconos_arbol.webp). PROVISIONALES: el resto reutiliza iconos de
+ * rasgos, del HUD, de armas y de los objetos del mapa.
  */
 type Gain = NodeGain;
 const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<Gain['stat']>, string>>> = {
@@ -64,7 +65,7 @@ const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<Gain['stat']>, string
   cd: 'traits/oil',
   dodge: 'traits/cat',
   luck: 'traits/rabbit',
-  radDecay: 'traits/iodine',
+  radDecay: 'tree/radDecay',
 };
 const TREE_MOD_ICONS: Readonly<Record<NonNullable<Gain['mod']>, string>> = {
   coupons: 'coupon',
@@ -77,23 +78,23 @@ const TREE_MOD_ICONS: Readonly<Record<NonNullable<Gain['mod']>, string>> = {
   melee: 'w:martillo_pilon',
   consDur: 'hud/turbo',
   starter: 'w:pistola_clavos',
-  radRes: 'hud/iodine',
-  radPen: 'hud/apron',
-  radSave: 'traits/iodine',
-  radBoost: 'nuka',
-  radHighDmg: 'traits/adren',
-  radHighCd: 'traits/oil',
-  radHighRegen: 'traits/suture',
-  meleeStun: 'traits/stock',
-  meleeHeal: 'hud/heal',
-  fusionDmg: 'w:remachadora',
-  burnDmg: 'w:coctel',
-  stimHeal: 'hud/stim',
-  consExtra: 'hud/belt',
-  consSave: 'hud/fridge',
-  moveDmg: 'hud/skates',
-  dodgeRush: 'traits/rabbit',
-  levelHeal: 'hud/heal',
+  radRes: 'tree/radRes',
+  radPen: 'tree/radPen',
+  radSave: 'tree/radSave',
+  radBoost: 'tree/radBoost',
+  radHighDmg: 'tree/radHighDmg',
+  radHighCd: 'tree/radHighCd',
+  radHighRegen: 'tree/radHighRegen',
+  meleeStun: 'tree/meleeStun',
+  meleeHeal: 'tree/meleeHeal',
+  fusionDmg: 'tree/fusionDmg',
+  burnDmg: 'tree/burnDmg',
+  stimHeal: 'tree/stimHeal',
+  consExtra: 'tree/consExtra',
+  consSave: 'tree/consSave',
+  moveDmg: 'tree/moveDmg',
+  dodgeRush: 'tree/dodgeRush',
+  levelHeal: 'tree/levelHeal',
 };
 /**
  * Icono de un nodo del Árbol (por su primer `gain`); el centro (sin efecto) es la baliza del refugio. Los de arma

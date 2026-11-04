@@ -1,5 +1,7 @@
 // Árbol nuevo: puntos, aprender y recolocar, migración del guardado y efecto en el motor de cada modificador.
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { treeIcon } from '../src/app/icons';
 import { RAD, radTier } from '../src/config/radiation';
 import { ROSTER, type StatSurvivorId } from '../src/config/survivors';
 import {
@@ -335,5 +337,16 @@ describe('efectos del árbol en el motor', () => {
     w.player.hp = 1;
     gainXp(w, w.xpNext, true);
     expect(w.player.hp).toBeCloseTo(1 + w.player.maxHp * 0.1, 5);
+  });
+});
+
+describe('iconos del árbol', () => {
+  it('cada efecto de cada personaje tiene un dibujo que existe', () => {
+    const files = new Set<string>();
+    for (const c of ROSTER)
+      for (const id of TREE_IDS)
+        for (const gain of TREES[c][id].gains) files.add(treeIcon({ gains: [gain] }, 'llave').slice(1));
+    expect(files.size).toBeGreaterThan(30);
+    for (const file of files) expect(existsSync(file), file).toBe(true);
   });
 });
