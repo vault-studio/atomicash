@@ -517,21 +517,26 @@ interface IntroProps {
 }
 
 /** Arranque del juego. El navegador no deja sonar nada antes del primer gesto, así que el monitor espera apagado
- *  a que se pulse: ese toque desbloquea el audio (main.tsx), arranca la música del menú y enciende la intro. */
+ *  a que se pulse: ese toque desbloquea el audio (main.tsx), arranca la música del menú y enciende la intro.
+ *  DECISIÓN: se atiende el click y no pointerup: si la intro se quita antes, ese click cae en el menú de debajo. Por
+ *  lo mismo se cancela la tecla, que si no pulsaría el botón del menú que tiene el foco. */
 export function Intro({ onDone }: IntroProps) {
   const { t } = useTranslation();
   const [on, setOn] = useState(false);
 
   useEffect(() => {
     if (on) return;
-    const power = (): void => setOn(true);
+    const power = (e: KeyboardEvent): void => {
+      e.preventDefault();
+      setOn(true);
+    };
     window.addEventListener('keydown', power);
     return () => window.removeEventListener('keydown', power);
   }, [on]);
 
   if (on) return <IntroShow onDone={onDone} />;
   return (
-    <div className="intro intro--off" onPointerUp={() => setOn(true)}>
+    <div className="intro intro--off" onClick={() => setOn(true)}>
       <div className="intro__power">{t('app.introPower')}</div>
       <div className="intro__glass" />
     </div>
@@ -548,7 +553,10 @@ function IntroShow({ onDone }: IntroProps) {
     const boom = setTimeout(() => audio.play('boom', 4), IMPACT_MS);
     const fade = setTimeout(() => setLeaving(true), INTRO_FADE_MS);
     const end = setTimeout(onDone, INTRO_END_MS);
-    const skip = (): void => onDone();
+    const skip = (e: KeyboardEvent): void => {
+      e.preventDefault();
+      onDone();
+    };
     window.addEventListener('keydown', skip);
     return () => {
       clearTimeout(boom);
@@ -562,7 +570,7 @@ function IntroShow({ onDone }: IntroProps) {
     <div
       className={`intro${leaving ? ' intro--leaving' : ''}`}
       style={{ '--impact': `${IMPACT_MS}ms` } as CSSProperties}
-      onPointerUp={onDone}
+      onClick={onDone}
     >
       <TearFilters />
       <div className="intro__screen">

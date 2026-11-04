@@ -4,6 +4,9 @@
 .run {
   container-type: size;
   --u: clamp(0.62px, min(0.22cqh - 0.2px, 0.09cqw), 2.2px);
+  /* PV/RAD, nivel y radar crecen menos que el resto en pantallas grandes; en móvil (--u < 0.85) miden lo mismo. */
+  --u-top: min(var(--u), calc(0.85px + (var(--u) - 0.85px) * 0.5));
+  --u-radar: min(var(--u), calc(0.85px + (var(--u) - 0.85px) * 0.8));
 }
 
 .hud {
@@ -64,6 +67,7 @@
 }
 
 .hud__tl {
+  --u: var(--u-top);
   top: max(10px, env(safe-area-inset-top));
   left: max(12px, env(safe-area-inset-left));
   width: calc(300 * var(--u));
@@ -90,6 +94,7 @@
 }
 
 .hud__radar {
+  --u: var(--u-radar);
   position: relative;
   display: grid;
   justify-items: center;
@@ -204,7 +209,9 @@
 }
 
 .meter--xp {
+  --u: var(--u-top);
   grid-template-columns: auto 1fr;
+  width: min(100%, calc(400 * var(--u)));
 }
 
 .meter--xp .meter__bar {
