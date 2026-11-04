@@ -6,7 +6,8 @@ import { hurtIndex } from '../runStats';
 import { SFX, sfx } from '../sfx';
 import type { Barrel, World } from '../types';
 import { offscreenDistance } from '../view';
-import { HIT_RAW, addCoupons, addPickup, hitEnemy, hurtPlayer, queryEnemies } from './combat';
+import { areaClutter } from '../obstacles';
+import { HIT_RAW, addChest, addCoupons, hitEnemy, hurtPlayer, queryEnemies } from './combat';
 
 const TAU = Math.PI * 2;
 const BARREL_SPARKS = [0xff5a3c, 0xffaa3c, 0xffe14a, 0x6c7178] as const;
@@ -108,13 +109,29 @@ export function updateBarrels(w: World, dt: number): void {
 
 export function startObjective(w: World): void {
   const kind = OBJECTIVES.order[w.objectiveIdx++ % OBJECTIVES.order.length]!;
-  const a = w.rng() * TAU;
   const p = w.player;
   const def = OBJECTIVES[kind];
+  // La zona busca un sitio sin edificios, ácido ni objetos: prueba direcciones y distancias y se queda con el mejor.
+  const a0 = w.rng() * TAU;
+  let x = p.x;
+  let y = p.y;
+  let best = Infinity;
+  for (let k = 0; k < OBJECTIVES.tries && best > 0; k++) {
+    const t = a0 + (k * TAU) / OBJECTIVES.spokes;
+    const d = OBJECTIVES.dist * (1 + OBJECTIVES.distStep * Math.floor(k / OBJECTIVES.spokes));
+    const cx = p.x + Math.cos(t) * d;
+    const cy = p.y + Math.sin(t) * d;
+    const c = areaClutter(w, cx, cy, OBJECTIVES.r + OBJECTIVES.margin);
+    if (c < best) {
+      best = c;
+      x = cx;
+      y = cy;
+    }
+  }
   w.objective = {
     kind,
-    x: p.x + Math.cos(a) * OBJECTIVES.dist,
-    y: p.y + Math.sin(a) * OBJECTIVES.dist,
+    x,
+    y,
     r: OBJECTIVES.r,
     progress: 0,
     goal: def.goal,
@@ -148,7 +165,7 @@ export function updateObjective(w: World, dt: number): void {
   if (o.progress >= o.goal) {
     w.objective = null;
     w.objectivesDone++;
-    addPickup(w, 'cache', o.x, o.y, 18);
+    addChest(w, 'cache', o.x, o.y, 18);
     addCoupons(w, OBJECTIVES.coupons);
     sfx(w, SFX.boss);
     banner(w, 'banner.objectiveDone');

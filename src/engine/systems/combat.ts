@@ -13,6 +13,7 @@ import { BOSS_VARIANTS } from '../../config/enemies';
 import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../../config/items';
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
+import { chestSpot } from '../obstacles';
 import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
@@ -58,6 +59,14 @@ export function addPickup(
   k.sp = 0;
   if (kind === 'gem') w.gemCount++;
   return k;
+}
+
+const chest = { x: 0, y: 0 };
+
+/** Cofre, cofre especial o caja: como `addPickup`, pero siempre en un sitio donde se vea. */
+export function addChest(w: World, kind: PickupKind, x: number, y: number, r: number): Pickup {
+  chestSpot(w, x, y, chest);
+  return addPickup(w, kind, chest.x, chest.y, r);
 }
 
 /** Suma cupones de la partida con el extra del árbol. Devuelve los sumados. */
@@ -342,7 +351,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   if (e.elite) {
     // Power-up siempre y, a veces, también el cofre especial (a un lado para que no se recojan juntos).
     addPickup(w, rollFieldPickup(w.rng()), e.x, e.y, FIELD_PICKUPS.r);
-    if (w.rng() < ELITES.cacheChance) addPickup(w, 'cache', e.x + 40, e.y + 40, BUILDINGS.cache.r);
+    if (w.rng() < ELITES.cacheChance) addChest(w, 'cache', e.x + 40, e.y + 40, BUILDINGS.cache.r);
     banner(w, 'banner.eliteDown');
     hitStop(w, JUICE.hitStop.bomb);
     addShake(w, 6);
@@ -356,7 +365,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   } else if (e.gar >= 0) {
     const g = w.garrisons[e.gar]!;
     if (--g.left === 0) {
-      addPickup(w, 'cache', g.x, g.y, BUILDINGS.cache.r);
+      addChest(w, 'cache', g.x, g.y, BUILDINGS.cache.r);
       banner(w, 'banner.cache');
     }
   } else if (!e.boss && w.rng() < COUPONS.dropChance) {
@@ -366,7 +375,7 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     w.bosses++;
     w.bossAlive--;
     if (e.type === 'rey_rata' || e.type === 'dirigible') {
-      addPickup(w, 'chest', e.x, e.y, 14);
+      addChest(w, 'chest', e.x, e.y, 14);
       banner(w, 'banner.chest');
     }
     if (e.type === 'dirigible') dropGems(w, e.x, e.y, AI.dirigible.dropXp);

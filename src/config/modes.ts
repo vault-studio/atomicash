@@ -40,6 +40,14 @@ export const OBJECTIVES = {
   everyMax: 110,
   dist: 650,
   r: 150,
+  /**
+   * Para que la zona caiga en un sitio despejado: intentos, direcciones por vuelta, cuánto se aleja en cada vuelta
+   * (fracción de `dist`) y margen alrededor de ella en px.
+   */
+  tries: 48,
+  spokes: 16,
+  distStep: 0.2,
+  margin: 30,
   order: ['hold', 'purge'] as readonly ObjectiveKind[],
   hold: { goal: 12, limit: 50 },
   purge: { goal: 35, limit: 45 },

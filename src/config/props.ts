@@ -16,6 +16,10 @@ export const PROPS = {
   chance9: 0.005,
   /** Lado, en casillas, de los bloques en los que se reparten los objetos grandes. */
   block: 3,
+  /** Dos edificios quedan al menos a esta distancia, en bloques (2 = un bloque entero libre entre ellos). */
+  buildingGap: 2,
+  /** Casillas libres de objetos y de ácido alrededor de un edificio. */
+  clearance: 1,
   /**
    * Escala de los objetos de una casilla respecto a las baldosas; los de varias ya vienen al tamaño de su huella.
    * DECISIÓN: a la escala de la lámina un contenedor doblaba al personaje; a la mitad queda un bidón por la cintura.
@@ -79,6 +83,21 @@ export const BUILDINGS = {
    * centro en cada eje: justo fuera de la esquina del edificio (1,2 casillas + redondeo).
    */
   cache: { offset: 1.45 * T, r: 20 },
+  /**
+   * Cofres y cajas en la cara visible del edificio. Las cajas del supermercado se reparten en el arco que va de la
+   * esquina delantera a la derecha, entre `ring` y `ring + spread` del centro.
+   * `hideU`, `hideBack` y `hideFront` delimitan lo que el edificio tapa en ejes de pantalla (u = x − y, v = x + y):
+   * |u| < hideU, v > −hideBack y v + |u| < hideFront (el rombo de su base, por delante). Un cofre ahí pasa a su cara visible. `nudge`: paso con el que un cofre se aparta de un objeto, hasta `nudges` veces.
+   */
+  chest: {
+    ring: 2.1 * T,
+    spread: 0.3 * T,
+    hideU: 2.8 * T,
+    hideBack: 6 * T,
+    hideFront: 2.8 * T,
+    nudge: 0.3 * T,
+    nudges: 5,
+  },
 } as const;
 
 /** Lo que escribe tools/slice_props.py en `props.json`. */

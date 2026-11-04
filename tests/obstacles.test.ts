@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { ENEMY_STATS, MOB_IDS, type EnemyStats } from '../src/config/enemies';
-import { BUILDINGS, PROP_LIST, PROP_SHAPES } from '../src/config/props';
+import { BUILDINGS, PROP_LIST, PROP_SHAPES, PROPS } from '../src/config/props';
 import { RUN } from '../src/config/run';
-import { hazardAt } from '../src/engine/hazards';
-import { createCellObject, objectAt } from '../src/engine/obstacles';
+import { buildingBlock, hazardAt, nearBuilding } from '../src/engine/hazards';
+import { areaClutter, BUILDING_WEIGHT, chestSpot, createCellObject, objectAt } from '../src/engine/obstacles';
 import { CACHE_ROLL, COUPONS } from '../src/config/run';
 import { killEnemy } from '../src/engine/systems/combat';
 import { applyChoice, openCacheChoice } from '../src/engine/systems/progression';
@@ -275,5 +275,107 @@ describe('tragaperras del cofre especial', () => {
       expect(seenLo).toBeLessThan(lo + 10);
       expect(seenHi).toBeGreaterThan(hi - 10);
     }
+  });
+});
+
+describe('separación de las zonas especiales', () => {
+  const B = PROPS.block;
+  const SPAN = 60;
+
+  it('dos edificios nunca salen juntos', () => {
+    let found = 0;
+    for (let seed = 1; seed < 8; seed++) {
+      const blocks: [number, number][] = [];
+      for (let bj = -SPAN; bj < SPAN; bj++)
+        for (let bi = -SPAN; bi < SPAN; bi++) if (buildingBlock(seed, bi, bj, 0, 0)) blocks.push([bi, bj]);
+      found += blocks.length;
+      for (const [ai, aj] of blocks)
+        for (const [bi, bj] of blocks) {
+          if (ai === bi && aj === bj) continue;
+          expect(Math.max(Math.abs(ai - bi), Math.abs(aj - bj))).toBeGreaterThan(PROPS.buildingGap);
+        }
+    }
+    expect(found).toBeGreaterThan(20);
+  });
+
+  it('alrededor de un edificio no hay objetos ni ácido', () => {
+    let ring = 0;
+    for (let seed = 1; seed < 5; seed++)
+      for (let bj = -SPAN; bj < SPAN; bj++)
+        for (let bi = -SPAN; bi < SPAN; bi++) {
+          if (!buildingBlock(seed, bi, bj, 0, 0)) continue;
+          const c = PROPS.clearance;
+          for (let j = bj * B - c; j < (bj + 1) * B + c; j++)
+            for (let i = bi * B - c; i < (bi + 1) * B + c; i++) {
+              const inside = i >= bi * B && i < (bi + 1) * B && j >= bj * B && j < (bj + 1) * B;
+              if (inside) continue;
+              ring++;
+              expect(nearBuilding(seed, i, j, 0, 0)).toBe(true);
+              expect(hazardAt(seed, i, j, 0, 0)).toBe(-1);
+              expect(objectAt(seed, i, j, 0, 0, cell)).toBe(false);
+            }
+        }
+    expect(ring).toBeGreaterThan(100);
+  });
+
+  it('las zonas de objetivo caen en un sitio despejado', () => {
+    let clear = 0;
+    const N = 30;
+    for (let seed = 1; seed <= N; seed++) {
+      const w = createWorld('dot', seed, { startWeapon: null });
+      w.nextObjective = 0;
+      tick(w, { moveX: 0, moveY: 0 } as never, STEP);
+      const o = w.objective!;
+      expect(o).not.toBeNull();
+      const c = areaClutter(w, o.x, o.y, o.r);
+      expect(c).toBeLessThan(BUILDING_WEIGHT);
+      if (c === 0) clear++;
+    }
+    expect(clear).toBeGreaterThanOrEqual(N * 0.85);
+  });
+});
+
+describe('cofres a la vista', () => {
+  const spot = { x: 0, y: 0 };
+
+  it('dentro o detrás de un edificio pasan a la esquina delantera o a la derecha', () => {
+    const { w, x, y } = worldWithBuilding('raiders');
+    const O = BUILDINGS.cache.offset;
+    for (const [dx, dy] of [
+      [0, 0],
+      [-200, -200],
+      [-400, -100],
+      [100, -150],
+    ] as const) {
+      chestSpot(w, x + dx, y + dy, spot);
+      expect(spot.x).toBeCloseTo(x + O);
+      expect(Math.abs(spot.y - y)).toBeCloseTo(O);
+    }
+  });
+
+  it('delante de un edificio se quedan donde caen', () => {
+    const { w, x, y } = worldWithBuilding('raiders');
+    const O = BUILDINGS.cache.offset;
+    chestSpot(w, x + O, y + O, spot);
+    expect(spot).toEqual({ x: x + O, y: y + O });
+    chestSpot(w, x + O, y - O, spot);
+    expect(spot).toEqual({ x: x + O, y: y - O });
+  });
+
+  it('las cajas del supermercado salen entre la derecha y la esquina delantera, sin amontonarse', () => {
+    const { w, x, y } = worldWithBuilding('supply');
+    w.player.x = x + 300;
+    w.player.y = y + 300;
+    tick(w, { moveX: 0, moveY: 0 } as never, STEP);
+    const crates = w.pickups.items.slice(0, w.pickups.count).filter((k) => k.kind === 'crate');
+    expect(crates.length).toBeGreaterThanOrEqual(BUILDINGS.crates.min);
+    for (const k of crates) {
+      const u = k.x - x - (k.y - y);
+      const v = k.x - x + (k.y - y);
+      expect(u).toBeGreaterThan(-1);
+      expect(v + Math.abs(u)).toBeGreaterThan(BUILDINGS.chest.hideFront);
+      expect(k.x).toBeGreaterThan(x);
+    }
+    expect(new Set(crates.map((k) => `${k.x},${k.y}`)).size).toBe(crates.length);
   });
 });

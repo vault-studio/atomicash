@@ -2,12 +2,12 @@
 // desaparecen al darles. TS puro: lo usan el motor (choques, edificios) y el render (qué objeto pintar y dónde).
 // DECISIÓN: como los charcos, el mapa no se genera de antemano: cada bloque de 3×3 casillas decide con un hash de
 // la semilla si lleva un edificio (las 9), un objeto de 2 casillas (en una de sus filas) o, si no, objetos de una
-// casilla sueltos. Nunca sobre ácido ni junto a la salida. El motor guarda la forma de choque de las casillas de
-// alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
+// casilla sueltos. Nunca sobre ácido ni junto a la salida, y alrededor de un edificio no hay nada más. El motor guarda
+// la forma de choque de las casillas de alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
 import { HAZARDS } from '../config/radiation';
-import { PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
+import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
 import { RUN } from '../config/run';
-import { cellRand, hazardAt } from './hazards';
+import { buildingBlock, cellRand, hazardAt, nearBuilding } from './hazards';
 import type { Building, World } from './types';
 
 const T = RUN.groundCell;
@@ -70,7 +70,7 @@ export function objectAt(
   const j0 = bj * B;
   const r = cellRand(seed, bi, bj, 8);
   const big = PROPS.chance9 * B * B;
-  if (r < big && PROPS_BY_CELLS[9].length > 0 && allFree(seed, i0, j0, B, B, sx, sy)) {
+  if (buildingBlock(seed, bi, bj, sx, sy)) {
     out.prop = pick(PROPS_BY_CELLS[9], cellRand(seed, bi, bj, 9));
     out.i = i0;
     out.j = j0;
@@ -81,7 +81,14 @@ export function objectAt(
   if (r >= big && r < big + PROPS.chance2 * B * B && PROPS_BY_CELLS[2].length > 0) {
     const row = j0 + Math.floor(cellRand(seed, bi, bj, 10) * B);
     const col = i0 + Math.floor(cellRand(seed, bi, bj, 12) * (B - 1));
-    if (j === row && i >= col && i < col + 2 && allFree(seed, col, row, 2, 1, sx, sy)) {
+    if (
+      j === row &&
+      i >= col &&
+      i < col + 2 &&
+      allFree(seed, col, row, 2, 1, sx, sy) &&
+      !nearBuilding(seed, col, row, sx, sy) &&
+      !nearBuilding(seed, col + 1, row, sx, sy)
+    ) {
       out.prop = pick(PROPS_BY_CELLS[2], cellRand(seed, bi, bj, 11));
       out.i = col;
       out.j = row;
@@ -91,7 +98,7 @@ export function objectAt(
     }
   }
   if (PROPS_BY_CELLS[1].length === 0 || cellRand(seed, i, j, 6) >= PROPS.chance1) return false;
-  if (!free(seed, i, j, sx, sy)) return false;
+  if (!free(seed, i, j, sx, sy) || nearBuilding(seed, i, j, sx, sy)) return false;
   out.prop = pick(PROPS_BY_CELLS[1], cellRand(seed, i, j, 7));
   out.i = i;
   out.j = j;
@@ -224,4 +231,46 @@ export function hitsObstacle(w: World, x: number, y: number): boolean {
       if (dx * dx + dy * dy < r * r) return true;
     }
   return false;
+}
+
+const probe = createCellObject();
+export const BUILDING_WEIGHT = 100;
+
+/**
+ * Cuánto estorba lo que hay en el cuadrado de semilado r alrededor de (x, y): 0 si está despejado; cada casilla con ácido
+ * u objeto suma 1 y un edificio, `BUILDING_WEIGHT`. Para colocar las zonas de objetivo.
+ */
+export function areaClutter(w: World, x: number, y: number, r: number): number {
+  const i1 = Math.floor((x + r) / T);
+  const j1 = Math.floor((y + r) / T);
+  let n = 0;
+  for (let j = Math.floor((y - r) / T); j <= j1; j++)
+    for (let i = Math.floor((x - r) / T); i <= i1; i++) {
+      if (hazardAt(w.seed, i, j, w.start.x, w.start.y) >= 0) n++;
+      else if (objectAt(w.seed, i, j, w.start.x, w.start.y, probe))
+        n += PROP_BUILDING[probe.prop] ? BUILDING_WEIGHT : 1;
+    }
+  return n;
+}
+
+/**
+ * Sitio de un cofre: si (x, y) cae dentro de un edificio o detrás de él en pantalla, pasa a su esquina delantera o a
+ * la derecha, las dos que se ven siempre; y si cae sobre un objeto, se adelanta hasta salir de él. Escribe en `out`.
+ */
+export function chestSpot(w: World, x: number, y: number, out: { x: number; y: number }): void {
+  const C = BUILDINGS.chest;
+  out.x = x;
+  out.y = y;
+  for (const b of w.buildings) {
+    const u = x - b.x - (y - b.y);
+    const v = x - b.x + (y - b.y);
+    if (Math.abs(u) >= C.hideU || v <= -C.hideBack || v + Math.abs(u) >= C.hideFront) continue;
+    out.x = b.x + BUILDINGS.cache.offset;
+    out.y = b.y + (u > 0 ? -BUILDINGS.cache.offset : BUILDINGS.cache.offset);
+    return;
+  }
+  for (let k = 0; k < C.nudges && hitsObstacle(w, out.x, out.y); k++) {
+    out.x += C.nudge;
+    out.y += C.nudge;
+  }
 }

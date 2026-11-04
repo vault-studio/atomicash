@@ -19,7 +19,7 @@ import { banner } from '../fx';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, World } from '../types';
 import { offscreenDistance } from '../view';
-import { addPickup } from './combat';
+import { addChest } from './combat';
 import { makeElite, spawnEnemy } from './enemies';
 
 /** Oleada vigente en el segundo `t`. */
@@ -133,7 +133,7 @@ function fireEvent(w: World): void {
   if (kind === 'supply') {
     const a = w.rng() * TAU;
     const S = EVENTS.supply;
-    addPickup(w, 'crate', p.x + Math.cos(a) * S.dist, p.y + Math.sin(a) * S.dist, 16);
+    addChest(w, 'crate', p.x + Math.cos(a) * S.dist, p.y + Math.sin(a) * S.dist, 16);
     banner(w, 'banner.supply');
   } else if (kind === 'swarm') {
     const S = EVENTS.swarm;
@@ -298,8 +298,10 @@ function updateGarrisons(w: World): void {
       const C = BUILDINGS.crates;
       const n = C.min + Math.floor(w.rng() * (C.max - C.min + 1));
       for (let k = 0; k < n; k++) {
-        aroundBuilding(w, B.x, B.y, k, n);
-        addPickup(w, 'crate', spot.x, spot.y, 16);
+        // Del lado derecho (−45°) a la esquina delantera (+45°): la cara del edificio que da a la cámara.
+        const a = ((k + 0.25 + w.rng() * 0.5) / n - 0.5) * (TAU / 4);
+        const d = BUILDINGS.chest.ring + w.rng() * BUILDINGS.chest.spread;
+        addChest(w, 'crate', B.x + Math.cos(a) * d, B.y + Math.sin(a) * d, 16);
       }
       continue;
     }
