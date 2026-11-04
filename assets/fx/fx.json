@@ -169,15 +169,15 @@
   },
   "big_blast": {
     "file": "big_blast.png",
-    "frames": 8,
-    "w": 250,
-    "h": 184
+    "frames": 4,
+    "w": 480,
+    "h": 335
   },
   "ice_blast": {
     "file": "ice_blast.png",
-    "frames": 8,
-    "w": 250,
-    "h": 175
+    "frames": 4,
+    "w": 500,
+    "h": 368
   },
   "debris": {
     "file": "debris.png",

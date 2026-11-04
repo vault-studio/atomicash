@@ -366,8 +366,9 @@ export const FX_ART = {
     acid: { r: 2.4, ay: 0.68 },
     slam: { r: 2.3, ay: 0.55 },
     debris: { r: 3.4, ay: 0.78 },
-    /** Las que barren la pantalla: `r` deja la explosión del ancho de la vista; más grande, se pixela. */
-    big: { r: 0.9, ay: 0.72, alpha: 0.9 },
+    /** Las que barren la pantalla: `r` deja la explosión del ancho de la vista; `fade`, parte final en la que se apaga. */
+    big: { r: 1, ay: 0.8, alpha: 0.9, fade: 0.3 },
+    ice: { r: 1, ay: 0.72, alpha: 0.9, fade: 0.3 },
     /** Las explosiones más grandes que esto (bomba y crio-granada, que barren la pantalla) usan las tiras grandes. */
     maxR: 220,
   },

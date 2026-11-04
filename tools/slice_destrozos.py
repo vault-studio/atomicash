@@ -3,7 +3,9 @@
 #
 # Ejecutar DESPUÉS de slice_tiles.py, slice_props.py y slice_fx.py: esos reescriben sus índices enteros y este solo
 # añade o sustituye sus entradas (fx.json, tiles.json y props.json).
-#   ARTE/fx_explosiones.webp     → perdigón y explosiones grandes (fuego y hielo)
+#   ARTE/fx_explosiones.webp     → perdigón
+#   ARTE/fx_explosion_fuego.webp → explosión de la bomba
+#   ARTE/fx_explosion_hielo.webp → explosión de la crio-granada
 #   ARTE/fx_auras.webp           → auras del Geiger y del Núcleo inestable
 #   ARTE/fx_lluvias.webp         → lo que cae en las lluvias, el obús y el impacto de escombros
 #   ARTE/tiles_suelo_roto.webp   → baldosas de suelo roto
@@ -31,10 +33,8 @@ RING_WIDE = 2  # proporción de un círculo del suelo en isométrico
 
 # (nombre, y0, y1, frames, x0, x1). Frames a partes iguales dentro de x0–x1.
 GROUNDED = {
-    'ARTE/fx_explosiones.webp': [
-        ('big_blast', 170, 395, 8, 0, 2000),
-        ('ice_blast', 410, 625, 8, 0, 2000),
-    ],
+    'ARTE/fx_explosion_fuego.webp': [('big_blast', 100, 480, 4, 0, 2000)],
+    'ARTE/fx_explosion_hielo.webp': [('ice_blast', 150, 560, 4, 0, 2000)],
     'ARTE/fx_lluvias.webp': [('debris', 785, 1000, 6, 0, 1536)],
 }
 # (nombre, y0, y1, ancho del frame final). Frames separados por columnas vacías.

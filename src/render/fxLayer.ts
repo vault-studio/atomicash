@@ -484,11 +484,13 @@ export class FxLayer {
                 ? B.debris
                 : strip === 'fire_blast'
                   ? B.fire
-                  : B.big;
+                  : strip === 'ice_blast'
+                    ? B.ice
+                    : B.big;
         const layer = strip === 'slam' ? sg! : sa;
         layer.put(strip, layer.once(strip, 1 - f), isoX(b.x, b.y), isoY(b.x, b.y), b.r * o.r, {
           ay: o.ay,
-          alpha: 'alpha' in o ? o.alpha : 1,
+          alpha: 'alpha' in o ? o.alpha * Math.min(1, f / o.fade) : 1,
           flip: (i & 1) === 1,
         });
         continue;
