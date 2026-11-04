@@ -1,11 +1,12 @@
 // Ficha del personaje (se abre desde Expedición): retrato grande a la izquierda y, al lado, pestañas Ficha / Taller /
 // Árbol. La ficha enseña nivel, estrellas, pasiva y arma inicial (con su ventana de ayuda «i»); el taller reúne
-// mejoras, implante y arsenal, que se pagan con cupones; el árbol, con las chapas del personaje. Abajo a la izquierda,
+// mejoras, implante y arsenal, que se pagan con cupones; el árbol, con los puntos que dan el nivel y las estrellas. Abajo a la izquierda,
 // el botón para salir de expedición con él.
 import { useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RARITIES, SURVIVOR_LEVEL, STARS } from '../../../config/meta';
 import { SURVIVORS, type RosterId, type StatSurvivorId } from '../../../config/survivors';
+import { TREE_POINTS } from '../../../config/tree';
 import { FUSIONS, type WeaponId } from '../../../config/weapons';
 import { setStarter, starCost, starUp } from '../../../meta/actions';
 import { useSave, useSaveData } from '../../../store/save';
@@ -116,6 +117,7 @@ function LevelInfo({ level }: { level: number }) {
           boss: SURVIVOR_LEVEL.perBoss,
         })}
       </p>
+      <p>{t('info.level.treePoints', { every: TREE_POINTS.levelEvery })}</p>
       <InfoTable head={[t('info.level.col'), t('stats.hp'), t('stats.dmg')]} rows={rows} />
     </>
   );
@@ -141,6 +143,7 @@ function StarsInfo({ stars }: { stars: number }) {
   return (
     <>
       <p>{t('info.stars.gain', { pct: STARS.pctPerStar })}</p>
+      <p>{t('info.stars.treePoints', { n: TREE_POINTS.perStar })}</p>
       <InfoTable
         head={[t('info.stars.colStars'), t('info.stars.colBonus'), t('info.stars.colCost')]}
         rows={rows}

@@ -16,7 +16,7 @@ import {
   type ZoneId,
 } from '../config/meta';
 import { ROSTER, type StatSurvivorId } from '../config/survivors';
-import { TREE_IDS, TREE_ROOT, treeNeighbors, type TreeNodeId } from '../config/tree';
+import { TREE_IDS, TREE_ROOT, treeNeighbors, treePointsFor, type TreeNodeId } from '../config/tree';
 import { WEAPON_IDS, type WeaponId } from '../config/weapons';
 
 export type Language = 'es' | 'en';
@@ -41,9 +41,8 @@ export interface OwnedSurvivor {
   learnedStarters: WeaponId[];
   /** Arma inicial elegida (null = la suya). */
   starter: WeaponId | null;
-  /** Su árbol: nodos comprados (sin el centro) y chapas gastadas en ellos. */
+  /** Su árbol: nodos aprendidos (sin el centro), en orden desde el centro. Cada uno cuesta un punto. */
   tree: TreeNodeId[];
-  treeSpent: number;
 }
 
 export interface MissionProgress {
@@ -100,7 +99,6 @@ export function newSurvivor(): OwnedSurvivor {
     learnedStarters: [],
     starter: null,
     tree: [],
-    treeSpent: 0,
   };
 }
 
@@ -140,11 +138,14 @@ function normSurvivor(raw: unknown): OwnedSurvivor {
   const d = newSurvivor();
   if (!isObj(raw)) return d;
   const up = isObj(raw.upgrades) ? raw.upgrades : {};
+  const level = num(raw.level, 1, 1, 30);
+  const stars = num(raw.stars, 1, 1, 5);
   return {
-    level: num(raw.level, 1, 1, 30),
+    level,
     xp: num(raw.xp, 0, 0),
-    stars: num(raw.stars, 1, 1, 5),
-    shards: num(raw.shards, 0, 0),
+    stars,
+    // v3 → v4: el árbol viejo se pagaba con chapas; se devuelven (`treeSpent` ya no se vuelve a guardar).
+    shards: num(raw.shards, 0, 0) + Math.floor(num(raw.treeSpent, 0, 0)),
     irradiated: bool(raw.irradiated, false),
     upgrades: Object.fromEntries(UPGRADE_IDS.map((k) => [k, num(up[k], 0, 0, 10)])) as Record<
       UpgradeId,
@@ -156,8 +157,8 @@ function normSurvivor(raw: unknown): OwnedSurvivor {
       ? raw.learnedStarters.filter((w): w is WeaponId => (WEAPON_IDS as string[]).includes(w as string))
       : [],
     starter: oneOfOrNull(raw.starter, WEAPON_IDS),
-    tree: connectedNodes(raw.tree),
-    treeSpent: Math.floor(num(raw.treeSpent, 0, 0)),
+    // Más nodos que puntos: se quedan los primeros desde el centro (así lo que queda sigue unido).
+    tree: connectedNodes(raw.tree).slice(0, treePointsFor(level, stars)),
   };
 }
 

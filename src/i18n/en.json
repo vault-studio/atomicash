@@ -431,7 +431,8 @@
     },
     "objectiveDone": "Objective complete! Special chest",
     "objectiveFail": "Objective lost",
-    "endless": "ENDLESS MODE!"
+    "endless": "ENDLESS MODE!",
+    "radSave": "The lead skin holds!"
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",
@@ -741,28 +742,15 @@
     "rootDesc": "The centre of the tree. Everything grows from here.",
     "owned": "Learned",
     "locked": "Locked",
-    "needs": "Buy a node linked to this one first.",
-    "spent": "Spent on the tree: {{n}} tags",
-    "reset": "Unlearn all",
-    "resetAsk": "Unlearn everything and get {{n}} tags back?",
-    "resetYes": "Yes, unlearn",
+    "needs": "Learn a linked node first.",
+    "reset": "Reassign all",
+    "resetAsk": "Give back all points?",
+    "resetYes": "Yes, give back",
     "resetNo": "No",
     "size": {
       "small": "MINOR",
       "big": "MAJOR",
       "unique": "UNIQUE"
-    },
-    "name": {
-      "coupons": "Penny-pincher",
-      "banish": "Banishment",
-      "lock": "Padlock",
-      "reroll": "Second hand",
-      "hunter": "Monster hunter",
-      "coldBlood": "Cold blood",
-      "smuggler": "Smuggler",
-      "melee": "Muscle",
-      "consDur": "Full pantry",
-      "starter": "House weapon"
     },
     "stat": {
       "dmg": "+{{v}}% damage",
@@ -777,7 +765,8 @@
       "area": "+{{v}}% area",
       "cd": "{{v}}% less cooldown",
       "dodge": "+{{v}}% dodge",
-      "luck": "+{{v}} luck"
+      "luck": "+{{v}} luck",
+      "radDecay": "RAD drops by {{v}} per second"
     },
     "mod": {
       "coupons": "+{{v}}% coupons during the run",
@@ -789,50 +778,132 @@
       "smuggler": "Special chest slot machines roll twice and keep the best.",
       "melee": "+{{v}}% melee damage",
       "consDur": "+{{v}}% consumable duration",
-      "starter": "+{{v}}% damage with the starting weapon (and its fusion)"
+      "starter": "+{{v}}% damage with the starting weapon (and its fusion)",
+      "meleeStun": "{{v}}% chance to stun on melee hits",
+      "meleeHeal": "Each melee kill heals {{v}} HP",
+      "fusionDmg": "+{{v}}% damage with fused weapons",
+      "burnDmg": "+{{v}}% burn damage",
+      "stimHeal": "+{{v}}% stim healing",
+      "consExtra": "+{{v}} of each consumable when leaving on an expedition",
+      "consSave": "{{v}}% chance not to spend a consumable when used",
+      "radRes": "{{v}}% less RAD taken",
+      "radPen": "{{v}}% less max HP lost to RAD",
+      "radSave": "Once per run, reaching max RAD does not kill you: you drop back to {{to}} RAD",
+      "radBoost": "+{{v}}% to the RAD damage bonus",
+      "radHighDmg": "At {{high}} RAD or more: +{{v}}% damage",
+      "radHighCd": "At {{high}} RAD or more: {{v}}% less cooldown",
+      "radHighRegen": "At {{high}} RAD or more: +{{v}} HP/s",
+      "moveDmg": "+{{v}}% damage while moving",
+      "dodgeRush": "After dodging, +{{v}}% speed for {{dur}} s",
+      "levelHeal": "Levelling up heals {{v}}% of your HP"
     },
     "learn": "Learn",
     "bonuses": "LEARNED",
     "noBonuses": "Nothing yet. Start with a node next to the Shelter.",
     "branch": {
+      "rad": "Radiation",
+      "ra": "Lead",
+      "rb": "Mutation",
+      "mixed": "MIXED",
+      "root": "SHELTER",
       "dot": {
-        "c": "Workshop",
-        "s": "Melee",
-        "k": "Scrap"
+        "p": "Iron Fist",
+        "l": "The Workshop"
       },
       "gus": {
-        "c": "Stovetop",
-        "s": "Pantry",
-        "k": "Wheeling"
+        "p": "Pantry",
+        "l": "The Stove"
       },
       "benny": {
-        "c": "Aim",
-        "s": "Sprint",
-        "k": "Errands"
-      },
-      "bridge": "BRIDGE",
-      "root": "SHELTER"
-    },
-    "statName": {
-      "dmg": "Marksman",
-      "hp": "Toughness",
-      "crit": "Keen eye",
-      "armor": "Plating",
-      "mag": "Magnet pockets",
-      "regen": "Patch-up",
-      "spd": "Long stride",
-      "xp": "Veteran",
-      "kb": "Gun butt",
-      "area": "Wide radius",
-      "cd": "Quick hands",
-      "dodge": "Light feet",
-      "luck": "Rabbit's foot"
+        "p": "On the Run",
+        "l": "Errands"
+      }
     },
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "zoomReset": "Show all",
-    "shards": "Tags available: {{n}}",
-    "learnCost": "Learn · {{n}} tags"
+    "points": "Free points: {{free}} of {{total}}",
+    "pointsHelp": "You earn 1 point per star and 1 every {{every}} levels, up to {{max}}. They can be reassigned for free.",
+    "noPoints": "No free points",
+    "refund": "Remove point",
+    "refundBlocked": "Remove the nodes that depend on this one first.",
+    "node": {
+      "rad": {
+        "rT": "Dosimeter",
+        "rA1": "Iodine Drip",
+        "rA2": "Lead Lining",
+        "rAU": "Lead Skin",
+        "rB1": "Green Blood",
+        "rB2": "Mutant Nerves",
+        "rBU": "Inner Reactor"
+      },
+      "dot": {
+        "p1": "Firm Grip",
+        "p2": "Crane Shoulders",
+        "p3": "Calluses",
+        "pB": "Sharp Blow",
+        "p4": "Heavy Wrench",
+        "p5": "Reinforced Overalls",
+        "pU": "Percussive Repair",
+        "l1": "Toolbox",
+        "l2": "Sellable Scrap",
+        "l3": "Grease Job",
+        "lB": "Second Opinion",
+        "l4": "Recalibration",
+        "l5": "Scrapper",
+        "lU": "Masterwork",
+        "mRP1": "Lead Solder",
+        "mRP2": "Arc Flash",
+        "mPL1": "Hand Tool",
+        "mPL2": "Workbench",
+        "mLR1": "Homemade Filter",
+        "mLR2": "Fine Tuning"
+      },
+      "gus": {
+        "p1": "Sealed Jars",
+        "p2": "Home Cooking",
+        "p3": "Grandma's Recipe",
+        "pB": "Pocket Apron",
+        "p4": "Preserves",
+        "p5": "Iron Stomach",
+        "pU": "Daily Special",
+        "l1": "Open Flame",
+        "l2": "Big Plate",
+        "l3": "Tip Jar",
+        "lB": "Reserved Table",
+        "l4": "Red-Hot Pan",
+        "l5": "Regulars",
+        "lU": "House Special",
+        "mRP1": "Iodine Broth",
+        "mRP2": "Mutant Stew",
+        "mPL1": "Leftovers",
+        "mPL2": "Table Set",
+        "mLR1": "Range Hood",
+        "mLR2": "Atomic Flambé"
+      },
+      "benny": {
+        "p1": "Worn Sneakers",
+        "p2": "Magnetic Satchel",
+        "p3": "Rubber Hips",
+        "pB": "Shortcut",
+        "p4": "Long Stride",
+        "p5": "Never Look Back",
+        "pU": "Full Throttle",
+        "l1": "Tips",
+        "l2": "Rush Parcel",
+        "l3": "First-Try Mailbox",
+        "lB": "Alternate Route",
+        "l4": "Lucky Badge",
+        "l5": "Punctuality",
+        "lU": "Guaranteed Delivery",
+        "mRP1": "Lead Soles",
+        "mRP2": "Mutant Legs",
+        "mPL1": "Magnetic Round",
+        "mPL2": "Regular Customer",
+        "mLR1": "Tainted Route",
+        "mLR2": "Hot Parcel"
+      }
+    }
   },
   "daily": {
     "title": "DAILY CHALLENGE · {{day}}",
@@ -890,7 +961,8 @@
     "level": {
       "gain": "Each level above 1 gives +{{hp}} HP and +{{dmg}}% damage. Max level: {{max}}.",
       "xp": "The character earns XP on every expedition: {{sec}} per second survived, {{kill}} per kill and {{boss}} per boss defeated.",
-      "col": "Level"
+      "col": "Level",
+      "treePoints": "Every {{every}} levels you earn 1 point for the character tree."
     },
     "stars": {
       "gain": "Each star above the first adds +{{pct}}% to HP, damage and speed.",
@@ -898,13 +970,14 @@
       "colBonus": "Bonus",
       "colCost": "To upgrade",
       "cost": "{{n}} tags",
-      "shards": "Tags come from duplicate characters in Supplies, by rarity: {{list}}. They also pay for the character tree."
+      "shards": "Tags come from duplicate characters in Supplies, by rarity: {{list}}.",
+      "treePoints": "Each star gives {{n}} point for the character tree."
     },
     "starter": {
       "fusions": "Combinations",
       "fusion": "{{a}} + {{b}} → {{result}}",
       "noFusions": "It does not combine with any other weapon.",
-      "tree": "The top branch of the character's tree improves this weapon's damage."
+      "tree": "Some nodes in the character's tree improve this weapon's damage."
     }
   },
   "stores": {

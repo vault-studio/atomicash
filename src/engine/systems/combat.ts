@@ -17,7 +17,8 @@ import { chestSpot } from '../obstacles';
 import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
-import { SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponBase } from '../../config/weapons';
+import { FUSIONS, SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponBase } from '../../config/weapons';
+import { TREE_FX } from '../../config/tree';
 import type { EntityId } from '../../config/entities';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import { timeDmgMult } from '../stats';
@@ -35,6 +36,9 @@ export const HIT_MELEE = 2;
 export const HIT_RAW = 4;
 /** (fx, fy) es una dirección de empuje, no el origen del golpe. */
 export const HIT_KB_DIR = 8;
+
+/** Armas que son resultado de una fusión (mod `fusionDmg`). */
+const FUSED: ReadonlySet<string> = new Set(FUSIONS.map((f) => f.result));
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
@@ -151,6 +155,7 @@ export function hitEnemy(
   if (w.dailyMod === 'glass' && !(flags & HIT_RAW)) d *= DAILY.glass.dealt;
   // Único «Cazador» del árbol: más daño a jefes y élites.
   if ((e.boss || e.elite) && w.mods.hunter) d *= 1 + w.mods.hunter / 100;
+  if (w.mods.fusionDmg && FUSED.has(src)) d *= 1 + w.mods.fusionDmg / 100;
   if (e.elite) {
     w.eliteFocus = e.id;
     w.eliteFocusAt = w.time;
@@ -211,7 +216,12 @@ export function hitEnemy(
   }
   if (crit) textFx(w, 'crit', e.x, e.y, Math.round(d));
   else if (w.showDmg) textFx(w, 'dmg', e.x, e.y, Math.round(d));
-  if (e.hp <= 0) killEnemy(w, e, src);
+  if (e.hp <= 0) {
+    killEnemy(w, e, src);
+    if (flags & HIT_MELEE && w.mods.meleeHeal) heal(w, w.mods.meleeHeal);
+  } else if (flags & HIT_MELEE && !e.boss && w.mods.meleeStun && w.rng() < w.mods.meleeStun / 100) {
+    e.stun = Math.max(e.stun, TREE_FX.stunDur);
+  }
   return d;
 }
 
@@ -440,6 +450,7 @@ export function hurtPlayer(w: World, raw: number, rad = 0, noScale = false, src 
   if (p.inv > 0 || p.god || p.deadAt !== null) return 0;
   if (st.dodge > 0 && w.rng() < st.dodge) {
     p.inv = 0.2;
+    if (w.mods.dodgeRush) p.rush = TREE_FX.rushDur;
     sfx(w, SFX.dodge);
     textFx(w, 'dodge', p.x, p.y, 0);
     return -1;

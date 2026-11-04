@@ -195,7 +195,7 @@ export const ACHIEVEMENT_IDS = Object.keys(ACHIEVEMENTS) as AchievementId[];
 
 export const SAVE = {
   key: 'atomicash-save',
-  version: 3,
+  version: 4,
   /** Créditos de una cuenta nueva. */
   startCredits: 0,
 } as const;

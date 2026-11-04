@@ -86,6 +86,10 @@ export interface Player {
   /** Aturdido (no se mueve; el autoataque sigue) y su inmunidad posterior restante, en s. */
   stun: number;
   stunImmune: number;
+  /** Segundos que quedan de la carrera tras esquivar (mod `dodgeRush`). */
+  rush: number;
+  /** Ya usó el salvavidas de RAD máxima (mod `radSave`, una vez por partida). */
+  radSaved: boolean;
 }
 
 /** Modo de los enemigos que embisten: perseguir, apuntar (quieto) y embestir. */

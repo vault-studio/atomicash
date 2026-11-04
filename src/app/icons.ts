@@ -2,7 +2,7 @@
 // objetos del mapa (`assets/pickups/`, tools/slice_pickups.py). Los publica el plugin artAssets.
 import type { ConsumableId, ItemId } from '../config/items';
 import type { UpgradeId } from '../config/meta';
-import type { TreeNode } from '../config/tree';
+import type { NodeGain, TreeNode } from '../config/tree';
 import type { TraitId } from '../config/traits';
 import type { WeaponId } from '../config/weapons';
 
@@ -46,10 +46,11 @@ export function sourceIcon(src: string): string | undefined {
 }
 
 /**
- * Dibujo de cada nodo del Árbol según lo que da. DECISIÓN: se reutilizan los iconos de rasgos, del HUD y de los
- * objetos del mapa hasta que haya iconos propios.
+ * Dibujo de cada nodo del Árbol según lo que da (su primer `gain`). PROVISIONALES: se reutilizan los iconos de
+ * rasgos, del HUD, de armas y de los objetos del mapa hasta que haya iconos propios.
  */
-const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<TreeNode['stat']>, string>>> = {
+type Gain = NodeGain;
+const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<Gain['stat']>, string>>> = {
   dmg: 'traits/tips',
   hp: 'traits/plate',
   crit: 'traits/scope',
@@ -63,8 +64,9 @@ const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<TreeNode['stat']>, st
   cd: 'traits/oil',
   dodge: 'traits/cat',
   luck: 'traits/rabbit',
+  radDecay: 'traits/iodine',
 };
-const TREE_MOD_ICONS: Readonly<Record<NonNullable<TreeNode['mod']>, string>> = {
+const TREE_MOD_ICONS: Readonly<Record<NonNullable<Gain['mod']>, string>> = {
   coupons: 'coupon',
   banish: 'traits/fuse',
   lock: 'cache',
@@ -75,14 +77,32 @@ const TREE_MOD_ICONS: Readonly<Record<NonNullable<TreeNode['mod']>, string>> = {
   melee: 'w:martillo_pilon',
   consDur: 'hud/turbo',
   starter: 'w:pistola_clavos',
+  radRes: 'hud/iodine',
+  radPen: 'hud/apron',
+  radSave: 'traits/iodine',
+  radBoost: 'nuka',
+  radHighDmg: 'traits/adren',
+  radHighCd: 'traits/oil',
+  radHighRegen: 'traits/suture',
+  meleeStun: 'traits/stock',
+  meleeHeal: 'hud/heal',
+  fusionDmg: 'w:remachadora',
+  burnDmg: 'w:coctel',
+  stimHeal: 'hud/stim',
+  consExtra: 'hud/belt',
+  consSave: 'hud/fridge',
+  moveDmg: 'hud/skates',
+  dodgeRush: 'traits/rabbit',
+  levelHeal: 'hud/heal',
 };
 /**
- * Icono de un nodo del Árbol; el centro (sin efecto) es la baliza del refugio. Los de arma inicial llevan el icono
- * de `starter` (el arma inicial del personaje) si se da.
+ * Icono de un nodo del Árbol (por su primer `gain`); el centro (sin efecto) es la baliza del refugio. Los de arma
+ * inicial llevan el icono de `starter` (el arma inicial del personaje) si se da.
  */
-export function treeIcon(n: TreeNode, starter?: WeaponId): string {
-  if (n.mod === 'starter' && starter) return weaponIcon(starter);
-  const key = (n.stat ? TREE_STAT_ICONS[n.stat] : n.mod ? TREE_MOD_ICONS[n.mod] : null) ?? 'beacon';
+export function treeIcon(n: Pick<TreeNode, 'gains'>, starter?: WeaponId): string {
+  const g = n.gains[0];
+  if (g?.mod === 'starter' && starter) return weaponIcon(starter);
+  const key = (g?.stat ? TREE_STAT_ICONS[g.stat] : g?.mod ? TREE_MOD_ICONS[g.mod] : null) ?? 'beacon';
   if (key.startsWith('w:')) return weaponIcon(key.slice(2) as WeaponId);
   return key.includes('/') ? `${BASE}${key}.png` : `${PICKUPS}${key}.png`;
 }

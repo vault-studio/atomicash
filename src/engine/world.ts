@@ -5,7 +5,7 @@ import { RAD, radTier } from '../config/radiation';
 import { CAPS, CREDITS, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
-import type { TreeMod } from '../config/tree';
+import { TREE_FX, type TreeMod } from '../config/tree';
 import { OBJECTIVES, type DailyMod } from '../config/modes';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS, HORDES } from '../config/waves';
@@ -148,6 +148,8 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
       // -0 (vale 0) y no 0: así el campo nace decimal y V8 no cambia el mapa del jugador al primer aturdimiento.
       stun: -0,
       stunImmune: -0,
+      rush: -0,
+      radSaved: false,
     },
     st: createStats(),
     over: false,
@@ -317,6 +319,7 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   }
   p.inv -= dt;
   p.turbo -= dt;
+  p.rush -= dt;
   p.nuka -= dt;
   p.boots -= dt;
   p.healBudget = Math.min(CAPS.killHealPerSec, p.healBudget + CAPS.killHealPerSec * dt);
@@ -352,7 +355,12 @@ function updateRadiation(w: World, dt: number): void {
     p.hp -= tier.drain * dt;
     noteHurt(w.rs, hurtIndex('rad'), tier.drain * dt, w.time);
   }
-  if (p.rad >= RAD.max && !immune) {
+  if (p.rad >= RAD.max && !immune && !p.radSaved && w.mods.radSave) {
+    // Árbol: sobrevive una vez a la RAD máxima.
+    p.radSaved = true;
+    p.rad = TREE_FX.saveTo;
+    banner(w, 'banner.radSave');
+  } else if (p.rad >= RAD.max && !immune) {
     banner(w, 'banner.radDeath');
     w.rs.lastSrc = hurtIndex('rad');
     killPlayer(w);

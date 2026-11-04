@@ -431,7 +431,8 @@
     },
     "objectiveDone": "¡Objetivo cumplido! Cofre especial",
     "objectiveFail": "Objetivo perdido",
-    "endless": "¡MODO INFINITO!"
+    "endless": "¡MODO INFINITO!",
+    "radSave": "¡La piel de plomo aguanta!"
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",
@@ -741,28 +742,15 @@
     "rootDesc": "El centro del árbol. Todo sale de aquí.",
     "owned": "Aprendida",
     "locked": "Bloqueada",
-    "needs": "Compra antes un nodo unido a este.",
-    "spent": "Gastado en el árbol: {{n}} chapas",
-    "reset": "Desaprender todo",
-    "resetAsk": "¿Desaprender todo y recuperar {{n}} chapas?",
-    "resetYes": "Sí, desaprender",
+    "needs": "Aprende antes un nodo unido a este.",
+    "reset": "Recolocar todos",
+    "resetAsk": "¿Devolver todos los puntos?",
+    "resetYes": "Sí, devolver",
     "resetNo": "No",
     "size": {
       "small": "MENOR",
       "big": "MAYOR",
       "unique": "ÚNICA"
-    },
-    "name": {
-      "coupons": "Ahorrador",
-      "banish": "Destierro",
-      "lock": "Candado",
-      "reroll": "Segunda mano",
-      "hunter": "Cazador de monstruos",
-      "coldBlood": "Sangre fría",
-      "smuggler": "Contrabandista",
-      "melee": "Músculo",
-      "consDur": "Despensa llena",
-      "starter": "Arma de la casa"
     },
     "stat": {
       "dmg": "+{{v}} % de daño",
@@ -777,7 +765,8 @@
       "area": "+{{v}} % de área",
       "cd": "{{v}} % menos de enfriamiento",
       "dodge": "+{{v}} % de esquiva",
-      "luck": "+{{v}} de suerte"
+      "luck": "+{{v}} de suerte",
+      "radDecay": "La RAD baja {{v}} por segundo"
     },
     "mod": {
       "coupons": "+{{v}} % de cupones en la partida",
@@ -789,50 +778,132 @@
       "smuggler": "La tragaperras de los cofres especiales tira dos veces y te quedas con la mejor.",
       "melee": "+{{v}} % de daño cuerpo a cuerpo",
       "consDur": "+{{v}} % de duración de los consumibles",
-      "starter": "+{{v}} % de daño del arma inicial (y de su fusión)"
+      "starter": "+{{v}} % de daño del arma inicial (y de su fusión)",
+      "meleeStun": "{{v}} % de aturdir al golpear cuerpo a cuerpo",
+      "meleeHeal": "Cada baja cuerpo a cuerpo cura {{v}} PV",
+      "fusionDmg": "+{{v}} % de daño de las armas fusionadas",
+      "burnDmg": "+{{v}} % de daño de las quemaduras",
+      "stimHeal": "+{{v}} % de curación del estimulante",
+      "consExtra": "+{{v}} unidad de cada consumible al salir de expedición",
+      "consSave": "{{v}} % de no gastar el consumible al usarlo",
+      "radRes": "{{v}} % menos de RAD recibida",
+      "radPen": "{{v}} % menos de PV máximos perdidos por RAD",
+      "radSave": "Una vez por partida, al llegar a la RAD máxima no mueres: vuelves a {{to}} de RAD",
+      "radBoost": "+{{v}} % al bonus de daño de la RAD",
+      "radHighDmg": "Con {{high}} de RAD o más: +{{v}} % de daño",
+      "radHighCd": "Con {{high}} de RAD o más: {{v}} % menos de enfriamiento",
+      "radHighRegen": "Con {{high}} de RAD o más: +{{v}} PV/s",
+      "moveDmg": "+{{v}} % de daño mientras te mueves",
+      "dodgeRush": "Al esquivar, +{{v}} % de velocidad durante {{dur}} s",
+      "levelHeal": "Al subir de nivel curas el {{v}} % de tus PV"
     },
     "learn": "Aprender",
     "bonuses": "LO APRENDIDO",
     "noBonuses": "Aún nada. Empieza por un nodo junto al Refugio.",
     "branch": {
+      "rad": "Radiación",
+      "ra": "Plomo",
+      "rb": "Mutación",
+      "mixed": "MIXTO",
+      "root": "REFUGIO",
       "dot": {
-        "c": "Taller",
-        "s": "Cuerpo a cuerpo",
-        "k": "Chatarra"
+        "p": "Puño de hierro",
+        "l": "El taller"
       },
       "gus": {
-        "c": "Fogones",
-        "s": "Despensa",
-        "k": "Trapicheo"
+        "p": "Despensa",
+        "l": "Fogones"
       },
       "benny": {
-        "c": "Puntería",
-        "s": "Carrera",
-        "k": "Recados"
-      },
-      "bridge": "PUENTE",
-      "root": "REFUGIO"
-    },
-    "statName": {
-      "dmg": "Puntería",
-      "hp": "Aguante",
-      "crit": "Ojo certero",
-      "armor": "Blindaje",
-      "mag": "Bolsillos imantados",
-      "regen": "Remiendos",
-      "spd": "Zancada",
-      "xp": "Veteranía",
-      "kb": "Culatazo",
-      "area": "Radio ampliado",
-      "cd": "Manos rápidas",
-      "dodge": "Pies ligeros",
-      "luck": "Pata de conejo"
+        "p": "Carrera",
+        "l": "Recados"
+      }
     },
     "zoomIn": "Acercar",
     "zoomOut": "Alejar",
     "zoomReset": "Ver todo",
-    "shards": "Chapas disponibles: {{n}}",
-    "learnCost": "Aprender · {{n}} chapas"
+    "points": "Puntos libres: {{free}} de {{total}}",
+    "pointsHelp": "Ganas 1 punto por estrella y 1 cada {{every}} niveles, hasta {{max}}. Se pueden recolocar gratis.",
+    "noPoints": "Sin puntos libres",
+    "refund": "Quitar punto",
+    "refundBlocked": "Quita antes los nodos que dependen de este.",
+    "node": {
+      "rad": {
+        "rT": "Dosímetro",
+        "rA1": "Yodo en vena",
+        "rA2": "Forro de plomo",
+        "rAU": "Piel de plomo",
+        "rB1": "Sangre verde",
+        "rB2": "Nervios mutantes",
+        "rBU": "Reactor interior"
+      },
+      "dot": {
+        "p1": "Agarre firme",
+        "p2": "Hombros de grúa",
+        "p3": "Callos",
+        "pB": "Golpe seco",
+        "p4": "Llave pesada",
+        "p5": "Mono reforzado",
+        "pU": "Reparación a golpes",
+        "l1": "Caja de herramientas",
+        "l2": "Chatarra vendible",
+        "l3": "Engrase",
+        "lB": "Segunda opinión",
+        "l4": "Recalibrado",
+        "l5": "Desguazadora",
+        "lU": "Obra maestra",
+        "mRP1": "Soldadura al plomo",
+        "mRP2": "Chispazo",
+        "mPL1": "Herramienta de mano",
+        "mPL2": "Banco de trabajo",
+        "mLR1": "Filtro casero",
+        "mLR2": "Ajuste fino"
+      },
+      "gus": {
+        "p1": "Tarros bien cerrados",
+        "p2": "Comida casera",
+        "p3": "Receta de la abuela",
+        "pB": "Delantal con bolsillos",
+        "p4": "Conservas",
+        "p5": "Buen estómago",
+        "pU": "Menú del día",
+        "l1": "Fuego vivo",
+        "l2": "Plato grande",
+        "l3": "Bote de propinas",
+        "lB": "Mesa reservada",
+        "l4": "Sartén al rojo",
+        "l5": "Clientela fiel",
+        "lU": "Especial de la casa",
+        "mRP1": "Caldo de yodo",
+        "mRP2": "Guiso mutante",
+        "mPL1": "Sobras",
+        "mPL2": "Mesa puesta",
+        "mLR1": "Campana extractora",
+        "mLR2": "Flambeado atómico"
+      },
+      "benny": {
+        "p1": "Zapatillas gastadas",
+        "p2": "Mochila imantada",
+        "p3": "Cintura de goma",
+        "pB": "Atajo",
+        "p4": "Zancada larga",
+        "p5": "Sin mirar atrás",
+        "pU": "A toda pastilla",
+        "l1": "Propinas",
+        "l2": "Paquete urgente",
+        "l3": "Al buzón a la primera",
+        "lB": "Ruta alternativa",
+        "l4": "Placa de la suerte",
+        "l5": "Puntualidad",
+        "lU": "Entrega garantizada",
+        "mRP1": "Suelas de plomo",
+        "mRP2": "Piernas mutantes",
+        "mPL1": "Reparto imantado",
+        "mPL2": "Cliente habitual",
+        "mLR1": "Ruta contaminada",
+        "mLR2": "Envío radiactivo"
+      }
+    }
   },
   "daily": {
     "title": "RETO DIARIO · {{day}}",
@@ -890,7 +961,8 @@
     "level": {
       "gain": "Cada nivel por encima del 1 da +{{hp}} PV y +{{dmg}} % de daño. Nivel máximo: {{max}}.",
       "xp": "El personaje gana XP en cada expedición: {{sec}} por segundo sobrevivido, {{kill}} por baja y {{boss}} por jefe abatido.",
-      "col": "Nivel"
+      "col": "Nivel",
+      "treePoints": "Cada {{every}} niveles ganas 1 punto para el árbol del personaje."
     },
     "stars": {
       "gain": "Cada estrella por encima de la primera suma +{{pct}} % a los PV, el daño y la velocidad.",
@@ -898,13 +970,14 @@
       "colBonus": "Bonificación",
       "colCost": "Para subir",
       "cost": "{{n}} chapas",
-      "shards": "Las chapas salen de los personajes repetidos en Suministros, según su rareza: {{list}}. También pagan el árbol del personaje."
+      "shards": "Las chapas salen de los personajes repetidos en Suministros, según su rareza: {{list}}.",
+      "treePoints": "Cada estrella da {{n}} punto para el árbol del personaje."
     },
     "starter": {
       "fusions": "Combinaciones",
       "fusion": "{{a}} + {{b}} → {{result}}",
       "noFusions": "No se combina con ninguna otra arma.",
-      "tree": "La rama de arriba del árbol del personaje mejora el daño de esta arma."
+      "tree": "Algunos nodos del árbol del personaje mejoran el daño de esta arma."
     }
   },
   "stores": {

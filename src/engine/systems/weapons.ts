@@ -81,7 +81,7 @@ function addShot(
   s.nHit = 0;
 }
 
-function addFirePool(
+export function addFirePool(
   w: World,
   x: number,
   y: number,
@@ -118,8 +118,9 @@ function addBurn(e: Enemy, dps: number): void {
 }
 
 /** Enemigo dentro de un charco que quema en este tick (una vez por tick aunque pise varios). */
-function touchFire(w: World, e: Enemy, dps: number, dt: number): void {
+function touchFire(w: World, e: Enemy, base: number, dt: number): void {
   if (e.fireAt === w.ticks) return;
+  const dps = w.mods.burnDmg ? base * (1 + w.mods.burnDmg / 100) : base;
   if (e.fireAt === w.ticks - 1) {
     // Sigue dentro: otra quemadura por cada `stay` s seguidos.
     e.fireIn += dt;

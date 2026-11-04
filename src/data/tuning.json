@@ -1064,5 +1064,11 @@
       "spawnMult": 1.3,
       "xpMult": 2
     }
+  },
+  "treeFx": {
+    "highRad": 60,
+    "saveTo": 60,
+    "stunDur": 0.6,
+    "rushDur": 2
   }
 }

@@ -31,7 +31,14 @@ import {
   type SurvivorRarity,
 } from '../config/survivors';
 import type { StatKey } from '../config/traits';
-import { TREE_ROOT, nodeCost, treeNeighbors, treeOf, type TreeMod, type TreeNodeId } from '../config/tree';
+import {
+  TREE_ROOT,
+  treeNeighbors,
+  treeOf,
+  treePointsFor,
+  type TreeMod,
+  type TreeNodeId,
+} from '../config/tree';
 import type { WeaponId } from '../config/weapons';
 import { createRng, type Rng } from '../engine/rng';
 import type { RunResults, WorldOptions } from '../engine/world';
@@ -175,24 +182,24 @@ export function runOptionsFor(s: SaveData, id: StatSurvivorId): WorldOptions {
   const mods: Partial<Record<TreeMod, number>> = {};
   const tree = treeOf(id);
   if (tree)
-    for (const n of o.tree) {
-      const def = tree[n];
-      if (def.stat) add(def.stat, def.v);
-      if (def.mod) mods[def.mod] = (mods[def.mod] ?? 0) + def.v;
-    }
+    for (const n of o.tree)
+      for (const g of tree[n].gains) {
+        if (g.stat) add(g.stat, g.v);
+        if (g.mod) mods[g.mod] = (mods[g.mod] ?? 0) + g.v;
+      }
   for (const k of Object.keys(bonus) as StatKey[]) if (bonus[k] === 0) delete bonus[k];
   return {
     bonus,
     mods,
     extraRerolls: o.upgrades.reroll * UPGRADES.reroll.per + (mods.reroll ?? 0),
-    consumables: backpackFor(s, o),
+    consumables: backpackFor(s, o, mods.consExtra ?? 0),
     ...(o.starter && o.starter !== SURVIVORS[id].weapon ? { startWeapon: o.starter } : {}),
   };
 }
 
 /** Consumibles que se lleva a la run: hasta `perRun` (+ taller) de cada uno, si los tiene. */
-function backpackFor(s: SaveData, o: OwnedSurvivor): Record<ConsumableId, number> {
-  const cap = BACKPACK.perRun + o.upgrades.cons * UPGRADES.cons.per;
+function backpackFor(s: SaveData, o: OwnedSurvivor, extra: number): Record<ConsumableId, number> {
+  const cap = BACKPACK.perRun + o.upgrades.cons * UPGRADES.cons.per + extra;
   return Object.fromEntries(
     CONSUMABLE_IDS.map((c) => [c, Math.min(cap, s.inventory.consumables[c])]),
   ) as Record<ConsumableId, number>;
@@ -200,34 +207,56 @@ function backpackFor(s: SaveData, o: OwnedSurvivor): Record<ConsumableId, number
 
 // ---------- árbol de cada superviviente ----------
 
-/** Se puede comprar si es de su árbol, no lo tiene y toca el centro o un nodo comprado. */
+/** Puntos del árbol del personaje (nivel y estrellas). */
+export const treePoints = (o: OwnedSurvivor): number => treePointsFor(o.level, o.stars);
+
+/** Puntos sin gastar: los totales menos los nodos aprendidos. */
+export const treeFree = (o: OwnedSurvivor): number => treePoints(o) - o.tree.length;
+
+/** Se puede aprender si es de su árbol, no lo tiene, toca el centro o un nodo aprendido y queda un punto libre. */
 export function canAllocate(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
   const o = s.survivors[char];
-  if (!o || !treeOf(char) || id === TREE_ROOT || o.tree.includes(id)) return false;
+  if (!o || !treeOf(char) || id === TREE_ROOT || o.tree.includes(id) || treeFree(o) < 1) return false;
   return treeNeighbors(id).some((n) => n === TREE_ROOT || o.tree.includes(n));
 }
 
-/** Coste en chapas (fichas) del personaje. */
-export const treeCost = (id: TreeNodeId): number => nodeCost(id);
-
 export function allocateNode(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
   const o = s.survivors[char];
-  const cost = treeCost(id);
-  if (!o || !canAllocate(s, char, id) || o.shards < cost) return false;
-  o.shards -= cost;
+  if (!o || !canAllocate(s, char, id)) return false;
   o.tree.push(id);
-  o.treeSpent += cost;
   return true;
 }
 
-/** Desaprende todo su árbol y le devuelve las chapas gastadas. */
+/** Se puede quitar si está aprendido y lo que queda sigue unido al centro. */
+export function canRefund(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
+  const o = s.survivors[char];
+  if (!o || !o.tree.includes(id)) return false;
+  const rest = o.tree.filter((n) => n !== id);
+  const seen = new Set<TreeNodeId>([TREE_ROOT]);
+  const queue: TreeNodeId[] = [TREE_ROOT];
+  while (queue.length)
+    for (const n of treeNeighbors(queue.shift()!))
+      if (!seen.has(n) && rest.includes(n)) {
+        seen.add(n);
+        queue.push(n);
+      }
+  return rest.every((n) => seen.has(n));
+}
+
+/** Recoloca gratis: desaprende un nodo y recupera su punto. */
+export function refundNode(s: SaveData, char: StatSurvivorId, id: TreeNodeId): boolean {
+  const o = s.survivors[char];
+  if (!o || !canRefund(s, char, id)) return false;
+  o.tree = o.tree.filter((n) => n !== id);
+  return true;
+}
+
+/** Desaprende todo su árbol. Devuelve los puntos recuperados. */
 export function resetTree(s: SaveData, char: StatSurvivorId): number {
   const o = s.survivors[char];
   if (!o) return 0;
-  const back = o.treeSpent;
-  o.shards += back;
+  const back = o.tree.length;
   o.tree = [];
-  o.treeSpent = 0;
   return back;
 }
 

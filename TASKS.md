@@ -83,6 +83,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ En táctil, la tira de armas y equipo va abajo a la derecha, y los consumibles se usan con un segundo dedo mientras el otro mueve el joystick.
 - ✅ Mapa: dos edificios nunca salen juntos (`PROPS.buildingGap`, un bloque libre entre ellos) y alrededor de cada uno queda una casilla sin objetos ni ácido (`PROPS.clearance`). Las zonas de objetivo buscan un sitio despejado. Cofres y cajas siempre a la vista: las del supermercado, de la derecha a la esquina delantera; los que caerían detrás del edificio pasan a su cara visible (`chestSpot`).
 - ✅ En táctil, los botones de consumibles miden 50 px como mínimo (antes 37 en móvil).
+- ✅ Árboles personalizados: Radiación (igual para todos, con los caminos Plomo y Mutación), Pasiva y Oficio de cada personaje y 6 nodos mixtos, 28 nodos en total. 15 puntos: 1 por estrella y 1 cada 3 niveles. Cada nodo cuesta 1 punto y se recolocan gratis. Las chapas gastadas en el árbol viejo se devuelven (guardado v4). Iconos de los efectos nuevos provisionales.
 
 ## Bugs conocidos
 

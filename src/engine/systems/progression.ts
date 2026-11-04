@@ -33,6 +33,7 @@ export function gainXp(w: World, v: number, raw = false): void {
   while (w.xp >= w.xpNext) {
     w.xp -= w.xpNext;
     w.level++;
+    if (w.mods.levelHeal && w.player.deadAt === null) heal(w, (w.player.maxHp * w.mods.levelHeal) / 100);
     noteLevel(w.rs, w.level, w.time);
     w.xpNext = xpForLevel(w.level);
     w.pendingLevels++;
@@ -464,7 +465,7 @@ export function consumeItem(w: World, i: number): boolean {
   const p = w.player;
   if (id === 'stim') {
     if (p.hp >= p.maxHp) return false;
-    heal(w, p.maxHp * CONSUMABLES.stim.heal);
+    heal(w, p.maxHp * CONSUMABLES.stim.heal * (1 + (w.mods.stimHeal ?? 0) / 100));
   } else if (id === 'iodine') {
     if (p.rad <= 0) return false;
     p.rad = Math.max(0, Math.min(RAD.max, p.rad - CONSUMABLES.iodine.rad));
@@ -491,7 +492,7 @@ export function consumeItem(w: World, i: number): boolean {
     const ch = survivorStats(w.charId) as SurvivorStats;
     p.turbo = CONSUMABLES.turbo.dur * (1 + (ch.consDurPct ?? 0) + (w.mods.consDur ?? 0) / 100);
   }
-  w.cons[id]--;
+  if (!(w.mods.consSave && w.rng() < w.mods.consSave / 100)) w.cons[id]--;
   w.consUsed++;
   return true;
 }

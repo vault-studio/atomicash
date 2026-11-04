@@ -3,6 +3,7 @@ import { ITEMS, type ItemDef, CONSUMABLES, FIELD_PICKUPS } from '../config/items
 import { radTier } from '../config/radiation';
 import { CAPS, DMG_TAKEN, PLAYER, RUN } from '../config/run';
 import { survivorStats, type SurvivorStats } from '../config/survivors';
+import { TREE_FX } from '../config/tree';
 import type { PlayerStats, World } from './types';
 
 /** Junta los objetos equipados: suerte y enfriamiento suman; el resto multiplica. */
@@ -63,17 +64,30 @@ export function recalc(w: World): void {
   const turbo = p.turbo > 0 ? CONSUMABLES.turbo.mult : 1;
   const st = w.st;
 
-  const maxHp = Math.max(1, Math.round((ch.hp + tr.hp) * (1 - tier.hpPen) * it.hpMult));
+  const m = w.mods;
+  const highRad = p.rad >= TREE_FX.highRad;
+  const maxHp = Math.max(
+    1,
+    Math.round((ch.hp + tr.hp) * (1 - tier.hpPen * (1 - (m.radPen ?? 0) / 100)) * it.hpMult),
+  );
   const boots = p.boots > 0 ? FIELD_PICKUPS.bootsSpeed : 1;
-  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + it.speed) * turbo * boots;
+  const rush = p.rush > 0 ? 1 + (m.dodgeRush ?? 0) / 100 : 1;
+  st.speed = ch.speed * (1 + (ch.speedPct ?? 0) + tr.spd / 100) * (1 + it.speed) * turbo * boots * rush;
   st.magnet = PLAYER.magnetBase * (1 + (ch.magnetPct ?? 0) + tr.mag / 100) * (1 + it.magnet);
   st.armor = tr.armor;
   st.luck = tr.luck + it.luck;
-  let dmg = (1 + tr.dmg / 100) * (1 + tier.dmg * (ch.radDmgMult ?? 1)) * (1 + it.dmg) * turbo;
+  let dmg =
+    (1 + tr.dmg / 100) *
+    (1 + tier.dmg * (ch.radDmgMult ?? 1) * (1 + (m.radBoost ?? 0) / 100)) *
+    (1 + it.dmg) *
+    turbo;
+  if (highRad && m.radHighDmg) dmg *= 1 + m.radHighDmg / 100;
+  if (p.moving && m.moveDmg) dmg *= 1 + m.moveDmg / 100;
   if (p.hp < 0.4 * p.maxHp) dmg *= 1 + tr.adren / 100;
   st.dmgMult = dmg;
-  st.cdMult = (1 - Math.min(CAPS.cdReduction, tr.cd / 100 + it.cd)) * (p.nuka > 0 ? FIELD_PICKUPS.nukaCd : 1);
-  st.regen = (ch.regen ?? 0) + tr.regen;
+  const cdRed = tr.cd / 100 + it.cd + (highRad ? (m.radHighCd ?? 0) / 100 : 0);
+  st.cdMult = (1 - Math.min(CAPS.cdReduction, cdRed)) * (p.nuka > 0 ? FIELD_PICKUPS.nukaCd : 1);
+  st.regen = (ch.regen ?? 0) + tr.regen + (highRad ? (m.radHighRegen ?? 0) : 0);
   st.xpMult = 1 + tr.xp / 100;
   st.red = Math.min(CAPS.dmgReduction, tr.red / 100);
   st.dodge = Math.min(CAPS.dodge, tr.dodge / 100);
@@ -82,7 +96,7 @@ export function recalc(w: World): void {
   st.area = 1 + tr.area / 100;
   st.pierce = tr.pierce;
   st.kb = 1 + tr.kb / 100;
-  st.radGain = (ch.radGain ?? 1) * it.radGain;
+  st.radGain = (ch.radGain ?? 1) * it.radGain * (1 - Math.min(100, m.radRes ?? 0) / 100);
   st.radDecayBonus = tr.radDecay;
   st.meleeMult = 1 + (ch.meleePct ?? 0) + (w.mods.melee ?? 0) / 100;
   st.starterMult = 1 + (w.mods.starter ?? 0) / 100;

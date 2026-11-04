@@ -1089,6 +1089,8 @@ button.card--survivor {
 }
 
 .tree__zoom-btn {
+  min-width: 48px;
+  min-height: 48px;
   width: 48px;
   height: 48px;
   font: inherit;
@@ -1301,6 +1303,11 @@ button.card--survivor {
   padding-right: 2px;
 }
 
+.tree__help {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
 .tree__shards {
   margin: 0;
   color: #ffe14a;
@@ -1388,7 +1395,7 @@ button.card--survivor {
 
 .tree__branch {
   display: grid;
-  grid-template-columns: 8em 1fr auto;
+  grid-template-columns: 6.5em 1fr auto;
   align-items: center;
   gap: 8px;
   color: var(--c);
