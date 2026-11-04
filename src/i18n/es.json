@@ -43,7 +43,8 @@
     "objective": {
       "hold": "OBJETIVO: aguanta en la zona",
       "purge": "OBJETIVO: limpia la zona"
-    }
+    },
+    "map": "Mapa"
   },
   "pauseStats": {
     "attributes": "Atributos",
@@ -987,5 +988,28 @@
     "have": "en la mochila",
     "takes": "a la expedición",
     "buy": "+{{qty}} · {{price, number}} cup."
+  },
+  "map": {
+    "title": "MAPA",
+    "close": "Volver",
+    "zones": {
+      "raiders": "Saqueadores",
+      "robots": "Robots",
+      "necro": "Necrófagos",
+      "supply": "Suministros"
+    },
+    "events": {
+      "hold": "Evento: aguanta aquí",
+      "purge": "Evento: limpia la zona"
+    },
+    "key": {
+      "zone": "Zona con enemigos",
+      "supply": "Suministros",
+      "chest": "Cofre",
+      "event": "Evento: entra",
+      "done": "Zona hecha",
+      "lake": "Ácido",
+      "enemy": "Enemigos"
+    }
   }
 }

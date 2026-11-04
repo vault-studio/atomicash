@@ -43,7 +43,8 @@
     "objective": {
       "hold": "OBJECTIVE: hold the zone",
       "purge": "OBJECTIVE: clear the zone"
-    }
+    },
+    "map": "Map"
   },
   "pauseStats": {
     "attributes": "Attributes",
@@ -987,5 +988,28 @@
     "have": "in the backpack",
     "takes": "going out",
     "buy": "+{{qty}} · {{price, number}} cp"
+  },
+  "map": {
+    "title": "MAP",
+    "close": "Back",
+    "zones": {
+      "raiders": "Raiders",
+      "robots": "Robots",
+      "necro": "Ghouls",
+      "supply": "Supplies"
+    },
+    "events": {
+      "hold": "Event: hold here",
+      "purge": "Event: clear the zone"
+    },
+    "key": {
+      "zone": "Enemy zone",
+      "supply": "Supplies",
+      "chest": "Chest",
+      "event": "Event: step in",
+      "done": "Zone done",
+      "lake": "Acid",
+      "enemy": "Enemies"
+    }
   }
 }

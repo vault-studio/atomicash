@@ -16,7 +16,8 @@ export const hudIcon = (id: ConsumableId | ItemId | 'heal'): string => `${BASE}h
 /** Mejoras del Taller. */
 export const upgradeIcon = (id: UpgradeId): string => `${BASE}upgrades/${id}.png`;
 /** Dibujo con transparencia de un objeto del mapa (sin ficha de chapa detrás). */
-export const pickupIcon = (id: 'coupon' | 'bomb' | 'barrel' | 'crate'): string => `${PICKUPS}${id}.png`;
+export const pickupIcon = (id: 'coupon' | 'bomb' | 'barrel' | 'crate' | 'chest' | 'cache'): string =>
+  `${PICKUPS}${id}.png`;
 
 /** Icono de una fuente de daño del resumen. */
 export function sourceIcon(src: string): string {

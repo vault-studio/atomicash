@@ -3,7 +3,15 @@ import { ENEMY_STATS, MOB_IDS, type EnemyStats } from '../src/config/enemies';
 import { BUILDINGS, PROP_LIST, PROP_SHAPES, PROPS } from '../src/config/props';
 import { RUN } from '../src/config/run';
 import { buildingBlock, hazardAt, nearBuilding } from '../src/engine/hazards';
-import { areaClutter, BUILDING_WEIGHT, chestSpot, createCellObject, objectAt } from '../src/engine/obstacles';
+import {
+  areaClutter,
+  BUILDING_WEIGHT,
+  chestSpot,
+  createCellObject,
+  objectAt,
+  buildingState,
+  scanArea,
+} from '../src/engine/obstacles';
 import { CACHE_ROLL, COUPONS } from '../src/config/run';
 import { killEnemy } from '../src/engine/systems/combat';
 import { applyChoice, openCacheChoice } from '../src/engine/systems/progression';
@@ -36,6 +44,36 @@ function worldWithBuilding(kind: string): { w: World; x: number; y: number } {
   }
   throw new Error(`sin edificio ${kind}`);
 }
+
+describe('mapa de la pausa', () => {
+  it('encuentra lo mismo que la ventana de la partida y dice cómo va cada edificio', () => {
+    const w = createWorld('dot', 3);
+    let found = null;
+    for (let k = 1; k < 12 && !found; k++) {
+      w.player.x = w.start.x + k * 900;
+      w.player.y = w.start.y;
+      found = scanArea(w, 34).buildings.find((b) => b.kind !== 'supply') ?? null;
+    }
+    expect(found).not.toBeNull();
+    const b = found!;
+    expect(buildingState(w, b)).toBe('new');
+    w.garrisoned.add(b.key);
+    const O = BUILDINGS.cache.offset;
+    const g = { x: b.x + O, y: b.y + O, left: 2 };
+    w.garrisons.push(g);
+    expect(buildingState(w, b)).toBe('active');
+    g.left = 0;
+    expect(buildingState(w, b)).toBe('done');
+  });
+
+  it('marca los suministros como hechos en cuanto salen sus cajas', () => {
+    const w = createWorld('dot', 3);
+    const b = { x: 0, y: 0, kind: 'supply' as const, key: 'x' };
+    expect(buildingState(w, b)).toBe('new');
+    w.garrisoned.add('x');
+    expect(buildingState(w, b)).toBe('done');
+  });
+});
 
 describe('obstáculos', () => {
   it('nunca pisan ácido, y los de varias casillas ocupan todas las suyas sin pisarse', () => {

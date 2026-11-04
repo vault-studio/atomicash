@@ -8,7 +8,7 @@ import { HAZARDS } from '../config/radiation';
 import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
 import { RUN } from '../config/run';
 import { buildingBlock, cellKey, cellRand, hazardAt, nearBuilding, worldHazardAt } from './hazards';
-import type { Building, World } from './types';
+import type { Building, Hazard, Point, World } from './types';
 
 const T = RUN.groundCell;
 const R = HAZARDS.window;
@@ -153,6 +153,40 @@ export function refreshObstacles(w: World): void {
         buildings.push({ x: cell.x, y: cell.y, kind, key: `${cell.i},${cell.j}` });
     }
   w.buildings = buildings;
+}
+
+export type BuildingState = 'new' | 'active' | 'done';
+
+/** Sin visitar, con su guarnición aún viva o ya hecho (suministros: en cuanto salen sus cajas). */
+export function buildingState(w: World, b: Building): BuildingState {
+  if (!w.garrisoned.has(b.key)) return 'new';
+  const x = b.x + BUILDINGS.cache.offset;
+  const y = b.y + BUILDINGS.cache.offset;
+  for (const g of w.garrisons) if (g.x === x && g.y === y && g.left > 0) return 'active';
+  return 'done';
+}
+
+export interface AreaScan {
+  readonly buildings: Building[];
+  readonly objects: Point[];
+  readonly lakes: Hazard[];
+}
+
+/** Lo que hay a `cells` casillas o menos del jugador, para el mapa de la pausa. Reserva memoria: fuera de la partida. */
+export function scanArea(w: World, cells: number): AreaScan {
+  const out: AreaScan = { buildings: [], objects: [], lakes: [] };
+  const ci = Math.floor(w.player.x / T);
+  const cj = Math.floor(w.player.y / T);
+  for (let j = cj - cells; j <= cj + cells; j++)
+    for (let i = ci - cells; i <= ci + cells; i++) {
+      const hz = worldHazardAt(w, i, j);
+      if (hz >= 0) out.lakes.push({ x: (i + 0.5) * T, y: (j + 0.5) * T, r: T * HAZARDS.cellRadii[hz]! });
+      if (!worldObjectAt(w, i, j, cell) || i !== cell.i || j !== cell.j) continue;
+      const kind = PROP_BUILDING[cell.prop];
+      if (kind) out.buildings.push({ x: cell.x, y: cell.y, kind, key: `${cell.i},${cell.j}` });
+      else out.objects.push({ x: cell.x, y: cell.y });
+    }
+  return out;
 }
 
 /**

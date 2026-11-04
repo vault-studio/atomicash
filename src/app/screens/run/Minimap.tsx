@@ -1,14 +1,16 @@
-// Radar del HUD: lee el mundo cada frame (sin tocarlo) y pinta en un canvas propio los edificios, los recogibles de
-// campo y las cajas de alrededor del jugador, cada tipo con su color. Lo que queda fuera del alcance sale como flecha en el
-// borde, apuntando hacia donde está. Estética de pantalla de fósforo: anillos, cruz y barrido.
+// Radar del HUD: lee el mundo cada frame (sin tocarlo) y pinta en un canvas propio lo que hay alrededor del jugador,
+// cada tipo de sitio con su marcador (mapArt.ts). Lo que queda fuera del alcance sale como flecha en el borde, apuntando
+// hacia donde está. Estética de pantalla de fósforo: anillos, cruz y barrido.
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RADAR } from '../../../config/render';
 import type { PickupKind, World } from '../../../engine/types';
+import { buildingState } from '../../../engine/obstacles';
 import { isoX, isoY } from '../../../engine/view';
+import { drawArrow, drawChest, drawEvent, drawZone, eventColor, isChestKind } from './mapArt';
+import { MapKey } from './MapKey';
 
 type RadarKind = keyof typeof RADAR.kinds;
-const KINDS = Object.keys(RADAR.kinds) as RadarKind[];
 const isRadarKind = (k: PickupKind): k is RadarKind => k in RADAR.kinds;
 
 interface Props {
@@ -43,14 +45,7 @@ export function Minimap({ world }: Props) {
   return (
     <div className="radar">
       <canvas ref={ref} className="radar__screen" aria-label={t('run.radar')} />
-      <ul className="radar__legend">
-        {KINDS.map((k) => (
-          <li key={k}>
-            <i style={{ background: RADAR.kinds[k] }} />
-            {t(`pickups.${k}`)}
-          </li>
-        ))}
-      </ul>
+      <MapKey className="radar__legend" />
     </div>
   );
 }
@@ -99,37 +94,25 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
   const p = w.player;
   const pulse = 0.65 + 0.35 * Math.sin(time * 6);
 
-  // Edificios: dentro, un rombo; fuera, una flecha en el borde.
-  const S = RADAR.buildingSize;
+  // Edificios: dentro, su marcador; fuera, una flecha en el borde.
   for (const b of w.buildings) {
     const dx = b.x - p.x;
     const dy = b.y - p.y;
     const sx = isoX(dx, dy);
     const sy = isoY(dx, dy);
-    const color = RADAR.buildings[b.kind];
-    ctx.fillStyle = color;
-    ctx.strokeStyle = RADAR.bg;
-    ctx.lineWidth = 1.5;
-    if (Math.hypot(sx, sy) <= RADAR.range) {
-      const x = c + sx * k;
-      const y = c + sy * k;
-      ctx.beginPath();
-      ctx.moveTo(x, y - S / 2);
-      ctx.lineTo(x + S, y);
-      ctx.lineTo(x, y + S / 2);
-      ctx.lineTo(x - S, y);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-    } else {
+    const state = buildingState(w, b);
+    if (Math.hypot(sx, sy) <= RADAR.range)
+      drawZone(ctx, c + sx * k, c + sy * k, RADAR.buildingSize, b.kind, state, pulse);
+    else if (state !== 'done') {
       const ang = Math.atan2(sy, sx);
+      ctx.fillStyle = RADAR.buildings[b.kind];
       ctx.globalAlpha = 0.6;
-      arrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
+      drawArrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
       ctx.globalAlpha = 1;
     }
   }
 
-  // Recogibles y cajas: dentro, un punto; fuera, una flecha en el borde.
+  // Cofres y cajas con su dibujo, recogibles con un punto; fuera, una flecha en el borde.
   for (let i = 0; i < w.pickups.count; i++) {
     const it = w.pickups.items[i]!;
     if (!isRadarKind(it.kind)) continue;
@@ -138,6 +121,10 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     const sx = isoX(dx, dy);
     const sy = isoY(dx, dy);
     const d = Math.hypot(sx, sy);
+    if (d <= RADAR.range && isChestKind(it.kind)) {
+      drawChest(ctx, c + sx * k, c + sy * k, RADAR.chestSize, it.kind);
+      continue;
+    }
     ctx.fillStyle = RADAR.kinds[it.kind];
     ctx.shadowColor = RADAR.kinds[it.kind];
     ctx.shadowBlur = 8;
@@ -148,7 +135,7 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     } else {
       const ang = Math.atan2(sy, sx);
       ctx.globalAlpha = pulse;
-      arrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
+      drawArrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
       ctx.globalAlpha = 1;
     }
     ctx.shadowBlur = 0;
@@ -163,20 +150,17 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     if (Math.hypot(sx, sy) <= RADAR.range) ctx.fillRect(c + sx * k - 2, c + sy * k - 2, 4, 4);
   }
 
-  // Objetivo: anillo amarillo que late; fuera, flecha en el borde.
+  // Evento: anillo con exclamación; fuera, una flecha más grande que las demás.
   const ob = w.objective;
   if (ob) {
     const sx = isoX(ob.x - p.x, ob.y - p.y);
     const sy = isoY(ob.x - p.x, ob.y - p.y);
-    ctx.strokeStyle = ctx.fillStyle = RADAR.objective;
-    ctx.lineWidth = 2;
-    if (Math.hypot(sx, sy) <= RADAR.range) {
-      ctx.beginPath();
-      ctx.arc(c + sx * k, c + sy * k, 5 + 3 * pulse, 0, Math.PI * 2);
-      ctx.stroke();
-    } else {
+    if (Math.hypot(sx, sy) <= RADAR.range)
+      drawEvent(ctx, c + sx * k, c + sy * k, RADAR.eventSize, ob.kind, pulse);
+    else {
       const ang = Math.atan2(sy, sx);
-      arrow(ctx, c + Math.cos(ang) * (R - 9), c + Math.sin(ang) * (R - 9), ang);
+      ctx.fillStyle = eventColor(ob.kind);
+      drawArrow(ctx, c + Math.cos(ang) * (R - 12), c + Math.sin(ang) * (R - 12), ang, 1.5);
     }
   }
 
@@ -190,21 +174,6 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
   ctx.moveTo(0, -6);
   ctx.lineTo(5, 5);
   ctx.lineTo(-5, 5);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-/** Flecha que apunta en `ang` con la punta en (x, y) + 6 px. */
-function arrow(ctx: CanvasRenderingContext2D, x: number, y: number, ang: number): void {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(ang);
-  ctx.beginPath();
-  ctx.moveTo(7, 0);
-  ctx.lineTo(-5, -6);
-  ctx.lineTo(-2, 0);
-  ctx.lineTo(-5, 6);
   ctx.closePath();
   ctx.fill();
   ctx.restore();

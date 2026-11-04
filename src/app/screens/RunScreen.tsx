@@ -13,6 +13,7 @@ import {
 } from '../runSession';
 import { Cards } from './run/Cards';
 import { Hud } from './run/Hud';
+import { MapView } from './run/MapView';
 import { PauseStats } from './run/PauseStats';
 import { Results } from './run/Results';
 import { Weld } from './run/Weld';
@@ -68,6 +69,7 @@ export function RunScreen({
   const [choiceKey, setChoiceKey] = useState(0);
   const [weld, setWeld] = useState<WeaponId | null>(null);
   const [paused, setPaused] = useState(false);
+  const [map, setMap] = useState(false);
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
   // Cambiar la clave reinicia la run sin recargar la página (F1-09).
   const [runKey, setRunKey] = useState(0);
@@ -96,6 +98,7 @@ export function RunScreen({
     setResult(null);
     setChoice(null);
     setPaused(false);
+    setMap(false);
     setMinDone(!!noLoader);
     setLoaderGone(!!noLoader);
     const minTimer = noLoader ? undefined : setTimeout(() => setMinDone(true), LOADER_MIN_MS);
@@ -152,7 +155,10 @@ export function RunScreen({
   // Pausa con Esc/P y al perder el foco de la pestaña.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if ((e.code === 'Escape' || e.code === 'KeyP') && !result && !choice) setPaused((p) => !p);
+      if ((e.code !== 'Escape' && e.code !== 'KeyP') || result || choice) return;
+      // Con el mapa abierto se vuelve a la pausa, no a la partida.
+      if (map) setMap(false);
+      else setPaused((p) => !p);
     };
     const onBlur = (): void => {
       if (!result) setPaused(true);
@@ -168,7 +174,7 @@ export function RunScreen({
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [result, choice]);
+  }, [result, choice, map]);
 
   const pick = useCallback((i: number) => {
     const s = sessionRef.current;
@@ -219,13 +225,17 @@ export function RunScreen({
           onLock={lock}
         />
       )}
-      {paused && !result && (
+      {paused && !result && map && world && <MapView world={world} onClose={() => setMap(false)} />}
+      {paused && !result && !map && (
         <div className="overlay overlay--pause" role="dialog" aria-modal="true">
           <h2 className="overlay__title">{t('run.paused')}</h2>
           {world && <PauseStats world={world} />}
           <div className="overlay__actions">
             <button className="btn btn--primary" autoFocus onClick={() => setPaused(false)}>
               {t('run.resume')}
+            </button>
+            <button className="btn" onClick={() => setMap(true)}>
+              {t('run.map')}
             </button>
             <button className="btn" onClick={onExit}>
               {t('run.abandon')}

@@ -407,29 +407,14 @@
 }
 
 .radar__legend {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
   gap: calc(2 * var(--u)) calc(8 * var(--u));
   max-width: calc(176 * var(--u));
   font-size: max(10.5px, calc(13 * var(--u)));
-  line-height: 1.1;
 }
 
-.radar__legend li {
-  display: flex;
-  align-items: center;
-  gap: calc(3 * var(--u));
-}
-
-.radar__legend i {
-  width: calc(8 * var(--u));
-  height: calc(8 * var(--u));
-  border-radius: 50%;
-  box-shadow: 0 0 5px currentColor;
+.radar__legend .mapkey__icon {
+  width: max(14px, calc(18 * var(--u)));
+  height: max(14px, calc(18 * var(--u)));
 }
 
 .btn-icon {
@@ -590,6 +575,8 @@
     max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
   background: rgba(8, 10, 6, 0.72);
   overflow-y: auto;
+  /* Por encima de las flechas del borde del HUD. */
+  z-index: 6;
 }
 
 .overlay--dark {
@@ -616,6 +603,77 @@
 .overlay__actions--col {
   flex-direction: column;
   align-items: stretch;
+}
+
+/* Leyenda del radar y del mapa: el marcador de cada sitio con su nombre. */
+.mapkey {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 8px;
+  line-height: 1.1;
+}
+
+.mapkey li {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mapkey__icon {
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+
+/* Mapa de la pausa: a pantalla completa, con la leyenda al lado. */
+.overlay--map {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'head head'
+    'map key';
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 8px 12px;
+  background: #030804;
+  overflow: hidden;
+}
+
+.mapview__head {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mapview__canvas {
+  grid-area: map;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: block;
+  border: 2px solid var(--crt);
+  box-shadow: 0 0 18px rgba(60, 255, 107, 0.2);
+}
+
+.mapview__key {
+  grid-area: key;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(11, 20, 13, 0.92);
+  border: 2px solid var(--crt);
+  color: var(--crt);
+  font-size: 15px;
+  overflow-y: auto;
 }
 
 /* Pausa: estadísticas del personaje en una ficha de terminal, compacta para el móvil en horizontal. */
@@ -828,6 +886,28 @@
 
 /* Móvil en horizontal: todo en una pantalla, sin desplazarse. */
 @media (max-height: 460px) {
+  .overlay--map {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    gap: 4px 8px;
+  }
+
+  .overlay--map .overlay__title {
+    font-size: 22px;
+  }
+
+  .overlay--map .btn {
+    min-height: 44px;
+    padding: 2px 16px;
+    font-size: 17px;
+  }
+
+  .mapview__key {
+    gap: 3px;
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
   /* Título y botones en una fila para ganar alto. */
   .overlay--pause {
     display: grid;
