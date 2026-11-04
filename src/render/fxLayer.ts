@@ -3,10 +3,10 @@
 // (`FX_ART`) van en dos capas de sprites encima de cada Graphics; sin su tira, queda el placeholder.
 import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
 import { FX_ART, RUN_COLORS } from '../config/render';
-import { FX, JUICE } from '../config/run';
+import { FX, JUICE, RUN } from '../config/run';
 import { WEAPONS } from '../config/weapons';
 import { ELITES, ENEMY_RULES } from '../config/enemies';
-import type { Boom, World } from '../engine/types';
+import type { Boom, TeleFall, World } from '../engine/types';
 import type { FxSprites } from './fxSprites';
 import { isoX, isoY } from './iso';
 import type { PickupArt } from './pickupLayer';
@@ -61,8 +61,10 @@ const BARREL_BOOM = 0xff7a2a;
 
 /** Tira de cada explosión según quién la pone (el motor solo deja su color), o null para el círculo. */
 function boomStrip(b: Boom): string | null {
-  if (b.r > FX_ART.boom.maxR) return null;
   const C = FX.colors;
+  if (b.r > FX_ART.boom.maxR)
+    return b.color === C.grenade ? 'big_blast' : b.color === C.freeze ? 'ice_blast' : null;
+  if (b.color === C.debris) return 'debris';
   if (b.color === C.bloater) return 'acid_splash';
   if (b.color === C.hammer) return 'slam';
   if (b.color === C.tele || b.color === C.mine || b.color === C.grenade || b.color === BARREL_BOOM)
@@ -87,15 +89,23 @@ export class FxLayer {
   private hpSeen = -1;
   private healAt = -1;
 
-  /**
-   * Lo que cae en una lluvia, cada vez más deprisa (`f` de 0 a 1). PLACEHOLDER: un trozo de chapa que gira o una gota,
-   * hasta que haya dibujo propio.
-   */
-  private drawFall(a: Graphics, x: number, y: number, kind: 'scrap' | 'acid', f: number, t: number): void {
+  /** Lo que cae del cielo, cada vez más deprisa (`f` de 0 a 1). Sin su tira, un trozo de chapa que gira o una gota. */
+  private drawFall(a: Graphics, x: number, y: number, kind: TeleFall, f: number, t: number): void {
     const F = RUN_COLORS.falling;
     if (f < F.from) return;
     const sx = isoX(x, y);
     const sy = isoY(x, y) - F.height * (1 - f * f);
+    const sa = this.sa;
+    const art = FX_ART.fall[kind];
+    if (sa?.has(art.strip)) {
+      if (art === FX_ART.fall.scrap) {
+        const piece = Math.abs(Math.floor((x + y) / RUN.groundCell));
+        sa.put(art.strip, piece % sa.frames(art.strip), sx, sy, art.w, { ay: art.ay, rot: t * art.spin + x });
+      } else if ('fps' in art)
+        sa.put(art.strip, sa.loop(art.strip, t, art.fps), sx, sy, art.w, { ay: art.ay });
+      return;
+    }
+    if (kind === 'shell') return;
     const c = F[kind];
     const s = c.size;
     if (kind === 'acid') {
@@ -179,7 +189,7 @@ export class FxLayer {
       // El último cuarto parpadea: ya va a caer.
       const blink = f > 0.75 ? 0.5 + 0.5 * Math.sin(t * 40) : 1;
       const tint = tl.fall === 'acid' ? RUN_COLORS.hazard : RUN_COLORS.tele;
-      if (tl.fall === 'scrap' || tl.fall === 'acid') this.drawFall(a, tl.x, tl.y, tl.fall, f, t);
+      if (tl.fall) this.drawFall(a, tl.x, tl.y, tl.fall, f, t);
       if (tl.lx !== 0 || tl.ly !== 0) {
         this.drawLane(g, tl.x, tl.y, tl.lx, tl.ly, tl.r, f, blink, t);
         continue;
@@ -310,6 +320,22 @@ export class FxLayer {
     }
     for (const wp of w.weapons) {
       if ((wp.id === 'geiger' || wp.id === 'nucleo_inestable') && wp.r > 0) {
+        const art = FX_ART.aura[wp.id];
+        if (art && sg?.has(art.strip)) {
+          sg.put(
+            art.strip,
+            sg.loop(art.strip, t, art.fps),
+            isoX(p.x, p.y),
+            isoY(p.x, p.y),
+            (2 * wp.r) / art.ring,
+            {
+              ax: art.ax,
+              ay: art.ay,
+              alpha: art.alpha,
+            },
+          );
+          continue;
+        }
         const pulse = 0.5 + 0.5 * Math.sin(t * 6);
         groundCircle(g, p.x, p.y, wp.r)
           .fill({ color: WEAPONS[wp.id].color, alpha: 0.06 + 0.04 * pulse })
@@ -449,10 +475,20 @@ export class FxLayer {
       const strip = boomStrip(b);
       if (strip && sa?.has(strip)) {
         // El golpe del martillo es una onda en el suelo; las explosiones y el ácido saltan por encima de los actores.
-        const o = strip === 'slam' ? B.slam : strip === 'acid_splash' ? B.acid : B.fire;
+        const o =
+          strip === 'slam'
+            ? B.slam
+            : strip === 'acid_splash'
+              ? B.acid
+              : strip === 'debris'
+                ? B.debris
+                : strip === 'fire_blast'
+                  ? B.fire
+                  : B.big;
         const layer = strip === 'slam' ? sg! : sa;
         layer.put(strip, layer.once(strip, 1 - f), isoX(b.x, b.y), isoY(b.x, b.y), b.r * o.r, {
           ay: o.ay,
+          alpha: 'alpha' in o ? o.alpha : 1,
           flip: (i & 1) === 1,
         });
         continue;

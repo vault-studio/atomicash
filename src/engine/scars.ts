@@ -5,7 +5,7 @@
 // escombros siempre pasa el jugador: por mucho que caiga, nunca queda encerrado.
 import { AI } from '../config/enemies';
 import { RAINS } from '../config/modes';
-import { PROP_SHAPES, RUBBLE_PROPS } from '../config/props';
+import { PROP_SHAPES, RUBBLE_BY_KIND, type RubbleKind } from '../config/props';
 import { HAZARDS } from '../config/radiation';
 import { RUN } from '../config/run';
 import { cellKey, cellRand, nearBuilding, worldHazardAt } from './hazards';
@@ -43,11 +43,12 @@ export function scarFree(w: World, i: number, j: number): boolean {
 }
 
 /** Rompe el suelo en (x, y) y deja un montón de escombros que bloquea el paso y las balas. */
-export function addRubble(w: World, x: number, y: number): boolean {
+export function addRubble(w: World, x: number, y: number, kind: RubbleKind = 'shell'): boolean {
   const i = Math.floor(x / T);
   const j = Math.floor(y / T);
   if (!scarFree(w, i, j)) return false;
-  const prop = RUBBLE_PROPS[Math.floor(cellRand(w.seed, i, j, 13) * RUBBLE_PROPS.length)]!;
+  const list = RUBBLE_BY_KIND[kind];
+  const prop = list[Math.floor(cellRand(w.seed, i, j, 13) * list.length)]!;
   const inset = PROP_SHAPES[prop]!.r + RAINS.rubbleInset;
   const cx = clamp(x, i * T + inset, (i + 1) * T - inset);
   const cy = clamp(y, j * T + inset, (j + 1) * T - inset);
@@ -123,7 +124,7 @@ export function landFall(w: World, fall: TeleFall, x: number, y: number, hz: num
     sfx(w, SFX.pop);
     return;
   }
-  addRubble(w, x, y);
+  addRubble(w, x, y, fall);
   burst(w, x, y, 12, RUBBLE_SPARKS, 1.3);
   if (fall === 'scrap') sfx(w, SFX.slam);
 }

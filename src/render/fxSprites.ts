@@ -65,6 +65,11 @@ export class FxSprites {
     return this.art.has(name);
   }
 
+  /** Frames de una tira. */
+  frames(name: string): number {
+    return this.art.get(name)?.frames.length ?? 1;
+  }
+
   /** Frame de una animación en bucle a `fps`. */
   loop(name: string, t: number, fps: number): number {
     const n = this.art.get(name)?.frames.length ?? 1;

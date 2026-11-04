@@ -20,7 +20,7 @@ import { WEAPONS } from '../../config/weapons';
 import { IRRADIATED } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
-import { ENDLESS } from '../../config/modes';
+import { ENDLESS, RAINS } from '../../config/modes';
 import { addShake, banner, boom, burst, hitStop, textFx } from '../fx';
 import {
   MODE_AIM,
@@ -1056,7 +1056,8 @@ export function updateTelegraphs(w: World, dt: number): void {
     pool.releaseAt(i);
     if (dmg <= 0 && !spawn) continue;
     const c = FX.colors;
-    boom(w, x, y, r, 0.25, fall === 'acid' ? c.bloater : fall === 'scrap' ? c.hammer : c.tele);
+    if (fall === 'scrap') boom(w, x, y, r, RAINS.scrap.dustLife, c.debris);
+    else boom(w, x, y, r, 0.25, fall === 'acid' ? c.bloater : c.tele);
     addShake(w, 3);
     const dx = p.x - x;
     const dy = p.y - y;

@@ -33,3 +33,5 @@ Una línea por decisión, con su motivo. No reabrir las ya registradas.
 - 2026-11-04 · El rastro de babosa dura 60 s con una gota cada 0,8 s y hasta 500 a la vez; se apaga en los 3 s finales y solo se dibuja cerca del jugador · decisión del usuario sobre la duración; el ritmo y el tope son lo necesario para que dure un minuto sin saturar el pool ni el render.
 - 2026-11-04 · Los esbirros del rey rata aparecen alrededor del jugador, a 300 px, sin aviso en el suelo · decisión del usuario.
 - 2026-11-04 · Solo el 10 % de las gotas de ácido busca al jugador (25 % en la chatarra) · cada gota deja un lago permanente y 6 s de charco son RAD 100: con el 25 %, quedarse quieto acababa en RAD 100 a los 20 s.
+- 2026-11-04 · Los escombros y el suelo roto no llevan el tinte del suelo (`rubbleTint`, `brokenTint`) · con él se confundían entre sí y el obstáculo no se distinguía; los escombros tampoco salen como decoración, para que el mapa de cada semilla no cambie.
+- 2026-11-04 · La chatarra levanta polvo al caer; el obús y las bombas conservan su explosión de fuego · el obús estalla y la chatarra solo golpea.

@@ -197,6 +197,7 @@ export const FX = {
     unstable: 0xb6ff3a,
     cone: 0xf3e9d2,
     freeze: 0x7fd8ff,
+    debris: 0xb09a7a,
   },
 } as const;
 

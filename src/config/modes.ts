@@ -33,7 +33,7 @@ export type RainKind = 'scrap' | 'acid';
  * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Caen en los segundos de `times`, haya jefe o no;
  * después, cada `everyMin`–`everyMax` s, esperando a que pase el jefe. Van por turnos (`order`). Mientras duran (`dur`), cada `every` s cae
  * algo a menos de su `radius` del jugador, marcado `warn` s antes (`aimChance`: probabilidad de que vaya a por él). Si
- * alcanza al jugador hace `dmg` y da `rad`.
+ * alcanza al jugador hace `dmg` y da `rad`. `scrap.dustLife`: s que dura la nube de polvo del impacto.
  * - `rubbleInset`: distancia mínima de los escombros al borde de su casilla (el doble es el hueco para pasar).
  * - `objectiveMargin`: los destrozos se quedan a esta distancia de la zona de un objetivo.
  */

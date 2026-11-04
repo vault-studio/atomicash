@@ -151,7 +151,7 @@ export const RUN_COLORS = {
   bombFuse: 0xffb347,
   hazard: 0x9dff00,
   hazardAlpha: 0.18,
-  /** Suelo roto bajo los escombros (placeholder) y lo que cae en las lluvias, en px de pantalla. */
+  /** Suelo roto si faltan sus baldosas y lo que cae si faltan sus tiras, en px de pantalla. */
   crater: { color: 0x14100c, alpha: 0.5, r: 50, vary: 0.35, cracks: 7, reach: 1.4, short: 0.65, width: 2.5 },
   falling: {
     height: 340,
@@ -217,6 +217,8 @@ export const TILES = {
   index: 'assets/tiles/tiles.json',
   /** Lámina del suelo y peso de cada baldosa de arena (la 1 y la 4 son lisas); las de ácido son los lagos. */
   sand: 'suelo',
+  /** Baldosas de suelo roto, debajo de los escombros (tools/slice_destrozos.py). */
+  broken: 'roto',
   sandWeights: [1, 6, 1, 1, 6, 1] as readonly number[],
   /** Láminas de decoración con baldosa; sus baldosas con ácido también son lagos. */
   deco: [] as readonly string[],
@@ -228,6 +230,9 @@ export const TILES = {
   imageWidth: 256,
   /** Oscurece el suelo para que destaquen los personajes. */
   tint: 0xb8a890,
+  /** El suelo roto y los escombros ya vienen oscuros: con `tint` se confundirían entre ellos. */
+  brokenTint: 0xdccab0,
+  rubbleTint: 0xffffff,
   /** Solape para que no se vean costuras. */
   overlap: 1.03,
 } as const;
@@ -293,6 +298,15 @@ export const PICKUP_ART = {
   ] as readonly string[],
 } as const;
 
+export interface AuraArt {
+  readonly strip: string;
+  readonly ring: number;
+  readonly ax: number;
+  readonly ay: number;
+  readonly fps: number;
+  readonly alpha: number;
+}
+
 /**
  * Efectos con dibujo (tools/slice_fx.py → `assets/fx/`): tiras de frames del mismo tamaño. Sin la tira, FxLayer sigue
  * dibujando su placeholder. Tamaños en px de mundo: `r` es múltiplo del radio del efecto (charco, zona, explosión) o
@@ -325,6 +339,23 @@ export const FX_ART = {
     glow: { w: 0.55, a: 0.26 },
     chevron: { gap: 46, speed: 90, len: 0.45, wing: 0.7, width: 3, dim: 0.22, lit: 0.85 },
   },
+  /**
+   * Lo que cae, en px de pantalla: `w` ancho, `ay` punto de la tira que marca su posición. La chatarra lleva una pieza
+   * por frame; el resto, un bucle.
+   */
+  fall: {
+    scrap: { strip: 'fall_scrap', w: 74, ay: 0.5, spin: 9 },
+    acid: { strip: 'fall_acid', w: 44, ay: 0.72, fps: 10 },
+    shell: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1 },
+  },
+  /**
+   * Auras de arma en el suelo. `ring`: parte del ancho del frame que ocupa el anillo, que marca el alcance; (`ax`, `ay`)
+   * es su centro. Las escribe tools/slice_destrozos.py al recortar.
+   */
+  aura: {
+    geiger: { strip: 'aura_geiger', ring: 0.844, ax: 0.512, ay: 0.566, fps: 8, alpha: 0.75 },
+    nucleo_inestable: { strip: 'aura_core', ring: 0.868, ax: 0.506, ay: 0.585, fps: 10, alpha: 0.85 },
+  } as Readonly<Record<string, AuraArt>>,
   pool: {
     fire: { r: 2.3, ay: 0.62, fps: 10 },
     /** `fade`: s finales en los que se apaga. `cull`: px de mundo; más lejos del jugador no se dibuja. */
@@ -334,7 +365,10 @@ export const FX_ART = {
     fire: { r: 2.2, ay: 0.72 },
     acid: { r: 2.4, ay: 0.68 },
     slam: { r: 2.3, ay: 0.55 },
-    /** Explosiones más grandes que esto (granada que barre la pantalla, crio-granada) siguen con el círculo. */
+    debris: { r: 3.4, ay: 0.78 },
+    /** Las que barren la pantalla: `r` deja la explosión del ancho de la vista; más grande, se pixela. */
+    big: { r: 0.9, ay: 0.72, alpha: 0.9 },
+    /** Las explosiones más grandes que esto (bomba y crio-granada, que barren la pantalla) usan las tiras grandes. */
     maxR: 220,
   },
   shot: {
@@ -343,6 +377,7 @@ export const FX_ART = {
     remachadora: { w: 28 },
     dardos_incendiarios: { w: 38 },
     rifle_cerrojo: { w: 34 },
+    escopeta_chatarra: { w: 26 },
   } as Readonly<Record<string, { w: number }>>,
   /** Qué tira usa cada arma con proyectil dibujado (las demás, círculo de su color). */
   shotArt: {
@@ -351,6 +386,7 @@ export const FX_ART = {
     remachadora: 'rivet',
     dardos_incendiarios: 'dart',
     rifle_cerrojo: 'bullet',
+    escopeta_chatarra: 'pellet',
   } as Readonly<Record<string, string>>,
   /** Punto de la tira que va en la posición del proyectil (la estela queda detrás). */
   shotAx: 0.68,

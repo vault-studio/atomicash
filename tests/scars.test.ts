@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { AI } from '../src/config/enemies';
 import { RAINS } from '../src/config/modes';
-import { PROP_LIST, PROP_SHAPES, RUBBLE_PROPS } from '../src/config/props';
+import { PROP_LIST, PROP_SHAPES, PROPS_BY_CELLS, RUBBLE_BY_KIND, RUBBLE_PROPS } from '../src/config/props';
 import { HAZARDS, RAD } from '../src/config/radiation';
 import { RUN } from '../src/config/run';
 import { SPAWN } from '../src/config/waves';
@@ -54,6 +54,20 @@ describe('escombros', () => {
       expect(PROP_SHAPES[k]!.r + RAINS.rubbleInset).toBeLessThanOrEqual(T / 2);
     }
     expect(RAINS.rubbleInset * 2).toBeGreaterThan(w.player.r * 2);
+  });
+
+  it('los escombros dependen de lo que cae y no salen como decoración del mapa', () => {
+    const w = freshWorld();
+    const a = freeCell(w);
+    addRubble(w, a.x, a.y, 'scrap');
+    const out = createCellObject();
+    worldObjectAt(w, a.i, a.j, out);
+    expect(RUBBLE_BY_KIND.scrap).toContain(out.prop);
+    const b = freeCell(w);
+    addRubble(w, b.x, b.y, 'shell');
+    worldObjectAt(w, b.i, b.j, out);
+    expect(RUBBLE_BY_KIND.shell).toContain(out.prop);
+    for (const k of RUBBLE_PROPS) expect(PROPS_BY_CELLS[1]).not.toContain(k);
   });
 
   it('cada impacto del mortero deja un obstáculo que frena al jugador y a las balas', () => {

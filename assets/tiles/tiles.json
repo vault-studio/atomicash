@@ -29,6 +29,20 @@
         "head": 0,
         "acid": 0.162
       }
+    ],
+    "roto": [
+      {
+        "file": "roto_0.png",
+        "head": 0
+      },
+      {
+        "file": "roto_1.png",
+        "head": 0
+      },
+      {
+        "file": "roto_2.png",
+        "head": 0
+      }
     ]
   }
 }

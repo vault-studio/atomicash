@@ -6,6 +6,9 @@ import { RUN } from './run';
 
 const T = RUN.groundCell;
 
+/** Qué ha roto el suelo: un obús o una bomba, o la lluvia de chatarra. */
+export type RubbleKind = 'shell' | 'scrap';
+
 export const PROPS = {
   /**
    * Probabilidad, por casilla, de que empiece en ella un objeto de 1 casilla, de 2 o un edificio de 3×3. Los de 2 y
@@ -41,8 +44,14 @@ export const PROPS = {
    */
   bigHalf: 1,
   bigR: 0.2,
-  /** Montones de cascotes: lo que queda donde el mortero o la lluvia de chatarra rompen el suelo. */
-  rubbleFiles: ['obj_a_01.png', 'obj_a_04.png'] as readonly string[],
+  /**
+   * Montones de escombros (tools/slice_destrozos.py): tierra y asfalto donde cae un obús o una bomba, chatarra donde
+   * cae la lluvia. No salen como decoración del mapa.
+   */
+  rubbleFiles: {
+    shell: ['rubble_0.png', 'rubble_1.png'],
+    scrap: ['rubble_2.png', 'rubble_3.png'],
+  } as Readonly<Record<RubbleKind, readonly string[]>>,
   /** Solape de las baldosas (TILES.overlap): los objetos se escalan igual que el suelo. */
   overlap: 1.03,
   /** Ancho del rombo de una baldosa en la imagen, en px. */
@@ -123,7 +132,9 @@ export interface PropShape {
 
 export const PROP_LIST: readonly PropInfo[] = index.props;
 
-const indicesWith = (cells: number): number[] => PROP_LIST.flatMap((p, k) => (p.cells === cells ? [k] : []));
+const isRubble = (file: string): boolean => Object.values(PROPS.rubbleFiles).some((l) => l.includes(file));
+const indicesWith = (cells: number): number[] =>
+  PROP_LIST.flatMap((p, k) => (p.cells === cells && !isRubble(p.file) ? [k] : []));
 export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indicesWith(9) } as const;
 
 /** Escala de cada objeto respecto a una baldosa. */
@@ -131,10 +142,15 @@ export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) =>
   p.cells === 1 ? PROPS.scale : p.cells === 2 ? PROPS.longScale : 1,
 );
 
-/** Objetos que deja el suelo roto (montones de cascotes), por su índice en `PROP_LIST`. */
-export const RUBBLE_PROPS: readonly number[] = PROP_LIST.flatMap((p, k) =>
-  PROPS.rubbleFiles.includes(p.file) ? [k] : [],
-);
+const rubbleOf = (kind: RubbleKind): number[] =>
+  PROP_LIST.flatMap((p, k) => (PROPS.rubbleFiles[kind].includes(p.file) ? [k] : []));
+
+/** Objetos que deja el suelo roto, por su índice en `PROP_LIST`. */
+export const RUBBLE_BY_KIND: Readonly<Record<RubbleKind, readonly number[]>> = {
+  shell: rubbleOf('shell'),
+  scrap: rubbleOf('scrap'),
+};
+export const RUBBLE_PROPS: readonly number[] = [...RUBBLE_BY_KIND.shell, ...RUBBLE_BY_KIND.scrap];
 
 /** Tipo de edificio de cada objeto, o null si no es edificio. */
 export const PROP_BUILDING: readonly (BuildingKind | null)[] = PROP_LIST.map(

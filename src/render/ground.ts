@@ -36,6 +36,8 @@ export interface GroundTiles {
   readonly deco: readonly GroundTile[];
   /** Lagos de ácido, de menor a mayor. */
   readonly acid: readonly GroundTile[];
+  /** Suelo roto bajo los escombros. */
+  readonly broken: readonly GroundTile[];
   /** Objetos sueltos que van encima de la arena, en el orden de `PROP_LIST`; null si no cargó. */
   readonly props: readonly (Prop | null)[];
 }
@@ -72,8 +74,9 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
     );
     return out.filter((t) => t !== null && t.weight > 0) as GroundTile[];
   };
-  const [props, sand, ...decoSets] = await Promise.all([
+  const [props, broken, sand, ...decoSets] = await Promise.all([
     loadProps(),
+    load(index.sets[TILES.broken] ?? []),
     load(index.sets[TILES.sand] ?? [], TILES.sandWeights),
     ...TILES.deco.map((name) => load(index.sets[name] ?? [])),
   ]);
@@ -82,6 +85,7 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
     sand: (sand ?? []).filter((t) => t.acid === 0),
     deco: deco.filter((t) => t.acid === 0),
     acid: [...(sand ?? []), ...deco].filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
+    broken: broken ?? [],
     props,
   };
 }
@@ -95,10 +99,14 @@ export class GroundView {
   readonly layer = new Container();
   /** Charco dibujado a mano, solo si faltan las baldosas del lago. */
   readonly outlines = new Graphics();
+  /** Suelo roto: encima de las baldosas, porque sus bordes pisan a las vecinas. */
+  private readonly craters = new Container();
   private readonly sprites: Sprite[] = [];
   private readonly tops: Sprite[] = [];
+  private readonly broken: Sprite[] = [];
   private used = 0;
   private usedTops = 0;
+  private usedBroken = 0;
   private key = '';
   private readonly scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
   private readonly sandTotal: number;
@@ -109,6 +117,9 @@ export class GroundView {
     private readonly world: World,
   ) {
     this.sandTotal = tiles ? tiles.sand.reduce((a, t) => a + t.weight, 0) : 0;
+    this.layer.sortableChildren = true;
+    this.craters.zIndex = 1;
+    this.layer.addChild(this.craters);
   }
 
   /** Coloca las casillas que caen dentro de la cámara (centro en mundo y semiextensión en px isométricos). */
@@ -158,6 +169,7 @@ export class GroundView {
     const w = this.world;
     this.used = 0;
     this.usedTops = 0;
+    this.usedBroken = 0;
     this.outlines.clear();
     const painted = this.tiles !== null && this.tiles.acid.length > 0;
     for (let j = j0; j <= j1; j++) {
@@ -186,7 +198,7 @@ export class GroundView {
         }
         // Los objetos de varias casillas se pintan una vez, desde su casilla de arriba a la izquierda.
         const has = worldObjectAt(w, i, j, cell) && cell.i === i && cell.j === j;
-        if (has && w.scars.has(cellKey(i, j))) this.crater(i, j);
+        if (has && w.scars.has(cellKey(i, j))) this.crater(i, j, x, y);
         const prop = has ? this.tiles?.props[cell.prop] : undefined;
         if (prop) {
           const s = this.topSprite();
@@ -194,6 +206,7 @@ export class GroundView {
           s.anchor.set(prop.ax, prop.ay);
           s.scale.set(this.scale * PROP_SCALE[cell.prop]!);
           s.position.set(isoX(cell.x, cell.y), isoY(cell.x, cell.y));
+          s.tint = w.scars.has(cellKey(i, j)) ? TILES.rubbleTint : TILES.tint;
           s.visible = true;
           s.zIndex = cell.x + cell.y;
         }
@@ -201,10 +214,17 @@ export class GroundView {
     }
     for (let k = this.used; k < this.sprites.length; k++) this.sprites[k]!.visible = false;
     for (let k = this.usedTops; k < this.tops.length; k++) this.tops[k]!.visible = false;
+    for (let k = this.usedBroken; k < this.broken.length; k++) this.broken[k]!.visible = false;
   }
 
-  /** Suelo roto bajo los escombros. PLACEHOLDER: mancha oscura con grietas hasta que haya baldosa propia. */
-  private crater(i: number, j: number): void {
+  /** Suelo roto bajo los escombros, centrado en su casilla; sin baldosas, una mancha oscura con grietas. */
+  private crater(i: number, j: number, cx: number, cy: number): void {
+    const list = this.tiles?.broken;
+    if (list && list.length > 0) {
+      const t = list[Math.floor(cellRand(this.world.seed, i, j, 14) * list.length)]!;
+      this.place(this.brokenSprite(), t, t.tex, cx, cy);
+      return;
+    }
     const C = RUN_COLORS.crater;
     const x = isoX(cell.x, cell.y);
     const y = isoY(cell.x, cell.y);
@@ -254,11 +274,23 @@ export class GroundView {
     let s = this.tops[this.usedTops];
     if (!s) {
       s = new Sprite();
-      s.tint = TILES.tint;
       this.tops.push(s);
       this.actors.addChild(s);
     }
+    s.tint = TILES.tint;
     this.usedTops++;
+    return s;
+  }
+
+  private brokenSprite(): Sprite {
+    let s = this.broken[this.usedBroken];
+    if (!s) {
+      s = new Sprite();
+      s.tint = TILES.brokenTint;
+      this.broken.push(s);
+      this.craters.addChild(s);
+    }
+    this.usedBroken++;
     return s;
   }
 

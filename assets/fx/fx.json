@@ -166,5 +166,59 @@
     "frames": 1,
     "w": 96,
     "h": 31
+  },
+  "big_blast": {
+    "file": "big_blast.png",
+    "frames": 8,
+    "w": 250,
+    "h": 184
+  },
+  "ice_blast": {
+    "file": "ice_blast.png",
+    "frames": 8,
+    "w": 250,
+    "h": 175
+  },
+  "debris": {
+    "file": "debris.png",
+    "frames": 6,
+    "w": 237,
+    "h": 195
+  },
+  "pellet": {
+    "file": "pellet.png",
+    "frames": 3,
+    "w": 96,
+    "h": 37
+  },
+  "fall_scrap": {
+    "file": "fall_scrap.png",
+    "frames": 3,
+    "w": 128,
+    "h": 110
+  },
+  "fall_acid": {
+    "file": "fall_acid.png",
+    "frames": 4,
+    "w": 64,
+    "h": 137
+  },
+  "fall_shell": {
+    "file": "fall_shell.png",
+    "frames": 1,
+    "w": 64,
+    "h": 236
+  },
+  "aura_geiger": {
+    "file": "aura_geiger.png",
+    "frames": 6,
+    "w": 333,
+    "h": 207
+  },
+  "aura_core": {
+    "file": "aura_core.png",
+    "frames": 6,
+    "w": 333,
+    "h": 220
   }
 }

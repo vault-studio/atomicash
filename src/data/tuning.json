@@ -1095,7 +1095,8 @@
       "r": 46,
       "dmg": 12,
       "rad": 0,
-      "aimChance": 0.25
+      "aimChance": 0.25,
+      "dustLife": 0.5
     },
     "acid": {
       "dur": 15,
