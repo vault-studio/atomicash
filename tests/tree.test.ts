@@ -1,7 +1,7 @@
 // Árbol nuevo: puntos, aprender y recolocar, migración del guardado y efecto en el motor de cada modificador.
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { treeIcon } from '../src/app/icons';
+import { sourceIcon, treeIcon, upgradeIcon } from '../src/app/icons';
 import { RAD, radTier } from '../src/config/radiation';
 import { ROSTER, type StatSurvivorId } from '../src/config/survivors';
 import {
@@ -15,6 +15,7 @@ import {
   type TreeNodeId,
 } from '../src/config/tree';
 import { CONSUMABLE_IDS } from '../src/config/items';
+import { UPGRADE_IDS } from '../src/config/meta';
 import { RUN } from '../src/config/run';
 import {
   allocateNode,
@@ -348,5 +349,10 @@ describe('iconos del árbol', () => {
         for (const gain of TREES[c][id].gains) files.add(treeIcon({ gains: [gain] }, 'llave').slice(1));
     expect(files.size).toBeGreaterThan(30);
     for (const file of files) expect(existsSync(file), file).toBe(true);
+  });
+
+  it('las mejoras del Taller y la explosión del hinchado tienen dibujo propio', () => {
+    for (const id of UPGRADE_IDS) expect(existsSync(upgradeIcon(id).slice(1)), id).toBe(true);
+    expect(existsSync(sourceIcon('hinchado').slice(1))).toBe(true);
   });
 });

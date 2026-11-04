@@ -13,27 +13,16 @@ export const weaponIcon = (id: WeaponId): string => `${BASE}${id}.png`;
 export const traitIcon = (id: TraitId): string => `${BASE}traits/${id}.png`;
 /** Consumibles, objetos de jefe y la carta de curación. */
 export const hudIcon = (id: ConsumableId | ItemId | 'heal'): string => `${BASE}hud/${id}.png`;
-/**
- * Mejoras del Taller. DECISIÓN: provisionales con dibujos de rasgos y del HUD hasta que haya iconos propios; el
- * afilador es el que menos se parece (punta de lanza).
- */
-const UPGRADE_ICONS: Readonly<Record<UpgradeId, string>> = {
-  hp: 'traits/plate',
-  dmg: 'traits/tips',
-  spd: 'traits/boots',
-  mag: 'traits/magnet',
-  reroll: 'hud/dice',
-  cons: 'hud/belt',
-};
-export const upgradeIcon = (id: UpgradeId): string => `${BASE}${UPGRADE_ICONS[id]}.png`;
+/** Mejoras del Taller. */
+export const upgradeIcon = (id: UpgradeId): string => `${BASE}upgrades/${id}.png`;
 /** Dibujo con transparencia de un objeto del mapa (sin ficha de chapa detrás). */
 export const pickupIcon = (id: 'coupon' | 'bomb' | 'barrel' | 'crate'): string => `${PICKUPS}${id}.png`;
 
-/** Icono de una fuente de daño del resumen; el bombardeo de hinchados no tiene. */
-export function sourceIcon(src: string): string | undefined {
+/** Icono de una fuente de daño del resumen. */
+export function sourceIcon(src: string): string {
   switch (src) {
     case 'hinchado':
-      return undefined;
+      return `${BASE}hinchado.png`;
     case 'granada':
       return hudIcon('grenade');
     case 'bomba':
@@ -47,8 +36,8 @@ export function sourceIcon(src: string): string | undefined {
 
 /**
  * Dibujo de cada nodo del Árbol según lo que da (su primer `gain`). Los de `tree/` son propios (assets/icons/tree/,
- * con el nombre de su efecto; hoja original en ARTE/iconos_arbol.webp). PROVISIONALES: el resto reutiliza iconos de
- * rasgos, del HUD, de armas y de los objetos del mapa.
+ * con el nombre de su efecto; hoja original en ARTE/iconos_arbol.webp). Las estadísticas usan el icono del rasgo que
+ * da lo mismo.
  */
 type Gain = NodeGain;
 const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<Gain['stat']>, string>>> = {
@@ -68,15 +57,15 @@ const TREE_STAT_ICONS: Readonly<Partial<Record<NonNullable<Gain['stat']>, string
   radDecay: 'tree/radDecay',
 };
 const TREE_MOD_ICONS: Readonly<Record<NonNullable<Gain['mod']>, string>> = {
-  coupons: 'coupon',
-  banish: 'traits/fuse',
-  lock: 'cache',
-  reroll: 'hud/dice',
-  hunter: 'hud/bobble',
-  coldBlood: 'traits/cat',
-  smuggler: 'chest',
-  melee: 'w:martillo_pilon',
-  consDur: 'hud/turbo',
+  coupons: 'tree/coupons',
+  banish: 'tree/banish',
+  lock: 'tree/lock',
+  reroll: 'upgrades/reroll',
+  hunter: 'tree/hunter',
+  coldBlood: 'tree/coldBlood',
+  smuggler: 'tree/smuggler',
+  melee: 'tree/melee',
+  consDur: 'tree/consDur',
   starter: 'w:pistola_clavos',
   radRes: 'tree/radRes',
   radPen: 'tree/radPen',

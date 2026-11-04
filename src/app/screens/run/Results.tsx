@@ -56,7 +56,7 @@ export function Results({ r, seed, extra, onAgain, onMenu }: Props) {
               {top.map((s) => (
                 <li key={s.src}>
                   <span>
-                    {sourceIcon(s.src) && <img className="wicon" src={sourceIcon(s.src)} alt="" />}
+                    <img className="wicon" src={sourceIcon(s.src)} alt="" />
                     {sourceName(s.src)}
                   </span>
                   <span className="ticket__bar" style={{ width: `${(s.dmg / max) * 100}%` }} />
