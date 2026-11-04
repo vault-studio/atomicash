@@ -27,6 +27,7 @@ import {
   lockCard,
   reroll,
 } from '../engine/systems/progression';
+import { startDownpour } from '../engine/systems/rains';
 import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
 import type { Banner, Choice, Enemy, InputState, World } from '../engine/types';
 import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
@@ -334,6 +335,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     } else if (e.code === 'KeyT') world.time += 60;
     else if (e.code === 'KeyE') spawnElite(world);
     else if (e.code === 'KeyH') announceHorde(world);
+    else if (e.code === 'KeyN') startDownpour(world);
   };
   window.addEventListener('keydown', onKey);
 

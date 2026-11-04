@@ -41,6 +41,8 @@ export const PROPS = {
    */
   bigHalf: 1,
   bigR: 0.2,
+  /** Montones de cascotes: lo que queda donde el mortero o la lluvia de chatarra rompen el suelo. */
+  rubbleFiles: ['obj_a_01.png', 'obj_a_04.png'] as readonly string[],
   /** Solape de las baldosas (TILES.overlap): los objetos se escalan igual que el suelo. */
   overlap: 1.03,
   /** Ancho del rombo de una baldosa en la imagen, en px. */
@@ -127,6 +129,11 @@ export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indices
 /** Escala de cada objeto respecto a una baldosa. */
 export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) =>
   p.cells === 1 ? PROPS.scale : p.cells === 2 ? PROPS.longScale : 1,
+);
+
+/** Objetos que deja el suelo roto (montones de cascotes), por su índice en `PROP_LIST`. */
+export const RUBBLE_PROPS: readonly number[] = PROP_LIST.flatMap((p, k) =>
+  PROPS.rubbleFiles.includes(p.file) ? [k] : [],
 );
 
 /** Tipo de edificio de cada objeto, o null si no es edificio. */

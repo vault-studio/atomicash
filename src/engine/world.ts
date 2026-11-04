@@ -6,7 +6,7 @@ import { CAPS, CREDITS, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { TREE_FX, type TreeMod } from '../config/tree';
-import { OBJECTIVES, type DailyMod } from '../config/modes';
+import { OBJECTIVES, RAINS, type DailyMod } from '../config/modes';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
 import { EVENTS, HORDES } from '../config/waves';
 import { refreshHazards } from './hazards';
@@ -33,6 +33,7 @@ import {
   updateTelegraphs,
 } from './systems/enemies';
 import { createBarrel, updateBarrels, updateObjective } from './systems/modes';
+import { updateDownpour } from './systems/rains';
 import { updatePickups } from './systems/progression';
 import { updateSpawning } from './systems/spawning';
 import {
@@ -192,6 +193,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     slimes: new Pool(createSlime, 120),
     hazards: [],
     hazardsOn: opts.hazards !== false,
+    scars: new Map(),
     hazardCell: { i: Number.NaN, j: Number.NaN },
     obstacles: createObstacleGrid(),
     obstacleCell: { i: Number.NaN, j: Number.NaN },
@@ -241,6 +243,9 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     barrelT: 3,
     objective: null,
     nextObjective: OBJECTIVES.first,
+    downpour: null,
+    nextDownpour: RAINS.first,
+    downpourIdx: 0,
     objectiveIdx: 0,
     objectivesDone: 0,
     endless: false,
@@ -388,6 +393,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   if (p.deadAt === null) {
     updateSpawning(w, dt);
     updateObjective(w, dt);
+    updateDownpour(w, dt);
   }
   updateWeapons(w, dt);
   updateShots(w, dt);

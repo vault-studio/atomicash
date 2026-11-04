@@ -2,7 +2,7 @@
 import { STAT_ENEMY_IDS, type StatEnemyId } from '../config/enemies';
 
 /** Fuentes de daño al jugador: cada tipo de enemigo y lo que no es un enemigo. */
-export const HURT_SOURCES = [...STAT_ENEMY_IDS, 'barril', 'rad', 'tormenta'] as const;
+export const HURT_SOURCES = [...STAT_ENEMY_IDS, 'barril', 'rad', 'tormenta', 'chatarra', 'acido'] as const;
 export type HurtSource = (typeof HURT_SOURCES)[number];
 export const HURT_INDEX: Readonly<Record<string, number>> = Object.fromEntries(
   HURT_SOURCES.map((s, i) => [s, i]),

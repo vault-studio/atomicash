@@ -7,7 +7,7 @@
 import { HAZARDS } from '../config/radiation';
 import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
 import { RUN } from '../config/run';
-import { buildingBlock, cellRand, hazardAt, nearBuilding } from './hazards';
+import { buildingBlock, cellKey, cellRand, hazardAt, nearBuilding, worldHazardAt } from './hazards';
 import type { Building, World } from './types';
 
 const T = RUN.groundCell;
@@ -107,6 +107,19 @@ export function objectAt(
   return true;
 }
 
+/** Como `objectAt`, contando los escombros que han dejado el mortero y la lluvia de chatarra. */
+export function worldObjectAt(w: World, i: number, j: number, out: CellObject): boolean {
+  if (objectAt(w.seed, i, j, w.start.x, w.start.y, out)) return true;
+  const s = w.scars.get(cellKey(i, j));
+  if (s?.kind !== 'rubble') return false;
+  out.prop = s.v;
+  out.i = i;
+  out.j = j;
+  out.x = s.x;
+  out.y = s.y;
+  return true;
+}
+
 const cell = createCellObject();
 
 /** Renueva las formas de choque y los edificios de alrededor del jugador si ha cambiado de casilla. */
@@ -125,7 +138,7 @@ export function refreshObstacles(w: World): void {
       const i = ci - R + di;
       const j = cj - R + dj;
       const o = (dj * SIDE + di) * STRIDE;
-      if (!objectAt(w.seed, i, j, w.start.x, w.start.y, cell)) {
+      if (!worldObjectAt(w, i, j, cell)) {
         g[o + 4] = 0;
         continue;
       }
@@ -140,6 +153,24 @@ export function refreshObstacles(w: World): void {
         buildings.push({ x: cell.x, y: cell.y, kind, key: `${cell.i},${cell.j}` });
     }
   w.buildings = buildings;
+}
+
+/**
+ * Apunta en la rejilla un objeto nuevo de la casilla (i, j). DECISIÓN: sin recalcular la ventana entera, que reserva
+ * memoria y los morteros disparan a menudo; fuera de la ventana lo recoge `refreshObstacles`.
+ */
+export function putObstacle(w: World, i: number, j: number, prop: number, x: number, y: number): void {
+  const di = i - w.obstacleCell.i + R;
+  const dj = j - w.obstacleCell.j + R;
+  if (!(di >= 0 && dj >= 0 && di < SIDE && dj < SIDE)) return;
+  const s = PROP_SHAPES[prop]!;
+  const o = (dj * SIDE + di) * STRIDE;
+  const g = w.obstacles;
+  g[o] = x;
+  g[o + 1] = y;
+  g[o + 2] = s.hx;
+  g[o + 3] = s.hy;
+  g[o + 4] = s.r;
 }
 
 /** Desplazamiento en la rejilla de la casilla (i, j); −1 si está libre o fuera de la ventana. */
@@ -246,9 +277,8 @@ export function areaClutter(w: World, x: number, y: number, r: number): number {
   let n = 0;
   for (let j = Math.floor((y - r) / T); j <= j1; j++)
     for (let i = Math.floor((x - r) / T); i <= i1; i++) {
-      if (hazardAt(w.seed, i, j, w.start.x, w.start.y) >= 0) n++;
-      else if (objectAt(w.seed, i, j, w.start.x, w.start.y, probe))
-        n += PROP_BUILDING[probe.prop] ? BUILDING_WEIGHT : 1;
+      if (worldHazardAt(w, i, j) >= 0) n++;
+      else if (worldObjectAt(w, i, j, probe)) n += PROP_BUILDING[probe.prop] ? BUILDING_WEIGHT : 1;
     }
   return n;
 }

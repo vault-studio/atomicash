@@ -39,6 +39,7 @@ import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
 import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
+import { landFall } from '../scars';
 import { mortarThink, mortarVel } from './shooters';
 import { SFX, sfx } from '../sfx';
 
@@ -141,6 +142,9 @@ export const createTele = (): Telegraph => ({
   dmg: 0,
   spawn: null,
   src: -1,
+  rad: 0,
+  fall: null,
+  hz: 0,
 });
 export const createSlime = (): Slime => ({ x: 0, y: 0, r: 0, life: 0, max: 0, rad: 0 });
 
@@ -400,6 +404,9 @@ function telegraph(
   t.dmg = dmg;
   t.spawn = spawn;
   t.src = curSrc;
+  t.rad = 0;
+  t.fall = null;
+  t.hz = 0;
 }
 
 /** Salto del Coloso: aviso donde está ahora el jugador y velocidad para llegar justo al acabar el aviso. */
@@ -1043,15 +1050,20 @@ export function updateTelegraphs(w: World, dt: number): void {
     const dmg = t.dmg;
     const spawn = t.spawn;
     const src = t.src;
+    const rad = t.rad;
+    const fall = t.fall;
+    const hz = t.hz;
     pool.releaseAt(i);
     if (dmg <= 0 && !spawn) continue;
-    boom(w, x, y, r, 0.25, FX.colors.tele);
+    const c = FX.colors;
+    boom(w, x, y, r, 0.25, fall === 'acid' ? c.bloater : fall === 'scrap' ? c.hammer : c.tele);
     addShake(w, 3);
     const dx = p.x - x;
     const dy = p.y - y;
     const rr = r + p.r;
     const hit = dx * dx + dy * dy < rr * rr;
-    if (hit) hurtPlayer(w, dmg, 0, false, src);
+    if (hit) hurtPlayer(w, dmg, rad, false, src);
+    if (fall) landFall(w, fall, x, y, hz);
     if (src === MORTAR_SRC) {
       if (hit) w.rs.shellsHit++;
       else w.rs.shellsDodged++;

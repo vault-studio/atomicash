@@ -1,6 +1,7 @@
 // Fase 4 del dossier, lo que hace repetir partidas: barriles explosivos y objetivos en el mapa (§11), reto diario
 // (§14) y modo infinito tras el Coloso (§17). Distancias en px de mundo y tiempos en s.
 import type { StatSurvivorId } from './survivors';
+import { TUNING } from './tuning';
 
 /**
  * Barriles explosivos sueltos por el páramo: revientan con un disparo, una explosión o un charco de fuego y se
@@ -25,6 +26,18 @@ export const BARRELS = {
   /** Daño al jugador si está dentro de la explosión. */
   playerDmg: 8,
 } as const;
+
+export type RainKind = 'scrap' | 'acid';
+
+/**
+ * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Empiezan en `first` s y se repiten cada
+ * `everyMin`–`everyMax` s, por turnos (`order`); esperan a que pase un jefe. Mientras duran (`dur`), cada `every` s cae
+ * algo a menos de `radius` del jugador, marcado `warn` s antes (`aimChance`: probabilidad de que vaya a por él). Si
+ * alcanza al jugador hace `dmg` y da `rad`.
+ * - `rubbleInset`: distancia mínima de los escombros al borde de su casilla (el doble es el hueco para pasar).
+ * - `objectiveMargin`: los destrozos se quedan a esta distancia de la zona de un objetivo.
+ */
+export const RAINS = TUNING.rains as Omit<typeof TUNING.rains, 'order'> & { order: readonly RainKind[] };
 
 export type ObjectiveKind = 'hold' | 'purge';
 

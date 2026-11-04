@@ -16,7 +16,7 @@
     "controls": "WASD / flechas: mover · 1 2 3 / R: tarjetas · 1–4: consumibles (tarjetas al elegir) · Esc: pausa",
     "controlsTouch": "Arrastra en la mitad izquierda para moverte",
     "back": "← Búnker",
-    "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min · E élite · H horda",
+    "debugKill": "Depuración: K muerte · J +100 · L nivel · G inmortal · B jefe · T +1 min · E élite · H horda · N lluvia",
     "dodge": "ESQUIVA",
     "pause": "Pausa",
     "paused": "EN PAUSA",
@@ -432,7 +432,9 @@
     "objectiveDone": "¡Objetivo cumplido! Cofre especial",
     "objectiveFail": "Objetivo perdido",
     "endless": "¡MODO INFINITO!",
-    "radSave": "¡La piel de plomo aguanta!"
+    "radSave": "¡La piel de plomo aguanta!",
+    "scrapRain": "¡Lluvia de chatarra!",
+    "acidRain": "¡Lluvia de ácido!"
   },
   "slogans": [
     "¡EL ÁTOMO ES TU AMIGO!",

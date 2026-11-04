@@ -276,6 +276,9 @@ export interface Mine {
   dmg: number;
 }
 
+/** Lo que cae del cielo y deja un destrozo en el mapa al llegar al suelo (ver engine/scars.ts). */
+export type TeleFall = 'shell' | 'scrap' | 'acid';
+
 /**
  * Aviso en el suelo de un ataque de jefe; al acabar, explota (y quizá crea un enemigo). Si (lx, ly) no es cero es un
  * pasillo de anchura 2r desde (x, y) hasta (x + lx, y + ly). Con `dmg` 0 solo avisa (la embestida hace el daño).
@@ -292,6 +295,26 @@ export interface Telegraph {
   spawn: StatEnemyId | null;
   /** Quién lo lanzó (índice en HURT_SOURCES), para las estadísticas. */
   src: number;
+  /** RAD que da si alcanza al jugador. */
+  rad: number;
+  /** Lo que cae, si deja destrozo; `hz` es el radio del lago (en `HAZARDS.cellRadii`) si es ácido. */
+  fall: TeleFall | null;
+  hz: number;
+}
+
+/** Destrozo de una casilla: escombros (`v` = objeto de `PROP_LIST`) o lago de ácido (`v` = radio). */
+export interface Scar {
+  kind: 'rubble' | 'acid';
+  v: number;
+  x: number;
+  y: number;
+}
+
+/** Lluvia en curso: tiempo que le queda y hasta el próximo objeto que cae. */
+export interface Downpour {
+  kind: 'scrap' | 'acid';
+  left: number;
+  next: number;
 }
 
 /** Rastro radiactivo de babosa. */
@@ -539,9 +562,11 @@ export interface World {
   readonly rs: RunStats;
   readonly slimes: Pool<Slime>;
   /** Charcos alrededor del jugador (el mapa no tiene bordes; ver engine/hazards.ts). */
-  hazards: readonly Hazard[];
+  hazards: Hazard[];
   /** Con charcos y obstáculos (las pruebas los quitan para tener el campo limpio). */
   readonly hazardsOn: boolean;
+  /** Destrozos del mapa por casilla (`cellKey`). Solo crecen: el render repinta el suelo cuando cambia su tamaño. */
+  readonly scars: Map<number, Scar>;
   /** Casilla del jugador cuando se calcularon `hazards`. */
   readonly hazardCell: { i: number; j: number };
   /** Radios de los obstáculos de las casillas alrededor del jugador (ver engine/obstacles.ts). */
@@ -612,6 +637,10 @@ export interface World {
   barrelT: number;
   objective: Objective | null;
   nextObjective: number;
+  /** Lluvia de chatarra o de ácido en curso (la radiactiva de los eventos es `rain`). */
+  downpour: Downpour | null;
+  nextDownpour: number;
+  downpourIdx: number;
   objectiveIdx: number;
   objectivesDone: number;
   /** Modo infinito tras el Coloso: desde cuándo, próximo jefe y vueltas de la rueda de jefes. */

@@ -87,6 +87,36 @@ export class FxLayer {
   private hpSeen = -1;
   private healAt = -1;
 
+  /**
+   * Lo que cae en una lluvia, cada vez más deprisa (`f` de 0 a 1). PLACEHOLDER: un trozo de chapa que gira o una gota,
+   * hasta que haya dibujo propio.
+   */
+  private drawFall(a: Graphics, x: number, y: number, kind: 'scrap' | 'acid', f: number, t: number): void {
+    const F = RUN_COLORS.falling;
+    if (f < F.from) return;
+    const sx = isoX(x, y);
+    const sy = isoY(x, y) - F.height * (1 - f * f);
+    const c = F[kind];
+    const s = c.size;
+    if (kind === 'acid') {
+      a.moveTo(sx, sy - s * 1.9)
+        .bezierCurveTo(sx + s, sy - s * 0.6, sx + s, sy + s, sx, sy + s)
+        .bezierCurveTo(sx - s, sy + s, sx - s, sy - s * 0.6, sx, sy - s * 1.9)
+        .fill({ color: c.color, alpha: 0.9 })
+        .stroke({ width: 2, color: c.edge });
+      return;
+    }
+    const r = t * 9 + x;
+    a.poly(
+      [0, 0.45, 1.6, 2.2, 3.3, 4.6].flatMap((o, k) => {
+        const d = s * (k % 2 === 0 ? 1 : 0.65);
+        return [sx + Math.cos(r + o) * d, sy + Math.sin(r + o) * d * 0.7];
+      }),
+    )
+      .fill({ color: c.color })
+      .stroke({ width: 2, color: c.edge });
+  }
+
   draw(w: World): void {
     const g = this.ground;
     const a = this.air;
@@ -146,6 +176,8 @@ export class FxLayer {
       const f = tl.t / tl.dur;
       // El último cuarto parpadea: ya va a caer.
       const blink = f > 0.75 ? 0.5 + 0.5 * Math.sin(t * 40) : 1;
+      const tint = tl.fall === 'acid' ? RUN_COLORS.hazard : RUN_COLORS.tele;
+      if (tl.fall === 'scrap' || tl.fall === 'acid') this.drawFall(a, tl.x, tl.y, tl.fall, f, t);
       if (tl.lx !== 0 || tl.ly !== 0) {
         this.drawLane(g, tl.x, tl.y, tl.lx, tl.ly, tl.r, f, blink, t);
         continue;
@@ -158,18 +190,18 @@ export class FxLayer {
         if (f > 0)
           sg.put('tele_disc', 0, sx, sy, tl.r * f * T.disc.r, {
             flat: true,
-            tint: RUN_COLORS.tele,
+            tint,
             alpha: T.disc.alpha * blink,
           });
         sg.put('tele_circle', 0, sx, sy, tl.r * T.circle.r, {
           flat: true,
-          tint: RUN_COLORS.tele,
+          tint,
           alpha: 0.9 * blink,
         });
         continue;
       }
-      groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: RUN_COLORS.tele, alpha: 0.8 * blink });
-      groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: RUN_COLORS.tele, alpha: 0.25 * blink });
+      groundCircle(g, tl.x, tl.y, tl.r).stroke({ width: 2, color: tint, alpha: 0.8 * blink });
+      groundCircle(g, tl.x, tl.y, tl.r * f).fill({ color: tint, alpha: 0.25 * blink });
     }
     // Zona del objetivo: anillo que late y se llena con el progreso (amarillo «aguanta», rojo «limpia la zona»).
     const ob = w.objective;

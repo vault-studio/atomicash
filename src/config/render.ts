@@ -151,6 +151,14 @@ export const RUN_COLORS = {
   bombFuse: 0xffb347,
   hazard: 0x9dff00,
   hazardAlpha: 0.18,
+  /** Suelo roto bajo los escombros (placeholder) y lo que cae en las lluvias, en px de pantalla. */
+  crater: { color: 0x14100c, alpha: 0.5, r: 50, vary: 0.35, cracks: 7, reach: 1.4, short: 0.65, width: 2.5 },
+  falling: {
+    height: 340,
+    from: 0.15,
+    scrap: { color: 0x8a6a4a, edge: 0x2a2018, size: 26 },
+    acid: { color: 0x9dff00, edge: 0x3a6a00, size: 24 },
+  },
   slime: 0x7dff3a,
   pool: 0xff7a2a,
   tele: 0xff3c28,

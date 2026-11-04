@@ -1070,5 +1070,34 @@
     "saveTo": 60,
     "stunDur": 0.6,
     "rushDur": 2
+  },
+  "rains": {
+    "first": 130,
+    "everyMin": 100,
+    "everyMax": 140,
+    "order": [
+      "scrap",
+      "acid"
+    ],
+    "radius": 520,
+    "aimChance": 0.25,
+    "tries": 8,
+    "rubbleInset": 20,
+    "objectiveMargin": 90,
+    "scrap": {
+      "dur": 9,
+      "every": 0.75,
+      "warn": 1.3,
+      "r": 46,
+      "dmg": 12,
+      "rad": 0
+    },
+    "acid": {
+      "dur": 9,
+      "every": 1.5,
+      "warn": 1.7,
+      "dmg": 8,
+      "rad": 12
+    }
   }
 }

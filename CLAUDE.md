@@ -40,7 +40,7 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
   `node tools/simdiff.mjs out/balance`, comparación `node tools/simdiff.mjs <antes> <después>`.
 - Smoke test: `npm run smoke` (60 s de partida con piloto automático, errores de consola, captura en `out/smoke.png`).
 - Depurador: `npm run dev` y abrir `/?dev&char=dot&seed=1&god=1&bot=kite&speed=2&weapons=llave:3` (F1 panel). Atajos (DEV):
-  K morir, J 100 enemigos, L subir nivel, G invencible, B jefe, T +60 s, E élite, H horda, F3 debug del render.
+  K morir, J 100 enemigos, L subir nivel, G invencible, B jefe, T +60 s, E élite, H horda, N lluvia, F3 debug del render.
 
 ## Git
 

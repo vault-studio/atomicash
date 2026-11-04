@@ -82,6 +82,17 @@ export function hazardAt(seed: number, i: number, j: number, startX: number, sta
   return k >= 0 && !nearBuilding(seed, i, j, startX, startY) ? k : -1;
 }
 
+/** Clave de una casilla en `w.scars`. */
+export const cellKey = (i: number, j: number): number => i * 0x10000 + j;
+
+/** Como `hazardAt`, contando los lagos que ha dejado la lluvia de ácido. */
+export function worldHazardAt(w: World, i: number, j: number): number {
+  const k = hazardAt(w.seed, i, j, w.start.x, w.start.y);
+  if (k >= 0) return k;
+  const s = w.scars.get(cellKey(i, j));
+  return s?.kind === 'acid' ? s.v : -1;
+}
+
 /** Renueva `w.hazards` con los charcos de alrededor del jugador si ha cambiado de casilla. */
 export function refreshHazards(w: World): void {
   if (!w.hazardsOn) return;
@@ -94,7 +105,7 @@ export function refreshHazards(w: World): void {
   const R = HAZARDS.window;
   for (let j = cj - R; j <= cj + R; j++)
     for (let i = ci - R; i <= ci + R; i++) {
-      const k = hazardAt(w.seed, i, j, w.start.x, w.start.y);
+      const k = worldHazardAt(w, i, j);
       if (k >= 0) out.push({ x: (i + 0.5) * T, y: (j + 0.5) * T, r: T * HAZARDS.cellRadii[k]! });
     }
   w.hazards = out;

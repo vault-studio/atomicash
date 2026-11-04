@@ -16,7 +16,7 @@
     "controls": "WASD / arrows: move · 1 2 3 / R: cards · 1–4: consumables (cards while choosing) · Esc: pause",
     "controlsTouch": "Drag on the left half to move",
     "back": "← Bunker",
-    "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min · E elite · H horde",
+    "debugKill": "Debug: K death · J +100 · L level · G god · B boss · T +1 min · E elite · H horde · N rain",
     "dodge": "DODGE",
     "pause": "Pause",
     "paused": "PAUSED",
@@ -432,7 +432,9 @@
     "objectiveDone": "Objective complete! Special chest",
     "objectiveFail": "Objective lost",
     "endless": "ENDLESS MODE!",
-    "radSave": "The lead skin holds!"
+    "radSave": "The lead skin holds!",
+    "scrapRain": "Scrap rain!",
+    "acidRain": "Acid rain!"
   },
   "slogans": [
     "THE ATOM IS YOUR FRIEND!",

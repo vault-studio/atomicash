@@ -1,8 +1,10 @@
 // Tirador especial (CAMBIOS §3): en vez de una zona, lanza una salva de impactos en línea por delante del jugador,
 // siguiendo su dirección de movimiento. Cada impacto se marca en el suelo antes de caer, y caen uno tras otro: si no
-// cambia de dirección, se los come todos. Contrarresta correr en línea recta.
+// cambia de dirección, se los come todos. Contrarresta correr en línea recta. Cada impacto rompe el suelo y deja
+// escombros (engine/scars.ts).
 import { AI } from '../../config/enemies';
 import { leadLine, type Vec } from '../rules';
+import { markFall } from '../scars';
 import type { Enemy, World } from '../types';
 
 const pts: Vec[] = Array.from({ length: 16 }, () => ({ x: 0, y: 0 }));
@@ -26,17 +28,7 @@ export function launchSalvo(w: World, src: number): number {
   const gap = moving ? Math.max(sp * A.stagger, A.minGap) : A.minGap;
   leadLine(p.x, p.y, dirX, dirY, first, gap, n, pts);
   for (let i = 0; i < n; i++) {
-    const t = w.tele.acquire();
-    t.x = pts[i]!.x;
-    t.y = pts[i]!.y;
-    t.r = A.shellR;
-    t.lx = 0;
-    t.ly = 0;
-    t.t = 0;
-    t.dur = A.warn + i * A.stagger;
-    t.dmg = A.shellDmg;
-    t.spawn = null;
-    t.src = src;
+    markFall(w, pts[i]!.x, pts[i]!.y, A.shellR, A.warn + i * A.stagger, A.shellDmg, 0, src, 'shell');
   }
   return n;
 }

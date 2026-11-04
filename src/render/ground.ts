@@ -5,8 +5,8 @@ import { HAZARDS } from '../config/radiation';
 import { PROP_LIST, PROP_SCALE } from '../config/props';
 import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
 import { RUN } from '../config/run';
-import { cellRand, hazardAt } from '../engine/hazards';
-import { createCellObject, objectAt } from '../engine/obstacles';
+import { cellKey, cellRand, worldHazardAt } from '../engine/hazards';
+import { createCellObject, worldObjectAt } from '../engine/obstacles';
 import type { World } from '../engine/types';
 import { isoX, isoY } from './iso';
 
@@ -139,7 +139,7 @@ export class GroundView {
     j0 -= MARGIN;
     i1 += MARGIN;
     j1 += MARGIN;
-    const key = `${i0},${i1},${j0},${j1}`;
+    const key = `${i0},${i1},${j0},${j1},${this.world.scars.size}`;
     if (key === this.key) return;
     this.key = key;
     this.rebuild(i0, i1, j0, j1, sx, sy, halfW + T * 2, halfH + T * 2);
@@ -155,7 +155,7 @@ export class GroundView {
     hw: number,
     hh: number,
   ): void {
-    const { seed, start } = this.world;
+    const w = this.world;
     this.used = 0;
     this.usedTops = 0;
     this.outlines.clear();
@@ -168,7 +168,7 @@ export class GroundView {
         const y = isoY(wx, wy);
         // El rectángulo de casillas es un rombo en pantalla: se saltan las que quedan fuera.
         if (Math.abs(x - sx) > hw || Math.abs(y - sy) > hh) continue;
-        const hz = hazardAt(seed, i, j, start.x, start.y);
+        const hz = worldHazardAt(w, i, j);
         // DECISIÓN: con el lago pintado no se marca el borde; solo se dibuja el charco si faltan las baldosas.
         if (hz >= 0 && !painted) {
           const r = T * HAZARDS.cellRadii[hz]!;
@@ -185,7 +185,8 @@ export class GroundView {
           top.zIndex = wx + wy;
         }
         // Los objetos de varias casillas se pintan una vez, desde su casilla de arriba a la izquierda.
-        const has = objectAt(seed, i, j, start.x, start.y, cell) && cell.i === i && cell.j === j;
+        const has = worldObjectAt(w, i, j, cell) && cell.i === i && cell.j === j;
+        if (has && w.scars.has(cellKey(i, j))) this.crater(i, j);
         const prop = has ? this.tiles?.props[cell.prop] : undefined;
         if (prop) {
           const s = this.topSprite();
@@ -200,6 +201,24 @@ export class GroundView {
     }
     for (let k = this.used; k < this.sprites.length; k++) this.sprites[k]!.visible = false;
     for (let k = this.usedTops; k < this.tops.length; k++) this.tops[k]!.visible = false;
+  }
+
+  /** Suelo roto bajo los escombros. PLACEHOLDER: mancha oscura con grietas hasta que haya baldosa propia. */
+  private crater(i: number, j: number): void {
+    const C = RUN_COLORS.crater;
+    const x = isoX(cell.x, cell.y);
+    const y = isoY(cell.x, cell.y);
+    const o = this.outlines;
+    // Cada grieta con su tamaño y su giro, para que no salgan todas iguales.
+    const size = C.r * (1 - C.vary + 2 * C.vary * cellRand(this.world.seed, i, j, 14));
+    const turn = cellRand(this.world.seed, i, j, 15) * Math.PI * 2;
+    o.ellipse(x, y, size, size / 2).fill({ color: C.color, alpha: C.alpha });
+    for (let k = 0; k < C.cracks; k++) {
+      const a = (k / C.cracks) * Math.PI * 2 + turn;
+      const r = size * C.reach * (k % 2 === 0 ? 1 : C.short);
+      o.moveTo(x, y).lineTo(x + Math.cos(a) * r, y + (Math.sin(a) * r) / 2);
+    }
+    o.stroke({ width: C.width, color: C.color, alpha: C.alpha });
   }
 
   private pick(i: number, j: number, hz: number): GroundTile | undefined {
