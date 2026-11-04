@@ -39,7 +39,7 @@ import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
 import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
-import { landFall } from '../scars';
+import { landFall, markFall } from '../scars';
 import { mortarThink, mortarVel } from './shooters';
 import { SFX, sfx } from '../sfx';
 
@@ -668,7 +668,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           e.phase = 2;
           banner(w, 'banner.ratPhase');
           addShake(w, 6);
-          ring(w, 'necrofago', e.x, e.y, 4, A.summonDist + 30);
+          ring(w, 'necrofago', p.x, p.y, 4, A.summonDist + 30);
         }
         const p2 = e.phase >= 2;
         // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
@@ -687,7 +687,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
             markAttack(w, e, 'attack_1');
           } else {
             markAttack(w, e, 'attack_2');
-            ring(w, A.summonType, e.x, e.y, p2 ? A.summonP2 : A.summon, A.summonDist);
+            ring(w, A.summonType, p.x, p.y, p2 ? A.summonP2 : A.summon, A.summonDist);
             e.mt = A.summonStop;
             e.timer = A.summonStop;
             e.burst = p2 ? A.chainP2 : A.chain;
@@ -799,7 +799,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           const by = vy / l;
           for (let i = 0; i < A.bombCount; i++) {
             const off = (i - (A.bombCount - 1) / 2) * A.bombSpacing;
-            telegraph(w, p.x + bx * off, p.y + by * off, A.bombR, A.bombWarn, A.bombDmg);
+            markFall(w, p.x + bx * off, p.y + by * off, A.bombR, A.bombWarn, A.bombDmg, 0, curSrc, 'shell');
           }
           // El pasillo de la pasada, de punta a punta (solo aviso).
           const half = ((A.bombCount - 1) / 2) * A.bombSpacing + A.bombR;

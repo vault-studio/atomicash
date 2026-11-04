@@ -3,6 +3,7 @@
 // y se quedan toda la partida). `worldHazardAt` y `worldObjectAt` los suman a lo que dice el hash.
 // Como en cada casilla cabe un destrozo y cada escombro queda a `RAINS.rubbleInset` del borde de la suya, entre dos
 // escombros siempre pasa el jugador: por mucho que caiga, nunca queda encerrado.
+import { AI } from '../config/enemies';
 import { RAINS } from '../config/modes';
 import { PROP_SHAPES, RUBBLE_PROPS } from '../config/props';
 import { HAZARDS } from '../config/radiation';
@@ -66,6 +67,23 @@ export function addAcid(w: World, i: number, j: number, hz: number): boolean {
   if (Math.abs(i - w.hazardCell.i) <= R && Math.abs(j - w.hazardCell.j) <= R)
     w.hazards.push({ x, y, r: T * HAZARDS.cellRadii[hz]! });
   return true;
+}
+
+const NEAR = [1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1] as const;
+
+/** El hinchado revienta: losetas de ácido juntas (`AI.hinchado.acidCells`), del lago grande, alrededor de (x, y). */
+export function acidPatch(w: World, x: number, y: number): void {
+  const i = Math.floor(x / T);
+  const j = Math.floor(y / T);
+  const big = HAZARDS.cellRadii.length - 1;
+  let left = AI.hinchado.acidCells;
+  if (addAcid(w, i, j, big)) left--;
+  // Las vecinas, empezando por una al azar y saltando para que la mancha no salga siempre en fila.
+  const from = Math.floor(w.rng() * 8);
+  for (let k = 0; k < 8 && left > 0; k++) {
+    const n = (from + k * 3) % 8;
+    if (addAcid(w, i + NEAR[n * 2]!, j + NEAR[n * 2 + 1]!, big)) left--;
+  }
 }
 
 /** Marca en el suelo algo que caerá en (x, y) dentro de `dur` s; `updateTelegraphs` lo resuelve con `landFall`. */

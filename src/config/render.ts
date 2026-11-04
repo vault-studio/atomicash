@@ -327,7 +327,8 @@ export const FX_ART = {
   },
   pool: {
     fire: { r: 2.3, ay: 0.62, fps: 10 },
-    acid: { r: 2.3, ay: 0.58, fps: 7 },
+    /** `fade`: s finales en los que se apaga. `cull`: px de mundo; más lejos del jugador no se dibuja. */
+    acid: { r: 2.3, ay: 0.58, fps: 7, fade: 3, cull: 1300 },
   },
   boom: {
     fire: { r: 2.2, ay: 0.72 },

@@ -8,7 +8,7 @@ import type { StatKey } from '../config/traits';
 import { TREE_FX, type TreeMod } from '../config/tree';
 import { OBJECTIVES, RAINS, type DailyMod } from '../config/modes';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
-import { EVENTS, HORDES } from '../config/waves';
+import { EVENTS, HORDES, SPAWN } from '../config/waves';
 import { refreshHazards } from './hazards';
 import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
@@ -190,7 +190,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     mines: new Pool(createMine, 80),
     tele: new Pool(createTele, 48),
     rs: createRunStats(),
-    slimes: new Pool(createSlime, 120),
+    slimes: new Pool(createSlime, SPAWN.maxSlime),
     hazards: [],
     hazardsOn: opts.hazards !== false,
     scars: new Map(),

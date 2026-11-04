@@ -38,7 +38,7 @@ export const WAVES: readonly WaveDef[] = T.waves;
  * - `rateMult`: Multiplicador global del ritmo de aparición de todas las oleadas. DECISIÓN: menos enemigos que
  *   dan mucha más experiencia (XP.killMult): se sube de nivel más a menudo con menos agobio en pantalla, ahora que
  *   la cámara está más cerca.
- * - `maxSlime`: Rastros de babosa simultáneos.
+ * - `maxSlime`: Rastros de babosa simultáneos (cada uno dura `AI.babosa.trailLife`).
  */
 export const SPAWN: DeepReadonly<typeof T.spawn> = T.spawn;
 

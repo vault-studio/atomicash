@@ -132,7 +132,9 @@ export class FxLayer {
     const acidArt = sg?.has('acid_pool') ?? false;
     for (let i = 0; i < w.slimes.count; i++) {
       const s = w.slimes.items[i]!;
-      const fade = s.life / s.max;
+      // Duran un minuto: se dibujan solo los cercanos y se apagan al final, no a lo largo de toda su vida.
+      if ((s.x - w.player.x) ** 2 + (s.y - w.player.y) ** 2 > P.acid.cull ** 2) continue;
+      const fade = Math.min(1, s.life / P.acid.fade);
       if (acidArt) {
         // Cada charco en su fase para que no burbujeen todos a la vez.
         sg!.put(
@@ -143,7 +145,7 @@ export class FxLayer {
           s.r * P.acid.r,
           {
             ay: P.acid.ay,
-            alpha: Math.min(1, fade * 2) * 0.85,
+            alpha: fade * 0.85,
           },
         );
         continue;

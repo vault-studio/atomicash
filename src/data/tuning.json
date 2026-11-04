@@ -337,7 +337,8 @@
       "boomR": 95,
       "boomEnemyDmg": 30,
       "boomPlayerDmg": 10,
-      "boomRad": 8
+      "boomRad": 8,
+      "acidCells": 4
     },
     "torreta": {
       "every": 2.6,
@@ -348,9 +349,9 @@
       "sloganChance": 0.3
     },
     "babosa": {
-      "trailEvery": 0.4,
+      "trailEvery": 0.8,
       "trailR": 26,
-      "trailLife": 4,
+      "trailLife": 60,
       "trailRad": 5
     },
     "aspiradora": {
@@ -381,7 +382,7 @@
       "every": 1.2,
       "summon": 7,
       "summonType": "dron",
-      "summonDist": 70,
+      "summonDist": 300,
       "summonStop": 1,
       "chain": 3,
       "aim": 0.55,
@@ -949,7 +950,7 @@
     "staticMax": 600,
     "bossRateMult": 0.5,
     "rateMult": 0.7,
-    "maxSlime": 120,
+    "maxSlime": 500,
     "specialsBossDelay": 10
   },
   "hordes": {
@@ -1083,25 +1084,27 @@
       "scrap",
       "acid"
     ],
-    "radius": 520,
-    "aimChance": 0.25,
     "tries": 8,
     "rubbleInset": 20,
     "objectiveMargin": 90,
     "scrap": {
-      "dur": 9,
+      "dur": 15,
       "every": 0.75,
+      "radius": 520,
       "warn": 1.3,
       "r": 46,
       "dmg": 12,
-      "rad": 0
+      "rad": 0,
+      "aimChance": 0.25
     },
     "acid": {
-      "dur": 9,
-      "every": 1.5,
+      "dur": 15,
+      "every": 0.4,
+      "radius": 800,
       "warn": 1.7,
       "dmg": 8,
-      "rad": 12
+      "rad": 12,
+      "aimChance": 0.1
     }
   }
 }

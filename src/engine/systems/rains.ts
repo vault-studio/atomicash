@@ -29,14 +29,14 @@ export function startDownpour(w: World, kind?: RainKind): void {
  * Casilla donde caerá algo: a veces la que pisará el jugador si sigue igual y, si no, una al azar a su alrededor.
  * Devuelve false si tras `RAINS.tries` intentos no encuentra una libre.
  */
-function pickCell(w: World, warn: number): boolean {
+function pickCell(w: World, warn: number, radius: number, aim: number): boolean {
   const p = w.player;
   for (let k = 0; k < RAINS.tries; k++) {
     let x = p.x + p.vx * warn;
     let y = p.y + p.vy * warn;
-    if (k > 0 || w.rng() >= RAINS.aimChance) {
+    if (k > 0 || w.rng() >= aim) {
       const a = w.rng() * TAU;
-      const d = Math.sqrt(w.rng()) * RAINS.radius;
+      const d = Math.sqrt(w.rng()) * radius;
       x = p.x + Math.cos(a) * d;
       y = p.y + Math.sin(a) * d;
     }
@@ -49,7 +49,7 @@ function pickCell(w: World, warn: number): boolean {
 
 function drop(w: World, kind: RainKind): void {
   const D = RAINS[kind];
-  if (!pickCell(w, D.warn)) return;
+  if (!pickCell(w, D.warn, D.radius, D.aimChance)) return;
   const x = (spot.i + 0.5) * T;
   const y = (spot.j + 0.5) * T;
   if (kind === 'acid') {

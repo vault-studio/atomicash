@@ -15,7 +15,8 @@ import {
   worldObjectAt,
 } from '../src/engine/obstacles';
 import { addAcid, addRubble, markFall, scarFree } from '../src/engine/scars';
-import { addChest } from '../src/engine/systems/combat';
+import { addChest, killEnemy } from '../src/engine/systems/combat';
+import { spawnEnemy } from '../src/engine/systems/enemies';
 import { startDownpour, updateDownpour } from '../src/engine/systems/rains';
 import { launchSalvo } from '../src/engine/systems/shooters';
 import { hurtIndex } from '../src/engine/runStats';
@@ -184,6 +185,60 @@ describe('lagos de ácido', () => {
   });
 });
 
+describe('los enemigos también cambian el mapa', () => {
+  it('el hinchado deja varias losetas de ácido juntas al reventar', () => {
+    const w = freshWorld();
+    const c = freeCell(w, 3);
+    const e = spawnEnemy(w, 'hinchado', c.x, c.y, false);
+    killEnemy(w, e, 'llave');
+    tick(w, idle, STEP);
+    const lakes = [...w.scars.entries()].filter(([, s]) => s.kind === 'acid');
+    expect(lakes.length).toBe(AI.hinchado.acidCells);
+    for (const [, s] of lakes) {
+      expect(Math.abs(s.x - c.x)).toBeLessThanOrEqual(T + 1);
+      expect(Math.abs(s.y - c.y)).toBeLessThanOrEqual(T + 1);
+      expect(s.v).toBe(HAZARDS.cellRadii.length - 1);
+    }
+    expect(worldHazardAt(w, c.i, c.j)).toBeGreaterThanOrEqual(0);
+  });
+
+  it('las bombas del dirigible rompen el suelo', () => {
+    const w = freshWorld();
+    spawnEnemy(w, 'dirigible', w.player.x + 300, w.player.y, false);
+    for (let k = 0; k < 14 * 60 && w.scars.size === 0; k++) tick(w, idle, STEP);
+    const list = [...w.scars.values()];
+    expect(list.length).toBeGreaterThan(0);
+    expect(list.every((s) => s.kind === 'rubble')).toBe(true);
+  });
+
+  it('los esbirros del rey rata salen alrededor del jugador', () => {
+    const w = freshWorld();
+    const p = w.player;
+    const boss = spawnEnemy(w, 'rey_rata', p.x + 1200, p.y, false);
+    boss.burst = 0;
+    boss.timer = 0;
+    tick(w, idle, STEP);
+    const drones = w.enemies.items.slice(0, w.enemies.count).filter((e) => e.type === AI.rey_rata.summonType);
+    expect(drones.length).toBe(AI.rey_rata.summon);
+    for (const e of drones) expect(Math.hypot(e.x - p.x, e.y - p.y)).toBeCloseTo(AI.rey_rata.summonDist, -1);
+  });
+
+  it('el rastro de la babosa dura un minuto', () => {
+    const w = freshWorld();
+    const e = spawnEnemy(w, 'babosa', w.player.x + 400, w.player.y, false);
+    e.trail = 0;
+    tick(w, idle, STEP);
+    expect(w.slimes.count).toBe(1);
+    expect(w.slimes.items[0]!.life).toBeCloseTo(60, 0);
+    e.dead = true;
+    w.enemies.count = 0;
+    for (let k = 0; k < 59 * 60; k++) tick(w, idle, STEP);
+    expect(w.slimes.count).toBeGreaterThanOrEqual(1);
+    for (let k = 0; k < 2 * 60; k++) tick(w, idle, STEP);
+    expect(w.slimes.count).toBe(0);
+  });
+});
+
 describe('lluvias', () => {
   const run = (w: World, s: number): void => {
     for (let k = 0; k < s * 60; k++) tick(w, idle, STEP);
@@ -198,7 +253,7 @@ describe('lluvias', () => {
     expect(list.every((s) => s.kind === 'rubble')).toBe(true);
     expect(list.length).toBeGreaterThanOrEqual(8);
     for (const s of list)
-      expect(Math.hypot(s.x - w.player.x, s.y - w.player.y)).toBeLessThan(RAINS.radius + T);
+      expect(Math.hypot(s.x - w.player.x, s.y - w.player.y)).toBeLessThan(RAINS.scrap.radius + T);
   });
 
   it('la de ácido deja lagos nuevos, en el centro de su casilla', () => {
@@ -206,7 +261,7 @@ describe('lluvias', () => {
     startDownpour(w, 'acid');
     run(w, RAINS.acid.dur + 3);
     const list = [...w.scars.values()];
-    expect(list.length).toBeGreaterThanOrEqual(3);
+    expect(list.length).toBeGreaterThanOrEqual(20);
     for (const s of list) {
       expect(s.kind).toBe('acid');
       expect(s.x % T).toBeCloseTo(T / 2);

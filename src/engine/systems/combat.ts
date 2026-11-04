@@ -14,6 +14,7 @@ import { DROPS, FIELD_PICKUP_IDS, FIELD_PICKUPS, type FieldPickupId } from '../.
 import { IRRADIATED, RAD, radTier } from '../../config/radiation';
 import { BUILDINGS } from '../../config/props';
 import { chestSpot } from '../obstacles';
+import { acidPatch } from '../scars';
 import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
@@ -240,6 +241,7 @@ export function resolveBlasts(w: World): void {
     const x = b.x;
     const y = b.y;
     boom(w, x, y, A.boomR, 0.3, FX.colors.bloater);
+    acidPatch(w, x, y);
     const k = queryEnemies(w, x, y, A.boomR, out);
     for (let j = 0; j < k; j++) hitEnemy(w, w.enemies.items[out[j]!]!, A.boomEnemyDmg, 'hinchado', HIT_RAW);
     const dx = x - p.x;
