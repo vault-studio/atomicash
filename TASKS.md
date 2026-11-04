@@ -82,6 +82,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Saltar la intro ya no pulsa el menú de debajo (toque y teclado). En PC, PV/RAD, nivel y radar crecen menos que el resto (`--u-top`, `--u-radar`); en móvil no cambian.
 - ✅ En táctil, la tira de armas y equipo va abajo a la derecha, y los consumibles se usan con un segundo dedo mientras el otro mueve el joystick.
 - ✅ Mapa: dos edificios nunca salen juntos (`PROPS.buildingGap`, un bloque libre entre ellos) y alrededor de cada uno queda una casilla sin objetos ni ácido (`PROPS.clearance`). Las zonas de objetivo buscan un sitio despejado. Cofres y cajas siempre a la vista: las del supermercado, de la derecha a la esquina delantera; los que caerían detrás del edificio pasan a su cara visible (`chestSpot`).
+- ✅ En táctil, los botones de consumibles miden 50 px como mínimo (antes 37 en móvil).
 
 ## Bugs conocidos
 

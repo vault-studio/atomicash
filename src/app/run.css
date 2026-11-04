@@ -558,6 +558,16 @@
     right: max(12px, env(safe-area-inset-right));
     transform: none;
   }
+
+  /* Se pulsan a ciegas con el pulgar mientras el otro mueve: bastante más grandes que las armas. */
+  .slot--cons {
+    width: max(50px, calc(var(--slot) * 1.35));
+    height: max(50px, calc(var(--slot) * 1.35));
+  }
+
+  .slots:has(.slot--cons) {
+    gap: max(6px, calc(6 * var(--u)));
+  }
 }
 
 /* La leyenda del radar solo cabe en pantallas altas. */
