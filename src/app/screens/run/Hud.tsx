@@ -1,6 +1,6 @@
 // HUD de la run (04_ART_UI.md §2) con estética de terminal de fósforo de los 50: PV y RAD arriba a la izquierda,
-// tiempo y XP arriba al centro, radar, bajas y pausa arriba a la derecha, armas, objeto y consumibles abajo a la
-// derecha.
+// tiempo y XP arriba al centro, radar, bajas y pausa arriba a la derecha, armas, objetos y consumibles en una tira
+// abajo al centro.
 import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
@@ -176,8 +176,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
         ))}
       </div>
 
-      <div className="hud__br panel">
-        <span className="panel__label">{t('run.weapons')}</span>
+      <div className="hud__dock">
         <div className="slots">
           {slots.map((w, i) => (
             <div
@@ -208,8 +207,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
             </div>
           ))}
         </div>
-        <span className="panel__label">{t('run.kit')}</span>
-        <div className="slots slots--cons">
+        <div className="slots">
           {CONSUMABLE_IDS.map((id, i) => (
             <button
               key={id}

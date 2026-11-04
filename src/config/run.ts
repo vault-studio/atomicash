@@ -145,7 +145,7 @@ export const JUICE = {
 /**
  * Fase de test: enseña en la run el botón que saca al Coloso. Ponlo a false al publicar.
  */
-export const TEST_PHASE = true;
+export const TEST_PHASE = false;
 
 /**
  * Racha de bajas (dossier §12): bajas seguidas sin recibir daño. Cada tramo multiplica la experiencia de las bajas;

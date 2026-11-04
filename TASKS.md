@@ -78,6 +78,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Taller dentro de la ficha (pestañas Ficha · Taller · Árbol): mejoras de cupones, implante y arsenal (aprender y elegir armas iniciales). Intendencia queda en una pantalla de consumibles (comprar packs; mochila y lo que se lleva a la expedición en la misma ficha). Desaparece el mercader con rotación diaria.
 - ✅ Pasillo de embestida sin aspecto de depuración: franja de tierra difuminada, brillo rojo que avanza con la carga y galones que marchan hacia donde irá (`FX_ART.lane`).
 - ✅ Botón de pantalla completa en el menú principal y en Ajustes (`src/app/fullscreen.tsx`). Oculto si el juego está instalado; en iPhone, Ajustes explica cómo añadirlo a la pantalla de inicio.
+- ✅ HUD de la run a escala de la pantalla del juego (`--u` en `run.css`): compacto en móvil y grande en PC. Armas, objetos y consumibles en una tira abajo al centro, sin panel. PV/RAD ya no pisa el nivel. Botón de test del Coloso oculto (`TEST_PHASE = false`).
 
 ## Bugs conocidos
 

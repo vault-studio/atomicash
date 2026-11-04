@@ -380,10 +380,10 @@ select {
   position: absolute;
   left: 0;
   right: 0;
-  top: 76px;
+  top: calc(130 * var(--u) + 8px);
   padding: 0 16px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: max(14px, calc(18 * var(--u)));
   opacity: 0.6;
   pointer-events: none;
 }
