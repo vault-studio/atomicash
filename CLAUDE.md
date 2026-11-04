@@ -44,7 +44,9 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
 
 ## Git
 
-- Trabajar en `cambios-jugabilidad`. No tocar `main` sin aprobación. Un commit por tarea terminada.
+- Rama única: `main`. Cada push a `main` se publica en https://atomicash.vercel.app.
+- Un commit por tarea terminada, en local. Push solo con aprobación del usuario, después de probarlo.
+- Cambio grande o arriesgado → rama temporal, que se borra al fusionarla.
 - Antes de `/clear` o `/compact`: TASKS.md al día y commit.
 
 ## Agentes y modelos

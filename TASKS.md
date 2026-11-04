@@ -1,6 +1,6 @@
 # TASKS — cambios de jugabilidad
 
-Rama: `cambios-jugabilidad` · Roadmap: `docs/CAMBIOS.md` · Estado: **T0–T16 hechas; pendiente de revisión del usuario antes de tocar `main`**.
+Rama: `main` · Roadmap: `docs/CAMBIOS.md` · Estado: **T0–T16 hechas y publicadas**.
 
 Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el director) · ⛔ bloqueada
 
@@ -101,4 +101,4 @@ acierta al bot (cambia de rumbo sin parar): revisarlo jugando. Empezar con tesla
 
 ## Siguiente tarea recomendada
 
-Probar jugando (`npm run dev`, depurador F1) mortero, cercos y furia; decidir si se lleva la rama a `main`.
+Probar jugando (`npm run dev`, depurador F1) mortero, cercos y furia.
