@@ -441,7 +441,8 @@ export const FX_ART = {
    * miden `restScale` de lo que medían en el robot. `seamDark` oscurece los cortes. `delay` s tras la muerte aparecen las piezas, ya con la explosión encima; se oscurecen hasta
    * `char` en `charTime` s y se apagan los últimos `fade` s. `colorPiece`: lado de cada trozo del robot sin sprite, en
    * fracción de su ancho, y `colorDark`, cuánto se oscurece su color. Explosión: una cada `per` px de ancho del robot, hasta `max`, separadas `gap` s; `w` en
-   * fracción de su ancho. `scorch`: mancha quemada del suelo.
+   * fracción de su ancho. `scorch`: mancha quemada del suelo: `strip` de `w` veces el
+   * ancho del robot, o un círculo de radio `r` si no carga.
    */
   wreck: {
     anims: ['move', 'idle'] as readonly AnimId[],
@@ -459,7 +460,7 @@ export const FX_ART = {
     colorDark: 0.6,
     motion: { air: 0.55, fall: 450, reach: 0.8, pop: 0.7, heavy: 2, spin: 8, turn: 1.8 },
     blast: { per: 170, max: 5, gap: 0.13, dur: 0.5, w: 1.5, ay: 0.72, spread: 0.55 },
-    scorch: { r: 0.36, alpha: 0.3, color: 0x14100c, in: 0.25 },
+    scorch: { strip: 'scorch', w: 1.15, artAlpha: 0.9, r: 0.36, alpha: 0.3, color: 0x14100c, in: 0.25 },
   },
   levelup: { w: 78, ay: 0.92, dur: 0.9 },
   heal: { w: 56, ay: 0.9, dur: 0.6, minFrac: 0.08 },

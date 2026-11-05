@@ -759,14 +759,22 @@ export class FxLayer {
     const B = X.blast;
     const S = X.scorch;
     const sa = this.sa;
+    const sg = this.sg;
     for (let i = 0; i < w.wrecks.count; i++) {
       const c = w.wrecks.items[i]!;
       const age = w.time - c.t;
       const width = wreckWidth(c.sprite) * (c.elite ? ELITES.scale : 1);
-      const alpha = S.alpha * Math.min(1, age / S.in) * Math.min(1, (c.until - w.time) / X.fade);
-      groundCircle(this.ground, c.x, c.y, width * S.r).fill({ color: S.color, alpha });
-      if (!sa) continue;
+      const shown = Math.min(1, age / S.in) * Math.min(1, (c.until - w.time) / X.fade);
       const sx = isoX(c.x, c.y);
+      if (sg?.has(S.strip)) {
+        const frame = Math.floor(wreckRand(c.seed, 0, 22) * sg.frames(S.strip));
+        sg.put(S.strip, frame, sx, isoY(c.x, c.y), width * S.w, {
+          alpha: S.artAlpha * shown,
+          flip: wreckRand(c.seed, 0, 23) < 0.5,
+        });
+      } else
+        groundCircle(this.ground, c.x, c.y, width * S.r).fill({ color: S.color, alpha: S.alpha * shown });
+      if (!sa) continue;
       const sy = isoY(c.x, c.y) - (c.flying ? flyLift(c.sprite) : 0);
       const n = Math.min(B.max, Math.ceil(width / B.per));
       for (let k = 0; k < n; k++) {

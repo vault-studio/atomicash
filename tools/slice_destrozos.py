@@ -5,6 +5,7 @@
 # añade o sustituye sus entradas (fx.json, tiles.json y props.json).
 #   ARTE/fx_explosiones.webp     → perdigón
 #   ARTE/fx_explosion_fuego.webp → explosión de la bomba
+#   ARTE/fx_quemaduras.webp → manchas quemadas de los robots que revientan
 #   ARTE/fx_explosion_hielo.webp → explosión de la crio-granada
 #   ARTE/fx_auras.webp           → auras del Geiger y del Núcleo inestable
 #   ARTE/fx_lluvias.webp         → lo que cae en las lluvias, el obús y el impacto de escombros
@@ -30,6 +31,8 @@ TILE_W = 288  # ancho de una baldosa rota: el rombo mide 256 y los bordes deshil
 RUBBLE_W = 380  # ancho de un montón; el juego lo encoge con `PROPS.scale`, como a los demás objetos de una casilla
 RUBBLE_FW = 0.63  # fracción del ancho que cuenta como base: el faldón de tierra suelta se puede pisar
 RING_WIDE = 2  # proporción de un círculo del suelo en isométrico
+SCORCH_SHEET = 'ARTE/fx_quemaduras.webp'  # 4 manchas en 2 × 2
+SCORCH_W = 384  # ancho final de cada mancha; el alto es la mitad, como un círculo del suelo
 
 # (nombre, y0, y1, frames, x0, x1). Frames a partes iguales dentro de x0–x1.
 GROUNDED = {
@@ -134,6 +137,21 @@ def auras(a, y0, y1):
     return out, meta
 
 
+def scorch():
+    """Las 4 manchas de la hoja (2 × 2), centradas y a 2:1 como un círculo del suelo."""
+    a = load(SCORCH_SHEET)
+    h, w = a.shape[:2]
+    cells = [a[r * h // 2 : (r + 1) * h // 2, c * w // 2 : (c + 1) * w // 2] for r in range(2) for c in range(2)]
+    frames = []
+    for img in cells:
+        l, t, r, b = box(img[..., 3], ALPHA)
+        mx, my = (l + r) // 2, (t + b) // 2
+        half_w, half_h = (r - l) // 2, (b - t) // 2
+        crop = Image.fromarray(img[my - half_h : my + half_h, mx - half_w : mx + half_w], 'RGBA')
+        frames.append(np.array(crop.resize((SCORCH_W, SCORCH_W // 2), Image.LANCZOS)))
+    return frames
+
+
 def tiles():
     a = load('ARTE/tiles_suelo_roto.webp')
     out = []
@@ -189,6 +207,7 @@ def main():
         frames, meta = auras(a, y0, y1)
         index[name] = save_strip(name, frames)
         print(name, meta)
+    index['scorch'] = save_strip('scorch', scorch())
     (FX / 'fx.json').write_text(json.dumps(index, indent=2) + '\n', encoding='utf8')
 
     t = json.loads((TILES / 'tiles.json').read_text(encoding='utf8'))

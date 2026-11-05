@@ -220,5 +220,11 @@
     "frames": 6,
     "w": 333,
     "h": 220
+  },
+  "scorch": {
+    "file": "scorch.png",
+    "frames": 4,
+    "w": 384,
+    "h": 192
   }
 }
