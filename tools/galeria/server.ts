@@ -204,7 +204,7 @@ server.listen(PORT, HOST, () => {
   if (process.argv.includes('--open')) {
     const [cmd, args]: [string, string[]] =
       process.platform === 'win32'
-        ? ['cmd', ['/c', 'start', '""', url]]
+        ? ['cmd', ['/c', 'start', '', url]]
         : process.platform === 'darwin'
           ? ['open', [url]]
           : ['xdg-open', [url]];
