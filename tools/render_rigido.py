@@ -43,6 +43,8 @@ PROFILES = {
     "excavadora": dict(fit=(2.2, 1.3), anims={"move": (8, 12, True), "attack": (10, 14, False), "death": (12, 12, False)}),
     # Vuela: el juego lo eleva, aquí se renderiza a ras de suelo. En el juego se ve enorme: celda de 384 px y
     # menos fotogramas para que las hojas no pasen de 4096 px.
+    # Va mirando a -X: `turn` lo gira a -Y. `flame`: chorro de la tobera, (z de su centro en el modelo, radio).
+    "interceptor": dict(fit=(2.1, 0.9), turn=90, flame=(0.9, 0.34), anims={"move": (8, 14, True), "attack": (8, 14, False)}),
     "dirigible": dict(fit=(2.2, 1.4), cell=384, anims={"move": (8, 6, True), "attack_1": (8, 10, False),
                                                        "attack_2": (8, 10, False), "death": (10, 8, False)}),
 }
@@ -256,8 +258,62 @@ def pose_dirigible(anim, t):
     return {}
 
 
+def pose_interceptor(anim, t):
+    a = 2 * math.pi * t
+    if anim == "move":
+        # Flota casi pegado al suelo, con el morro un poco abajo y la tobera a tope.
+        return dict(pitch=2.5 + 0.8 * math.sin(a * 2), roll=2.2 * math.sin(a), hop=0.09 + 0.025 * math.sin(a),
+                    flame=0.3 + 0.05 * math.sin(a * 3) + 0.04 * random.random(), jit=0.006)
+    if anim == "attack":
+        # El choque: clava el morro, rebota hacia atrás y la tobera se apaga.
+        hit = math.exp(-t * 5)
+        return dict(pitch=-13 * math.sin(math.pi * min(1, t * 1.6)) + 6 * hit, fwd=0.16 * hit - 0.12 * math.sin(math.pi * t),
+                    hop=0.06, flame=0.16 * (1 - t), jit=0.03 * hit)
+    return {}
+
+
 POSES = {"aspiradora": pose_aspiradora, "babosa": pose_babosa, "cortacesped": pose_cortacesped, "torreta": pose_torreta,
-         "excavadora": pose_excavadora, "dirigible": pose_dirigible}
+         "excavadora": pose_excavadora, "dirigible": pose_dirigible, "interceptor": pose_interceptor}
+
+
+def make_flame(ctrl, spec, y, z, s):
+    """Chorro de la tobera, dos conos que salen por detrás (+Y). Devuelve con qué fijar su largo en metros."""
+    def cone(radius, color, strength):
+        bpy.ops.mesh.primitive_cone_add(vertices=20, radius1=radius, radius2=0, depth=1)
+        o = bpy.context.active_object
+        m = bpy.data.materials.new("Flame")
+        m.use_nodes = True
+        t = m.node_tree
+        t.nodes.clear()
+        e = t.nodes.new("ShaderNodeEmission")
+        e.inputs[0].default_value = (*color, 1)
+        e.inputs[1].default_value = strength
+        # Se desvanece hacia la punta: en el cono, z va de -0,5 (base) a 0,5.
+        coord = t.nodes.new("ShaderNodeTexCoord")
+        split = t.nodes.new("ShaderNodeSeparateXYZ")
+        fade = t.nodes.new("ShaderNodeMath")
+        fade.inputs[1].default_value = 0.5
+        mix = t.nodes.new("ShaderNodeMixShader")
+        t.links.new(coord.outputs["Object"], split.inputs[0])
+        t.links.new(split.outputs["Z"], fade.inputs[0])
+        t.links.new(fade.outputs[0], mix.inputs[0])
+        t.links.new(e.outputs[0], mix.inputs[1])
+        t.links.new(t.nodes.new("ShaderNodeBsdfTransparent").outputs[0], mix.inputs[2])
+        t.links.new(mix.outputs[0], t.nodes.new("ShaderNodeOutputMaterial").inputs[0])
+        o.data.materials.append(m)
+        o.parent = ctrl
+        o.rotation_euler = (math.radians(-90), 0, 0)
+        return o
+
+    cones = [(cone(spec[1] * s, (0.2, 0.8, 1.0), 1.3), 1.0), (cone(spec[1] * s * 0.55, (0.8, 1.0, 1.0), 1.5), 0.6)]
+
+    def length(v):
+        for o, k in cones:
+            o.hide_render = v <= 0.02
+            o.scale = (1, 1, max(0.01, v * k))
+            o.location = (0, y + v * k / 2, z)
+
+    return (length,)
 
 
 def main():
@@ -281,6 +337,7 @@ def main():
         bpy.data.objects.remove(o, do_unlink=True)
     bpy.context.view_layer.objects.active = body
     body.select_set(True)
+    body.rotation_euler.z += math.radians(prof.get("turn", 0))
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
     vs = [v.co.copy() for v in body.data.vertices]
@@ -302,6 +359,7 @@ def main():
     body.parent = ctrl
     body.scale = (s, s, s)
     body.location = (-cx * s, -cy * s, -zmin * s - hz / 2)
+    flame = make_flame(ctrl, prof["flame"], (max(ys) - cy) * s, (prof["flame"][0] - zmin) * s - hz / 2, s) if "flame" in prof else None
 
     out_frames = os.path.join(dst, "_frames")
     os.makedirs(out_frames, exist_ok=True)
@@ -320,6 +378,8 @@ def main():
                 ctrl.rotation_euler = (math.radians(p.get("pitch", 0.0)), math.radians(p.get("roll", 0.0)),
                                        math.radians(p.get("yaw", 0.0)))
                 ctrl.scale = (sx, sy, sz)
+                if flame:
+                    flame[0](p.get("flame", 0.0))
                 ctrl.location = (random.uniform(-jit, jit), -p.get("fwd", 0.0) + random.uniform(-jit, jit), 0)
                 # Apoya el punto más bajo de la pose en el suelo.
                 m = ctrl.matrix_basis
@@ -336,4 +396,5 @@ def main():
     log("Frames renderizados en " + out_frames)
 
 
-main()
+if __name__ == "__main__":
+    main()
