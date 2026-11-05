@@ -24,12 +24,6 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--port", "5175", "--strictPort"],
       "port": 5175
-    },
-    {
-      "name": "atomicash-galeria",
-      "runtimeExecutable": "node",
-      "runtimeArgs": ["tools/galeria/server.ts"],
-      "port": 5180
     }
   ]
 }

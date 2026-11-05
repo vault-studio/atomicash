@@ -91,7 +91,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Radar: cada sitio con su marcador (zona con enemigos, suministros, cofre, evento, zona hecha) y leyenda por categorías. Pausa → «Mapa»: mapa a pantalla completa con nombres, ácido, enemigos y flechas a lo que no cabe; Esc vuelve a la pausa. Las flechas del HUD ya no salen encima de los menús.
 - ✅ Pulsar el radar (ratón o dedo, también con otro dedo en el joystick) pausa y abre el mapa; al cerrarlo se vuelve directamente a la partida.
 - ✅ El botón de pausa responde con un dedo en el joystick, y el toque que abre la pausa no pulsa lo que aparece debajo.
-- ✅ Galería de assets local (`npm run galeria`, `tools/galeria/`): personajes, enemigos, jefes, armas, iconos, retratos, mapa, efectos, audio, hojas de `ARTE/` y modelos de `NOVEDADES/`, con animaciones reproducidas por dirección. Se actualiza sola al añadir archivos (lo que no encaja crea una sección automática). Exporta lo marcado en zip, con las animaciones como hoja + JSON o fotogramas sueltos. No entra en el build ni se publica.
+- ✅ La galería de assets (2026-11-05) pasó a ser un proyecto aparte: `Apps/galeria-assets`, con su propia copia del arte. El arte nuevo de Atomic Ash no llega solo: hay que copiarlo allí.
 
 ## Bugs conocidos
 
