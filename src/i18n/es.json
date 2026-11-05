@@ -33,6 +33,7 @@
     "slotEmpty": "Vacío",
     "hp": "PV",
     "radar": "RADAR",
+    "openMap": "Abrir el mapa",
     "weapons": "ARMAS",
     "itemEmpty": "Hueco de objeto: lo llena el cofre de un jefe",
     "kit": "EQUIPO",

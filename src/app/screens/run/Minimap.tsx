@@ -15,9 +15,10 @@ const isRadarKind = (k: PickupKind): k is RadarKind => k in RADAR.kinds;
 
 interface Props {
   world: World;
+  onOpen: () => void;
 }
 
-export function Minimap({ world }: Props) {
+export function Minimap({ world, onOpen }: Props) {
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -44,7 +45,19 @@ export function Minimap({ world }: Props) {
 
   return (
     <div className="radar">
-      <canvas ref={ref} className="radar__screen" aria-label={t('run.radar')} />
+      {/* Al pulsar, no al soltar: con un dedo en el joystick el navegador no genera el clic del otro dedo. */}
+      <button
+        className="radar__open"
+        aria-label={t('run.openMap')}
+        onPointerDown={(e) => {
+          if (e.button === 0) onOpen();
+        }}
+        onClick={(e) => {
+          if (e.detail === 0) onOpen();
+        }}
+      >
+        <canvas ref={ref} className="radar__screen" aria-label={t('run.radar')} />
+      </button>
       <MapKey className="radar__legend" />
     </div>
   );

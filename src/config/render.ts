@@ -148,6 +148,7 @@ export const RADAR = {
  */
 export const MAP = {
   range: 1100,
+  closeGuardMs: 350,
   arrowRange: 2400,
   cells: 34,
   grid: 400,

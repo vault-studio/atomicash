@@ -69,7 +69,8 @@ export function RunScreen({
   const [choiceKey, setChoiceKey] = useState(0);
   const [weld, setWeld] = useState<WeaponId | null>(null);
   const [paused, setPaused] = useState(false);
-  const [map, setMap] = useState(false);
+  // Desde dónde se abrió el mapa: al cerrarlo se vuelve allí.
+  const [map, setMap] = useState<'pause' | 'radar' | null>(null);
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
   // Cambiar la clave reinicia la run sin recargar la página (F1-09).
   const [runKey, setRunKey] = useState(0);
@@ -98,7 +99,7 @@ export function RunScreen({
     setResult(null);
     setChoice(null);
     setPaused(false);
-    setMap(false);
+    setMap(null);
     setMinDone(!!noLoader);
     setLoaderGone(!!noLoader);
     const minTimer = noLoader ? undefined : setTimeout(() => setMinDone(true), LOADER_MIN_MS);
@@ -152,12 +153,16 @@ export function RunScreen({
     sessionRef.current?.setPaused(paused || weld !== null || !loaded);
   }, [paused, weld, loaded, ready]);
 
+  const closeMap = useCallback(() => {
+    if (map === 'radar') setPaused(false);
+    setMap(null);
+  }, [map]);
+
   // Pausa con Esc/P y al perder el foco de la pestaña.
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if ((e.code !== 'Escape' && e.code !== 'KeyP') || result || choice) return;
-      // Con el mapa abierto se vuelve a la pausa, no a la partida.
-      if (map) setMap(false);
+      if (map) closeMap();
       else setPaused((p) => !p);
     };
     const onBlur = (): void => {
@@ -174,7 +179,7 @@ export function RunScreen({
       window.removeEventListener('blur', onBlur);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [result, choice, map]);
+  }, [result, choice, map, closeMap]);
 
   const pick = useCallback((i: number) => {
     const s = sessionRef.current;
@@ -188,6 +193,10 @@ export function RunScreen({
   const consume = useCallback((i: number) => sessionRef.current?.consume(i), []);
   const spawnColossus = useCallback(() => sessionRef.current?.spawnColossus(), []);
   const pause = useCallback(() => setPaused(true), []);
+  const openMap = useCallback(() => {
+    setMap('radar');
+    setPaused(true);
+  }, []);
   const doReroll = useCallback(() => sessionRef.current?.reroll(), []);
   const banish = useCallback((i: number) => sessionRef.current?.banish(i), []);
   const lock = useCallback((i: number) => sessionRef.current?.lock(i), []);
@@ -200,7 +209,9 @@ export function RunScreen({
     <div className="run">
       <div className="run__canvas" ref={hostRef} />
       {!loaderGone && !noLoader && <ExpeditionLoader leaving={loaded} />}
-      {ready && hud && world && <Hud hud={hud} world={world} onPause={pause} onConsume={consume} />}
+      {ready && hud && world && (
+        <Hud hud={hud} world={world} onPause={pause} onMap={openMap} onConsume={consume} />
+      )}
       {TEST_PHASE && ready && !result && !choice && !paused && (
         // Fase de test: saca al Coloso en cualquier momento. tabIndex -1 para que el espacio no lo vuelva a pulsar.
         <button className="run__test" tabIndex={-1} onClick={spawnColossus}>
@@ -225,7 +236,7 @@ export function RunScreen({
           onLock={lock}
         />
       )}
-      {paused && !result && map && world && <MapView world={world} onClose={() => setMap(false)} />}
+      {paused && !result && map && world && <MapView world={world} onClose={closeMap} />}
       {paused && !result && !map && (
         <div className="overlay overlay--pause" role="dialog" aria-modal="true">
           <h2 className="overlay__title">{t('run.paused')}</h2>
@@ -234,7 +245,7 @@ export function RunScreen({
             <button className="btn btn--primary" autoFocus onClick={() => setPaused(false)}>
               {t('run.resume')}
             </button>
-            <button className="btn" onClick={() => setMap(true)}>
+            <button className="btn" onClick={() => setMap('pause')}>
               {t('run.map')}
             </button>
             <button className="btn" onClick={onExit}>

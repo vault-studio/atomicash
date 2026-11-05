@@ -400,6 +400,15 @@
   gap: calc(4 * var(--u));
 }
 
+.radar__open {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
 .radar__screen {
   width: calc(176 * var(--u));
   height: calc(176 * var(--u));

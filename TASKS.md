@@ -89,6 +89,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Lluvias de 15 s; la de ácido cae cada 0,4 s en un radio de 800 (unos 37 lagos) y solo el 10 % busca al jugador (`aimChance`, la chatarra sigue en 25 %). El rastro de babosa dura 60 s (`trailEvery` 0,8 y `maxSlime` 500 para aguantarlo). El hinchado deja 4 losetas de ácido juntas (`acidCells`). Las bombas del dirigible dejan escombros. Los esbirros del rey rata salen alrededor del jugador (`summonDist` 300).
 - ✅ Arte de destrozos y efectos (`tools/slice_destrozos.py`, hojas en `ARTE/`): 3 baldosas de suelo roto, 4 montones de escombros (tierra y asfalto para obús y dirigible, chatarra para la lluvia), chatarra, gota y obús cayendo, polvo del impacto de chatarra, perdigón, explosiones de bomba y crio-granada, y auras del Geiger y del Núcleo inestable. Pendientes: sprites de interceptor y mortero.
 - ✅ Radar: cada sitio con su marcador (zona con enemigos, suministros, cofre, evento, zona hecha) y leyenda por categorías. Pausa → «Mapa»: mapa a pantalla completa con nombres, ácido, enemigos y flechas a lo que no cabe; Esc vuelve a la pausa. Las flechas del HUD ya no salen encima de los menús.
+- ✅ Pulsar el radar (ratón o dedo, también con otro dedo en el joystick) pausa y abre el mapa; al cerrarlo se vuelve directamente a la partida.
 
 ## Bugs conocidos
 

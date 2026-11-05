@@ -46,6 +46,7 @@ interface Props {
   hud: HudSnapshot;
   world: World;
   onPause: () => void;
+  onMap: () => void;
   onConsume: (i: number) => void;
 }
 
@@ -61,7 +62,7 @@ function useBannerText(): (b: Banner) => string {
   };
 }
 
-export function Hud({ hud, world, onPause, onConsume }: Props) {
+export function Hud({ hud, world, onPause, onMap, onConsume }: Props) {
   const { t } = useTranslation();
   const bannerText = useBannerText();
   const hpFrac = hud.maxHp > 0 ? hud.hp / hud.maxHp : 0;
@@ -157,7 +158,7 @@ export function Hud({ hud, world, onPause, onConsume }: Props) {
           ❚❚
         </button>
         <div className="hud__radar panel">
-          <Minimap world={world} />
+          <Minimap world={world} onOpen={onMap} />
           <span className="hud__kills">{t('run.kills', { n: hud.kills })}</span>
           {hud.streak >= STREAK.show && (
             <span className={`hud__streak ${hud.streakMult > 1 ? 'is-hot' : ''}`}>
