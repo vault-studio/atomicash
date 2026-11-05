@@ -435,6 +435,32 @@ export const FX_ART = {
     spawn: { r: 3.6, ay: 0.6, dur: 0.45 },
   },
   death: { w: 46, ay: 0.6, dur: 0.45 },
+  /**
+   * Muerte de los robots. Las piezas se recortan del sprite: `anims` y `dir` dicen de qué hoja y fila (primer frame);
+   * salen `base + tamaño × perSize` trozos, hasta `max`, y se descartan los de menos de `minPiece` del robot; en el suelo
+   * miden `restScale` de lo que medían en el robot. `seamDark` oscurece los cortes. `delay` s tras la muerte aparecen las piezas, ya con la explosión encima; se oscurecen hasta
+   * `char` en `charTime` s y se apagan los últimos `fade` s. `colorPiece`: lado de cada trozo del robot sin sprite, en
+   * fracción de su ancho, y `colorDark`, cuánto se oscurece su color. Explosión: una cada `per` px de ancho del robot, hasta `max`, separadas `gap` s; `w` en
+   * fracción de su ancho. `scorch`: mancha quemada del suelo.
+   */
+  wreck: {
+    anims: ['move', 'idle'] as readonly AnimId[],
+    dir: 1,
+    pieces: { base: 6, perSize: 2, max: 14 },
+    restScale: 0.85,
+    minPiece: 0.02,
+    shatter: { alpha: 60, tries: 12, uneven: 0.3, jag: 0.03, seam: 2.5 },
+    seamDark: 0.4,
+    delay: 0.05,
+    char: 0.72,
+    charTime: 0.8,
+    fade: 2,
+    colorPiece: 0.08,
+    colorDark: 0.6,
+    motion: { air: 0.55, fall: 450, reach: 0.8, pop: 0.7, heavy: 2, spin: 8, turn: 1.8 },
+    blast: { per: 170, max: 5, gap: 0.13, dur: 0.5, w: 1.5, ay: 0.72, spread: 0.55 },
+    scorch: { r: 0.36, alpha: 0.3, color: 0x14100c, in: 0.25 },
+  },
   levelup: { w: 78, ay: 0.92, dur: 0.9 },
   heal: { w: 56, ay: 0.9, dur: 0.6, minFrac: 0.08 },
 } as const;

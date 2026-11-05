@@ -71,6 +71,30 @@ export class SpriteLibrary {
     }
   }
 
+  /** Imagen de la hoja y celda del primer frame, para recortarlo. Usa la primera de `anims` que exista. */
+  frameSource(
+    id: string,
+    anims: readonly string[],
+    dir: number,
+  ): {
+    image: CanvasImageSource;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    pivot: readonly [number, number];
+  } | null {
+    for (const anim of anims) {
+      const sh = this.sheets.get(sheetKey(id, anim));
+      if (!sh) continue;
+      const [w, h] = sh.meta.cell;
+      const y = rowIndex(sh.meta, dir) * h;
+      if (w > sh.base.width || y + h > sh.base.height) return null;
+      return { image: sh.base.source.resource as CanvasImageSource, x: 0, y, w, h, pivot: sh.meta.pivot };
+    }
+    return null;
+  }
+
   /** Textura del frame para `t` segundos de animación mirando en `dir` (0–7). null si no hay hoja. */
   frame(id: string, anim: string, dir: number, t: number): Texture | null {
     const sh = this.sheets.get(sheetKey(id, anim));

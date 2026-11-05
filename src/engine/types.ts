@@ -440,6 +440,22 @@ export interface Corpse {
   irr: boolean;
 }
 
+/**
+ * Restos de un robot reventado (solo visual): el render saca de `seed` cómo vuela cada pieza, así que el motor no
+ * sabe nada de su dibujo.
+ */
+export interface Wreck {
+  sprite: EntityId;
+  x: number;
+  y: number;
+  t: number;
+  /** Momento en que desaparece. */
+  until: number;
+  seed: number;
+  flying: boolean;
+  elite: boolean;
+}
+
 /** Esquirla de un golpe o una baja (solo visual): vuela con gravedad en `z` y se apaga. */
 export interface Particle {
   x: number;
@@ -585,6 +601,7 @@ export interface World {
   readonly beams: Pool<Beam>;
   readonly booms: Pool<Boom>;
   readonly corpses: Pool<Corpse>;
+  readonly wrecks: Pool<Wreck>;
   readonly texts: Pool<FxText>;
   readonly parts: Pool<Particle>;
   /** Congelación breve del juego tras un golpe gordo (la aplica la sesión, no el tick), en s. */

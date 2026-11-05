@@ -170,5 +170,6 @@ export function updateFx(w: World, dt: number): void {
   }
   const ct = w.time - FX.corpseTime;
   for (let i = w.corpses.count - 1; i >= 0; i--) if (w.corpses.items[i]!.t < ct) w.corpses.releaseAt(i);
+  for (let i = w.wrecks.count - 1; i >= 0; i--) if (w.wrecks.items[i]!.until <= w.time) w.wrecks.releaseAt(i);
   w.shake *= Math.exp(-FX.shakeDecay * dt);
 }

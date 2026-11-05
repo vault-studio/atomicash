@@ -103,7 +103,8 @@
       "dmg": 4,
       "speed": 122,
       "xp": 1,
-      "metal": true
+      "metal": true,
+      "wreck": true
     },
     "necrofago": {
       "role": "normal",
@@ -169,6 +170,7 @@
       "speed": 88,
       "xp": 5,
       "metal": true,
+      "wreck": true,
       "dash": {
         "every": 4,
         "aim": 0.45,
@@ -187,6 +189,7 @@
       "xp": 5,
       "kbRes": 0,
       "metal": true,
+      "wreck": true,
       "rage": {
         "enabled": false
       }
@@ -209,6 +212,7 @@
       "speed": 80,
       "xp": 2,
       "metal": true,
+      "wreck": true,
       "rage": {
         "enabled": false
       }
@@ -221,6 +225,7 @@
       "xp": 0,
       "r": 6,
       "metal": true,
+      "wreck": true,
       "rage": {
         "enabled": false
       }
@@ -257,6 +262,7 @@
       "kbRes": 0.1,
       "armor": 8,
       "metal": true,
+      "wreck": true,
       "rage": {
         "enabled": false
       }
@@ -268,6 +274,7 @@
       "speed": 340,
       "xp": 3,
       "metal": true,
+      "wreck": true,
       "cap": 2,
       "rage": {
         "enabled": false
@@ -302,6 +309,7 @@
       "boss": true,
       "flying": true,
       "metal": true,
+      "wreck": true,
       "r": 90
     },
     "coloso": {

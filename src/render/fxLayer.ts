@@ -5,11 +5,13 @@ import { Container, Graphics, Text, type TextStyleOptions } from 'pixi.js';
 import { FX_ART, RUN_COLORS } from '../config/render';
 import { FX, JUICE, RUN } from '../config/run';
 import { WEAPONS } from '../config/weapons';
-import { ELITES, ENEMY_RULES } from '../config/enemies';
+import { AI, ELITES, ENEMY_RULES } from '../config/enemies';
+import { ENTITIES, type EntityId } from '../config/entities';
 import type { Boom, TeleFall, World } from '../engine/types';
 import type { FxSprites } from './fxSprites';
 import { isoX, isoY } from './iso';
 import type { PickupArt } from './pickupLayer';
+import { wreckRand, wreckWidth } from './wreckMath';
 
 const TAU = Math.PI * 2;
 const SQ = Math.SQRT1_2;
@@ -498,6 +500,7 @@ export class FxLayer {
       groundCircle(g, b.x, b.y, b.r * (1.1 - 0.3 * f)).fill({ color: b.color, alpha: 0.45 * f });
     }
     this.drawEnemyFx(w);
+    this.drawWreckFx(w);
     this.drawPlayerFx(w);
 
     // Aire: esquirlas, proyectiles, rayos, armas orbitales y cócteles en vuelo.
@@ -750,6 +753,42 @@ export class FxLayer {
     }
   }
 
+  /** Robots que revientan: explosiones en cadena, más cuanto más grande sea, y la mancha quemada que dejan. */
+  private drawWreckFx(w: World): void {
+    const X = FX_ART.wreck;
+    const B = X.blast;
+    const S = X.scorch;
+    const sa = this.sa;
+    for (let i = 0; i < w.wrecks.count; i++) {
+      const c = w.wrecks.items[i]!;
+      const age = w.time - c.t;
+      const width = wreckWidth(c.sprite) * (c.elite ? ELITES.scale : 1);
+      const alpha = S.alpha * Math.min(1, age / S.in) * Math.min(1, (c.until - w.time) / X.fade);
+      groundCircle(this.ground, c.x, c.y, width * S.r).fill({ color: S.color, alpha });
+      if (!sa) continue;
+      const sx = isoX(c.x, c.y);
+      const sy = isoY(c.x, c.y) - (c.flying ? flyLift(c.sprite) : 0);
+      const n = Math.min(B.max, Math.ceil(width / B.per));
+      for (let k = 0; k < n; k++) {
+        const t = age - k * B.gap;
+        if (t < 0 || t >= B.dur) continue;
+        const ox = k === 0 ? 0 : (wreckRand(c.seed, k, 20) - 0.5) * width * B.spread;
+        const oy = k === 0 ? 0 : (wreckRand(c.seed, k, 21) - 0.5) * width * B.spread * 0.5;
+        sa.put(
+          'fire_blast',
+          sa.once('fire_blast', t / B.dur),
+          sx + ox,
+          sy + oy,
+          (width * B.w) / Math.sqrt(n),
+          {
+            ay: B.ay,
+            flip: (k & 1) === 1,
+          },
+        );
+      }
+    }
+  }
+
   /** Columna de luz al subir de nivel y cruces verdes al curarse de golpe (botiquín, rasgos). */
   private drawPlayerFx(w: World): void {
     const sa = this.sa;
@@ -859,3 +898,7 @@ export class TextLayer extends Container {
 }
 
 export const FLY_HEIGHT = ENEMY_RULES.flyHeight;
+
+/** Altura de vuelo de un sprite volador: el Dirigible (y su variante dañada) vuela más bajo por su tamaño. */
+export const flyLift = (id: EntityId): number =>
+  (ENTITIES[id].variantOf ?? id) === 'dirigible' ? AI.dirigible.lift : FLY_HEIGHT;

@@ -13,6 +13,7 @@ import { GroundView, loadGroundTiles, type GroundTiles } from './ground';
 import { dirIndex, isoX, isoY } from './iso';
 import { OldScreenFilter } from './oldScreen';
 import { loadPickupArt, PickupLayer, type PickupArt } from './pickupLayer';
+import { WreckLayer } from './wreckLayer';
 import { animDuration } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';
 
@@ -30,6 +31,7 @@ export class GameRenderer {
   private readonly groundView: GroundView;
   private readonly player: ActorView;
   private readonly enemies: EnemyLayer;
+  private readonly wrecks: WreckLayer;
   private readonly pickups: PickupLayer | null;
   private readonly fx = new FxLayer();
   private readonly texts: TextLayer;
@@ -82,12 +84,14 @@ export class GameRenderer {
     this.groundView = new GroundView(tiles, this.actors, world);
     this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground);
     if (this.fx.sg) this.worldLayer.addChild(this.fx.sg.layer);
+    this.wrecks = new WreckLayer(lib);
+    this.worldLayer.addChild(this.wrecks.ground);
     this.worldLayer.addChild(this.cineBack);
     // Actores ordenados por profundidad entre el suelo y el aire.
     this.actors.sortableChildren = true;
     this.worldLayer.addChild(this.actors);
     this.texts = new TextLayer(translate);
-    this.worldLayer.addChild(this.fx.air);
+    this.worldLayer.addChild(this.wrecks.air, this.fx.air);
     if (this.fx.sa) this.worldLayer.addChild(this.fx.sa.layer);
     this.worldLayer.addChild(this.cineFront, this.texts);
     this.cineBack.blendMode = 'add';
@@ -317,6 +321,7 @@ export class GameRenderer {
     const blink = p.inv > 0 && p.deadAt === null && Math.floor(w.time * 20) % 2 === 0;
     this.player.style(0, hurt ? RUN_COLORS.flash : 0xffffff, blink ? 0.55 : 1);
     this.enemies.sync(w, alpha, vic, this.victoryT);
+    this.wrecks.sync(w);
     this.pickups?.sync(w);
     this.fx.draw(w);
     this.texts.draw(w, this.showDamage && w.showDmg);

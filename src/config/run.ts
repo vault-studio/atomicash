@@ -121,7 +121,17 @@ export const CACHE_ROLL = {
  */
 export const JUICE = {
   hitStop: { boss: 0.28, bomb: 0.09, grenade: 0.05, hurt: 0.035, max: 0.3 },
-  parts: { max: 420, perKill: 5, perBossKill: 40, perHit: 1, speed: 140, up: 160, gravity: 520, life: 0.55 },
+  parts: {
+    max: 420,
+    perKill: 5,
+    perWreck: 12,
+    perBossKill: 40,
+    perHit: 1,
+    speed: 140,
+    up: 160,
+    gravity: 520,
+    life: 0.55,
+  },
   /** Aplastado del sprite al recibir un golpe (fracción). */
   squash: 0.16,
   /** Zoom de cámara: con `from` enemigos vivos empieza a alejarse, hasta `minZoom` con `to`. */
@@ -183,6 +193,12 @@ export const FX = {
   maxBooms: 80,
   maxCorpses: 150,
   corpseTime: 3,
+  /** Restos de robots: cuántos a la vez (se retira el más antiguo) y cuántos segundos duran, los de un jefe aparte. */
+  maxWrecks: 80,
+  wreckTime: 25,
+  wreckBossTime: 90,
+  /** Radio desde el que el robot suena a explosión (las crías y los drones no: salen a docenas). */
+  wreckLoudR: 12,
   shakeMax: 10,
   shakeDecay: 10,
   /** Colores de explosiones y rayos (0xRRGGBB). */

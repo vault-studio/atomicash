@@ -315,6 +315,27 @@ function addCorpse(w: World, e: Enemy): void {
   c.irr = e.irr;
 }
 
+/** Un robot revienta: deja sus restos y, si no es de los pequeños, suena a explosión. */
+function addWreck(w: World, e: Enemy): void {
+  let c;
+  if (w.wrecks.count < FX.maxWrecks) c = w.wrecks.acquire();
+  else {
+    // Lleno: reutiliza el que antes iba a desaparecer.
+    let oi = 0;
+    for (let i = 1; i < w.wrecks.count; i++) if (w.wrecks.items[i]!.until < w.wrecks.items[oi]!.until) oi = i;
+    c = w.wrecks.items[oi]!;
+  }
+  c.sprite = e.type;
+  c.x = e.x;
+  c.y = e.y;
+  c.t = w.time;
+  c.until = w.time + (e.boss ? FX.wreckBossTime : FX.wreckTime);
+  c.seed = w.fxRng();
+  c.flying = e.flying;
+  c.elite = e.elite !== null;
+  if (e.r >= FX.wreckLoudR) sfx(w, SFX.boom, e.x, e.y);
+}
+
 /** Bajas por segundo en un anillo de `SUMMARY.window` s (para «más bajas en 5 s») y por tramo de la gráfica. */
 function countKill(w: World): void {
   const sec = Math.floor(w.time);
@@ -347,14 +368,17 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     banner(w, 'banner.streak', { n: String(w.streak), mult: String(mult) });
     sfx(w, SFX.pickup);
   }
-  sfx(w, (ENEMY_STATS[e.type] as EnemyStats).metal ? SFX.killMetal : SFX.kill, e.x, e.y);
-  addCorpse(w, e);
+  const stats = ENEMY_STATS[e.type] as EnemyStats;
+  sfx(w, stats.metal ? SFX.killMetal : SFX.kill, e.x, e.y);
+  if (stats.wreck) addWreck(w, e);
+  else addCorpse(w, e);
   const gore = e.irr ? GORE_IRR : GORE[e.type];
   if (e.boss) {
     burst(w, e.x, e.y, JUICE.parts.perBossKill, gore, 2);
     hitStop(w, JUICE.hitStop.boss);
     addShake(w, 14, 20);
-  } else burst(w, e.x, e.y, JUICE.parts.perKill, gore, e.irr ? 1.4 : 1);
+  } else if (stats.wreck) burst(w, e.x, e.y, JUICE.parts.perWreck, gore, 1.6);
+  else burst(w, e.x, e.y, JUICE.parts.perKill, gore, e.irr ? 1.4 : 1);
   const xp = e.xp * XP.killMult * (e.irr ? IRRADIATED.xp : 1) * (w.rain > 0 ? EVENTS.rain.xpMult : 1) * mult;
   if (xp > 0) {
     if (e.boss) dropGems(w, e.x, e.y, xp);

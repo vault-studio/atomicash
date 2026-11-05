@@ -2,7 +2,7 @@
 import type { ConsumableId, ItemId } from '../config/items';
 import { ELITES, ENEMY_RULES, ENEMY_STATS, type EnemyStats } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
-import { CAPS, CREDITS, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from '../config/run';
+import { CAPS, CREDITS, FX, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { TREE_FX, type TreeMod } from '../config/tree';
@@ -49,7 +49,7 @@ import {
   updateShots,
   updateWeapons,
 } from './systems/weapons';
-import type { Corpse, InputState, Point, World } from './types';
+import type { Corpse, InputState, Point, World, Wreck } from './types';
 import { defaultView } from './view';
 import { SFX_COUNT } from './sfx';
 
@@ -101,6 +101,16 @@ const createCorpse = (): Corpse => ({
   t: 0,
   flying: false,
   irr: false,
+});
+const createWreck = (): Wreck => ({
+  sprite: 'dron',
+  x: 0,
+  y: 0,
+  t: 0,
+  until: 0,
+  seed: 0,
+  flying: false,
+  elite: false,
 });
 const createPoint = (): Point => ({ x: 0, y: 0 });
 
@@ -206,6 +216,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     beams: new Pool(createBeam, 60),
     booms: new Pool(createBoom, 80),
     corpses: new Pool(createCorpse, 150),
+    wrecks: new Pool(createWreck, FX.maxWrecks),
     texts: new Pool(createText, 120),
     parts: new Pool(createParticle, JUICE.parts.max),
     // Decimales de partida por lo mismo que `stun`: el primer valor real llega a media partida.

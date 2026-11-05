@@ -92,6 +92,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Pulsar el radar (ratón o dedo, también con otro dedo en el joystick) pausa y abre el mapa; al cerrarlo se vuelve directamente a la partida.
 - ✅ El botón de pausa responde con un dedo en el joystick, y el toque que abre la pausa no pulsa lo que aparece debajo.
 - ✅ La galería de assets (2026-11-05) pasó a ser un proyecto aparte: `Apps/galeria-assets`, con su propia copia del arte. El arte nuevo de Atomic Ash no llega solo: hay que copiarlo allí.
+- ✅ Muerte de los robots (aspiradora, cría, excavadora, cortacésped, dron, torreta, dirigible e interceptor): revientan y dejan sus piezas en el suelo, en vez de la animación de muerte. Solo visual, sin daño ni cambios de balance. Las piezas se recortan del propio sprite al empezar la partida (`render/wreckLayer.ts`, ajustes en `FX_ART.wreck`), así que no hace falta arte aparte. Un robot nuevo solo necesita `"wreck": true` en `tuning.json`; `tests/wreck.test.ts` falla si a uno se le olvida. Sin sprite (interceptor), trozos de su color. Los restos duran 25 s (jefes 90 s), con tope de 80 (`FX.wreckTime`, `wreckBossTime`, `maxWrecks`). El Coloso conserva su muerte. Las hojas `*_death` de estos robots ya no se usan.
 
 ## Bugs conocidos
 

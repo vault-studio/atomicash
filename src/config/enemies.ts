@@ -34,6 +34,11 @@ export interface EnemyStats {
   readonly flying?: boolean;
   /** Máquina, chapa u hormigón: los golpes y la muerte suenan a metal en vez de a carne. */
   readonly metal?: boolean;
+  /**
+   * Robot: al morir revienta y deja sus piezas en el suelo, en vez de su animación de muerte. Solo visual (no hace
+   * daño). Todo robot nuevo debe llevarlo (lo comprueba `tests/wreck.test.ts`).
+   */
+  readonly wreck?: boolean;
   /** Furia propia: campos sueltos sobre el perfil por defecto (`RAGE`) o `{ enabled: false }` para no enfurecerse. */
   readonly rage?: RageOverride;
   /** Habilidad de carrera/embestida con aviso (ver `DashSpec`). Si falta, no tiene. */

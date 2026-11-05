@@ -8,14 +8,10 @@ import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
 import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
-import { FLY_HEIGHT } from './fxLayer';
+import { flyLift } from './fxLayer';
 import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteMeta } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';
-
-/** Altura de vuelo de un sprite volador: el Dirigible (y su variante dañada) vuela más bajo por su tamaño. */
-const flyLift = (id: EntityId): number =>
-  (ENTITIES[id].variantOf ?? id) === 'dirigible' ? AI.dirigible.lift : FLY_HEIGHT;
 
 /** Altura del Coloso en pleno salto: un arco que sube y baja durante el aviso. */
 const leapLift = (e: Enemy): number =>
