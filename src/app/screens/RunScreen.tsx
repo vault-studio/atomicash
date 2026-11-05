@@ -16,6 +16,7 @@ import { Hud } from './run/Hud';
 import { MapView } from './run/MapView';
 import { PauseStats } from './run/PauseStats';
 import { Results } from './run/Results';
+import { useTapGuard } from './run/tapGuard';
 import { Weld } from './run/Weld';
 import { ExpeditionLoader } from './ExpeditionLoader';
 import type { WeaponId } from '../../config/weapons';
@@ -69,6 +70,7 @@ export function RunScreen({
   const [choiceKey, setChoiceKey] = useState(0);
   const [weld, setWeld] = useState<WeaponId | null>(null);
   const [paused, setPaused] = useState(false);
+  const guard = useTapGuard(paused);
   // Desde dónde se abrió el mapa: al cerrarlo se vuelve allí.
   const [map, setMap] = useState<'pause' | 'radar' | null>(null);
   const [result, setResult] = useState<{ r: RunResults; extra: React.ReactNode } | null>(null);
@@ -242,13 +244,13 @@ export function RunScreen({
           <h2 className="overlay__title">{t('run.paused')}</h2>
           {world && <PauseStats world={world} />}
           <div className="overlay__actions">
-            <button className="btn btn--primary" autoFocus onClick={() => setPaused(false)}>
+            <button className="btn btn--primary" autoFocus onClick={() => guard(() => setPaused(false))}>
               {t('run.resume')}
             </button>
-            <button className="btn" onClick={() => setMap('pause')}>
+            <button className="btn" onClick={() => guard(() => setMap('pause'))}>
               {t('run.map')}
             </button>
-            <button className="btn" onClick={onExit}>
+            <button className="btn" onClick={() => guard(onExit)}>
               {t('run.abandon')}
             </button>
           </div>

@@ -154,7 +154,17 @@ export function Hud({ hud, world, onPause, onMap, onConsume }: Props) {
       </div>
 
       <div className="hud__tr">
-        <button className="btn-icon" onClick={onPause} aria-label={t('run.pause')}>
+        {/* Al pulsar, como las ranuras: con un dedo en el joystick no habría clic. */}
+        <button
+          className="btn-icon"
+          aria-label={t('run.pause')}
+          onPointerDown={(e) => {
+            if (e.button === 0) onPause();
+          }}
+          onClick={(e) => {
+            if (e.detail === 0) onPause();
+          }}
+        >
           ❚❚
         </button>
         <div className="hud__radar panel">

@@ -142,13 +142,15 @@ export const RADAR = {
   eventSize: 9,
 } as const;
 
+/** Lo que tarda en hacer caso una pantalla abierta al apretar: el clic de ese toque llega después. */
+export const TAP_GUARD_MS = 350;
+
 /**
  * Mapa de la pausa. `range`: unidades de mundo isométricas de la mitad de su alto. `cells`: casillas que se miran a
  * cada lado del jugador (hasta salir de pantalla en un móvil apaisado). `grid`: lado de la cuadrícula. `arrowRange`: hasta dónde lleva flecha en el borde una zona que no cabe. Tamaños en px CSS.
  */
 export const MAP = {
   range: 1100,
-  closeGuardMs: 350,
   arrowRange: 2400,
   cells: 34,
   grid: 400,

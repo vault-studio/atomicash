@@ -8,6 +8,7 @@ import type { World } from '../../../engine/types';
 import { isoX, isoY } from '../../../engine/view';
 import { chestArtReady, drawArrow, drawChest, drawEvent, drawZone, eventColor, isChestKind } from './mapArt';
 import { MapKey } from './MapKey';
+import { useTapGuard } from './tapGuard';
 
 type Label = (key: string) => string;
 
@@ -19,14 +20,7 @@ interface Props {
 export function MapView({ world, onClose }: Props) {
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement>(null);
-  const openedAt = useRef(0);
-  useEffect(() => {
-    openedAt.current = performance.now();
-  }, []);
-  // El radar abre el mapa al apretar y «Volver» cae debajo del dedo: el clic de ese toque no debe cerrarlo.
-  const close = (): void => {
-    if (performance.now() - openedAt.current > MAP.closeGuardMs) onClose();
-  };
+  const guard = useTapGuard(true);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -60,7 +54,7 @@ export function MapView({ world, onClose }: Props) {
     <div className="overlay overlay--map" role="dialog" aria-modal="true" aria-label={t('map.title')}>
       <header className="mapview__head">
         <h2 className="overlay__title">{t('map.title')}</h2>
-        <button className="btn btn--primary" autoFocus onClick={close}>
+        <button className="btn btn--primary" autoFocus onClick={() => guard(onClose)}>
           {t('map.close')}
         </button>
       </header>
