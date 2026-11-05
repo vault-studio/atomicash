@@ -49,4 +49,8 @@ export default tseslint.config(
     files: ['tools/**/*.ts', 'tests/**/*.ts', 'vite.config.ts', 'eslint.config.js'],
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ['tools/galeria/public/**/*.js'],
+    languageOptions: { globals: globals.browser },
+  },
 );

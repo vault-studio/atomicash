@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Atomic Ash · Galería de assets</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header id="top">
+      <h1>ATOMIC ASH // GALERÍA</h1>
+      <input id="search" type="search" placeholder="buscar por nombre…" autocomplete="off" />
+      <div class="dirs" id="dirs" title="Dirección de previsualización"></div>
+      <button id="pause" type="button">Pausar animaciones</button>
+      <span id="totals"></span>
+    </header>
+    <div id="notice" hidden></div>
+    <div id="layout">
+      <nav id="side"></nav>
+      <main id="main"></main>
+    </div>
+    <footer id="bar" hidden>
+      <span id="selinfo"></span>
+      <label class="chk"><input id="onlysel" type="checkbox" /> ver solo marcados</label>
+      <button id="clear" type="button">Limpiar</button>
+      <label class="chk"
+        >Animaciones:
+        <select id="fmt">
+          <option value="sheet">Hoja + JSON</option>
+          <option value="frames">Fotogramas sueltos</option>
+        </select>
+      </label>
+      <button id="export" type="button" class="primary">Exportar ZIP</button>
+      <div id="progress" hidden>
+        <progress id="pbar" value="0" max="1"></progress>
+        <span id="ptext"></span>
+        <button id="cancel" type="button">Cancelar</button>
+      </div>
+      <div id="exporterr" hidden></div>
+    </footer>
+    <div id="modal" hidden></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
