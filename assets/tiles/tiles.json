@@ -43,6 +43,62 @@
         "file": "roto_2.png",
         "head": 0
       }
+    ],
+    "hielo": [
+      {
+        "file": "hielo_00.png",
+        "head": 0
+      },
+      {
+        "file": "hielo_01.png",
+        "head": 0
+      },
+      {
+        "file": "hielo_02.png",
+        "head": 0,
+        "acid": 0.4
+      },
+      {
+        "file": "hielo_03.png",
+        "head": 0
+      },
+      {
+        "file": "hielo_04.png",
+        "head": 0
+      },
+      {
+        "file": "hielo_05.png",
+        "head": 0,
+        "acid": 0.25
+      }
+    ],
+    "plantas": [
+      {
+        "file": "plantas_00.png",
+        "head": 0
+      },
+      {
+        "file": "plantas_01.png",
+        "head": 0
+      },
+      {
+        "file": "plantas_02.png",
+        "head": 0,
+        "acid": 0.4
+      },
+      {
+        "file": "plantas_03.png",
+        "head": 0
+      },
+      {
+        "file": "plantas_04.png",
+        "head": 0
+      },
+      {
+        "file": "plantas_05.png",
+        "head": 0,
+        "acid": 0.25
+      }
     ]
   }
 }

@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "ATOMIC ASH",
-    "subtitle": "Las Afueras · Acto 1",
+    "subtitle": "{{act}} · Acto 1",
     "loading": "Cargando sprites…",
     "tagline": "El fin del mundo solo fue el principio",
     "introPower": "▮ Pulsa para encender",
@@ -574,6 +574,11 @@
   },
   "zones": {
     "paramo": "Las Afueras"
+  },
+  "acts": {
+    "1": "Las Afueras",
+    "2": "Las Heladas",
+    "3": "La Espesura"
   },
   "supplies": {
     "zone": "Caja de {{zone}}",

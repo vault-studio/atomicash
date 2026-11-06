@@ -1,6 +1,7 @@
 // Objetos sueltos encima de la arena (bidones, coches, edificios…): el render los pinta y el motor los usa como
 // obstáculos. `props.json` lo escribe tools/slice_props.py; el orden de su lista es el índice de cada objeto.
 import index from '../../assets/props/props.json';
+import { ACT_IDS, type ActId } from './acts';
 import type { StatEnemyId } from './enemies';
 import { RUN } from './run';
 
@@ -67,6 +68,14 @@ export const BUILDINGS = {
     'big_01.png': 'robots',
     'big_02.png': 'supply',
     'big_03.png': 'necro',
+    'hielo_big_00.png': 'raiders',
+    'hielo_big_01.png': 'robots',
+    'hielo_big_02.png': 'supply',
+    'hielo_big_03.png': 'necro',
+    'plantas_big_00.png': 'raiders',
+    'plantas_big_01.png': 'robots',
+    'plantas_big_02.png': 'supply',
+    'plantas_big_03.png': 'necro',
   } as Readonly<Record<string, BuildingKind>>,
   /** Distancia del jugador al centro a la que aparece la guarnición (por debajo de SPAWN.relocateDist). */
   trigger: 1000,
@@ -116,6 +125,8 @@ export interface PropInfo {
   readonly file: string;
   /** Casillas que ocupa: 1, 2 en fila (eje x del mundo) o 9 (3×3). */
   readonly cells: number;
+  /** Acto en el que sale; sin él, el 1. */
+  readonly act?: number;
   /** Punto de apoyo (centro de la huella), en fracción del ancho y del alto de la imagen. */
   readonly ax: number;
   readonly ay: number;
@@ -133,9 +144,15 @@ export interface PropShape {
 export const PROP_LIST: readonly PropInfo[] = index.props;
 
 const isRubble = (file: string): boolean => Object.values(PROPS.rubbleFiles).some((l) => l.includes(file));
-const indicesWith = (cells: number): number[] =>
-  PROP_LIST.flatMap((p, k) => (p.cells === cells && !isRubble(p.file) ? [k] : []));
-export const PROPS_BY_CELLS = { 1: indicesWith(1), 2: indicesWith(2), 9: indicesWith(9) } as const;
+const indicesWith = (cells: number, act: ActId): number[] =>
+  PROP_LIST.flatMap((p, k) => (p.cells === cells && (p.act ?? 1) === act && !isRubble(p.file) ? [k] : []));
+const listsOf = (act: ActId) => ({ 1: indicesWith(1, act), 2: indicesWith(2, act), 9: indicesWith(9, act) });
+
+/** Objetos que pueden salir en cada acto, por casillas. */
+export const PROPS_BY_ACT = Object.fromEntries(ACT_IDS.map((a) => [a, listsOf(a)])) as Readonly<
+  Record<ActId, ReturnType<typeof listsOf>>
+>;
+export const PROPS_BY_CELLS = PROPS_BY_ACT[1];
 
 /** Escala de cada objeto respecto a una baldosa. */
 export const PROP_SCALE: readonly number[] = PROP_LIST.map((p) =>

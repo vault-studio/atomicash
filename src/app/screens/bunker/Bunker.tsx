@@ -20,7 +20,7 @@ export function Bunker({ onGo }: Props) {
 
   return (
     <Screen title={t('app.title')} actions={<FullscreenButton />}>
-      <p>{t('app.subtitle')}</p>
+      <p>{t('app.subtitle', { act: t('acts.1') })}</p>
       {active && <p className="bunker__active">{t('bunker.active', { name: t(`entities.${active}`) })}</p>}
       <nav className="bunker__menu">
         {BUNKER_VIEWS.map((v, i) => (

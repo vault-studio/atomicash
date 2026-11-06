@@ -150,7 +150,7 @@ export class GameRenderer {
     // Las baldosas son opcionales: si faltan, queda el fondo liso con los charcos dibujados.
     // Igual los dibujos de los objetos del mapa y de los efectos: sin ellos quedan los placeholders.
     const [tiles, pickupArt, fxArt] = await Promise.all([
-      loadGroundTiles().catch(() => null),
+      loadGroundTiles(world.act).catch(() => null),
       loadPickupArt().catch(() => null),
       loadFxArt().catch(() => null),
     ]);

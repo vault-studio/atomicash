@@ -5,7 +5,8 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
 
 ## Alcance cerrado (no ampliar sin consultar)
 
-- 3 personajes: Dot, Gus y Benny (`ROSTER`). Solo el Acto 1, «Las Afueras». (Decisión del usuario sobre CAMBIOS.md.)
+- 3 personajes: Dot, Gus y Benny (`ROSTER`). Solo se juega el Acto 1, «Las Afueras». (Decisión del usuario sobre CAMBIOS.md.)
+- Actos 2 («Las Heladas») y 3 («La Espesura»): solo su suelo y sus objetos, visibles desde el depurador (`src/config/acts.ts`).
 - Enemigos y jefes: humanoides, robots/máquinas o mutantes ya existentes (babosa, reptador, hinchado). Nuevos: humanoides o robots.
 - Roadmap y fuente de verdad: `docs/CAMBIOS.md` (no reescribirlo; solo marcar apartados hechos).
 - Estado real de las tareas: `TASKS.md`. Decisiones de arquitectura: `docs/DECISIONS.md` (no reabrirlas).
@@ -39,7 +40,7 @@ movimiento libre. Package `com.vaultstudio.atomicash`.
 - Barrido de balance: `npm run balance` (personajes × builds × bots × 6 semillas, `out/balance/summary.csv`); resumen
   `node tools/simdiff.mjs out/balance`, comparación `node tools/simdiff.mjs <antes> <después>`.
 - Smoke test: `npm run smoke` (60 s de partida con piloto automático, errores de consola, captura en `out/smoke.png`).
-- Depurador: `npm run dev` y abrir `/?dev&char=dot&seed=1&god=1&bot=kite&speed=2&weapons=llave:3` (F1 panel). Atajos (DEV):
+- Depurador: `npm run dev` y abrir `/?dev&char=dot&act=1&seed=1&god=1&bot=kite&speed=2&weapons=llave:3` (F1 panel). Atajos (DEV):
   K morir, J 100 enemigos, L subir nivel, G invencible, B jefe, T +60 s, E élite, H horda, N lluvia, F3 debug del render.
 
 ## Git

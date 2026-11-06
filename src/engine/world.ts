@@ -1,4 +1,5 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
+import type { ActId } from '../config/acts';
 import type { ConsumableId, ItemId } from '../config/items';
 import { ELITES, ENEMY_RULES, ENEMY_STATS, type EnemyStats } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
@@ -54,6 +55,8 @@ import { defaultView } from './view';
 import { SFX_COUNT } from './sfx';
 
 export interface WorldOptions {
+  /** Acto del mapa. Por defecto, el 1. */
+  act?: ActId;
   /** Enemigos simultáneos antes de reciclar el más lejano. Por defecto, ENEMY_RULES.maxAlive. */
   maxEnemies?: number;
   /** Arma inicial distinta de la del superviviente (manuales del mercader, F3-04); null = sin armas. */
@@ -125,6 +128,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   const startWeapon = opts.startWeapon === undefined ? (stats.weapon as WeaponId) : opts.startWeapon;
   const w: World = {
     seed,
+    act: opts.act ?? 1,
     rng,
     fxRng: createRng(seed ^ 0x5bd1e995),
     charId,

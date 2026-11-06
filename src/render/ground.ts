@@ -1,8 +1,9 @@
 // Suelo de baldosas de un mapa sin bordes: solo se colocan las casillas que ve la cámara, reciclando sprites.
 // Cada casilla elige su baldosa con un hash de la semilla, así que el mismo sitio se ve siempre igual.
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
+import type { ActId } from '../config/acts';
 import { HAZARDS } from '../config/radiation';
-import { PROP_LIST, PROP_SCALE } from '../config/props';
+import { PROP_LIST, PROP_SCALE, RUBBLE_PROPS } from '../config/props';
 import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
 import { RUN } from '../config/run';
 import { cellKey, cellRand, worldHazardAt } from '../engine/hazards';
@@ -38,14 +39,15 @@ export interface GroundTiles {
   readonly acid: readonly GroundTile[];
   /** Suelo roto bajo los escombros. */
   readonly broken: readonly GroundTile[];
-  /** Objetos sueltos que van encima de la arena, en el orden de `PROP_LIST`; null si no cargó. */
+  /** Objetos sueltos que van encima de la arena, en el orden de `PROP_LIST`; null si no cargó o es de otro acto. */
   readonly props: readonly (Prop | null)[];
 }
 
-/** Carga las texturas de los objetos; las que fallen quedan a null (el obstáculo sigue estando). */
-function loadProps(): Promise<(Prop | null)[]> {
+/** Carga las texturas de los objetos del acto; las que fallen quedan a null (el obstáculo sigue estando). */
+function loadProps(act: ActId): Promise<(Prop | null)[]> {
   return Promise.all(
-    PROP_LIST.map(async (p) => {
+    PROP_LIST.map(async (p, k) => {
+      if ((p.act ?? 1) !== act && !RUBBLE_PROPS.includes(k)) return null;
       try {
         return { tex: await Assets.load<Texture>(TILES.propsDir + p.file), ax: p.ax, ay: p.ay };
       } catch {
@@ -55,8 +57,8 @@ function loadProps(): Promise<(Prop | null)[]> {
   );
 }
 
-/** Carga `tiles.json` y sus texturas; las que fallen se saltan. */
-export async function loadGroundTiles(): Promise<GroundTiles> {
+/** Carga `tiles.json` y las texturas del acto; las que fallen se saltan. */
+export async function loadGroundTiles(act: ActId): Promise<GroundTiles> {
   const index = await Assets.load<TileIndex>(TILES.index);
   const load = async (set: readonly TileInfo[], weights?: readonly number[]): Promise<GroundTile[]> => {
     const out = await Promise.all(
@@ -75,9 +77,9 @@ export async function loadGroundTiles(): Promise<GroundTiles> {
     return out.filter((t) => t !== null && t.weight > 0) as GroundTile[];
   };
   const [props, broken, sand, ...decoSets] = await Promise.all([
-    loadProps(),
+    loadProps(act),
     load(index.sets[TILES.broken] ?? []),
-    load(index.sets[TILES.sand] ?? [], TILES.sandWeights),
+    load(index.sets[TILES.acts[act].sand] ?? [], TILES.acts[act].weights),
     ...TILES.deco.map((name) => load(index.sets[name] ?? [])),
   ]);
   const deco = decoSets.flat();
@@ -110,6 +112,7 @@ export class GroundView {
   private key = '';
   private readonly scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
   private readonly sandTotal: number;
+  private readonly tint: number;
 
   constructor(
     private readonly tiles: GroundTiles | null,
@@ -117,6 +120,7 @@ export class GroundView {
     private readonly world: World,
   ) {
     this.sandTotal = tiles ? tiles.sand.reduce((a, t) => a + t.weight, 0) : 0;
+    this.tint = TILES.acts[world.act].tint;
     this.layer.sortableChildren = true;
     this.craters.zIndex = 1;
     this.layer.addChild(this.craters);
@@ -206,7 +210,7 @@ export class GroundView {
           s.anchor.set(prop.ax, prop.ay);
           s.scale.set(this.scale * PROP_SCALE[cell.prop]!);
           s.position.set(isoX(cell.x, cell.y), isoY(cell.x, cell.y));
-          s.tint = w.scars.has(cellKey(i, j)) ? TILES.rubbleTint : TILES.tint;
+          s.tint = w.scars.has(cellKey(i, j)) ? TILES.rubbleTint : this.tint;
           s.visible = true;
           s.zIndex = cell.x + cell.y;
         }
@@ -262,7 +266,7 @@ export class GroundView {
     let s = this.sprites[this.used];
     if (!s) {
       s = new Sprite();
-      s.tint = TILES.tint;
+      s.tint = this.tint;
       this.sprites.push(s);
       this.layer.addChild(s);
     }
@@ -277,7 +281,7 @@ export class GroundView {
       this.tops.push(s);
       this.actors.addChild(s);
     }
-    s.tint = TILES.tint;
+    s.tint = this.tint;
     this.usedTops++;
     return s;
   }

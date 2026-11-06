@@ -1,3 +1,4 @@
+import type { ActId } from '../config/acts';
 import type { EntityId } from '../config/entities';
 import type { RunStats } from './runStats';
 import type { EliteId, StatEnemyId } from '../config/enemies';
@@ -508,6 +509,8 @@ export interface Choice {
 
 export interface World {
   readonly seed: number;
+  /** Acto: decide el suelo y los objetos del mapa. */
+  readonly act: ActId;
   readonly rng: Rng;
   /** Azar solo para efectos visuales: no altera la secuencia de `rng` de la simulación. */
   readonly fxRng: Rng;

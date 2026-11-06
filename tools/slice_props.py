@@ -1,6 +1,8 @@
 # Recorta los objetos sueltos de las láminas de ARTE/ (fondo negro, sin baldosa debajo) a PNG con transparencia en
 # assets/props/ y escribe assets/props/props.json con su tamaño, su punto de apoyo y el ancho de su base.
-# Uso: python tools/slice_props.py
+# Uso: python tools/slice_props.py [actos]
+# Con actos (p. ej. `2 3`) solo recorta los objetos de esos actos y los cambia en props.json, sin tocar lo demás; sin
+# nada lo rehace todo y después hay que pasar tools/slice_destrozos.py, que añade los escombros.
 #
 # Las láminas son rejillas de objetos (3×2 o 2×2) con un objeto por celda: cada trozo suelto (piedrecillas, matojos) va al
 # objeto de la celda donde cae su centro, aunque el dibujo se salga un poco de ella. Los de una casilla se escalan con el mismo factor que las baldosas para
@@ -8,6 +10,7 @@
 # escalan para que su base llene su huella (384 y 768 px de ancho). El punto de apoyo es el centro de la huella: el centro
 # de la base, subido un cuarto de su ancho (vale también para la fila de dos rombos).
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +39,28 @@ SHEETS = {
     'long': (Path('ARTE/objetos_2x1.webp'), 2, 3, 2),
     'big': (Path('ARTE/objetos_2x2.webp'), 9, 2, 2),
 }
+# Actos 2 y 3: mismas láminas, con cada objeto en la misma celda que en el acto 1 (config/props.ts lo aprovecha para
+# los edificios). Sus objetos llevan `act` en props.json y su archivo empieza por el bioma.
+ACT_SHEETS = {
+    2: {
+        'hielo_obj_a': (Path('ARTE/objetos_hielo_1x1_a.webp'), 1, 3, 2),
+        'hielo_obj_b': (Path('ARTE/objetos_hielo_1x1_b.webp'), 1, 3, 2),
+        'hielo_long': (Path('ARTE/objetos_hielo_2x1.webp'), 2, 3, 2),
+        'hielo_big': (Path('ARTE/objetos_hielo_2x2.webp'), 9, 2, 2),
+    },
+    3: {
+        'plantas_obj_a': (Path('ARTE/objetos_plantas_1x1_a.webp'), 1, 3, 2),
+        'plantas_obj_b': (Path('ARTE/objetos_plantas_1x1_b.webp'), 1, 3, 2),
+        'plantas_long': (Path('ARTE/objetos_plantas_2x1.webp'), 2, 3, 2),
+        'plantas_big': (Path('ARTE/objetos_plantas_2x2.webp'), 9, 2, 2),
+    },
+}
+
+
+# Lámina → cortes (x0, x1, y) entre objetos que se tocan: filas que separan los trozos antes de repartirlos por celdas.
+SEAMS = {
+    'hielo_big': [(770, 1180, 496), (1180, 1535, 520)],
+}
 
 
 def slice_sheet(name: str, path: Path, cells: int, ncol: int, nrow: int) -> list[dict]:
@@ -43,7 +68,10 @@ def slice_sheet(name: str, path: Path, cells: int, ncol: int, nrow: int) -> list
     level = img.max(2)
     mask = nd.binary_opening(level > BLACK + SOFT / 2, iterations=1)
     # Trozos por celda de la rejilla (de arriba abajo y de izquierda a derecha), con la sombra suave alrededor.
-    lab, k = nd.label(nd.binary_dilation(mask, iterations=3))
+    grown = nd.binary_dilation(mask, iterations=3)
+    for x0, x1, y in SEAMS.get(name, []):
+        grown[y, x0:x1] = False
+    lab, k = nd.label(grown)
     sizes = nd.sum(mask, lab, range(1, k + 1))
     centers = nd.center_of_mass(mask, lab, range(1, k + 1))
     owner = np.zeros(k + 1, int) - 1
@@ -90,10 +118,27 @@ def slice_sheet(name: str, path: Path, cells: int, ncol: int, nrow: int) -> list
     return out
 
 
+def slice_act(act: int) -> list[dict]:
+    return [{**p, 'act': act} for n, sheet in ACT_SHEETS[act].items() for p in slice_sheet(n, *sheet)]
+
+
 OUT.mkdir(parents=True, exist_ok=True)
-for old in OUT.glob('*.png'):
-    old.unlink()
-props = [p for n, sheet in SHEETS.items() for p in slice_sheet(n, *sheet)]
-(OUT / 'props.json').write_text(json.dumps({'tile': TILE, 'props': props}, indent=2) + '\n', encoding='utf8', newline='\n')
-for p in props:
+index = OUT / 'props.json'
+only = [int(a) for a in sys.argv[1:]]
+if only:
+    # Se conserva el orden del resto: los objetos de los demás actos no cambian de índice.
+    old = json.loads(index.read_text(encoding='utf8'))['props']
+    for p in old:
+        if p.get('act') in only:
+            (OUT / p['file']).unlink(missing_ok=True)
+    new = [p for a in only for p in slice_act(a)]
+    props = [p for p in old if p.get('act') not in only] + new
+else:
+    for old in OUT.glob('*.png'):
+        old.unlink()
+    new = props = [p for n, sheet in SHEETS.items() for p in slice_sheet(n, *sheet)] + [
+        p for a in ACT_SHEETS for p in slice_act(a)
+    ]
+index.write_text(json.dumps({'tile': TILE, 'props': props}, indent=2) + '\n', encoding='utf8', newline='\n')
+for p in new:
     print(p['file'], p['cells'], p['w'], p['h'], p['ax'], p['ay'], p['fw'])

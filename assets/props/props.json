@@ -207,6 +207,446 @@
       "ax": 0.5,
       "ay": 0.676,
       "fw": 239
+    },
+    {
+      "file": "hielo_obj_a_00.png",
+      "cells": 1,
+      "w": 137,
+      "h": 177,
+      "ax": 0.5,
+      "ay": 0.797,
+      "fw": 132,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_a_01.png",
+      "cells": 1,
+      "w": 218,
+      "h": 144,
+      "ax": 0.499,
+      "ay": 0.614,
+      "fw": 212,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_a_02.png",
+      "cells": 1,
+      "w": 180,
+      "h": 186,
+      "ax": 0.517,
+      "ay": 0.76,
+      "fw": 169,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_a_03.png",
+      "cells": 1,
+      "w": 149,
+      "h": 242,
+      "ax": 0.48,
+      "ay": 0.848,
+      "fw": 138,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_a_04.png",
+      "cells": 1,
+      "w": 233,
+      "h": 168,
+      "ax": 0.499,
+      "ay": 0.647,
+      "fw": 227,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_a_05.png",
+      "cells": 1,
+      "w": 203,
+      "h": 186,
+      "ax": 0.5,
+      "ay": 0.718,
+      "fw": 198,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_00.png",
+      "cells": 1,
+      "w": 206,
+      "h": 213,
+      "ax": 0.501,
+      "ay": 0.754,
+      "fw": 201,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_01.png",
+      "cells": 1,
+      "w": 138,
+      "h": 274,
+      "ax": 0.303,
+      "ay": 0.918,
+      "fw": 78,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_02.png",
+      "cells": 1,
+      "w": 195,
+      "h": 187,
+      "ax": 0.513,
+      "ay": 0.74,
+      "fw": 185,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_03.png",
+      "cells": 1,
+      "w": 178,
+      "h": 218,
+      "ax": 0.499,
+      "ay": 0.789,
+      "fw": 172,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_04.png",
+      "cells": 1,
+      "w": 275,
+      "h": 198,
+      "ax": 0.499,
+      "ay": 0.646,
+      "fw": 269,
+      "act": 2
+    },
+    {
+      "file": "hielo_obj_b_05.png",
+      "cells": 1,
+      "w": 230,
+      "h": 175,
+      "ax": 0.501,
+      "ay": 0.664,
+      "fw": 225,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_00.png",
+      "cells": 2,
+      "w": 352,
+      "h": 229,
+      "ax": 0.5,
+      "ay": 0.608,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_01.png",
+      "cells": 2,
+      "w": 353,
+      "h": 256,
+      "ax": 0.5,
+      "ay": 0.65,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_02.png",
+      "cells": 2,
+      "w": 353,
+      "h": 236,
+      "ax": 0.499,
+      "ay": 0.62,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_03.png",
+      "cells": 2,
+      "w": 352,
+      "h": 250,
+      "ax": 0.5,
+      "ay": 0.643,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_04.png",
+      "cells": 2,
+      "w": 353,
+      "h": 270,
+      "ax": 0.5,
+      "ay": 0.668,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_long_05.png",
+      "cells": 2,
+      "w": 352,
+      "h": 251,
+      "ax": 0.5,
+      "ay": 0.641,
+      "fw": 346,
+      "act": 2
+    },
+    {
+      "file": "hielo_big_00.png",
+      "cells": 9,
+      "w": 701,
+      "h": 485,
+      "ax": 0.5,
+      "ay": 0.635,
+      "fw": 691,
+      "act": 2
+    },
+    {
+      "file": "hielo_big_01.png",
+      "cells": 9,
+      "w": 700,
+      "h": 467,
+      "ax": 0.5,
+      "ay": 0.62,
+      "fw": 691,
+      "act": 2
+    },
+    {
+      "file": "hielo_big_02.png",
+      "cells": 9,
+      "w": 701,
+      "h": 477,
+      "ax": 0.5,
+      "ay": 0.628,
+      "fw": 691,
+      "act": 2
+    },
+    {
+      "file": "hielo_big_03.png",
+      "cells": 9,
+      "w": 700,
+      "h": 445,
+      "ax": 0.5,
+      "ay": 0.602,
+      "fw": 691,
+      "act": 2
+    },
+    {
+      "file": "plantas_obj_a_00.png",
+      "cells": 1,
+      "w": 176,
+      "h": 192,
+      "ax": 0.5,
+      "ay": 0.765,
+      "fw": 171,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_a_01.png",
+      "cells": 1,
+      "w": 236,
+      "h": 158,
+      "ax": 0.501,
+      "ay": 0.618,
+      "fw": 231,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_a_02.png",
+      "cells": 1,
+      "w": 228,
+      "h": 209,
+      "ax": 0.533,
+      "ay": 0.737,
+      "fw": 208,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_a_03.png",
+      "cells": 1,
+      "w": 159,
+      "h": 245,
+      "ax": 0.443,
+      "ay": 0.851,
+      "fw": 135,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_a_04.png",
+      "cells": 1,
+      "w": 252,
+      "h": 167,
+      "ax": 0.501,
+      "ay": 0.615,
+      "fw": 247,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_a_05.png",
+      "cells": 1,
+      "w": 234,
+      "h": 198,
+      "ax": 0.499,
+      "ay": 0.698,
+      "fw": 228,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_00.png",
+      "cells": 1,
+      "w": 226,
+      "h": 213,
+      "ax": 0.5,
+      "ay": 0.728,
+      "fw": 221,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_01.png",
+      "cells": 1,
+      "w": 170,
+      "h": 274,
+      "ax": 0.398,
+      "ay": 0.871,
+      "fw": 130,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_02.png",
+      "cells": 1,
+      "w": 201,
+      "h": 187,
+      "ax": 0.499,
+      "ay": 0.724,
+      "fw": 195,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_03.png",
+      "cells": 1,
+      "w": 209,
+      "h": 217,
+      "ax": 0.499,
+      "ay": 0.755,
+      "fw": 203,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_04.png",
+      "cells": 1,
+      "w": 283,
+      "h": 197,
+      "ax": 0.5,
+      "ay": 0.634,
+      "fw": 278,
+      "act": 3
+    },
+    {
+      "file": "plantas_obj_b_05.png",
+      "cells": 1,
+      "w": 247,
+      "h": 186,
+      "ax": 0.501,
+      "ay": 0.662,
+      "fw": 242,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_00.png",
+      "cells": 2,
+      "w": 352,
+      "h": 213,
+      "ax": 0.499,
+      "ay": 0.583,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_01.png",
+      "cells": 2,
+      "w": 352,
+      "h": 256,
+      "ax": 0.501,
+      "ay": 0.651,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_02.png",
+      "cells": 2,
+      "w": 353,
+      "h": 247,
+      "ax": 0.499,
+      "ay": 0.639,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_03.png",
+      "cells": 2,
+      "w": 352,
+      "h": 245,
+      "ax": 0.5,
+      "ay": 0.634,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_04.png",
+      "cells": 2,
+      "w": 353,
+      "h": 280,
+      "ax": 0.5,
+      "ay": 0.678,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_long_05.png",
+      "cells": 2,
+      "w": 352,
+      "h": 254,
+      "ax": 0.5,
+      "ay": 0.649,
+      "fw": 346,
+      "act": 3
+    },
+    {
+      "file": "plantas_big_00.png",
+      "cells": 9,
+      "w": 701,
+      "h": 492,
+      "ax": 0.5,
+      "ay": 0.639,
+      "fw": 691,
+      "act": 3
+    },
+    {
+      "file": "plantas_big_01.png",
+      "cells": 9,
+      "w": 701,
+      "h": 480,
+      "ax": 0.5,
+      "ay": 0.632,
+      "fw": 691,
+      "act": 3
+    },
+    {
+      "file": "plantas_big_02.png",
+      "cells": 9,
+      "w": 701,
+      "h": 472,
+      "ax": 0.5,
+      "ay": 0.624,
+      "fw": 691,
+      "act": 3
+    },
+    {
+      "file": "plantas_big_03.png",
+      "cells": 9,
+      "w": 700,
+      "h": 470,
+      "ax": 0.5,
+      "ay": 0.622,
+      "fw": 691,
+      "act": 3
     }
   ]
 }

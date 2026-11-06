@@ -1,4 +1,5 @@
 // Parámetros de render y contrato de sprite sheets (biblia de arte §4).
+import type { ActId } from './acts';
 import type { AnimId, Category } from './entities';
 import type { BuildingKind } from './props';
 
@@ -247,11 +248,21 @@ export const RAGE_VIEW = { scale: 1.25, warn: 1, blinkHz: 6 } as const;
 export const TILES = {
   dir: 'assets/tiles/',
   index: 'assets/tiles/tiles.json',
-  /** Lámina del suelo y peso de cada baldosa de arena (la 1 y la 4 son lisas); las de ácido son los lagos. */
-  sand: 'suelo',
+  /**
+   * Por acto: lámina del suelo, peso de cada baldosa y tinte, que oscurece el suelo y los objetos para que destaquen
+   * los personajes. Todas las láminas tienen la misma rejilla: la 1 y la 4 son lisas, la 0 y la 3 llevan matojos, y
+   * la 2 y la 5 son los lagos (ácido en el acto 1).
+   * DECISIÓN: en los actos 2 y 3 los matojos destacan más que en la arena y salen la mitad de veces.
+   */
+  acts: {
+    1: { sand: 'suelo', weights: [1, 6, 1, 1, 6, 1], tint: 0xb8a890 },
+    2: { sand: 'hielo', weights: [1, 12, 1, 1, 12, 1], tint: 0xc0c8d4 },
+    3: { sand: 'plantas', weights: [1, 12, 1, 1, 12, 1], tint: 0xb8b8a0 },
+  } as Readonly<
+    Record<ActId, { readonly sand: string; readonly weights: readonly number[]; readonly tint: number }>
+  >,
   /** Baldosas de suelo roto, debajo de los escombros (tools/slice_destrozos.py). */
   broken: 'roto',
-  sandWeights: [1, 6, 1, 1, 6, 1] as readonly number[],
   /** Láminas de decoración con baldosa; sus baldosas con ácido también son lagos. */
   deco: [] as readonly string[],
   /** Probabilidad de que una casilla sin charco lleve decoración. */
@@ -260,9 +271,7 @@ export const TILES = {
   propsDir: 'assets/props/',
   /** Ancho del rombo en la imagen, en px. */
   imageWidth: 256,
-  /** Oscurece el suelo para que destaquen los personajes. */
-  tint: 0xb8a890,
-  /** El suelo roto y los escombros ya vienen oscuros: con `tint` se confundirían entre ellos. */
+  /** El suelo roto y los escombros ya vienen oscuros: con el tinte del acto se confundirían entre ellos. */
   brokenTint: 0xdccab0,
   rubbleTint: 0xffffff,
   /** Solape para que no se vean costuras. */

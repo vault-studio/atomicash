@@ -4,8 +4,9 @@
 // la semilla si lleva un edificio (las 9), un objeto de 2 casillas (en una de sus filas) o, si no, objetos de una
 // casilla sueltos. Nunca sobre ácido ni junto a la salida, y alrededor de un edificio no hay nada más. El motor guarda
 // la forma de choque de las casillas de alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
+import type { ActId } from '../config/acts';
 import { HAZARDS } from '../config/radiation';
-import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_CELLS } from '../config/props';
+import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_ACT } from '../config/props';
 import { RUN } from '../config/run';
 import { buildingBlock, cellKey, cellRand, hazardAt, nearBuilding, worldHazardAt } from './hazards';
 import type { Building, Hazard, Point, World } from './types';
@@ -55,7 +56,10 @@ function allFree(
   return true;
 }
 
-/** Rellena `out` con el objeto que ocupa la casilla (i, j); false si no hay ninguno. */
+/**
+ * Rellena `out` con el objeto que ocupa la casilla (i, j); false si no hay ninguno. El acto solo cambia qué objeto
+ * sale, no dónde.
+ */
 export function objectAt(
   seed: number,
   i: number,
@@ -63,7 +67,9 @@ export function objectAt(
   sx: number,
   sy: number,
   out: CellObject,
+  act: ActId = 1,
 ): boolean {
+  const props = PROPS_BY_ACT[act];
   const bi = Math.floor(i / B);
   const bj = Math.floor(j / B);
   const i0 = bi * B;
@@ -71,14 +77,14 @@ export function objectAt(
   const r = cellRand(seed, bi, bj, 8);
   const big = PROPS.chance9 * B * B;
   if (buildingBlock(seed, bi, bj, sx, sy)) {
-    out.prop = pick(PROPS_BY_CELLS[9], cellRand(seed, bi, bj, 9));
+    out.prop = pick(props[9], cellRand(seed, bi, bj, 9));
     out.i = i0;
     out.j = j0;
     out.x = (i0 + B / 2) * T;
     out.y = (j0 + B / 2) * T;
     return true;
   }
-  if (r >= big && r < big + PROPS.chance2 * B * B && PROPS_BY_CELLS[2].length > 0) {
+  if (r >= big && r < big + PROPS.chance2 * B * B && props[2].length > 0) {
     const row = j0 + Math.floor(cellRand(seed, bi, bj, 10) * B);
     const col = i0 + Math.floor(cellRand(seed, bi, bj, 12) * (B - 1));
     if (
@@ -89,7 +95,7 @@ export function objectAt(
       !nearBuilding(seed, col, row, sx, sy) &&
       !nearBuilding(seed, col + 1, row, sx, sy)
     ) {
-      out.prop = pick(PROPS_BY_CELLS[2], cellRand(seed, bi, bj, 11));
+      out.prop = pick(props[2], cellRand(seed, bi, bj, 11));
       out.i = col;
       out.j = row;
       out.x = (col + 1) * T;
@@ -97,9 +103,9 @@ export function objectAt(
       return true;
     }
   }
-  if (PROPS_BY_CELLS[1].length === 0 || cellRand(seed, i, j, 6) >= PROPS.chance1) return false;
+  if (props[1].length === 0 || cellRand(seed, i, j, 6) >= PROPS.chance1) return false;
   if (!free(seed, i, j, sx, sy) || nearBuilding(seed, i, j, sx, sy)) return false;
-  out.prop = pick(PROPS_BY_CELLS[1], cellRand(seed, i, j, 7));
+  out.prop = pick(props[1], cellRand(seed, i, j, 7));
   out.i = i;
   out.j = j;
   out.x = (i + 0.5) * T;
@@ -109,7 +115,7 @@ export function objectAt(
 
 /** Como `objectAt`, contando los escombros que han dejado el mortero y la lluvia de chatarra. */
 export function worldObjectAt(w: World, i: number, j: number, out: CellObject): boolean {
-  if (objectAt(w.seed, i, j, w.start.x, w.start.y, out)) return true;
+  if (objectAt(w.seed, i, j, w.start.x, w.start.y, out, w.act)) return true;
   const s = w.scars.get(cellKey(i, j));
   if (s?.kind !== 'rubble') return false;
   out.prop = s.v;

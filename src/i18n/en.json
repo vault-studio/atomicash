@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "ATOMIC ASH",
-    "subtitle": "The Outskirts · Act 1",
+    "subtitle": "{{act}} · Act 1",
     "loading": "Loading sprites…",
     "tagline": "The end of the world was just the beginning",
     "introPower": "▮ Press to power on",
@@ -574,6 +574,11 @@
   },
   "zones": {
     "paramo": "The Outskirts"
+  },
+  "acts": {
+    "1": "The Outskirts",
+    "2": "The Frostlands",
+    "3": "The Overgrowth"
   },
   "supplies": {
     "zone": "{{zone}} crate",

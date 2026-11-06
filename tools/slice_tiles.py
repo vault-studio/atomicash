@@ -1,6 +1,8 @@
 # Recorta las baldosas isométricas de las láminas de ARTE/ (3×2 cada una, fondo negro) a PNG con transparencia en
 # assets/tiles/ y escribe assets/tiles/tiles.json con lo que hay en cada una.
-# Uso: python tools/slice_tiles.py
+# Uso: python tools/slice_tiles.py [láminas]
+# Con nombres (p. ej. `hielo plantas`) solo recorta esas láminas y las cambia en tiles.json, sin tocar lo demás; sin
+# nombres lo rehace todo y después hay que pasar tools/slice_destrozos.py, que añade el suelo roto.
 #
 # Cada baldosa de la lámina es un bloque suelto: cara superior (rombo ~1,4:1) y un canto de tierra debajo. Se buscan
 # sus esquinas, se lleva la cara a un rombo 2:1 de 256×128 con una perspectiva por sus cuatro esquinas y se tira el canto. Lo que
@@ -9,6 +11,7 @@
 # DECISIÓN: la transformación aplasta ~30 % en vertical también los objetos; a esta escala apenas se nota y evita
 # costuras. Es de perspectiva y no afín porque las caras de las láminas no siempre son paralelogramos.
 import json
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -22,13 +25,23 @@ BLACK = 28  # canal máximo por debajo del cual es fondo
 INSET = 0.98  # la cara se toma un poco hacia dentro para no arrastrar la arista
 RIM = 0.965  # desde aquí hasta el borde de la cara se rellena con el interior
 LIGHT = 30  # radio (px) de la luz de baja frecuencia que se aplana en las láminas de FLATTEN
-FLATTEN = ('suelo',)
+FLATTEN = ('suelo', 'hielo', 'plantas')
 TOP_TOL = 12  # px que puede separarse la esquina de arriba medida de la del paralelogramo
 MIN_TOP = 8  # px que tiene que sobresalir un objeto para ir aparte
 # DECISIÓN: el suelo es solo arena y lagos de ácido; la decoración irá aparte, como objetos sin baldosa.
 SHEETS = {
     'suelo': Path('ARTE/tiles_suelo_acido_2.webp'),
+    # Acto 2 y acto 3: misma rejilla (2 con matojos, 2 lisas, lago grande y pequeño).
+    'hielo': Path('ARTE/tiles_hielo.webp'),
+    'plantas': Path('ARTE/tiles_plantas.webp'),
 }
+# Baldosa → fracción de lago de las láminas donde el charco no es verde y no se puede medir por color. Solo se usa
+# para ordenarlos de menor a mayor.
+LAKES = {
+    'hielo': {2: 0.4, 5: 0.25},
+    'plantas': {2: 0.4, 5: 0.25},
+}
+LAKE_RIM = 0.72  # en esas baldosas la luz se mide solo fuera de esta distancia al centro de la cara, en la orilla
 
 yy, xx = np.mgrid[0 : HEAD + H, 0:W]
 cxw, cyw = W / 2, HEAD + H / 2
@@ -105,9 +118,12 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
         t[edge] = t[iy[edge], ix[edge]]
         r, g, b = t[..., 0], t[..., 1], t[..., 2]
         green = (g > 100) & (g >= r * 0.85) & (g - b > 80)
-        acid = float(green[in_face].mean())
+        lake = LAKES.get(name, {}).get(i)
+        # DECISIÓN: en estas láminas el verde es hierba, no ácido: los lagos son solo los de LAKES.
+        acid = LAKES[name].get(i, 0) if name in LAKES else float(green[in_face].mean())
         if name in FLATTEN:
-            flatten_light(t, face & ~nd.binary_dilation(green[HEAD:], iterations=12))
+            ref = dist[HEAD:] > LAKE_RIM if lake is not None else ~nd.binary_dilation(green[HEAD:], iterations=12)
+            flatten_light(t, face & ref)
         # Lo que sobresale: de esta baldosa, no negro y por encima de la cara.
         stick = mine & (t.max(2) > BLACK) & above_upper & ~in_face & above_lower
         stick &= nd.binary_opening(stick, iterations=1)
@@ -136,9 +152,20 @@ def slice_sheet(name: str, path: Path) -> list[dict]:
 
 
 OUT.mkdir(parents=True, exist_ok=True)
+only = sys.argv[1:]
+index = OUT / 'tiles.json'
+for n in only:
+    if n not in SHEETS:
+        sys.exit(f'lámina desconocida: {n}')
 for old in OUT.glob('*.png'):
-    old.unlink()
-meta = {'width': W, 'height': H, 'sets': {n: slice_sheet(n, p) for n, p in SHEETS.items()}}
-(OUT / 'tiles.json').write_text(json.dumps(meta, indent=2) + '\n', encoding='utf8', newline='\n')
+    if not only or any(old.name.startswith(f'{n}_') for n in only):
+        old.unlink()
+meta = json.loads(index.read_text(encoding='utf8')) if only else {'width': W, 'height': H, 'sets': {}}
+for n, p in SHEETS.items():
+    if not only or n in only:
+        meta['sets'][n] = slice_sheet(n, p)
+index.write_text(json.dumps(meta, indent=2) + '\n', encoding='utf8', newline='\n')
 for n, tiles in meta['sets'].items():
+    if only and n not in only:
+        continue
     print(n, [(t['file'][-6:-4], t['head'], t.get('acid', ''), 'top' if 'top' in t else '') for t in tiles])
