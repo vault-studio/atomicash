@@ -130,6 +130,7 @@
     "dirigible": "Dirigible de propaganda",
     "dirigible_dmg": "Dirigible de propaganda (dañado)",
     "coloso": "El Coloso de Hormigón",
+    "copia": "Tu copia",
     "coloso_p2": "El Coloso de Hormigón (núcleo expuesto)",
     "coloso_p3": "El Coloso de Hormigón (destrozado)",
     "llave": "Llave giratoria",
@@ -408,6 +409,8 @@
   "banner": {
     "chest": "¡Cofre de objeto!",
     "cache": "¡Zona limpia! Cofre especial junto al edificio",
+    "mirror": "¡Tú mismo, otra vez!",
+    "mirrorWon": "¡Te has vencido! Tu copia deja un cofre especial",
     "blimpDown": "El dirigible pierde altura",
     "colossusPhase": "El Coloso: fase {{n}}",
     "boss": "¡{{name}}!",
@@ -1006,7 +1009,8 @@
     },
     "events": {
       "hold": "Evento: aguanta aquí",
-      "purge": "Evento: limpia la zona"
+      "purge": "Evento: limpia la zona",
+      "mirror": "Evento: bomba"
     },
     "key": {
       "zone": "Zona con enemigos",

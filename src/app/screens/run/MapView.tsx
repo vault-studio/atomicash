@@ -248,6 +248,23 @@ function paintMap(
     }
   }
 
+  // Bomba del evento «Tú mismo, otra vez».
+  const mb = w.mirror;
+  if (mb.phase === 1) {
+    const x = px(mb.x, mb.y);
+    const y = py(mb.x, mb.y);
+    const color = eventColor('purge');
+    if (inside(x, y)) {
+      drawEvent(ctx, x, y, MAP.event, 'purge', 0.5);
+      text(ctx, labels, t('map.events.mirror'), x, y + MAP.event + 5, W, color);
+    } else {
+      const e = edge(x, y);
+      ctx.fillStyle = color;
+      drawArrow(ctx, e.x, e.y, e.ang, 1.8);
+      text(ctx, labels, t('map.events.mirror'), e.x, e.y + 14, W, color);
+    }
+  }
+
   // El jugador.
   const face = Math.atan2(isoY(p.facingX, p.facingY), isoX(p.facingX, p.facingY));
   ctx.save();

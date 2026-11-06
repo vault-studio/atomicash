@@ -174,6 +174,8 @@ export interface Enemy {
   side: number;
   /** Prefijo de élite, o null si es normal. */
   elite: EliteId | null;
+  /** Sprite propio que sustituye al del tipo (la copia del jugador usa el de su personaje); null = el del tipo. */
+  skin: EntityId | null;
   /** Marcha en formación (hordas): segundos que sigue en línea recta por (dx, dy) antes de perseguir. */
   march: number;
   /** Tiempo de la run del primer golpe recibido en esta vida (para el tiempo para matar; -1 = sin golpes). */
@@ -392,6 +394,18 @@ export type PickupKind =
   | 'boots'
   /** Cofre especial de un edificio con la guarnición eliminada. */
   | 'cache';
+
+/**
+ * Evento «Tú mismo, otra vez» (engine/systems/mirror.ts). `phase`: 0 esperando, 1 bomba en el suelo, 2 ya explotó.
+ * `at` = segundo en que debe salir la bomba (se retrasa con un jefe). `rng` es propio: no toca `World.rng`.
+ */
+export interface MirrorState {
+  phase: 0 | 1 | 2;
+  at: number;
+  x: number;
+  y: number;
+  readonly rng: Rng;
+}
 
 /** Guarnición de un edificio: dónde sale su cofre y cuántos enemigos quedan. */
 export interface Garrison {
@@ -655,6 +669,7 @@ export interface World {
   readonly barrels: Pool<Barrel>;
   /** Tiempo hasta intentar poner más barriles. */
   barrelT: number;
+  mirror: MirrorState;
   objective: Objective | null;
   nextObjective: number;
   /** Lluvia de chatarra o de ácido en curso (la radiactiva de los eventos es `rain`). */

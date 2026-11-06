@@ -27,6 +27,7 @@ import {
   lockCard,
   reroll,
 } from '../engine/systems/progression';
+import { putBomb } from '../engine/systems/mirror';
 import { startDownpour } from '../engine/systems/rains';
 import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
 import type { Banner, Choice, Enemy, InputState, World } from '../engine/types';
@@ -336,6 +337,7 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     else if (e.code === 'KeyE') spawnElite(world);
     else if (e.code === 'KeyH') announceHorde(world);
     else if (e.code === 'KeyN') startDownpour(world);
+    else if (e.code === 'KeyM') putBomb(world, p.x + p.facingX * 120, p.y + p.facingY * 120);
   };
   window.addEventListener('keydown', onKey);
 

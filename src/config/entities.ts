@@ -94,6 +94,8 @@ const DEFS = {
   predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 1 },
   // Robot de carrera (CAMBIOS §2).
   interceptor: { category: 'enemies', size: 1.1, color: '#3FE0FF', method: 'rigid', act: 1 },
+  // Copia del jugador (evento «Tú mismo, otra vez»): se dibuja con los sprites de su personaje (`Enemy.skin`).
+  copia: { category: 'enemies', size: 1.3, color: '#C070FF', method: 'mixamo', act: 1 },
   moscon: { category: 'enemies', size: 0.8, color: '#3AA0A0', method: 'rigid', act: 2 },
 
   // ---------- Jefes (bosses) y variantes de fase ----------

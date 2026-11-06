@@ -12,15 +12,15 @@ describe('registro de entidades', () => {
   it('contiene todas las entidades de la biblia de arte', () => {
     const count = (c: string) => ENTITY_IDS.filter((id) => ENTITIES[id].category === c).length;
     expect(count('characters')).toBe(9);
-    expect(count('enemies')).toBe(17); // + interceptor (CAMBIOS §2)
+    expect(count('enemies')).toBe(18); // + interceptor (CAMBIOS §2) + copia (evento «Tú mismo, otra vez»)
     expect(count('bosses')).toBe(7); // 3 jefes + 4 variantes de fase
     expect(count('props')).toBe(10);
   });
 
-  it('la prioridad del Acto 1 son 3 jugables, 16 enemigos, 3 jefes y 4 armas', () => {
+  it('la prioridad del Acto 1 son 3 jugables, 17 enemigos, 3 jefes y 4 armas', () => {
     const p = act1Priority();
     // Gus aún no tiene armas propias con arte: Dot y Benny llevan dos cada uno.
-    expect(p).toHaveLength(26);
+    expect(p).toHaveLength(27);
     expect(p).toEqual(
       expect.arrayContaining([
         'dot',

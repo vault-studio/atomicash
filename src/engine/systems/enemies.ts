@@ -40,6 +40,7 @@ import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage'
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
 import { landFall, markFall } from '../scars';
+import { mirrorAngle, mirrorBulletDmg, mirrorShotCount, mirrorThink, mirrorVel } from './mirror';
 import { mortarThink, mortarVel } from './shooters';
 import { SFX, sfx } from '../sfx';
 
@@ -105,6 +106,7 @@ export function createEnemy(): Enemy {
     timer: 0.5,
     side: 1,
     elite: null,
+    skin: null,
     march: 0.5,
     hitT: new Float64Array(ORBIT_SLOTS),
     burnT: new Float64Array(WEAPONS.coctel.burn.stacks),
@@ -160,6 +162,8 @@ function firstTimer(type: StatEnemyId): number {
       return AI.rey_rata.every;
     case 'mortero':
       return AI.mortero.every * 0.5;
+    case 'copia':
+      return AI.copia.every;
     case 'dirigible':
       return AI.dirigible.every;
     case 'coloso':
@@ -241,6 +245,7 @@ export function spawnEnemy(w: World, type: StatEnemyId, x: number, y: number, ir
   e.timer = firstTimer(type) * (0.4 + w.rng() * 0.6);
   e.side = w.rng() < 0.5 ? -1 : 1;
   e.elite = null;
+  e.skin = null;
   e.march = 0;
   e.hitT.fill(-1e9);
   e.burnT.fill(0);
@@ -633,6 +638,23 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       }
       break;
     }
+    case 'copia': {
+      // Ráfaga en abanico hacia el jugador; el número de balas y su daño salen de mirror.ts.
+      if (mirrorThink(w, e, d, ux, uy, dt)) {
+        const n = mirrorShotCount(w);
+        const dmg = mirrorBulletDmg(w);
+        for (let i = 0; i < n; i++) {
+          const a = mirrorAngle(i, n);
+          const c = Math.cos(a);
+          const s = Math.sin(a);
+          fireBullet(w, e.x, e.y, ux * c - uy * s, ux * s + uy * c, AI.copia.bulletSpd, dmg, 0);
+        }
+        markAttack(w, e);
+      }
+      vx = mirrorVel.x;
+      vy = mirrorVel.y;
+      break;
+    }
     case 'mortero':
       if (mortarThink(w, e, d, ux, uy, spd, dt, curSrc)) markAttack(w, e);
       vx = mortarVel.x;
@@ -940,6 +962,7 @@ export function updateEnemies(w: World, dt: number): void {
       e.march <= 0 &&
       d <= e.r + p.r &&
       e.type !== 'dirigible' &&
+      e.type !== 'copia' && // Nace encima del jugador y tiene que poder apartarse.
       !(e.type === 'coloso' && e.alt)
     ) {
       vx = 0;

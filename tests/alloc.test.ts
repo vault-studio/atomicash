@@ -1,7 +1,7 @@
 // Criterio de F1-04: 1 000 entidades sin allocations por frame.
 import { PerformanceObserver, performance } from 'node:perf_hooks';
 import { describe, expect, it } from 'vitest';
-import { BOSS_IDS, ENEMY_RULES, RAGE, STAT_ENEMY_IDS } from '../src/config/enemies';
+import { BOSS_IDS, ENEMY_RULES, MIRROR_ID, RAGE, STAT_ENEMY_IDS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { removeEnemyAt, spawnEnemy } from '../src/engine/systems/enemies';
 import { createWorld, tick } from '../src/engine/world';
@@ -9,6 +9,8 @@ import type { InputState, World } from '../src/engine/types';
 import { createWeapon } from '../src/engine/systems/weapons';
 import type { WeaponId } from '../src/config/weapons';
 
+// Sin la copia del evento «Tú mismo, otra vez»: no sale en oleadas, y un tirador más cambia la mezcla de la multitud.
+const CROWD_IDS = STAT_ENEMY_IDS.filter((id) => id !== MIRROR_ID);
 const N = 1000;
 const STEP = 1 / RUN.tickHz;
 
@@ -18,7 +20,7 @@ function crowd(): World {
   for (let i = 0; i < N; i++) {
     const a = (i / N) * Math.PI * 2;
     const d = 80 + (i % 20) * 30;
-    const type = STAT_ENEMY_IDS[i % STAT_ENEMY_IDS.length]!;
+    const type = CROWD_IDS[i % CROWD_IDS.length]!;
     spawnEnemy(w, type, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d);
   }
   return w;

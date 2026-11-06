@@ -33,6 +33,7 @@ import {
   updateSlimes,
   updateTelegraphs,
 } from './systems/enemies';
+import { createMirror, updateMirror } from './systems/mirror';
 import { createBarrel, updateBarrels, updateObjective } from './systems/modes';
 import { updateDownpour } from './systems/rains';
 import { updatePickups } from './systems/progression';
@@ -254,6 +255,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     bossAlive: 0,
     nextElite: ELITES.first,
     nextHorde: HORDES.first,
+    mirror: createMirror(seed),
     barrels: new Pool(createBarrel, 24),
     barrelT: 3,
     objective: null,
@@ -408,6 +410,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   if (p.deadAt === null) {
     updateSpawning(w, dt);
     updateObjective(w, dt);
+    updateMirror(w);
     updateDownpour(w, dt);
   }
   updateWeapons(w, dt);

@@ -177,6 +177,20 @@ function paint(ctx: CanvasRenderingContext2D, size: number, w: World, time: numb
     }
   }
 
+  // Bomba del evento «Tú mismo, otra vez»: el mismo marcador de evento, en rojo.
+  const mb = w.mirror;
+  if (mb.phase === 1) {
+    const sx = isoX(mb.x - p.x, mb.y - p.y);
+    const sy = isoY(mb.x - p.x, mb.y - p.y);
+    if (Math.hypot(sx, sy) <= RADAR.range)
+      drawEvent(ctx, c + sx * k, c + sy * k, RADAR.eventSize, 'purge', pulse);
+    else {
+      const ang = Math.atan2(sy, sx);
+      ctx.fillStyle = eventColor('purge');
+      drawArrow(ctx, c + Math.cos(ang) * (R - 12), c + Math.sin(ang) * (R - 12), ang, 1.5);
+    }
+  }
+
   // El jugador, en el centro, apuntando hacia donde se mueve (al pararse, hacia donde se movió por última vez).
   const face = Math.atan2(isoY(p.facingX, p.facingY), isoX(p.facingX, p.facingY));
   ctx.save();

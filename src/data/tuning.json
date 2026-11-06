@@ -320,6 +320,17 @@
       "kbRes": 0,
       "boss": true,
       "metal": true
+    },
+    "copia": {
+      "role": "shooter",
+      "hp": 500,
+      "dmg": 8,
+      "speed": 0,
+      "xp": 20,
+      "kbRes": 0.5,
+      "rage": {
+        "enabled": false
+      }
     }
   },
   "ai": {
@@ -446,6 +457,21 @@
       "summonGhouls": 6,
       "summonDist": 120,
       "turretDist": 110
+    },
+    "copia": {
+      "hold": 320,
+      "retreat": 220,
+      "range": 650,
+      "every": 1.6,
+      "shots": 3,
+      "shotsPerWeapon": 1,
+      "spread": 0.3,
+      "bulletSpd": 300,
+      "dmg": 6,
+      "dmgPerLevel": 0.5,
+      "hpBase": 500,
+      "hpPerLevel": 80,
+      "speedMult": 0.9
     }
   },
   "rage": {
@@ -1115,5 +1141,13 @@
       "rad": 12,
       "aimChance": 0.1
     }
+  },
+  "mirror": {
+    "from": 180,
+    "to": 300,
+    "distMin": 500,
+    "distMax": 700,
+    "r": 28,
+    "blastDmg": 12
   }
 }

@@ -27,6 +27,13 @@ export const BARRELS = {
   playerDmg: 8,
 } as const;
 
+/**
+ * Evento «Tú mismo, otra vez», en `src/data/tuning.json` → `mirror`. Una sola vez por partida sale una bomba en un
+ * segundo al azar de [`from`, `to`], a `distMin`–`distMax` px del jugador. Al pisarla (a menos de `r` px) explota
+ * (`blastDmg` al jugador) y aparece la copia hostil (`ai.copia`); al matarla cae el cofre especial.
+ */
+export const MIRROR = TUNING.mirror;
+
 export type RainKind = 'scrap' | 'acid';
 
 /**

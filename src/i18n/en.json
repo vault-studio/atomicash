@@ -130,6 +130,7 @@
     "dirigible": "Propaganda airship",
     "dirigible_dmg": "Propaganda airship (damaged)",
     "coloso": "The Concrete Colossus",
+    "copia": "Your copy",
     "coloso_p2": "The Concrete Colossus (exposed core)",
     "coloso_p3": "The Concrete Colossus (shattered)",
     "llave": "Spinning wrench",
@@ -408,6 +409,8 @@
   "banner": {
     "chest": "Item chest!",
     "cache": "Area cleared! Special chest by the building",
+    "mirror": "Yourself, again!",
+    "mirrorWon": "You beat yourself! Your copy left a special chest",
     "blimpDown": "The blimp is losing altitude",
     "colossusPhase": "The Colossus: phase {{n}}",
     "boss": "{{name}}!",
@@ -1006,7 +1009,8 @@
     },
     "events": {
       "hold": "Event: hold here",
-      "purge": "Event: clear the zone"
+      "purge": "Event: clear the zone",
+      "mirror": "Event: bomb"
     },
     "key": {
       "zone": "Enemy zone",

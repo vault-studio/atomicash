@@ -196,6 +196,10 @@ export const RUN_COLORS = {
   pool: 0xff7a2a,
   tele: 0xff3c28,
   objective: 0xffe14a,
+  /** Tinte de la copia del jugador y bomba del evento «Tú mismo, otra vez» (cuerpo y pulso). */
+  mirror: 0xc070ff,
+  mirrorBomb: 0x2a1018,
+  mirrorPulse: 0xff2a2a,
   barrel: 0xc0321e,
   barrelBand: 0xffd34a,
   mine: 0xff5a5a,

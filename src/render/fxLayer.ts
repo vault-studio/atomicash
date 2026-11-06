@@ -6,6 +6,7 @@ import { FX_ART, RUN_COLORS } from '../config/render';
 import { FX, JUICE, RUN } from '../config/run';
 import { WEAPONS } from '../config/weapons';
 import { AI, ELITES, ENEMY_RULES } from '../config/enemies';
+import { MIRROR } from '../config/modes';
 import { ENTITIES, type EntityId } from '../config/entities';
 import type { Boom, TeleFall, World } from '../engine/types';
 import type { FxSprites } from './fxSprites';
@@ -276,6 +277,22 @@ export class FxLayer {
         .stroke({ width: 1.5, color: 0x000000, alpha: 0.7 });
       g.rect(sx - r * 0.8, sy - r * 1.35, r * 1.6, r * 0.4).fill({ color: RUN_COLORS.barrelBand });
       g.ellipse(sx, sy - r * 2.2, r * 0.8, r * 0.3).fill({ color: 0x5a1a10 });
+    }
+    // Bomba del evento «Tú mismo, otra vez» (sin arte): esfera oscura con un aro rojo que late, distinta del pickup `bomb`.
+    const mb = w.mirror;
+    if (mb.phase === 1) {
+      const pulse = 0.5 + 0.5 * Math.sin(t * 7);
+      const r = MIRROR.r;
+      const sx = isoX(mb.x, mb.y);
+      const sy = isoY(mb.x, mb.y);
+      groundCircle(g, mb.x, mb.y, r * (1.2 + 0.5 * pulse))
+        .fill({ color: RUN_COLORS.mirrorPulse, alpha: 0.12 + 0.12 * pulse })
+        .stroke({ width: 2.5, color: RUN_COLORS.mirrorPulse, alpha: 0.5 + 0.4 * pulse });
+      groundCircle(g, mb.x, mb.y, r * 0.6).fill({ color: 0x000000, alpha: 0.4 });
+      g.circle(sx, sy - r * 0.55, r * 0.55)
+        .fill({ color: RUN_COLORS.mirrorBomb })
+        .stroke({ width: 2, color: RUN_COLORS.mirrorPulse, alpha: 0.6 + 0.4 * pulse });
+      g.circle(sx, sy - r * 0.55, r * 0.2).fill({ color: RUN_COLORS.mirrorPulse, alpha: 0.5 + 0.5 * pulse });
     }
     // Aura de los élites: anillo del color de su prefijo que late (la del radiactivo marca su alcance).
     for (let i = 0; i < w.enemies.count; i++) {

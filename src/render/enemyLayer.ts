@@ -120,7 +120,9 @@ export class EnemyLayer {
             ? RUN_COLORS.rage
             : e.irr
               ? RUN_COLORS.irradiated
-              : 0xffffff;
+              : e.skin !== null
+                ? RUN_COLORS.mirror
+                : 0xffffff;
       const flash = e.flash > 0 ? Math.min(1, e.flash / HIT_FLASH) : 0;
       v.style(
         e.flying ? flyLift(e.type) : leapLift(e),
@@ -145,7 +147,11 @@ export class EnemyLayer {
       const fade = meta ? 1 : Math.max(0, 1 - t * 2.5);
       v.style(
         k.flying ? flyLift(k.sprite) * Math.max(0, 1 - t) : 0,
-        k.irr ? RUN_COLORS.irradiated : 0xffffff,
+        k.irr
+          ? RUN_COLORS.irradiated
+          : ENTITIES[k.sprite].category === 'characters'
+            ? RUN_COLORS.mirror
+            : 0xffffff,
         fade,
       );
     }

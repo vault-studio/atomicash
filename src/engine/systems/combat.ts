@@ -104,6 +104,7 @@ export function irradiatedChance(w: World): number {
 
 /** Sprite que corresponde a un enemigo según su fase (variantes de la biblia de arte). */
 export function spriteIdFor(e: Enemy): EntityId {
+  if (e.skin !== null) return e.skin;
   const vs = BOSS_VARIANTS[e.type];
   if (!vs) return e.type;
   let id: EntityId = e.type;
@@ -401,8 +402,10 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
   } else if (e.gar >= 0) {
     const g = w.garrisons[e.gar]!;
     if (--g.left === 0) {
-      addChest(w, 'cache', g.x, g.y, BUILDINGS.cache.r);
-      banner(w, 'banner.cache');
+      // La copia del evento «Tú mismo, otra vez» no tiene edificio: el cofre cae donde muere.
+      const mirror = e.skin !== null;
+      addChest(w, 'cache', mirror ? e.x : g.x, mirror ? e.y : g.y, BUILDINGS.cache.r);
+      banner(w, mirror ? 'banner.mirrorWon' : 'banner.cache');
     }
   } else if (!e.boss && w.rng() < COUPONS.dropChance) {
     addPickup(w, 'coupon', e.x, e.y, COUPONS.r, COUPONS.drop);

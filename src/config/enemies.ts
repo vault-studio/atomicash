@@ -97,8 +97,12 @@ export type StatEnemyId = keyof typeof ENEMY_STATS;
 export const STAT_ENEMY_IDS = Object.keys(ENEMY_STATS) as StatEnemyId[];
 export type BossKind = 'rey_rata' | 'dirigible' | 'coloso';
 export const BOSS_IDS: readonly BossKind[] = ['rey_rata', 'dirigible', 'coloso'];
+/** La copia hostil del evento «Tú mismo, otra vez»: nunca sale en oleadas ni en las listas de depuración. */
+export const MIRROR_ID = 'copia' satisfies StatEnemyId;
 /** Enemigos normales (los que pueden salir en oleadas). */
-export const MOB_IDS = STAT_ENEMY_IDS.filter((id) => !(ENEMY_STATS[id] as EnemyStats).boss);
+export const MOB_IDS = STAT_ENEMY_IDS.filter(
+  (id) => !(ENEMY_STATS[id] as EnemyStats).boss && id !== MIRROR_ID,
+);
 
 export const statsOf = (id: StatEnemyId): EnemyStats => ENEMY_STATS[id];
 
@@ -218,6 +222,7 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,
+  copia: [0xa8382a, 0x6a2a20, 0xc8a070],
 };
 /** Esquirlas de los irradiados. */
 export const GORE_IRR: readonly number[] = [0xa8ff70, 0x9dff00, 0xe8ffb0];
