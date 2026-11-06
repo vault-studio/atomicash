@@ -29,8 +29,8 @@ FILL = 0.9  # fracción del ancho de la huella que ocupa la base de los objetos 
 # Ancho de la huella en px de baldosa según las casillas que ocupa.
 FOOT = {1: TILE, 2: TILE * 1.5, 9: TILE * 3}
 BAND = 0.5  # fracción de abajo de un objeto de una casilla que se toma como su base (los demás, entero)
-# Objetos descartados (nombre_índice): farola, carrito y neumáticos.
-SKIP = {'obj_b_01', 'obj_b_02', 'obj_b_05'}
+# Objetos descartados (nombre_índice): farola, carrito y neumáticos, en los tres actos.
+SKIP = {f'{biome}obj_b_{i}' for biome in ('', 'hielo_', 'plantas_') for i in ('01', '02', '05')}
 # Lámina → (casillas que ocupa cada objeto, columnas, filas). Los de 2 van en fila hacia abajo a la derecha (eje x
 # del mundo).
 SHEETS = {
