@@ -1,5 +1,7 @@
 // Pestaña «Partida»: personaje, semilla, build, velocidad, piloto automático y generadores de enemigos.
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ACT_IDS, type ActId } from '../../config/acts';
 import { BOSS_IDS, MOB_IDS, type BossKind, type StatEnemyId } from '../../config/enemies';
 import { ROSTER, type StatSurvivorId } from '../../config/survivors';
 import type { HordeKind } from '../../config/waves';
@@ -36,6 +38,7 @@ function StatusLine({ getSession }: { getSession: DevCtx['getSession'] }) {
 
 export function GameTab({ ctx }: { ctx: DevCtx }) {
   const { setup, live } = ctx;
+  const { t } = useTranslation();
   const [mob, setMob] = useState<StatEnemyId>(MOB_IDS[0]!);
   const [count, setCount] = useState(10);
   const [horde, setHorde] = useState<HordeKind>('ring');
@@ -65,6 +68,26 @@ export function GameTab({ ctx }: { ctx: DevCtx }) {
             ))}
           </select>
         </label>
+        <label className="dev-row">
+          <span>Acto</span>
+          <select
+            value={setup.act}
+            onChange={(e) =>
+              ctx.restart({
+                act: Number(e.target.value) as ActId,
+                seedText: String(ctx.seed),
+                fixedSeed: true,
+              })
+            }
+          >
+            {ACT_IDS.map((a) => (
+              <option key={a} value={a}>
+                {a} · {t(`acts.${a}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="dev-dim">Reinicia al momento con la misma semilla, para comparar el mismo mapa.</div>
         <label className="dev-row">
           <span>Semilla</span>
           <input
@@ -101,7 +124,7 @@ export function GameTab({ ctx }: { ctx: DevCtx }) {
           Armas: {WEAPON_IDS.join(', ')}. La primera sustituye al arma inicial.
           {ignored.length > 0 && <span className="dev-warn"> Ignorado: {ignored.join(', ')}</span>}
         </div>
-        <button className="dev-big" onClick={ctx.restart}>
+        <button className="dev-big" onClick={() => ctx.restart()}>
           Reiniciar
         </button>
       </section>

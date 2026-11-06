@@ -179,7 +179,7 @@ export function ValuesTab({ ctx }: { ctx: DevCtx }) {
         />
         <button onClick={() => setOpen(new Set())}>plegar</button>
       </div>
-      <button className="dev-big" onClick={ctx.restart}>
+      <button className="dev-big" onClick={() => ctx.restart()}>
         Aplicar y reiniciar
       </button>
       {msg && <div className="dev-warn">{msg}</div>}

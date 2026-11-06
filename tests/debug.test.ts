@@ -25,6 +25,7 @@ describe('parámetros de URL', () => {
   it('sin parámetros: valores por defecto', () => {
     expect(parseDevParams('?dev')).toEqual({
       char: 'dot',
+      act: 1,
       seed: null,
       build: [],
       god: false,
@@ -35,9 +36,12 @@ describe('parámetros de URL', () => {
   });
 
   it('lee todos los parámetros', () => {
-    const p = parseDevParams('?dev&char=gus&seed=42&weapons=llave:3,tesla:2&god=1&speed=2&bot=kite&panel=0');
+    const p = parseDevParams(
+      '?dev&char=gus&act=3&seed=42&weapons=llave:3,tesla:2&god=1&speed=2&bot=kite&panel=0',
+    );
     expect(p).toEqual({
       char: 'gus',
+      act: 3,
       seed: 42,
       build: [
         { id: 'llave', lvl: 3 },
@@ -51,8 +55,9 @@ describe('parámetros de URL', () => {
   });
 
   it('ignora lo inválido y acota la velocidad', () => {
-    const p = parseDevParams('?dev&char=mae&seed=abc&bot=volar&speed=99');
+    const p = parseDevParams('?dev&char=mae&act=9&seed=abc&bot=volar&speed=99');
     expect(p.char).toBe('dot');
+    expect(p.act).toBe(1);
     expect(p.seed).toBeNull();
     expect(p.bot).toBeNull();
     expect(p.speed).toBe(4);

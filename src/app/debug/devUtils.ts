@@ -1,6 +1,7 @@
 // Utilidades puras del depurador (solo desarrollo): parámetros de URL, build inicial, edición de valores por ruta,
 // filtros del árbol y acciones sobre el mundo. Sin React ni DOM, para poder probarlas sin navegador.
 // DECISIÓN: el depurador está exento de i18n (solo existe en desarrollo), así que los textos van en castellano.
+import { isActId, type ActId } from '../../config/acts';
 import { PLAYER } from '../../config/run';
 import { ROSTER, type StatSurvivorId } from '../../config/survivors';
 import { WEAPON_IDS, type WeaponId } from '../../config/weapons';
@@ -22,6 +23,7 @@ export interface BuildItem {
 
 export interface DevParams {
   char: StatSurvivorId;
+  act: ActId;
   /** null = aleatoria. */
   seed: number | null;
   build: BuildItem[];
@@ -76,14 +78,16 @@ export const formatBuild = (items: readonly BuildItem[]): string =>
 
 const isOn = (v: string | null): boolean => v === '1' || v === 'true';
 
-/** Estado inicial desde la URL (`?dev&char=gus&seed=7&weapons=llave:3,tesla:2&god=1&speed=2&bot=kite&panel=0`). */
+/** Estado inicial desde la URL (`?dev&char=gus&act=2&seed=7&weapons=llave:3,tesla:2&god=1&speed=2&bot=kite&panel=0`). */
 export function parseDevParams(search: string): DevParams {
   const q = new URLSearchParams(search);
   const char = q.get('char');
   const bot = q.get('bot');
   const speed = q.get('speed');
+  const act = Number(q.get('act'));
   return {
     char: (ROSTER as readonly string[]).includes(char ?? '') ? (char as StatSurvivorId) : ROSTER[0],
+    act: isActId(act) ? act : 1,
     seed: parseSeed(q.get('seed')),
     build: parseBuild(q.get('weapons')).items,
     god: isOn(q.get('god')),

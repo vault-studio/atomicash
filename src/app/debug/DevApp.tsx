@@ -24,6 +24,7 @@ const SETTINGS: RunSettings = { showDamage: true, reduceMotion: false, crt: fals
 interface Applied {
   key: number;
   char: Setup['char'];
+  act: Setup['act'];
   seed: number;
   build: BuildItem[];
 }
@@ -39,11 +40,13 @@ export function DevApp() {
   const [applied, setApplied] = useState<Applied>(() => ({
     key: 0,
     char: params.char,
+    act: params.act,
     seed: params.seed ?? randomSeed(),
     build: params.build,
   }));
   const [setup, setSetup] = useState<Setup>(() => ({
     char: params.char,
+    act: params.act,
     seedText: String(applied.seed),
     fixedSeed: params.seed !== null,
     buildText: formatBuild(params.build),
@@ -105,17 +108,24 @@ export function DevApp() {
 
   const getSession = useCallback(() => sessionRef.current, []);
 
-  const restart = useCallback(() => {
-    const build = parseBuild(setup.buildText).items;
-    const seed = setup.fixedSeed ? (parseSeed(setup.seedText) ?? randomSeed()) : randomSeed();
-    setSetup((s) => ({ ...s, seedText: String(seed), buildText: formatBuild(build) }));
-    setApplied((a) => ({ key: a.key + 1, char: setup.char, seed, build }));
-  }, [setup]);
+  const restart = useCallback(
+    (over?: Partial<Setup>) => {
+      const next = { ...setup, ...over };
+      const build = parseBuild(next.buildText).items;
+      const seed = next.fixedSeed ? (parseSeed(next.seedText) ?? randomSeed()) : randomSeed();
+      setSetup({ ...next, seedText: String(seed), buildText: formatBuild(build) });
+      setApplied((a) => ({ key: a.key + 1, char: next.char, act: next.act, seed, build }));
+    },
+    [setup],
+  );
 
   const patchSetup = useCallback((p: Partial<Setup>) => setSetup((s) => ({ ...s, ...p })), []);
   const patchLive = useCallback((p: Partial<Live>) => setLive((l) => ({ ...l, ...p })), []);
 
-  const worldOptions = useMemo(() => buildWorldOptions(applied.build), [applied.build]);
+  const worldOptions = useMemo(
+    () => ({ ...buildWorldOptions(applied.build), act: applied.act }),
+    [applied.build, applied.act],
+  );
 
   const ctx: DevCtx = {
     getSession,
@@ -136,7 +146,7 @@ export function DevApp() {
         fixedSeed={applied.seed}
         settings={SETTINGS}
         worldOptions={worldOptions}
-        onExit={restart}
+        onExit={() => restart()}
         onSession={onSession}
         inputOverride={inputOverride}
         noLoader
