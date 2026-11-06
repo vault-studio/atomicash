@@ -96,6 +96,7 @@ Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el dire
 - ✅ Sprites del interceptor (`tools/render_rigido.py`, con chorro de la tobera) y del mortero (`tools/render_mortero.py`: esqueleto, pesos y animaciones por código, porque el modelo llega en T y sin esqueleto; marcha pesada, disparo con 4 retrocesos y caída de espaldas). Ya no quedan enemigos como placeholder.
 - ✅ Manchas quemadas propias bajo los robots que revientan (`ARTE/fx_quemaduras.webp` → `assets/fx/scorch.png`, 4 variantes).
 - ✅ Actos con nombre: 1 «Las Afueras», 2 «Las Heladas» (hielo), 3 «La Espesura» (plantas), en `acts.*` de i18n y `src/config/acts.ts`. Los actos 2 y 3 tienen suelo y objetos propios (láminas `ARTE/tiles_{hielo,plantas}.webp` y `ARTE/objetos_{hielo,plantas}_*.webp`; `python tools/slice_tiles.py hielo plantas` y `python tools/slice_props.py 2 3` los recortan sin tocar el Acto 1). `World.act` decide qué objeto sale, no dónde: el mapa de una semilla tiene la misma forma en los tres actos y el Acto 1 no cambia. Solo se ven en el depurador (pestaña Partida › Acto, o `?act=2`), que reinicia con la misma semilla para comparar. Enemigos, escombros y suelo roto siguen siendo los del Acto 1, y en los charcos del hielo y las plantas el daño sigue siendo el del ácido.
+- ✅ Tipo nuevo de enemigo, lanzador (`role: "launcher"`): lanza varios proyectiles que rompen el terreno. Hoy solo el mortero, que antes figuraba como tirador. Solo cambia la etiqueta: el código solo distingue los pesados, así que no afecta a cómo se juega.
 
 ## Bugs conocidos
 

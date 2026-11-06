@@ -1,4 +1,4 @@
-// Tirador especial (CAMBIOS §3): la salva del mortero cae en línea por delante del jugador.
+// Lanzador (CAMBIOS §3, «tirador especial»): la salva del mortero cae en línea por delante del jugador.
 import { afterEach, describe, expect, it } from 'vitest';
 import { AI, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
@@ -23,9 +23,9 @@ const run = (w: World, input: InputState, sec: number): void => {
 };
 
 describe('mortero', () => {
-  it('es un tirador del Acto 1 con límite y minuto de aparición', () => {
+  it('es un lanzador del Acto 1 con límite y minuto de aparición', () => {
     const s = ENEMY_STATS.mortero;
-    expect(s.role).toBe('shooter');
+    expect(s.role).toBe('launcher');
     expect(s.cap).toBeGreaterThan(0);
     expect(s.spawnFrom).toBeGreaterThan(0);
   });

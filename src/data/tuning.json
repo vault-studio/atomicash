@@ -281,7 +281,7 @@
       }
     },
     "mortero": {
-      "role": "shooter",
+      "role": "launcher",
       "hp": 45,
       "dmg": 14,
       "speed": 60,

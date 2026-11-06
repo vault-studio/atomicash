@@ -4,9 +4,9 @@ import { ENTITIES, type EntityId } from './entities';
 
 /**
  * Papel en el cerco (CAMBIOS §4): perseguidores presionan, interceptores cortan rutas, pesados bloquean, normales
- * rellenan huecos y tiradores obligan a moverse.
+ * rellenan huecos, tiradores obligan a moverse y lanzadores lanzan varios proyectiles que rompen el terreno.
  */
-export type EnemyRole = 'chaser' | 'interceptor' | 'heavy' | 'normal' | 'shooter';
+export type EnemyRole = 'chaser' | 'interceptor' | 'heavy' | 'normal' | 'shooter' | 'launcher';
 
 export interface EnemyStats {
   readonly role?: EnemyRole;
