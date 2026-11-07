@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { createRng } from '../src/engine/rng';
 import {
   applyArmor,
+  hypot2,
   interceptPoint,
   leadLine,
   tickStun,
@@ -105,5 +107,19 @@ describe('salva en línea del tirador especial', () => {
       { x: 10, y: 220 },
     ]);
     expect(pts[3]).toEqual({ x: 0, y: 0 });
+  });
+
+  it('hypot2 da exactamente lo mismo que Math.hypot, bit a bit', () => {
+    const rng = createRng(1);
+    for (let i = 0; i < 20_000; i++) {
+      // Escalas distintas en cada eje: la suma normalizada es donde se nota el último bit.
+      const x = (rng() - 0.5) * 10 ** ((rng() * 12 - 6) | 0);
+      const y = (rng() - 0.5) * 10 ** ((rng() * 12 - 6) | 0);
+      expect(hypot2(x, y)).toBe(Math.hypot(x, y));
+    }
+    expect(hypot2(0, 0)).toBe(0);
+    expect(hypot2(-3, 4)).toBe(5);
+    expect(hypot2(Infinity, 1)).toBe(Infinity);
+    expect(hypot2(NaN, 1)).toBeNaN();
   });
 });

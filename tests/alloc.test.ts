@@ -11,6 +11,7 @@ import type { WeaponId } from '../src/config/weapons';
 
 // Sin la copia del evento «Tú mismo, otra vez»: no sale en oleadas, y un tirador más cambia la mezcla de la multitud.
 const CROWD_IDS = STAT_ENEMY_IDS.filter((id) => id !== MIRROR_ID);
+const REFILL_IDS = CROWD_IDS.filter((id) => !(BOSS_IDS as readonly string[]).includes(id));
 const N = 1000;
 const STEP = 1 / RUN.tickHz;
 
@@ -26,7 +27,26 @@ function crowd(): World {
   return w;
 }
 
+/** Repone las bajas hasta `N` (una bomba de suelo se lleva a media multitud), lejos del jugador y sin jefes. */
+function refill(w: World): void {
+  const p = w.player;
+  for (let i = w.enemies.count; i < N; i++) {
+    const a = (i / N) * Math.PI * 2;
+    const type = REFILL_IDS[i % REFILL_IDS.length]!;
+    const e = spawnEnemy(w, type, p.x + Math.cos(a) * 500, p.y + Math.sin(a) * 500);
+    e.hp = e.maxHp = ENEMY_HP;
+  }
+}
+
 const gc = (globalThis as { gc?: () => void }).gc;
+
+// Calentamiento del combate: el JIT tarda en optimizar el código de cada arma, y sin optimizar sí se reserva memoria.
+const WARMUP_TICKS = 2500;
+// Ventana de medida del combate, por tramos: si el mundo se para, la prueba no mide nada y pasa sola.
+const SLICES = 9;
+const SLICE_TICKS = 100;
+/** Vida de la multitud, y de quien la repone: un golpe no basta, pero va cayendo gente. */
+const ENEMY_HP = 400;
 
 describe('motor sin allocations', () => {
   it('el pool y el spatial hash no se realocan con 1 000 enemigos', () => {
@@ -52,6 +72,8 @@ describe('motor sin allocations', () => {
     '2 000 ticks con 1 000 enemigos no disparan ningún GC',
     async () => {
       const w = crowd();
+      w.player.god = true; // Si muere, `tick` deja de hacer nada y ya no se mide.
+      w.xpNext = Infinity; // Sin tarjetas de nivel: reservan memoria y paran el mundo.
       const input: InputState = { moveX: -0.5, moveY: 1 };
       const run = (n: number): void => {
         for (let i = 0; i < n; i++) tick(w, input, STEP);
@@ -67,6 +89,7 @@ describe('motor sin allocations', () => {
       run(1000);
       gc!();
       run(200);
+      const ticks = w.ticks;
       const t0 = performance.now();
       run(2000);
       const t1 = performance.now();
@@ -74,6 +97,7 @@ describe('motor sin allocations', () => {
       await new Promise((r) => setTimeout(r, 50));
       obs.disconnect();
 
+      expect(w.ticks - ticks).toBe(2000);
       expect(gcs.filter((t) => t >= t0 && t <= t1)).toEqual([]);
     },
     30_000,
@@ -100,31 +124,49 @@ describe('motor sin allocations', () => {
         for (const k of BOSS_IDS) w.bossSpawned[k] = true;
         for (let i = 0; i < w.enemies.count; i++) {
           const e = w.enemies.items[i]!;
-          // El Coloso no cae: su muerte abre la victoria (tarjetas, cinemática), que sí reserva memoria y no es combate.
-          e.hp = e.maxHp = e.type === 'coloso' ? 1e9 : 400;
+          // Los jefes no caen: el Coloso abre la victoria y el Rey Rata y el Dirigible sueltan un cofre, y al recogerlo
+          // `tick` se queda parado en la elección de objeto. Eso reserva memoria y no es combate.
+          e.hp = e.maxHp = e.boss ? 1e9 : ENEMY_HP;
         }
         let k = 0;
         const run = (n: number): void => {
-          for (let i = 0; i < n; i++, k++)
+          for (let i = 0; i < n; i++, k++) {
             tick(w, { moveX: Math.cos(k / 50), moveY: Math.sin(k / 50) }, STEP);
+            refill(w);
+          }
         };
         const gcs: number[] = [];
         const obs = new PerformanceObserver((list) => {
           for (const e of list.getEntries()) gcs.push(e.startTime);
         });
         obs.observe({ entryTypes: ['gc'] });
-        run(600);
+        run(WARMUP_TICKS);
         gc!();
         run(100);
+        // Nada de `expect` en la ventana: reservan memoria. Se apunta cada tramo y se comprueba al final.
+        const ms = new Float64Array(SLICES);
+        const ticked = new Int32Array(SLICES);
+        const killsBefore = w.kills;
         const t0 = performance.now();
-        run(900);
+        for (let s = 0; s < SLICES; s++) {
+          const ticks = w.ticks;
+          const start = performance.now();
+          run(SLICE_TICKS);
+          ms[s] = performance.now() - start;
+          ticked[s] = w.ticks - ticks;
+        }
         const t1 = performance.now();
         await new Promise((r) => setTimeout(r, 50));
         obs.disconnect();
-        expect(w.kills).toBeGreaterThan(0);
+        // El mundo ha seguido en marcha, con gente muriendo, en toda la ventana.
+        expect(w.choice).toBeNull();
+        expect(w.over).toBe(false);
+        expect(Array.from(ticked)).toEqual(new Array<number>(SLICES).fill(SLICE_TICKS));
+        expect(Array.from(ms).filter((v) => !(v > 0))).toEqual([]);
+        expect(w.kills).toBeGreaterThan(killsBefore);
         expect(gcs.filter((t) => t >= t0 && t <= t1)).toEqual([]);
       },
-      30_000,
+      60_000,
     );
   }
 
