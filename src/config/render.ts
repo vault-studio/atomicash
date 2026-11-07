@@ -184,7 +184,7 @@ export const RUN_COLORS = {
   bombFuse: 0xffb347,
   hazard: 0x9dff00,
   hazardAlpha: 0.18,
-  /** Mancha de hielo de la nevera (placeholder: sin lago de hielo cargable en el Acto 1). */
+  /** Mancha de hielo de la nevera, si no carga la baldosa de `TILES.iceLake`. */
   ice: { color: 0xc4e8f6, edge: 0x7fd8ff, alpha: 0.55 },
   /** Bala radiactiva del liquidador cuando falta su tira. */
   radBullet: 0x9dff00,
@@ -256,6 +256,8 @@ export const RAGE_VIEW = { scale: 1.25, warn: 1, blinkHz: 6 } as const;
 export const TILES = {
   dir: 'assets/tiles/',
   index: 'assets/tiles/tiles.json',
+  /** Lámina de la que sale el lago que deja la nevera, en cualquier acto. */
+  iceLake: 'hielo',
   /**
    * Por acto: lámina del suelo, peso de cada baldosa y tinte, que oscurece el suelo y los objetos para que destaquen
    * los personajes. Todas las láminas tienen la misma rejilla: la 1 y la 4 son lisas, la 0 y la 3 llevan matojos, y

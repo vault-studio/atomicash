@@ -40,6 +40,8 @@ export interface GroundTiles {
   readonly acid: readonly GroundTile[];
   /** Suelo roto bajo los escombros. */
   readonly broken: readonly GroundTile[];
+  /** Lago de hielo que deja la nevera; null si no cargó. */
+  readonly ice: GroundTile | null;
   /** Objetos sueltos que van encima de la arena, en el orden de `PROP_LIST`; null si no cargó o es de otro acto. */
   readonly props: readonly (Prop | null)[];
 }
@@ -77,10 +79,11 @@ export async function loadGroundTiles(act: ActId): Promise<GroundTiles> {
     );
     return out.filter((t) => t !== null && t.weight > 0) as GroundTile[];
   };
-  const [props, broken, sand, ...decoSets] = await Promise.all([
+  const [props, broken, sand, frost, ...decoSets] = await Promise.all([
     loadProps(act),
     load(index.sets[TILES.broken] ?? []),
     load(index.sets[TILES.acts[act].sand] ?? [], TILES.acts[act].weights),
+    load(index.sets[TILES.iceLake] ?? []),
     ...TILES.deco.map((name) => load(index.sets[name] ?? [])),
   ]);
   const deco = decoSets.flat();
@@ -89,6 +92,8 @@ export async function loadGroundTiles(act: ActId): Promise<GroundTiles> {
     deco: deco.filter((t) => t.acid === 0),
     acid: [...(sand ?? []), ...deco].filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid),
     broken: broken ?? [],
+    // El lago más pequeño del bioma de hielo: lo que deja la nevera, en cualquier acto.
+    ice: frost?.filter((t) => t.acid > 0).sort((x, y) => x.acid - y.acid)[0] ?? null,
     props,
   };
 }
@@ -194,8 +199,9 @@ export class GroundView {
             .fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha })
             .stroke({ width: 2, color: RUN_COLORS.hazard, alpha: 0.35 });
         }
-        // Mancha de hielo de la nevera: sin lago de hielo cargable, una elipse azul pálida (placeholder).
-        if (w.scars.get(cellKey(i, j))?.kind === 'ice') {
+        // Mancha de hielo de la nevera: si no cargó el lago de hielo, una elipse azul pálida.
+        const ice = w.scars.get(cellKey(i, j))?.kind === 'ice';
+        if (ice && !this.tiles?.ice) {
           const I = RUN_COLORS.ice;
           const ir = T * AI.nevera.iceR;
           this.outlines
@@ -203,7 +209,7 @@ export class GroundView {
             .fill({ color: I.color, alpha: I.alpha })
             .stroke({ width: 2, color: I.edge, alpha: 0.7 });
         }
-        const t = this.pick(i, j, hz);
+        const t = (ice ? this.tiles?.ice : undefined) ?? this.pick(i, j, hz);
         if (!t) continue;
         this.place(this.sprite(), t, t.tex, x, y);
         if (t.top) {
