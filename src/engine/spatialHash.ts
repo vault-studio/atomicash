@@ -4,6 +4,8 @@
 // Se reconstruye cada tick con una ordenación por conteo sobre arrays tipados: sin allocations
 // mientras el número de entidades no supere la capacidad reservada.
 
+import { decimalFields } from './pool';
+
 export interface Circle {
   x: number;
   y: number;
@@ -11,6 +13,9 @@ export interface Circle {
 }
 
 const wrap = (i: number, n: number): number => ((i % n) + n) % n;
+
+/** Círculo de `query`, de un solo uso: `queryCircle` copia sus valores antes de recorrer nada. */
+const probe: Circle = decimalFields({ x: 0, y: 0, r: 0 });
 
 export class SpatialHash<T extends Circle = Circle> {
   readonly cols: number;
@@ -79,6 +84,17 @@ export class SpatialHash<T extends Circle = Circle> {
    * necesario para no perder vecinos cuyo centro cae en una celda contigua.
    */
   query(x: number, y: number, r: number, maxR: number, out: Int32Array): number {
+    probe.x = x;
+    probe.y = y;
+    probe.r = r;
+    return this.queryCircle(probe, maxR, out);
+  }
+
+  /** `query` con el círculo en un objeto: en el bucle de IA, cada decimal pasado como argumento reservaría memoria. */
+  queryCircle(c: Circle, maxR: number, out: Int32Array): number {
+    const x = c.x;
+    const y = c.y;
+    const r = c.r;
     const reach = r + maxR;
     // Celdas sin repetir: si el radio abarca más que la rejilla, basta con recorrerla una vez.
     const c0 = Math.floor((x - reach) * this.inv);

@@ -4,6 +4,7 @@
 // la semilla si lleva un edificio (las 9), un objeto de 2 casillas (en una de sus filas) o, si no, objetos de una
 // casilla sueltos. Nunca sobre ácido ni junto a la salida, y alrededor de un edificio no hay nada más. El motor guarda
 // la forma de choque de las casillas de alrededor del jugador en una rejilla fija y la renueva al cambiar de casilla.
+import { decimalFields } from './pool';
 import type { ActId } from '../config/acts';
 import { HAZARDS } from '../config/radiation';
 import { BUILDINGS, PROP_BUILDING, PROP_SHAPES, PROPS, PROPS_BY_ACT } from '../config/props';
@@ -224,11 +225,10 @@ function slot(w: World, i: number, j: number): number {
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 
-/**
- * Saca el círculo (o, r) de los obstáculos que pisa. Lo que el obstáculo le quita del avance (vx, vy) se convierte
- * en un paso de lado, hacia donde ya se desviaba o hacia `side` si va de frente, para que lo rodee.
- * Un objeto de varias casillas está en todas ellas: tras el primer empujón ya no hay solape y los demás no hacen nada.
- */
+/** Entrada de `blockBody`. Va en un objeto: en el bucle de IA, cada decimal pasado como argumento reservaría memoria. */
+export const body = decimalFields({ r: 0, vx: 0, vy: 0, side: 1 });
+
+/** `blockBody` con el radio y el avance como argumentos, para quien no va en el bucle de la multitud. */
 export function blockCircle(
   w: World,
   o: { x: number; y: number },
@@ -237,7 +237,25 @@ export function blockCircle(
   vy: number,
   side: number,
 ): void {
+  body.r = r;
+  body.vx = vx;
+  body.vy = vy;
+  body.side = side;
+  blockBody(w, o);
+}
+
+/**
+ * Saca el círculo (`o`, `body.r`) de los obstáculos que pisa. Lo que el obstáculo le quita del avance (`body.vx`,
+ * `body.vy`) se convierte en un paso de lado, hacia donde ya se desviaba o hacia `body.side` si va de frente, para que
+ * lo rodee. Un objeto de varias casillas está en todas ellas: tras el primer empujón ya no hay solape y los demás no
+ * hacen nada.
+ */
+export function blockBody(w: World, o: { x: number; y: number }): void {
   if (!w.hazardsOn) return;
+  const r = body.r;
+  const vx = body.vx;
+  const vy = body.vy;
+  const side = body.side;
   const g = w.obstacles;
   const ci = Math.floor(o.x / T);
   const cj = Math.floor(o.y / T);

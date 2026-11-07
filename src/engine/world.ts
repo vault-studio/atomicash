@@ -13,7 +13,7 @@ import { SPAWN } from '../config/waves';
 import { refreshHazards } from './hazards';
 import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
-import { Pool } from './pool';
+import { decimalFields, Pool } from './pool';
 import { createRng } from './rng';
 import { iceSlowAt } from './scars';
 import { tickStun } from './rules';
@@ -288,6 +288,10 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     sfxD: new Float32Array(SFX_COUNT),
     sfxT: new Float64Array(SFX_COUNT).fill(-1),
   };
+  decimalFields(w);
+  decimalFields(w.player);
+  decimalFields(w.st);
+  decimalFields(w.rs);
   recalc(w);
   w.player.hp = w.st.maxHp;
   refreshHazards(w);

@@ -1,6 +1,7 @@
 // Enemigos: aparición, IA (persecución, tirador, predicador, embestida, torreta, babosa, jefes) y separación.
 // Sin allocations: recorre el pool por índice y usa buffers del World.
-// No usar Math.hypot en el bucle caliente: V8 reserva memoria en cada llamada (argumentos variables).
+// No usar Math.hypot en el bucle caliente (V8 reserva memoria en cada llamada): `hypot2` da lo mismo sin reservar.
+// Ni pasar decimales como argumentos a funciones del bucle: van en `cur` y `body` (ver `cur`).
 import {
   AI,
   ELITES,
@@ -38,8 +39,9 @@ import {
   type Telegraph,
   type World,
 } from '../types';
-import { blockCircle, hitsObstacle } from '../obstacles';
-import { houndSpeed, interceptPoint, skidVelocity, tryStun, turnToward, type Vec } from '../rules';
+import { blockBody, body, hitsObstacle } from '../obstacles';
+import { decimalFields } from '../pool';
+import { houndSpeed, hypot2, interceptPoint, skidVelocity, tryStun, turnToward, type Vec } from '../rules';
 import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
@@ -472,22 +474,28 @@ function ring(w: World, type: StatEnemyId, cx: number, cy: number, n: number, di
   }
 }
 
-// Velocidad deseada calculada por la IA (evita devolver objetos).
-let vx = 0;
-let vy = 0;
+/**
+ * Lo que el bucle de IA sabe del enemigo que actúa: distancia y dirección al jugador (`d`, `ux`, `uy`), velocidad
+ * efectiva (`spd`) y, de vuelta, la velocidad deseada (`vx`, `vy`). Va aquí y no en argumentos: V8 guarda en su sitio
+ * un decimal de un campo, pero cada decimal que cruza una llamada sin incorporar reserva memoria, y con 1 000
+ * enemigos por tick eso llena el espacio joven. Tampoco sirven variables `let` de módulo: cada escritura reserva otra.
+ */
+const cur = decimalFields({ d: 0, ux: 0, uy: 0, spd: 0, vx: 0, vy: 0 });
 
-/** Velocidad efectiva: un enfurecido corre a max(la suya, la del jugador × `RAGE.speed`), así que puede alcanzarlo. */
-function speedOf(w: World, e: Enemy): number {
-  if (!e.rage) return e.speed * e.slowK;
+/** Calcula `cur.spd`: un enfurecido corre a max(la suya, la del jugador × `RAGE.speed`), así que puede alcanzarlo. */
+function speedOf(w: World, e: Enemy): void {
+  if (!e.rage) {
+    cur.spd = e.speed * e.slowK;
+    return;
+  }
   // Inline (sin llamar a rageSpeed): este es el camino caliente y las llamadas con decimales reservan memoria.
   const ovr = ENEMY_STATS[e.type].rage;
   const run = w.st.speed * (ovr !== undefined && ovr.speed !== undefined ? ovr.speed : RAGE.speed);
-  return (run > e.speed ? run : e.speed) * e.slowK;
+  cur.spd = (run > e.speed ? run : e.speed) * e.slowK;
 }
 
-// Bloques de IA según el tipo. Son funciones aparte, y `think` llama a cada habilidad desde un solo sitio: si
-// `think` tuviera una llamada por tipo, V8 dejaría de incorporar sus ayudantes (gasta el presupuesto de inlining) y
-// cada llamada con decimales reservaría memoria en el bucle caliente.
+// Bloques de IA según el tipo. Son funciones aparte, y `think` llama a cada habilidad desde un solo sitio: si tuviera
+// una llamada por tipo, gastaría el presupuesto de inlining de V8 y sus ayudantes serían llamadas de verdad.
 
 /** Bloque de IA de los interceptores: `ai.sabueso`, `ai.motorista` o, en cualquier otro caso, `ai.interceptor`. */
 function interceptorAI(type: StatEnemyId): InterceptorAI {
@@ -544,17 +552,18 @@ const head: Vec = { x: 0, y: 0 };
  * Embestida por datos (CAMBIOS §1, `enemies.<id>.dash`): vale para cualquier tipo. Cada `every` s, si el jugador está a
  * menos de `range`, se para `aim` s con el pasillo marcado en el suelo y corre a `speed` hasta dejar atrás al jugador
  * (`dashDone`; como mucho `maxDur` s, que `mt` cuenta). La dirección se fija al empezar el aviso: hacia el jugador (`lead` 0) o hacia donde va a estar
- * (`interceptPoint`, hasta `lead` s). Pone `vx`/`vy` y devuelve true mientras apunta o embiste; si no, devuelve false
+ * (`interceptPoint`, hasta `lead` s). Pone `cur.vx`/`cur.vy` y devuelve true mientras apunta o embiste; si no, devuelve false
  * y manda la IA normal del tipo.
  */
-function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: number, dt: number): boolean {
+function dashTick(w: World, e: Enemy, D: DashSpec, dt: number): boolean {
   if (e.mode === MODE_CHASE) {
     e.timer -= dt;
+    const d = cur.d;
     if (e.timer > 0 || d >= D.range) return false;
     e.mode = MODE_AIM;
     e.mt = D.aim;
-    e.dx = ux;
-    e.dy = uy;
+    e.dx = cur.ux;
+    e.dy = cur.uy;
     let reach = d;
     if (D.lead > 0) {
       const p = w.player;
@@ -572,11 +581,11 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
     const along = alongLane(w, e);
     dashLane(w, e, D.aim, (along > reach ? along : reach) + D.over);
     markAttack(w, e);
-    vx = vy = 0;
+    cur.vx = cur.vy = 0;
     return true;
   }
   if (e.mode === MODE_AIM) {
-    vx = vy = 0;
+    cur.vx = cur.vy = 0;
     e.mt -= dt;
     if (e.mt <= 0) {
       e.mode = MODE_DASH;
@@ -584,8 +593,8 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
     }
     return true;
   }
-  vx = e.dx * D.speed;
-  vy = e.dy * D.speed;
+  cur.vx = e.dx * D.speed;
+  cur.vy = e.dy * D.speed;
   e.mt -= dt;
   if (e.mt <= 0 || dashDone(w, e, D.speed, D.over)) {
     e.mode = MODE_CHASE;
@@ -602,17 +611,12 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
  * (`ai.interceptor`, `ai.sabueso`, `ai.motorista`). Con `skidSpeed` (motorista), si falla no frena de cara al jugador:
  * derrapa (MODE_DASH) `recover` s recto, expuesto (daño × `exposedMult`), y luego da la vuelta y carga otra vez.
  */
-function interceptor(
-  w: World,
-  e: Enemy,
-  d: number,
-  ux: number,
-  uy: number,
-  base: number,
-  dt: number,
-  A: InterceptorAI,
-): void {
+function interceptor(w: World, e: Enemy, dt: number, A: InterceptorAI): void {
   const p = w.player;
+  const d = cur.d;
+  const ux = cur.ux;
+  const uy = cur.uy;
+  const base = cur.spd;
   if (e.dx === 0 && e.dy === 0) {
     e.dx = ux;
     e.dy = uy;
@@ -620,8 +624,8 @@ function interceptor(
   if (e.mode === MODE_DASH) {
     // Derrape del motorista (`e.timer` = lo que le queda): sigue su rumbo, sin girar hacia el jugador, y va frenando.
     const k = skidVelocity(base, A.skidSpeed ?? 0, e.timer, A.recover);
-    vx = e.dx * k;
-    vy = e.dy * k;
+    cur.vx = e.dx * k;
+    cur.vy = e.dy * k;
     e.timer -= dt;
     if (e.timer <= 0) {
       e.mode = MODE_CHASE;
@@ -635,14 +639,14 @@ function interceptor(
   interceptPoint(e.x, e.y, p.x, p.y, p.vx, p.vy, spd, A.lead, aimPt);
   const tx = aimPt.x - e.x;
   const ty = aimPt.y - e.y;
-  const tl = Math.hypot(tx, ty) || 1;
+  const tl = hypot2(tx, ty) || 1;
   turnToward(e.dx, e.dy, tx / tl, ty / tl, A.turn * dt, head);
   e.dx = head.x;
   e.dy = head.y;
   if (e.mode === MODE_AIM) {
     // Frenando tras una carrera.
-    vx = e.dx * spd * A.recoverSpeed;
-    vy = e.dy * spd * A.recoverSpeed;
+    cur.vx = e.dx * spd * A.recoverSpeed;
+    cur.vy = e.dy * spd * A.recoverSpeed;
     e.timer -= dt;
     if (e.timer <= 0) {
       e.mode = MODE_CHASE;
@@ -651,8 +655,8 @@ function interceptor(
     }
     return;
   }
-  vx = e.dx * spd;
-  vy = e.dy * spd;
+  cur.vx = e.dx * spd;
+  cur.vy = e.dy * spd;
   e.mt += dt;
   if (d < p.r + e.r) {
     w.rs.chargesHit++;
@@ -681,48 +685,43 @@ function interceptor(
  * Tirador de balas (`ai.tirador`, `ai.liquidador`): se acerca hasta `hold`, se planta y dispara cada `fireCd` s. Cada
  * bala suma `shotRad` de RAD al jugador (más los del irradiado).
  */
-function gunner(
-  w: World,
-  e: Enemy,
-  d: number,
-  ux: number,
-  uy: number,
-  spd: number,
-  dt: number,
-  irrRad: number,
-  A: GunnerAI,
-): void {
+function gunner(w: World, e: Enemy, dt: number, A: GunnerAI): void {
+  const d = cur.d;
   if (d > (e.moving ? A.hold : A.hold + A.resume)) {
-    vx = ux * spd;
-    vy = uy * spd;
+    cur.vx = cur.ux * cur.spd;
+    cur.vy = cur.uy * cur.spd;
   } else {
-    vx = 0;
-    vy = 0;
+    cur.vx = 0;
+    cur.vy = 0;
   }
   e.timer -= dt;
   if (e.timer <= 0 && d < A.range) {
     e.timer = A.fireCd;
-    fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad + (A.shotRad ?? 0));
+    const irrRad = e.irr ? IRRADIATED.rad : 0;
+    fireBullet(w, e.x, e.y, cur.ux, cur.uy, A.bulletSpd, e.dmg, irrRad + (A.shotRad ?? 0));
     markAttack(w, e);
   }
 }
 
-function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number): void {
+function think(w: World, e: Enemy, dt: number): void {
   const p = w.player;
   curSrc = hurtIndex(e.type);
-  const spd = speedOf(w, e);
-  const irrRad = e.irr ? IRRADIATED.rad : 0;
+  speedOf(w, e);
+  const d = cur.d;
+  const ux = cur.ux;
+  const uy = cur.uy;
+  const spd = cur.spd;
   const dash = ENEMY_STATS[e.type].dash;
-  if (dash !== undefined && dashTick(w, e, dash, d, ux, uy, dt)) return;
+  if (dash !== undefined && dashTick(w, e, dash, dt)) return;
   switch (e.type) {
     case 'interceptor':
     case 'sabueso':
     case 'motorista':
-      interceptor(w, e, d, ux, uy, spd, dt, interceptorAI(e.type));
+      interceptor(w, e, dt, interceptorAI(e.type));
       break;
     case 'tirador':
     case 'liquidador':
-      gunner(w, e, d, ux, uy, spd, dt, irrRad, gunnerAI(e.type));
+      gunner(w, e, dt, gunnerAI(e.type));
       break;
     case 'copia': {
       // Ráfaga en abanico hacia el jugador; el número de balas y su daño salen de mirror.ts.
@@ -737,30 +736,30 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         }
         markAttack(w, e);
       }
-      vx = mirrorVel.x;
-      vy = mirrorVel.y;
+      cur.vx = mirrorVel.x;
+      cur.vy = mirrorVel.y;
       break;
     }
     case 'mortero':
     case 'bidonero':
     case 'nevera': {
       const A = salvoAI(e.type);
-      if (mortarThink(w, e, d, ux, uy, spd, dt, curSrc, A, salvoFall(e.type), A.lake ?? 0)) markAttack(w, e);
-      vx = mortarVel.x;
-      vy = mortarVel.y;
+      if (mortarThink(w, e, cur, dt, curSrc, A, salvoFall(e.type))) markAttack(w, e);
+      cur.vx = mortarVel.x;
+      cur.vy = mortarVel.y;
       break;
     }
     case 'predicador': {
       const A = AI.predicador;
       if (d > A.keepMax) {
-        vx = ux * spd;
-        vy = uy * spd;
+        cur.vx = ux * spd;
+        cur.vy = uy * spd;
       } else if (d < A.keepMin) {
-        vx = -ux * spd;
-        vy = -uy * spd;
+        cur.vx = -ux * spd;
+        cur.vy = -uy * spd;
       } else {
-        vx = -uy * spd * A.strafe * e.side;
-        vy = ux * spd * A.strafe * e.side;
+        cur.vx = -uy * spd * A.strafe * e.side;
+        cur.vy = ux * spd * A.strafe * e.side;
       }
       e.timer -= dt;
       if (e.timer <= 0 && d < A.range) {
@@ -773,8 +772,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
     case 'rey_rata': {
       const A = AI.rey_rata;
       if (e.mode === MODE_CHASE) {
-        vx = ux * spd;
-        vy = uy * spd;
+        cur.vx = ux * spd;
+        cur.vy = uy * spd;
         e.timer -= dt;
         if (e.phase === 1 && e.hp / e.maxHp < A.p2) {
           e.phase = 2;
@@ -785,7 +784,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         const p2 = e.phase >= 2;
         // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
         if (e.mt > 0) {
-          vx = vy = 0;
+          cur.vx = cur.vy = 0;
           e.mt -= dt;
         } else if (e.timer <= 0) {
           if (e.burst > 0) {
@@ -806,15 +805,15 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           }
         }
       } else if (e.mode === MODE_AIM) {
-        vx = vy = 0;
+        cur.vx = cur.vy = 0;
         e.mt -= dt;
         if (e.mt <= 0) {
           e.mode = MODE_DASH;
           e.mt = A.dashMax;
         }
       } else {
-        vx = e.dx * A.dashSpd;
-        vy = e.dy * A.dashSpd;
+        cur.vx = e.dx * A.dashSpd;
+        cur.vy = e.dy * A.dashSpd;
         e.mt -= dt;
         if (e.mt <= 0 || dashDone(w, e, A.dashSpd, A.dashOver)) {
           e.mode = MODE_CHASE;
@@ -828,14 +827,14 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
     }
     case 'torreta': {
       const A = AI.torreta;
-      vx = vy = 0;
+      cur.vx = cur.vy = 0;
       e.timer -= dt;
       if (e.burst > 0) {
         e.bt -= dt;
         if (e.bt <= 0) {
           e.burst--;
           e.bt = A.burstGap;
-          fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad);
+          fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, e.irr ? IRRADIATED.rad : 0);
         }
       } else if (e.timer <= 0 && d < A.range) {
         e.timer = A.every;
@@ -850,8 +849,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
     }
     case 'babosa': {
       const A = AI.babosa;
-      vx = ux * spd;
-      vy = uy * spd;
+      cur.vx = ux * spd;
+      cur.vy = uy * spd;
       e.trail -= dt;
       if (e.trail <= 0) {
         e.trail = A.trailEvery;
@@ -878,8 +877,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       const tx = -uy * e.side;
       const ty = ux * e.side;
       const err = clamp((d - A.orbitR) * 1.5, -spd, spd);
-      vx = tx * spd + ux * err;
-      vy = ty * spd + uy * err;
+      cur.vx = tx * spd + ux * err;
+      cur.vy = ty * spd + uy * err;
       const p2 = e.hp / e.maxHp < A.p2;
       if (p2 && e.phase === 1) {
         e.phase = 2;
@@ -911,9 +910,9 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           }
         } else {
           markAttack(w, e, 'attack_2');
-          const l = Math.sqrt(vx * vx + vy * vy) || 1;
-          const bx = vx / l;
-          const by = vy / l;
+          const l = Math.sqrt(cur.vx * cur.vx + cur.vy * cur.vy) || 1;
+          const bx = cur.vx / l;
+          const by = cur.vy / l;
           for (let i = 0; i < A.bombCount; i++) {
             const off = (i - (A.bombCount - 1) / 2) * A.bombSpacing;
             markFall(w, p.x + bx * off, p.y + by * off, A.bombR, A.bombWarn, A.bombDmg, 0, curSrc, 'shell');
@@ -950,12 +949,12 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       const sp = spd * (ph === 3 ? A.spdP3 : 1);
       if (e.stun > 0) {
         // En el aire: vuela en línea recta hasta el punto de caída (dx, dy ya es la velocidad del salto).
-        vx = e.dx;
-        vy = e.dy;
+        cur.vx = e.dx;
+        cur.vy = e.dy;
         leapTick(w, e, dt);
       } else {
-        vx = ux * sp;
-        vy = uy * sp;
+        cur.vx = ux * sp;
+        cur.vy = uy * sp;
       }
       e.timer -= dt;
       if (e.timer <= 0) {
@@ -989,8 +988,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       break;
     }
     default:
-      vx = ux * spd;
-      vy = uy * spd;
+      cur.vx = ux * spd;
+      cur.vy = uy * spd;
   }
 }
 
@@ -1037,17 +1036,27 @@ export function updateEnemies(w: World, dt: number): void {
     const d = Math.sqrt(dx * dx + dy * dy) || 1;
     const ux = dx / d;
     const uy = dy / d;
-    vx = 0;
-    vy = 0;
+    let vx = 0;
+    let vy = 0;
     if (e.march > 0) {
       // Horda en formación: sigue recto aunque el jugador se aparte.
       e.march -= dt;
-      vx = e.dx * speedOf(w, e);
-      vy = e.dy * speedOf(w, e);
+      speedOf(w, e);
+      vx = e.dx * cur.spd;
+      vy = e.dy * cur.spd;
     } else if (!e.boss && e.stun > 0) {
       // Aturdido por los petardos: no avanza ni ataca, pero el empuje sigue.
       e.stun -= dt;
-    } else if (alive) think(w, e, d, ux, uy, dt);
+    } else if (alive) {
+      cur.d = d;
+      cur.ux = ux;
+      cur.uy = uy;
+      cur.vx = 0;
+      cur.vy = 0;
+      think(w, e, dt);
+      vx = cur.vx;
+      vy = cur.vy;
+    }
     if (e.elite && alive) eliteTick(w, e, d, dt);
     if (e.irr && alive && d < IRRADIATED.auraR) addRad(w, IRRADIATED.auraRad * dt);
     // Si ya está encima del jugador, no lo empuja (solo se separa).
@@ -1068,7 +1077,7 @@ export function updateEnemies(w: World, dt: number): void {
     let sx = 0;
     let sy = 0;
     if (!e.boss && !e.flying && e.type !== 'torreta') {
-      const k = grid.query(e.x, e.y, e.r, MAX_ENEMY_RADIUS, out);
+      const k = grid.queryCircle(e, MAX_ENEMY_RADIUS, out);
       for (let j = 0; j < k && j < ENEMY_RULES.maxNeighbors; j++) {
         const oi = out[j]!;
         if (oi === i) continue;
@@ -1098,8 +1107,13 @@ export function updateEnemies(w: World, dt: number): void {
     e.x = nx;
     e.y = ny;
     // Los de tierra rodean los obstáculos; los voladores pasan por encima.
-    if (!e.flying && !(e.type === 'coloso' && e.alt) && e.type !== 'torreta' && e.type !== 'dirigible')
-      blockCircle(w, e, e.r, vx + e.kbx, vy + e.kby, e.side);
+    if (!e.flying && !(e.type === 'coloso' && e.alt) && e.type !== 'torreta' && e.type !== 'dirigible') {
+      body.r = e.r;
+      body.vx = vx + e.kbx;
+      body.vy = vy + e.kby;
+      body.side = e.side;
+      blockBody(w, e);
+    }
     e.kbx *= kd;
     e.kby *= kd;
 

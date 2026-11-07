@@ -51,6 +51,21 @@ export interface Vec {
 }
 
 /**
+ * `Math.hypot(x, y)` sin reservar memoria (V8 crea un array en cada llamada). Hace lo mismo que V8: normaliza con el mayor
+ * antes de sumar. `Math.sqrt(x * x + y * y)` no vale: difiere en el último bit y, con la misma semilla, acaba siendo otra
+ * partida.
+ */
+export function hypot2(x: number, y: number): number {
+  const ax = Math.abs(x);
+  const ay = Math.abs(y);
+  const max = ax > ay ? ax : ay;
+  if (max === 0 || max === Infinity) return max;
+  const nx = ax / max;
+  const ny = ay / max;
+  return Math.sqrt(nx * nx + ny * ny) * max;
+}
+
+/**
  * Punto de interceptación: dónde estará el objetivo (posición `p`, velocidad `v`) cuando llegue un perseguidor desde
  * `e` a velocidad `spd`. Recibe números sueltos para no reservar memoria en el bucle de IA. Resuelve |p + v·t − e| = spd·t y limita t a `maxLead` s. Si no hay solución (el objetivo es
  * más rápido y se aleja), usa `maxLead`. Escribe en `out` y devuelve t.

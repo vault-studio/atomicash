@@ -10,6 +10,14 @@ import type { Enemy, TeleFall, World } from '../types';
 
 const pts: Vec[] = Array.from({ length: 16 }, () => ({ x: 0, y: 0 }));
 
+/** Lo que `mortarThink` necesita saber del lanzador: distancia y dirección al jugador y velocidad efectiva. */
+export interface Steer {
+  d: number;
+  ux: number;
+  uy: number;
+  spd: number;
+}
+
 /** Velocidad deseada que calcula `mortarThink` (sin reservar memoria). */
 export const mortarVel: Vec = { x: 0, y: 0 };
 
@@ -43,24 +51,21 @@ export function launchSalvo(
 /**
  * IA del mortero (y de los lanzadores con su bloque `A`): se acerca hasta `hold` y se planta; cada `every` s, si el
  * jugador está a menos de `range`, dispara una salva. `e.timer` es su enfriamiento. Escribe la velocidad deseada en
- * `mortarVel`.
+ * `mortarVel`. Los decimales llegan en `s`, no en argumentos: el bucle de IA no debe reservar memoria.
  */
 export function mortarThink(
   w: World,
   e: Enemy,
-  d: number,
-  ux: number,
-  uy: number,
-  spd: number,
+  s: Steer,
   dt: number,
   src: number,
-  A: SalvoAI = AI.mortero,
-  fall: TeleFall = 'shell',
-  hz = 0,
+  A: SalvoAI,
+  fall: TeleFall,
 ): boolean {
+  const d = s.d;
   if (d > A.hold) {
-    mortarVel.x = ux * spd;
-    mortarVel.y = uy * spd;
+    mortarVel.x = s.ux * s.spd;
+    mortarVel.y = s.uy * s.spd;
   } else {
     mortarVel.x = 0;
     mortarVel.y = 0;
@@ -68,7 +73,7 @@ export function mortarThink(
   e.timer -= dt;
   if (e.timer <= 0 && d < A.range) {
     e.timer = A.every;
-    launchSalvo(w, src, A, fall, hz);
+    launchSalvo(w, src, A, fall, A.lake ?? 0);
     return true;
   }
   return false;

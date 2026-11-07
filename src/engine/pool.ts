@@ -2,7 +2,24 @@
 // Liberar intercambia con el último, así que recorrer y liberar se hace de atrás hacia delante.
 // Solo se reserva memoria cuando el pool crece por encima de lo que ya tenía.
 
-export class Pool<T> {
+/**
+ * Deja como decimales los campos numéricos de `o` sin cambiar sus valores. Un objeto que nace con `x: 0` tiene un campo
+ * entero: la primera vez que guarda un decimal, V8 cambia el mapa de ese tipo de objeto y luego migra los demás uno a
+ * uno, a media partida. Cada cambio deshace lo optimizado del bucle de IA, que vuelve a correr sin optimizar y a reservar
+ * memoria en cada operación con decimales. Solo para crear objetos (recorre sus claves): nunca en el bucle caliente.
+ */
+export function decimalFields<T extends object>(o: T): T {
+  const fields = o as Record<string, unknown>;
+  for (const k of Object.keys(fields)) {
+    const v = fields[k];
+    if (typeof v !== 'number') continue;
+    fields[k] = 0.5;
+    fields[k] = v;
+  }
+  return o;
+}
+
+export class Pool<T extends object> {
   readonly items: T[] = [];
   count = 0;
 
@@ -10,12 +27,16 @@ export class Pool<T> {
     private readonly create: () => T,
     prealloc = 0,
   ) {
-    for (let i = 0; i < prealloc; i++) this.items.push(create());
+    for (let i = 0; i < prealloc; i++) this.grow();
+  }
+
+  private grow(): void {
+    this.items.push(decimalFields(this.create()));
   }
 
   /** Devuelve un objeto libre (reutilizado si existe). El llamador debe reinicializar sus campos. */
   acquire(): T {
-    if (this.count === this.items.length) this.items.push(this.create());
+    if (this.count === this.items.length) this.grow();
     return this.items[this.count++] as T;
   }
 
