@@ -56,6 +56,13 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (req.headers.has('range')) return;
+  // Los índices .json (sprites, baldosas, objetos, audio) deciden qué se carga y no llevan hash en el nombre:
+  // red primero. Con caché primero, la primera visita tras publicar leía los índices de la versión anterior
+  // mientras el service worker nuevo se instalaba, y faltaban los enemigos y suelos nuevos.
+  if (new URL(req.url).pathname.endsWith('.json')) {
+    e.respondWith(fetch(req).catch(() => caches.match(req, { ignoreVary: true })));
+    return;
+  }
   // ignoreVary: los módulos con crossorigin llevan Origin y el servidor puede responder Vary: Origin.
   e.respondWith(
     caches.match(req, { ignoreVary: true }).then(

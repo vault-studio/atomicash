@@ -9,6 +9,12 @@ describe('service worker', () => {
     expect(files).toEqual(['./', 'static/index.js', 'assets/tiles/suelo_0.png']);
   });
 
+  it('pide los índices .json a la red antes que a la caché', () => {
+    const sw = serviceWorker('x', []);
+    expect(sw).toContain("pathname.endsWith('.json')");
+    expect(sw).toContain('fetch(req).catch(() => caches.match(req');
+  });
+
   it('sirve los módulos aunque el servidor responda Vary: Origin', () => {
     expect(serviceWorker('x', [])).toContain('ignoreVary: true');
   });
