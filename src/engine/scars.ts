@@ -1,4 +1,4 @@
-// Destrozos del mapa: lo que dejan el mortero y las lluvias al caer. TS puro: lo usan el motor y el render.
+// Destrozos del mapa: lo que dejan el mortero, el bidonero, la nevera y las lluvias al caer. TS puro: lo usan el motor y el render.
 // DECISIÓN: el mapa sale de un hash y no cambia, así que los destrozos van aparte, en `w.scars` (una entrada por casilla
 // y se quedan toda la partida). `worldHazardAt` y `worldObjectAt` los suman a lo que dice el hash.
 // Como en cada casilla cabe un destrozo y cada escombro queda a `RAINS.rubbleInset` del borde de la suya, entre dos
@@ -17,6 +17,7 @@ import type { TeleFall, World } from './types';
 const T = RUN.groundCell;
 const RUBBLE_SPARKS = [0x8a7a68, 0x5a5048, 0xb0a08a, 0xd8a53a] as const;
 const ACID_SPARKS = [0x9dff00, 0x7dff3a, 0xc8ff00] as const;
+const ICE_SPARKS = [0xdff6ff, 0xa8e4ff, 0x7fd8ff] as const;
 const probe = createCellObject();
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
@@ -70,6 +71,25 @@ export function addAcid(w: World, i: number, j: number, hz: number): boolean {
   return true;
 }
 
+/** Deja una mancha de hielo en la casilla (i, j), si admite destrozo. No hace daño ni bloquea. */
+export function addIce(w: World, i: number, j: number): boolean {
+  if (!scarFree(w, i, j)) return false;
+  w.scars.set(cellKey(i, j), { kind: 'ice', v: 0, x: (i + 0.5) * T, y: (j + 0.5) * T });
+  return true;
+}
+
+/**
+ * Multiplicador de velocidad del jugador en (x, y): `AI.nevera.iceSlow` sobre una mancha de hielo (círculo de
+ * `AI.nevera.iceR` casillas de radio) y 1 en cualquier otro sitio. Sin reservar memoria: se llama cada tick.
+ */
+export function iceSlowAt(w: World, x: number, y: number): number {
+  if (w.scars.size === 0) return 1;
+  const s = w.scars.get(cellKey(Math.floor(x / T), Math.floor(y / T)));
+  if (s === undefined || s.kind !== 'ice') return 1;
+  const r = T * AI.nevera.iceR;
+  return (x - s.x) ** 2 + (y - s.y) ** 2 < r * r ? AI.nevera.iceSlow : 1;
+}
+
 const NEAR = [1, 0, 1, 1, 0, 1, -1, 1, -1, 0, -1, -1, 0, -1, 1, -1] as const;
 
 /** El hinchado revienta: losetas de ácido juntas (`AI.hinchado.acidCells`), del lago grande, alrededor de (x, y). */
@@ -118,10 +138,16 @@ export function markFall(
 
 /** Algo ha caído del cielo en (x, y): deja su destrozo si la casilla lo admite. */
 export function landFall(w: World, fall: TeleFall, x: number, y: number, hz: number): void {
-  if (fall === 'acid') {
+  // El barril del bidonero deja su lago en la casilla (que sustituye a los escombros: solo cabe un destrozo).
+  if (fall === 'acid' || fall === 'barrel') {
     addAcid(w, Math.floor(x / T), Math.floor(y / T), hz);
     burst(w, x, y, 14, ACID_SPARKS, 1.3);
     sfx(w, SFX.pop);
+    return;
+  }
+  if (fall === 'ice') {
+    addIce(w, Math.floor(x / T), Math.floor(y / T));
+    burst(w, x, y, 12, ICE_SPARKS, 1.3);
     return;
   }
   addRubble(w, x, y, fall);

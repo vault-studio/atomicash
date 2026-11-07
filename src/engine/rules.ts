@@ -37,6 +37,14 @@ export function tickStun(s: StunState, dt: number): void {
 /** ¿Cabe otro de este tipo? `cap` ≤ 0 = sin límite. */
 export const underCap = (alive: number, cap: number | undefined): boolean => !cap || cap <= 0 || alive < cap;
 
+/** Velocidad de carrera del sabueso Geiger: `spd · (1 + radSpeed · rad / radMax)`; sin RAD, la base. */
+export const houndSpeed = (spd: number, radSpeed: number, rad: number, radMax: number): number =>
+  spd * (1 + (radSpeed * rad) / radMax);
+
+/** Velocidad del derrape del motorista: parte de `skid · spd` y baja en línea recta a 0 al acabar `recover` s (`left` = lo que queda). */
+export const skidVelocity = (spd: number, skid: number, left: number, recover: number): number =>
+  left > 0 && recover > 0 ? spd * skid * (left / recover) : 0;
+
 export interface Vec {
   x: number;
   y: number;

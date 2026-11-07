@@ -1,11 +1,12 @@
 // Tirador especial (CAMBIOS §3): en vez de una zona, lanza una salva de impactos en línea por delante del jugador,
 // siguiendo su dirección de movimiento. Cada impacto se marca en el suelo antes de caer, y caen uno tras otro: si no
 // cambia de dirección, se los come todos. Contrarresta correr en línea recta. Cada impacto rompe el suelo y deja
-// escombros (engine/scars.ts).
-import { AI } from '../../config/enemies';
+// escombros (engine/scars.ts). El bidonero y la nevera usan la misma salva con su propio bloque de IA y otro tipo de
+// caída: lagos de ácido y manchas de hielo.
+import { AI, type SalvoAI } from '../../config/enemies';
 import { leadLine, type Vec } from '../rules';
 import { markFall } from '../scars';
-import type { Enemy, World } from '../types';
+import type { Enemy, TeleFall, World } from '../types';
 
 const pts: Vec[] = Array.from({ length: 16 }, () => ({ x: 0, y: 0 }));
 
@@ -14,10 +15,16 @@ export const mortarVel: Vec = { x: 0, y: 0 };
 
 /**
  * Coloca la salva: el impacto `i` cae a los `warn + i·stagger` s justo donde estaría el jugador si sigue igual. Quieto,
- * la salva cae en línea hacia donde mira, empezando en él. Devuelve cuántos impactos ha marcado.
+ * la salva cae en línea hacia donde mira, empezando en él. Devuelve cuántos impactos ha marcado. `A` es el bloque de IA
+ * del lanzador y `fall` lo que cae (`hz`: radio del lago si deja uno).
  */
-export function launchSalvo(w: World, src: number): number {
-  const A = AI.mortero;
+export function launchSalvo(
+  w: World,
+  src: number,
+  A: SalvoAI = AI.mortero,
+  fall: TeleFall = 'shell',
+  hz = 0,
+): number {
   const p = w.player;
   const sp = Math.hypot(p.vx, p.vy);
   const moving = sp > 1;
@@ -28,14 +35,15 @@ export function launchSalvo(w: World, src: number): number {
   const gap = moving ? Math.max(sp * A.stagger, A.minGap) : A.minGap;
   leadLine(p.x, p.y, dirX, dirY, first, gap, n, pts);
   for (let i = 0; i < n; i++) {
-    markFall(w, pts[i]!.x, pts[i]!.y, A.shellR, A.warn + i * A.stagger, A.shellDmg, 0, src, 'shell');
+    markFall(w, pts[i]!.x, pts[i]!.y, A.shellR, A.warn + i * A.stagger, A.shellDmg, 0, src, fall, hz);
   }
   return n;
 }
 
 /**
- * IA del mortero: se acerca hasta `hold` y se planta; cada `every` s, si el jugador está a menos de `range`, dispara
- * una salva. `e.timer` es su enfriamiento. Escribe la velocidad deseada en `mortarVel`.
+ * IA del mortero (y de los lanzadores con su bloque `A`): se acerca hasta `hold` y se planta; cada `every` s, si el
+ * jugador está a menos de `range`, dispara una salva. `e.timer` es su enfriamiento. Escribe la velocidad deseada en
+ * `mortarVel`.
  */
 export function mortarThink(
   w: World,
@@ -46,8 +54,10 @@ export function mortarThink(
   spd: number,
   dt: number,
   src: number,
+  A: SalvoAI = AI.mortero,
+  fall: TeleFall = 'shell',
+  hz = 0,
 ): boolean {
-  const A = AI.mortero;
   if (d > A.hold) {
     mortarVel.x = ux * spd;
     mortarVel.y = uy * spd;
@@ -58,7 +68,7 @@ export function mortarThink(
   e.timer -= dt;
   if (e.timer <= 0 && d < A.range) {
     e.timer = A.every;
-    launchSalvo(w, src);
+    launchSalvo(w, src, A, fall, hz);
     return true;
   }
   return false;

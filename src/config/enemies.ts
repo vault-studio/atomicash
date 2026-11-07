@@ -12,6 +12,8 @@ export interface EnemyStats {
   readonly role?: EnemyRole;
   /** Máximo en pantalla a la vez (0 o ausente = sin límite). */
   readonly cap?: number;
+  /** `cap` cuenta todos los vivos con su mismo `role` (de cualquier tipo), no solo los de su tipo. */
+  readonly capRole?: boolean;
   /** Segundo de la run desde el que puede salir en oleadas, y hasta cuál (ausente = siempre). */
   readonly spawnFrom?: number;
   readonly spawnUntil?: number;
@@ -80,6 +82,52 @@ export interface DashSpec {
   readonly maxDur: number;
   readonly range: number;
   readonly lead: number;
+}
+
+/** Bloque de IA de un tirador de balas (`ai.tirador`, `ai.liquidador`): `shotRad` suma RAD a cada disparo. */
+export interface GunnerAI {
+  readonly hold: number;
+  readonly resume: number;
+  readonly fireCd: number;
+  readonly bulletSpd: number;
+  readonly range: number;
+  readonly shotRad?: number;
+}
+
+/**
+ * Bloque de IA de un lanzador de salvas (`ai.mortero`, `ai.bidonero`, `ai.nevera`). `lake`: radio del lago que deja
+ * cada impacto de barril (índice en `HAZARDS.cellRadii`).
+ */
+export interface SalvoAI {
+  readonly hold: number;
+  readonly range: number;
+  readonly every: number;
+  readonly shells: number;
+  readonly warn: number;
+  readonly stagger: number;
+  readonly shellR: number;
+  readonly shellDmg: number;
+  readonly minGap: number;
+  readonly lake?: number;
+}
+
+/**
+ * Bloque de IA de un interceptor (`ai.interceptor`, `ai.sabueso`, `ai.motorista`). `radSpeed`: el sabueso corre más
+ * cuanta más RAD lleva el jugador. `skidSpeed`/`exposedMult`: el motorista que falla derrapa (a esa fracción de su
+ * velocidad, hasta parar) y recibe ese múltiplo de daño mientras tanto.
+ */
+export interface InterceptorAI {
+  readonly turn: number;
+  readonly lead: number;
+  readonly stunCharge: number;
+  readonly stunDur: number;
+  readonly stunImmunity: number;
+  readonly recover: number;
+  readonly recoverSpeed: number;
+  readonly missR: number;
+  readonly radSpeed?: number;
+  readonly skidSpeed?: number;
+  readonly exposedMult?: number;
 }
 
 /**
@@ -219,6 +267,11 @@ export const GORE: Readonly<Record<StatEnemyId, readonly number[]>> = {
   excavadora: SPARKS,
   interceptor: SPARKS,
   mortero: [0xa8382a, 0x6a2a20, 0x8a6a4a],
+  liquidador: [0xa8382a, 0x6a2a20, 0x9dff00],
+  sabueso: SPARKS,
+  bidonero: [0xa8382a, 0x6a2a20, 0x7dff3a],
+  nevera: SPARKS,
+  motorista: SPARKS,
   rey_rata: [0xa8382a, 0x6a2a20, 0x8a7a6a],
   dirigible: SPARKS,
   coloso: SPARKS,

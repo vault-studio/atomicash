@@ -184,6 +184,10 @@ export const RUN_COLORS = {
   bombFuse: 0xffb347,
   hazard: 0x9dff00,
   hazardAlpha: 0.18,
+  /** Mancha de hielo de la nevera (placeholder: sin lago de hielo cargable en el Acto 1). */
+  ice: { color: 0xc4e8f6, edge: 0x7fd8ff, alpha: 0.55 },
+  /** Bala radiactiva del liquidador cuando falta su tira. */
+  radBullet: 0x9dff00,
   /** Suelo roto si faltan sus baldosas y lo que cae si faltan sus tiras, en px de pantalla. */
   crater: { color: 0x14100c, alpha: 0.5, r: 50, vary: 0.35, cracks: 7, reach: 1.4, short: 0.65, width: 2.5 },
   falling: {
@@ -392,6 +396,9 @@ export const FX_ART = {
     scrap: { strip: 'fall_scrap', w: 74, ay: 0.5, spin: 9 },
     acid: { strip: 'fall_acid', w: 44, ay: 0.72, fps: 10 },
     shell: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1 },
+    // El obús con tinte: verde (barril de ácido del bidonero) y azul pálido (nevera).
+    barrel: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1, tint: 0x7dff3a },
+    ice: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1, tint: 0xbfe6ff },
   },
   /**
    * Auras de arma en el suelo. `ring`: parte del ancho del frame que ocupa el anillo, que marca el alcance; (`ax`, `ay`)

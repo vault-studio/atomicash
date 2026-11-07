@@ -15,9 +15,11 @@ const stats = (): [string, EnemyStats][] => Object.entries(ENEMY_STATS) as [stri
 
 describe('muerte de los robots', () => {
   it('los robots llevan `wreck`: máquinas de piezas rígidas, sin dejar fuera ninguno nuevo', () => {
+    // El motorista de chatarra es una moto de piezas rígidas pero sin chapa (`metal`): revienta igual.
+    const noMetal = ['motorista'];
     for (const [id, s] of stats()) {
       if (!isEntityId(id)) continue;
-      const robot = s.metal === true && ENTITIES[id].method === 'rigid';
+      const robot = (s.metal === true || noMetal.includes(id)) && ENTITIES[id].method === 'rigid';
       expect(s.wreck === true, id).toBe(robot);
     }
   });

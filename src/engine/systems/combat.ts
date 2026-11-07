@@ -26,7 +26,7 @@ import { timeDmgMult } from '../stats';
 import { hurtIndex, noteHurt, noteKill } from '../runStats';
 import { applyArmor } from '../rules';
 import { SFX, sfx } from '../sfx';
-import type { Enemy, Pickup, PickupKind, World } from '../types';
+import { MODE_DASH, type Enemy, type Pickup, type PickupKind, type World } from '../types';
 import { interruptEnemy, spawnEnemy } from './enemies';
 import { colossusDown, objectiveKill } from './modes';
 
@@ -153,6 +153,8 @@ export function hitEnemy(
   const st = w.st;
   let d = flags & HIT_RAW ? base : base * st.dmgMult * (flags & HIT_MELEE ? st.meleeMult : 1);
   if (e.boss) d *= st.bossMult;
+  // Motorista derrapando tras fallar la carga: recibe más daño.
+  if (e.mode === MODE_DASH && e.type === 'motorista') d *= AI.motorista.exposedMult;
   if (src === w.starter) d *= st.starterMult;
   if (w.dailyMod === 'glass' && !(flags & HIT_RAW)) d *= DAILY.glass.dealt;
   // Único «Cazador» del árbol: más daño a jefes y élites.

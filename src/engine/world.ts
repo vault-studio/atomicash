@@ -15,6 +15,7 @@ import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
 import { Pool } from './pool';
 import { createRng } from './rng';
+import { iceSlowAt } from './scars';
 import { tickStun } from './rules';
 import { createRunStats, hurtIndex, noteHurt, samplePressure, surroundedBy } from './runStats';
 
@@ -329,7 +330,8 @@ function updatePlayer(w: World, input: InputState, dt: number): void {
   if (p.moving) {
     const ux = input.moveX / mag;
     const uy = input.moveY / mag;
-    const k = Math.min(1, mag) * w.st.speed * dt;
+    // Sobre una mancha de hielo de la nevera va más lento.
+    const k = Math.min(1, mag) * w.st.speed * iceSlowAt(w, p.x, p.y) * dt;
     p.facingX = ux;
     p.facingY = uy;
     p.x += ux * k;

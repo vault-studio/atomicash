@@ -6,6 +6,7 @@ import {
   ELITE_IDS,
   ENEMY_RULES,
   ENEMY_STATS,
+  type EnemyRole,
   type EnemyStats,
   type StatEnemyId,
 } from '../../config/enemies';
@@ -58,22 +59,26 @@ function waveMix(i: number): { types: StatEnemyId[]; weights: number[] } {
   return mix[i]!;
 }
 
-/** Vivos de un tipo (solo se cuenta para los que tienen tope). */
-function aliveOf(w: World, type: StatEnemyId): number {
+/** Vivos de un tipo (solo se cuenta para los que tienen tope) o, con `role`, de todos los tipos de ese rol. */
+function aliveOf(w: World, type: StatEnemyId, role?: EnemyRole): number {
   let n = 0;
   for (let i = 0; i < w.enemies.count; i++) {
     const e = w.enemies.items[i]!;
-    if (!e.dead && e.type === type) n++;
+    if (e.dead) continue;
+    if (role === undefined ? e.type === type : (ENEMY_STATS[e.type] as EnemyStats).role === role) n++;
   }
   return n;
 }
 
-/** ¿Puede salir ahora en oleada? Ventana de tiempo (`spawnFrom`/`spawnUntil`) y tope en pantalla (`cap`). */
-function spawnable(w: World, type: StatEnemyId): boolean {
+/**
+ * ¿Puede salir ahora en oleada? Ventana de tiempo (`spawnFrom`/`spawnUntil`) y tope en pantalla (`cap`; con `capRole`
+ * cuenta los vivos de su mismo rol, sean del tipo que sean).
+ */
+export function spawnable(w: World, type: StatEnemyId): boolean {
   const s: EnemyStats = ENEMY_STATS[type];
   if (s.spawnFrom !== undefined && w.time < s.spawnFrom) return false;
   if (s.spawnUntil !== undefined && w.time >= s.spawnUntil) return false;
-  return underCap(s.cap ? aliveOf(w, type) : 0, s.cap);
+  return underCap(s.cap ? aliveOf(w, type, s.capRole === true ? s.role : undefined) : 0, s.cap);
 }
 
 /** Tipo al azar según los pesos de la oleada, entre los que pueden salir; null si ninguno. */

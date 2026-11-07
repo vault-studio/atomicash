@@ -280,7 +280,7 @@ export interface Mine {
 }
 
 /** Lo que cae del cielo y deja un destrozo en el mapa al llegar al suelo (ver engine/scars.ts). */
-export type TeleFall = 'shell' | 'scrap' | 'acid';
+export type TeleFall = 'shell' | 'scrap' | 'acid' | 'barrel' | 'ice';
 
 /**
  * Aviso en el suelo de un ataque de jefe; al acabar, explota (y quizá crea un enemigo). Si (lx, ly) no es cero es un
@@ -300,14 +300,17 @@ export interface Telegraph {
   src: number;
   /** RAD que da si alcanza al jugador. */
   rad: number;
-  /** Lo que cae, si deja destrozo; `hz` es el radio del lago (en `HAZARDS.cellRadii`) si es ácido. */
+  /** Lo que cae, si deja destrozo; `hz` es el radio del lago (en `HAZARDS.cellRadii`) si es ácido o un barril. */
   fall: TeleFall | null;
   hz: number;
 }
 
-/** Destrozo de una casilla: escombros (`v` = objeto de `PROP_LIST`) o lago de ácido (`v` = radio). */
+/**
+ * Destrozo de una casilla: escombros (`v` = objeto de `PROP_LIST`), lago de ácido (`v` = radio) o mancha de hielo
+ * (sin daño: solo frena al jugador; no bloquea ni el paso ni las balas).
+ */
 export interface Scar {
-  kind: 'rubble' | 'acid';
+  kind: 'rubble' | 'acid' | 'ice';
   v: number;
   x: number;
   y: number;

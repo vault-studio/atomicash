@@ -278,7 +278,8 @@
       "cap": 2,
       "rage": {
         "enabled": false
-      }
+      },
+      "capRole": true
     },
     "mortero": {
       "role": "launcher",
@@ -288,6 +289,71 @@
       "xp": 3,
       "cap": 2,
       "spawnFrom": 240,
+      "rage": {
+        "enabled": false
+      },
+      "capRole": true
+    },
+    "liquidador": {
+      "role": "shooter",
+      "hp": 34,
+      "dmg": 3,
+      "speed": 72,
+      "xp": 2,
+      "rage": {
+        "enabled": false
+      }
+    },
+    "sabueso": {
+      "role": "interceptor",
+      "hp": 30,
+      "dmg": 5,
+      "speed": 300,
+      "xp": 3,
+      "metal": true,
+      "wreck": true,
+      "cap": 2,
+      "capRole": true,
+      "rage": {
+        "enabled": false
+      }
+    },
+    "bidonero": {
+      "role": "launcher",
+      "hp": 55,
+      "dmg": 12,
+      "speed": 56,
+      "xp": 3,
+      "cap": 2,
+      "capRole": true,
+      "spawnFrom": 300,
+      "rage": {
+        "enabled": false
+      }
+    },
+    "nevera": {
+      "role": "launcher",
+      "hp": 60,
+      "dmg": 10,
+      "speed": 52,
+      "xp": 3,
+      "metal": true,
+      "wreck": true,
+      "cap": 2,
+      "capRole": true,
+      "rage": {
+        "enabled": false
+      }
+    },
+    "motorista": {
+      "role": "interceptor",
+      "hp": 44,
+      "dmg": 8,
+      "speed": 320,
+      "xp": 4,
+      "wreck": true,
+      "cap": 2,
+      "capRole": true,
       "rage": {
         "enabled": false
       }
@@ -397,6 +463,62 @@
       "recoverSpeed": 0.35,
       "missR": 140
     },
+    "liquidador": {
+      "hold": 480,
+      "resume": 60,
+      "fireCd": 1.8,
+      "bulletSpd": 210,
+      "range": 560,
+      "shotRad": 10
+    },
+    "sabueso": {
+      "turn": 1.5,
+      "lead": 1.2,
+      "stunCharge": 2,
+      "stunDur": 1,
+      "stunImmunity": 4,
+      "recover": 1.4,
+      "recoverSpeed": 0.35,
+      "missR": 140,
+      "radSpeed": 0.5
+    },
+    "bidonero": {
+      "hold": 480,
+      "range": 620,
+      "every": 7,
+      "shells": 3,
+      "warn": 1.1,
+      "stagger": 0.3,
+      "shellR": 42,
+      "shellDmg": 12,
+      "minGap": 80,
+      "lake": 0
+    },
+    "nevera": {
+      "hold": 500,
+      "range": 640,
+      "every": 6,
+      "shells": 4,
+      "warn": 1,
+      "stagger": 0.22,
+      "shellR": 40,
+      "shellDmg": 10,
+      "minGap": 70,
+      "iceSlow": 0.6,
+      "iceR": 0.42
+    },
+    "motorista": {
+      "turn": 1.3,
+      "lead": 1.2,
+      "stunCharge": 2,
+      "stunDur": 1,
+      "stunImmunity": 4,
+      "recover": 2,
+      "recoverSpeed": 0.35,
+      "missR": 140,
+      "skidSpeed": 0.5,
+      "exposedMult": 1.5
+    },
     "rey_rata": {
       "every": 1.2,
       "summon": 7,
@@ -498,7 +620,9 @@
     "exclude": [
       "torreta",
       "aspiradora_cria",
-      "interceptor"
+      "interceptor",
+      "sabueso",
+      "motorista"
     ],
     "barTime": 4,
     "blindado": {
@@ -814,7 +938,8 @@
         "necrofago": 5,
         "saqueador": 2,
         "interceptor": 1,
-        "tirador": 1
+        "tirador": 1,
+        "sabueso": 1
       }
     },
     {
@@ -825,7 +950,9 @@
         "dron": 5,
         "necrofago": 4,
         "saqueador": 3,
-        "interceptor": 1
+        "interceptor": 1,
+        "sabueso": 1,
+        "liquidador": 1
       }
     },
     {
@@ -838,7 +965,9 @@
         "reptador": 3,
         "dron": 3,
         "aspiradora": 1,
-        "interceptor": 1
+        "interceptor": 1,
+        "sabueso": 1,
+        "liquidador": 1
       }
     },
     {
@@ -851,7 +980,8 @@
         "saqueador": 3,
         "reptador": 2,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1
       }
     },
     {
@@ -867,7 +997,10 @@
         "dron": 3,
         "blindado": 1,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -880,7 +1013,10 @@
         "reptador": 3,
         "dron": 5,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -897,7 +1033,10 @@
         "blindado": 2,
         "predicador": 1,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -915,7 +1054,10 @@
         "blindado": 2,
         "predicador": 1,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -933,7 +1075,10 @@
         "blindado": 2,
         "predicador": 2,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -952,7 +1097,10 @@
         "blindado": 3,
         "predicador": 1,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     },
     {
@@ -971,7 +1119,10 @@
         "blindado": 3,
         "predicador": 2,
         "interceptor": 1,
-        "mortero": 1
+        "mortero": 1,
+        "sabueso": 1,
+        "liquidador": 1,
+        "bidonero": 1
       }
     }
   ],

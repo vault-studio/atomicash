@@ -21,8 +21,8 @@ interface EntityInput {
   readonly size: number;
   readonly color: string;
   readonly method: AnimMethod;
-  /** Acto en el que aparece. Los del acto 2 tienen el ID reservado pero sin contenido. */
-  readonly act: 1 | 2;
+  /** Acto en el que aparece. Los de los actos 2 y 3 no salen en oleadas: solo desde el depurador. */
+  readonly act: 1 | 2 | 3;
   /** Solo supervivientes. */
   readonly status?: Availability;
   /** Variante de fase de un jefe: comparte animaciones con la base. */
@@ -96,6 +96,12 @@ const DEFS = {
   interceptor: { category: 'enemies', size: 1.1, color: '#3FE0FF', method: 'rigid', act: 1 },
   // Copia del jugador (evento «Tú mismo, otra vez»): se dibuja con los sprites de su personaje (`Enemy.skin`).
   copia: { category: 'enemies', size: 1.3, color: '#C070FF', method: 'mixamo', act: 1 },
+  // Tiradores y corredores nuevos. Nevera (acto 2) y motorista (acto 3) solo salen desde el depurador.
+  liquidador: { category: 'enemies', size: 1.3, color: '#8FD14A', method: 'mixamo', act: 1 },
+  sabueso: { category: 'enemies', size: 1.2, color: '#D9E04A', method: 'rigid', act: 1 },
+  bidonero: { category: 'enemies', size: 1.6, color: '#5E9C3A', method: 'mixamo', act: 1 },
+  nevera: { category: 'enemies', size: 1.7, color: '#BFE6F2', method: 'rigid', act: 2 },
+  motorista: { category: 'enemies', size: 1.5, color: '#C06A2A', method: 'rigid', act: 3 },
   moscon: { category: 'enemies', size: 0.8, color: '#3AA0A0', method: 'rigid', act: 2 },
 
   // ---------- Jefes (bosses) y variantes de fase ----------

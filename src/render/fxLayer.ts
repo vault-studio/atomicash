@@ -105,13 +105,16 @@ export class FxLayer {
         const piece = Math.abs(Math.floor((x + y) / RUN.groundCell));
         sa.put(art.strip, piece % sa.frames(art.strip), sx, sy, art.w, { ay: art.ay, rot: t * art.spin + x });
       } else if ('fps' in art)
-        sa.put(art.strip, sa.loop(art.strip, t, art.fps), sx, sy, art.w, { ay: art.ay });
+        sa.put(art.strip, sa.loop(art.strip, t, art.fps), sx, sy, art.w, {
+          ay: art.ay,
+          tint: 'tint' in art ? art.tint : undefined,
+        });
       return;
     }
-    if (kind === 'shell') return;
-    const c = F[kind];
+    if (kind === 'shell' || kind === 'ice') return;
+    const c = kind === 'scrap' ? F.scrap : F.acid;
     const s = c.size;
-    if (kind === 'acid') {
+    if (kind !== 'scrap') {
       a.moveTo(sx, sy - s * 1.9)
         .bezierCurveTo(sx + s, sy - s * 0.6, sx + s, sy + s, sx, sy + s)
         .bezierCurveTo(sx - s, sy + s, sx - s, sy - s * 0.6, sx, sy - s * 1.9)
@@ -191,7 +194,7 @@ export class FxLayer {
       const f = tl.t / tl.dur;
       // El último cuarto parpadea: ya va a caer.
       const blink = f > 0.75 ? 0.5 + 0.5 * Math.sin(t * 40) : 1;
-      const tint = tl.fall === 'acid' ? RUN_COLORS.hazard : RUN_COLORS.tele;
+      const tint = tl.fall === 'acid' || tl.fall === 'barrel' ? RUN_COLORS.hazard : RUN_COLORS.tele;
       if (tl.fall) this.drawFall(a, tl.x, tl.y, tl.fall, f, t);
       if (tl.lx !== 0 || tl.ly !== 0) {
         this.drawLane(g, tl.x, tl.y, tl.lx, tl.ly, tl.r, f, blink, t);
@@ -563,7 +566,7 @@ export class FxLayer {
         continue;
       }
       a.circle(isoX(b.x, b.y), isoY(b.x, b.y) - lift, b.r)
-        .fill({ color: RUN_COLORS.ebullet })
+        .fill({ color: b.rad > 0 ? RUN_COLORS.radBullet : RUN_COLORS.ebullet })
         .stroke({ width: 1, color: 0x000000, alpha: 0.6 });
     }
     for (let i = 0; i < w.lobs.count; i++) {

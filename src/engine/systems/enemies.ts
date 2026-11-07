@@ -13,11 +13,14 @@ import {
   type EliteId,
   type DashSpec,
   type EnemyStats,
+  type GunnerAI,
+  type InterceptorAI,
+  type SalvoAI,
   type RageOverride,
   type StatEnemyId,
 } from '../../config/enemies';
 import { WEAPONS } from '../../config/weapons';
-import { IRRADIATED } from '../../config/radiation';
+import { IRRADIATED, RAD } from '../../config/radiation';
 import { FX, KNOCKBACK, PLAYER } from '../../config/run';
 import { SPAWN } from '../../config/waves';
 import { ENDLESS, RAINS } from '../../config/modes';
@@ -31,11 +34,12 @@ import {
   type Enemy,
   type EnemyBullet,
   type Slime,
+  type TeleFall,
   type Telegraph,
   type World,
 } from '../types';
 import { blockCircle, hitsObstacle } from '../obstacles';
-import { interceptPoint, tryStun, turnToward, type Vec } from '../rules';
+import { houndSpeed, interceptPoint, skidVelocity, tryStun, turnToward, type Vec } from '../rules';
 import { RAGE_END, RAGE_START, rageForce, rageStep, rageTrigger } from '../rage';
 import { hurtIndex } from '../runStats';
 import { addRad, hurtPlayer, irradiatedChance } from './combat';
@@ -48,8 +52,10 @@ const TAU = Math.PI * 2;
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
 /** Eslóganes de la torreta (i18n `slogans.<n>`). */
 export const SLOGAN_COUNT = 6;
-/** Fuente de los impactos del mortero (para contar los recibidos y los esquivados). */
+/** Fuentes de las salvas (mortero, bidonero y nevera): sus impactos cuentan como recibidos o esquivados. */
 const MORTAR_SRC = hurtIndex('mortero');
+const BARREL_SRC = hurtIndex('bidonero');
+const FRIDGE_SRC = hurtIndex('nevera');
 
 export function createEnemy(): Enemy {
   // Todo número que pueda llevar decimales arranca con uno (spawnEnemy pone el valor real): si arrancara entero, V8
@@ -164,6 +170,12 @@ function firstTimer(type: StatEnemyId): number {
       return AI.mortero.every * 0.5;
     case 'copia':
       return AI.copia.every;
+    case 'bidonero':
+      return AI.bidonero.every * 0.5;
+    case 'nevera':
+      return AI.nevera.every * 0.5;
+    case 'liquidador':
+      return AI.liquidador.fireCd;
     case 'dirigible':
       return AI.dirigible.every;
     case 'coloso':
@@ -473,6 +485,27 @@ function speedOf(w: World, e: Enemy): number {
   return (run > e.speed ? run : e.speed) * e.slowK;
 }
 
+// Bloques de IA según el tipo. Son funciones aparte, y `think` llama a cada habilidad desde un solo sitio: si
+// `think` tuviera una llamada por tipo, V8 dejaría de incorporar sus ayudantes (gasta el presupuesto de inlining) y
+// cada llamada con decimales reservaría memoria en el bucle caliente.
+
+/** Bloque de IA de los interceptores: `ai.sabueso`, `ai.motorista` o, en cualquier otro caso, `ai.interceptor`. */
+function interceptorAI(type: StatEnemyId): InterceptorAI {
+  return type === 'sabueso' ? AI.sabueso : type === 'motorista' ? AI.motorista : AI.interceptor;
+}
+
+/** Bloque de IA de los tiradores de balas: `ai.liquidador` o, en cualquier otro caso, `ai.tirador`. */
+const gunnerAI = (type: StatEnemyId): GunnerAI => (type === 'liquidador' ? AI.liquidador : AI.tirador);
+
+/** Bloque de IA de los lanzadores: `ai.bidonero`, `ai.nevera` o, en cualquier otro caso, `ai.mortero`. */
+function salvoAI(type: StatEnemyId): SalvoAI {
+  return type === 'bidonero' ? AI.bidonero : type === 'nevera' ? AI.nevera : AI.mortero;
+}
+
+/** Lo que cae de cada lanzador: barriles de ácido, bloques de hielo u obuses. */
+const salvoFall = (type: StatEnemyId): TeleFall =>
+  type === 'bidonero' ? 'barrel' : type === 'nevera' ? 'ice' : 'shell';
+
 /**
  * Interrumpe la habilidad que esté preparando o lanzando (CAMBIOS §5, control): la embestida vuelve a perseguir con su
  * enfriamiento entero, el interceptor corta su carrera y el mortero reinicia la carga. Los jefes no se interrumpen.
@@ -485,17 +518,21 @@ export function interruptEnemy(e: Enemy): boolean {
     e.timer = dash.every;
     return true;
   }
-  if (e.type === 'interceptor' && e.mode === MODE_CHASE) {
+  const role = (ENEMY_STATS[e.type] as EnemyStats).role;
+  if (role === 'interceptor' && e.mode === MODE_CHASE) {
     // Corta la carrera: frena y pierde lo acumulado para aturdir.
     e.mode = MODE_AIM;
-    e.timer = AI.interceptor.recover;
+    e.timer = interceptorAI(e.type).recover;
     e.mt = 0;
     e.alt = false;
     return true;
   }
-  if (e.type === 'mortero' && e.timer < AI.mortero.every) {
-    e.timer = AI.mortero.every;
-    return true;
+  if (role === 'launcher') {
+    const every = salvoAI(e.type).every;
+    if (e.timer < every) {
+      e.timer = every;
+      return true;
+    }
   }
   return false;
 }
@@ -561,15 +598,40 @@ function dashTick(w: World, e: Enemy, D: DashSpec, d: number, ux: number, uy: nu
 /**
  * Interceptor (CAMBIOS §2): corre mucho más que el jugador pero gira despacio, y apunta a donde va a estar (le corta
  * la ruta de salida). `mt` = segundos que lleva de carrera; si alcanza al jugador tras `stunCharge` s, lo aturde.
- * Al alcanzarlo o pasar de largo (esquivado) frena `recover` s y vuelve a empezar la carrera.
+ * Al alcanzarlo o pasar de largo (esquivado) frena `recover` s y vuelve a empezar la carrera. `A` es su bloque de IA
+ * (`ai.interceptor`, `ai.sabueso`, `ai.motorista`). Con `skidSpeed` (motorista), si falla no frena de cara al jugador:
+ * derrapa (MODE_DASH) `recover` s recto, expuesto (daño × `exposedMult`), y luego da la vuelta y carga otra vez.
  */
-function interceptor(w: World, e: Enemy, d: number, ux: number, uy: number, spd: number, dt: number): void {
-  const A = AI.interceptor;
+function interceptor(
+  w: World,
+  e: Enemy,
+  d: number,
+  ux: number,
+  uy: number,
+  base: number,
+  dt: number,
+  A: InterceptorAI,
+): void {
   const p = w.player;
   if (e.dx === 0 && e.dy === 0) {
     e.dx = ux;
     e.dy = uy;
   }
+  if (e.mode === MODE_DASH) {
+    // Derrape del motorista (`e.timer` = lo que le queda): sigue su rumbo, sin girar hacia el jugador, y va frenando.
+    const k = skidVelocity(base, A.skidSpeed ?? 0, e.timer, A.recover);
+    vx = e.dx * k;
+    vy = e.dy * k;
+    e.timer -= dt;
+    if (e.timer <= 0) {
+      e.mode = MODE_CHASE;
+      e.mt = 0;
+      e.alt = false;
+    }
+    return;
+  }
+  // El sabueso corre más cuanta más RAD lleva el jugador.
+  const spd = A.radSpeed === undefined ? base : houndSpeed(base, A.radSpeed, p.rad, RAD.max);
   interceptPoint(e.x, e.y, p.x, p.y, p.vx, p.vy, spd, A.lead, aimPt);
   const tx = aimPt.x - e.x;
   const ty = aimPt.y - e.y;
@@ -605,8 +667,43 @@ function interceptor(w: World, e: Enemy, d: number, ux: number, uy: number, spd:
   else if (e.alt && e.dx * ux + e.dy * uy < 0) {
     // Pasó rozando y ya se aleja: esquivado.
     w.rs.chargesDodged++;
-    e.mode = MODE_AIM;
     e.timer = A.recover;
+    if (A.skidSpeed === undefined) e.mode = MODE_AIM;
+    else {
+      // Fallo del motorista: derrapa.
+      e.mode = MODE_DASH;
+      markAttack(w, e);
+    }
+  }
+}
+
+/**
+ * Tirador de balas (`ai.tirador`, `ai.liquidador`): se acerca hasta `hold`, se planta y dispara cada `fireCd` s. Cada
+ * bala suma `shotRad` de RAD al jugador (más los del irradiado).
+ */
+function gunner(
+  w: World,
+  e: Enemy,
+  d: number,
+  ux: number,
+  uy: number,
+  spd: number,
+  dt: number,
+  irrRad: number,
+  A: GunnerAI,
+): void {
+  if (d > (e.moving ? A.hold : A.hold + A.resume)) {
+    vx = ux * spd;
+    vy = uy * spd;
+  } else {
+    vx = 0;
+    vy = 0;
+  }
+  e.timer -= dt;
+  if (e.timer <= 0 && d < A.range) {
+    e.timer = A.fireCd;
+    fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad + (A.shotRad ?? 0));
+    markAttack(w, e);
   }
 }
 
@@ -619,25 +716,14 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
   if (dash !== undefined && dashTick(w, e, dash, d, ux, uy, dt)) return;
   switch (e.type) {
     case 'interceptor':
-      interceptor(w, e, d, ux, uy, spd, dt);
+    case 'sabueso':
+    case 'motorista':
+      interceptor(w, e, d, ux, uy, spd, dt, interceptorAI(e.type));
       break;
-    case 'tirador': {
-      const A = AI.tirador;
-      if (d > (e.moving ? A.hold : A.hold + A.resume)) {
-        vx = ux * spd;
-        vy = uy * spd;
-      } else {
-        vx = 0;
-        vy = 0;
-      }
-      e.timer -= dt;
-      if (e.timer <= 0 && d < A.range) {
-        e.timer = A.fireCd;
-        fireBullet(w, e.x, e.y, ux, uy, A.bulletSpd, e.dmg, irrRad);
-        markAttack(w, e);
-      }
+    case 'tirador':
+    case 'liquidador':
+      gunner(w, e, d, ux, uy, spd, dt, irrRad, gunnerAI(e.type));
       break;
-    }
     case 'copia': {
       // Ráfaga en abanico hacia el jugador; el número de balas y su daño salen de mirror.ts.
       if (mirrorThink(w, e, d, ux, uy, dt)) {
@@ -656,10 +742,14 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
       break;
     }
     case 'mortero':
-      if (mortarThink(w, e, d, ux, uy, spd, dt, curSrc)) markAttack(w, e);
+    case 'bidonero':
+    case 'nevera': {
+      const A = salvoAI(e.type);
+      if (mortarThink(w, e, d, ux, uy, spd, dt, curSrc, A, salvoFall(e.type), A.lake ?? 0)) markAttack(w, e);
       vx = mortarVel.x;
       vy = mortarVel.y;
       break;
+    }
     case 'predicador': {
       const A = AI.predicador;
       if (d > A.keepMax) {
@@ -1080,7 +1170,15 @@ export function updateTelegraphs(w: World, dt: number): void {
     if (dmg <= 0 && !spawn) continue;
     const c = FX.colors;
     if (fall === 'scrap') boom(w, x, y, r, RAINS.scrap.dustLife, c.debris);
-    else boom(w, x, y, r, 0.25, fall === 'acid' ? c.bloater : c.tele);
+    else
+      boom(
+        w,
+        x,
+        y,
+        r,
+        0.25,
+        fall === 'acid' || fall === 'barrel' ? c.bloater : fall === 'ice' ? c.freeze : c.tele,
+      );
     addShake(w, 3);
     const dx = p.x - x;
     const dy = p.y - y;
@@ -1088,7 +1186,7 @@ export function updateTelegraphs(w: World, dt: number): void {
     const hit = dx * dx + dy * dy < rr * rr;
     if (hit) hurtPlayer(w, dmg, rad, false, src);
     if (fall) landFall(w, fall, x, y, hz);
-    if (src === MORTAR_SRC) {
+    if (src === MORTAR_SRC || src === BARREL_SRC || src === FRIDGE_SRC) {
       if (hit) w.rs.shellsHit++;
       else w.rs.shellsDodged++;
     }

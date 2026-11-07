@@ -2,6 +2,7 @@
 // Cada casilla elige su baldosa con un hash de la semilla, así que el mismo sitio se ve siempre igual.
 import { Assets, Container, Graphics, Sprite, type Texture } from 'pixi.js';
 import type { ActId } from '../config/acts';
+import { AI } from '../config/enemies';
 import { HAZARDS } from '../config/radiation';
 import { PROP_LIST, PROP_SCALE, RUBBLE_PROPS } from '../config/props';
 import { RUN_COLORS, TILES, type TileIndex, type TileInfo } from '../config/render';
@@ -192,6 +193,15 @@ export class GroundView {
             .ellipse(x, y, r, r / 2)
             .fill({ color: RUN_COLORS.hazard, alpha: RUN_COLORS.hazardAlpha })
             .stroke({ width: 2, color: RUN_COLORS.hazard, alpha: 0.35 });
+        }
+        // Mancha de hielo de la nevera: sin lago de hielo cargable, una elipse azul pálida (placeholder).
+        if (w.scars.get(cellKey(i, j))?.kind === 'ice') {
+          const I = RUN_COLORS.ice;
+          const ir = T * AI.nevera.iceR;
+          this.outlines
+            .ellipse(x, y, ir, ir / 2)
+            .fill({ color: I.color, alpha: I.alpha })
+            .stroke({ width: 2, color: I.edge, alpha: 0.7 });
         }
         const t = this.pick(i, j, hz);
         if (!t) continue;
