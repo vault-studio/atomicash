@@ -526,8 +526,15 @@ export interface Choice {
 
 export interface World {
   readonly seed: number;
-  /** Acto: decide el suelo y los objetos del mapa. */
-  readonly act: ActId;
+  /** Acto en curso: decide el suelo, los objetos del mapa, las oleadas y el jefe. */
+  act: ActId;
+  /** Segundo de la run (`time`) en que empezó el acto. */
+  actStart: number;
+  /** Ha caído el jefe del acto y `updateCampaign` aún no ha empezado la transición. */
+  actBossDown: boolean;
+  /** Transición al acto siguiente: cuándo cayó el jefe (−1 = no hay) y cuándo empezó el fundido (−1 = todavía no). */
+  actClearAt: number;
+  actFadeAt: number;
   readonly rng: Rng;
   /** Azar solo para efectos visuales: no altera la secuencia de `rng` de la simulación. */
   readonly fxRng: Rng;
@@ -614,8 +621,8 @@ export interface World {
   /** Edificios (`Building.key`) cuya guarnición ya apareció. */
   readonly garrisoned: Set<string>;
   readonly garrisons: Garrison[];
-  /** Punto de inicio de la run (alrededor no hay charcos). */
-  readonly start: { readonly x: number; readonly y: number };
+  /** Punto de inicio del acto (alrededor no hay charcos ni objetos). */
+  readonly start: { x: number; y: number };
   readonly pickups: Pool<Pickup>;
   gemCount: number;
   readonly beams: Pool<Beam>;
@@ -656,16 +663,17 @@ export interface World {
   dpsBucket: number;
   bosses: number;
 
-  nextEvent: number;
-  eventIdx: number;
+  /** Próximo evento especial, en s de run, e índice en `CAMPAIGN.specials.times`. */
+  nextSpecial: number;
+  specialIdx: number;
   /** Lluvia radiactiva restante, en s. */
   rain: number;
   storm: boolean;
   lastBossAt: number;
   readonly bossSpawned: Record<string, boolean>;
-  /** Próximo élite y próxima horda, en s de run. */
+  /** Próximo élite, en s de run. */
   nextElite: number;
-  nextHorde: number;
+  /** Turno de hordas de la tecla de depuración. */
   hordeIdx: number;
   /** Horda avisada que aún no ha llegado. */
   horde: Horde | null;
@@ -677,11 +685,11 @@ export interface World {
   nextObjective: number;
   /** Lluvia de chatarra o de ácido en curso (la radiactiva de los eventos es `rain`). */
   downpour: Downpour | null;
-  nextDownpour: number;
+  /** Turno de lluvias de la tecla de depuración. */
   downpourIdx: number;
   objectiveIdx: number;
   objectivesDone: number;
-  /** Modo infinito tras el Coloso: desde cuándo, próximo jefe y vueltas de la rueda de jefes. */
+  /** Modo infinito tras el Coloso: desde cuándo. */
   endless: boolean;
   endlessAt: number;
   /** Segundo en que cayó el Coloso (0 si no). */

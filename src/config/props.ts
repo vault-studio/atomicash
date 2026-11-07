@@ -82,20 +82,61 @@ export const BUILDINGS = {
   /** Anillo alrededor del centro donde aparecen (el edificio llega a 1,2 casillas, 1,7 en las esquinas). */
   ring: 2 * T,
   jitter: 0.3 * T,
+  /**
+   * Guarnición por acto y edificio, solo con enemigos de ese acto. Al aparecer se filtra por lo que ya pueda salir
+   * (`spawnable`): cada lista debe tener algo desbloqueado desde el segundo 0 (lo comprueba `validateConfig`).
+   */
   enemies: {
-    raiders: [
-      ['saqueador', 4],
-      ['tirador', 2],
-    ],
-    robots: [
-      ['dron', 3],
-      ['aspiradora', 1],
-      ['cortacesped', 1],
-      ['torreta', 1],
-    ],
-    necro: [['necrofago', 8]],
-    supply: [],
-  } as Readonly<Record<BuildingKind, readonly (readonly [StatEnemyId, number])[]>>,
+    1: {
+      raiders: [
+        ['liquidador', 3],
+        ['bidonero', 1],
+        ['necrofago', 2],
+      ],
+      robots: [
+        ['sabueso', 2],
+        ['liquidador', 2],
+      ],
+      necro: [
+        ['necrofago', 6],
+        ['reptador', 2],
+      ],
+      supply: [],
+    },
+    2: {
+      raiders: [
+        ['aspiradora', 2],
+        ['nevera', 1],
+        ['dron', 3],
+      ],
+      robots: [
+        ['aspiradora', 2],
+        ['dron', 3],
+        ['torreta', 1],
+      ],
+      necro: [
+        ['aspiradora', 3],
+        ['interceptor', 1],
+      ],
+      supply: [],
+    },
+    3: {
+      raiders: [
+        ['saqueador', 4],
+        ['tirador', 2],
+      ],
+      robots: [
+        ['motorista', 1],
+        ['tirador', 2],
+        ['blindado', 1],
+      ],
+      necro: [
+        ['predicador', 3],
+        ['saqueador', 3],
+      ],
+      supply: [],
+    },
+  } as Readonly<Record<ActId, Readonly<Record<BuildingKind, readonly (readonly [StatEnemyId, number])[]>>>>,
   /** Cajas de suministros alrededor del supermercado: entre min y max. */
   crates: { min: 3, max: 4 },
   /**

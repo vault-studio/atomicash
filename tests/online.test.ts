@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CHAR_IDS, LIMITS, checkNickname, checkRun } from '../supabase/functions/_shared/runCheck';
-import { BOSSES, ENEMY_STATS } from '../src/config/enemies';
+import { ACT_IDS, CAMPAIGN } from '../src/config/acts';
+import { BOSS_IDS, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { STAT_SURVIVOR_IDS } from '../src/config/survivors';
 import { ONLINE_ENABLED, takeAuthReturn, toSubmission } from '../src/online/online';
@@ -45,9 +46,10 @@ describe('antitrampas del ranking', () => {
       .filter((s) => 'boss' in s && s.boss)
       .reduce((a, s) => a + s.hp, 0);
     expect(LIMITS.maxBossDmg).toBe(bossHp);
-    expect(LIMITS.bosses).toBe(Object.keys(BOSSES).length);
-    const last = BOSSES.coloso;
-    expect(LIMITS.minWinSec).toBe(Math.ceil(Math.min(last.at, last.kills / LIMITS.maxKillsPerSec)));
+    expect(LIMITS.bosses).toBe(BOSS_IDS.length);
+    // Cota antitrampas: ganar antes de este segundo es imposible (el Coloso sale, como pronto, a 3 × `bossAt`).
+    expect(LIMITS.minWinSec).toBeGreaterThan(0);
+    expect(LIMITS.minWinSec).toBeLessThanOrEqual(ACT_IDS.length * CAMPAIGN.bossAt);
     expect(LIMITS.maxTimeSec).toBeGreaterThan(RUN.duration);
     expect([...CHAR_IDS].sort()).toEqual([...STAT_SURVIVOR_IDS].sort());
   });

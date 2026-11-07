@@ -28,7 +28,7 @@ const STAND: InputState = { moveX: 0, moveY: 0 };
 function quiet(seed = 1, char: StatSurvivorId = 'dot'): World {
   applyTuning({ spawn: { rateMult: 0 } });
   const w = createWorld(char, seed, { hazards: false, startWeapon: null });
-  w.nextEvent = w.nextElite = w.nextHorde = w.nextObjective = w.nextDownpour = Infinity;
+  w.nextSpecial = w.nextElite = w.nextObjective = Infinity;
   w.player.god = true;
   for (const k of BOSS_IDS) w.bossSpawned[k] = true; // los jefes (saltando el reloj) no son el asunto
   return w;

@@ -1,15 +1,15 @@
 // Estado de la run y tick(dt). TS puro: sin React, DOM ni Pixi.
 import type { ActId } from '../config/acts';
 import type { ConsumableId, ItemId } from '../config/items';
-import { ELITES, ENEMY_RULES, ENEMY_STATS, type EnemyStats } from '../config/enemies';
+import { ENEMY_RULES, ENEMY_STATS, type EnemyStats } from '../config/enemies';
 import { RAD, radTier } from '../config/radiation';
 import { CAPS, CREDITS, FX, JUICE, PLAYER, PRESSURE, RUN, SUMMARY, xpForLevel } from '../config/run';
 import { survivorStats, type StatSurvivorId, type SurvivorStats } from '../config/survivors';
 import type { StatKey } from '../config/traits';
 import { TREE_FX, type TreeMod } from '../config/tree';
-import { OBJECTIVES, RAINS, type DailyMod } from '../config/modes';
+import type { DailyMod } from '../config/modes';
 import { DAMAGE_SOURCES, type WeaponId } from '../config/weapons';
-import { EVENTS, HORDES, SPAWN } from '../config/waves';
+import { SPAWN } from '../config/waves';
 import { refreshHazards } from './hazards';
 import { blockCircle, createObstacleGrid, refreshObstacles } from './obstacles';
 import { banner, createBeam, createBoom, createParticle, createText, updateFx } from './fx';
@@ -22,6 +22,7 @@ import { createRunStats, hurtIndex, noteHurt, samplePressure, surroundedBy } fro
 const sectorOcc = new Uint8Array(32);
 import { SpatialHash } from './spatialHash';
 import { createStats, recalc } from './stats';
+import { resetActTimers, updateCampaign } from './systems/campaign';
 import { addRad, createPickup, heal, resolveBlasts } from './systems/combat';
 import {
   compactEnemies,
@@ -57,7 +58,7 @@ import { defaultView } from './view';
 import { SFX_COUNT } from './sfx';
 
 export interface WorldOptions {
-  /** Acto del mapa. Por defecto, el 1. */
+  /** Acto en el que empieza la partida. Por defecto, el 1. */
   act?: ActId;
   /** Enemigos simultáneos antes de reciclar el más lejano. Por defecto, ENEMY_RULES.maxAlive. */
   maxEnemies?: number;
@@ -131,6 +132,10 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   const w: World = {
     seed,
     act: opts.act ?? 1,
+    actStart: 0,
+    actBossDown: false,
+    actClearAt: -1,
+    actFadeAt: -1,
     rng,
     fxRng: createRng(seed ^ 0x5bd1e995),
     charId,
@@ -247,22 +252,20 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
     dpsB: new Float64Array(16),
     dpsBucket: 0,
     bosses: 0,
-    nextEvent: EVENTS.first,
-    eventIdx: 0,
+    nextSpecial: 0,
+    specialIdx: 0,
     rain: 0,
     storm: false,
     lastBossAt: -999.5,
     bossSpawned: {},
     bossAlive: 0,
-    nextElite: ELITES.first,
-    nextHorde: HORDES.first,
+    nextElite: 0,
     mirror: createMirror(seed),
     barrels: new Pool(createBarrel, 24),
     barrelT: 3,
     objective: null,
-    nextObjective: OBJECTIVES.first,
+    nextObjective: 0,
     downpour: null,
-    nextDownpour: RAINS.times[0]!,
     downpourIdx: 0,
     objectiveIdx: 0,
     objectivesDone: 0,
@@ -289,6 +292,7 @@ export function createWorld(charId: StatSurvivorId, seed: number, opts: WorldOpt
   w.player.hp = w.st.maxHp;
   refreshHazards(w);
   refreshObstacles(w);
+  resetActTimers(w);
   return w;
 }
 
@@ -409,7 +413,8 @@ export function tick(w: World, input: InputState, dt: number): void {
   updateRadiation(w, dt);
 
   w.enemyGrid.build(w.enemies.items, w.enemies.count);
-  if (p.deadAt === null) {
+  // Con el jefe del acto caído, el director se para hasta el acto siguiente.
+  if (p.deadAt === null && w.actClearAt < 0) {
     updateSpawning(w, dt);
     updateObjective(w, dt);
     updateMirror(w);
@@ -438,6 +443,7 @@ export function tick(w: World, input: InputState, dt: number): void {
   resolveBlasts(w);
   compactEnemies(w);
   updatePickups(w, dt);
+  if (p.deadAt === null) updateCampaign(w);
   updateSlimes(w, dt);
   updateFx(w, dt);
   // Pico de DPS para el resumen (cada 0,25 s basta).

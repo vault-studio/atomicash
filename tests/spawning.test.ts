@@ -11,9 +11,8 @@ import { createWorld, tick } from '../src/engine/world';
 function passive(seed: number): ReturnType<typeof createWorld> {
   const w = createWorld('dot', seed, { startWeapon: null, hazards: false });
   w.player.god = true;
-  w.nextEvent = Infinity;
   w.nextElite = Infinity;
-  w.nextHorde = Infinity;
+  w.nextSpecial = Infinity;
   return w;
 }
 
@@ -48,10 +47,12 @@ function runCollecting(w: World, seconds: number, input = STILL) {
 
 describe('oleadas', () => {
   it('elige la oleada vigente por tiempo', () => {
-    expect(currentWave(0)).toBe(WAVES[0]);
-    expect(currentWave(59.9)).toBe(WAVES[0]);
-    expect(currentWave(60)).toBe(WAVES[1]);
-    expect(currentWaveIndex(899)).toBe(WAVES.length - 1);
+    expect(currentWave(1, 0)).toBe(WAVES[0]);
+    expect(currentWave(1, 59.9)).toBe(WAVES[0]);
+    expect(currentWave(1, 60)).toBe(WAVES[1]);
+    expect(currentWave(2, 0).act).toBe(2);
+    expect(currentWave(2, 0).from).toBe(0);
+    expect(currentWaveIndex(3, 899)).toBe(WAVES.length - 1);
   });
 
   it('respeta el ritmo de la primera oleada', () => {
@@ -69,17 +70,18 @@ describe('oleadas', () => {
 
   it('solo aparecen tipos de la oleada vigente', () => {
     const w = createWorld('dot', 7, { hazards: false });
+    w.player.god = true;
+    w.nextSpecial = Infinity;
     const first = runCollecting(w, 59);
     expect(new Set(first.map((s) => s.type))).toEqual(new Set(Object.keys(WAVES[0]!.mix)));
 
-    // Saltamos al minuto 5: la oleada de 300 s incluye tiradores e hinchados (sin jefes, que tienen su hora).
-    const w2 = createWorld('dot', 7, { hazards: false });
-    w2.time = 300;
-    w2.bossSpawned.rey_rata = w2.bossSpawned.dirigible = true;
+    // Saltamos al segundo 70 del Acto 3 (sin jefes, que tienen su hora).
+    const w2 = createWorld('dot', 7, { hazards: false, act: 3 });
+    w2.time = 70;
     // Élites y hordas tienen sus propios tipos (ver fase2.test.ts).
-    w2.nextElite = w2.nextHorde = Infinity;
+    w2.nextElite = w2.nextSpecial = Infinity;
     const later = runCollecting(w2, 30);
-    const wave = [...WAVES].reverse().find((x) => x.from <= 300)!;
+    const wave = currentWave(3, 70);
     expect(wave.mix.tirador).toBeGreaterThan(0);
     const allowed = new Set(Object.keys(wave.mix));
     expect(later.length).toBeGreaterThan(0);

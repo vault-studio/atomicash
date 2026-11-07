@@ -86,12 +86,12 @@ describe('interceptor', () => {
   it('nunca hay más de 2 en pantalla', () => {
     const w = createWorld('dot', 5, { hazards: false });
     w.player.god = true;
-    applyTuning({ waves: [{ from: 0, rate: 20, max: 60, mix: { interceptor: 5, necrofago: 1 } }] });
+    applyTuning({ waves: [{ act: 1, from: 0, rate: 20, max: 60, mix: { sabueso: 5, necrofago: 1 } }] });
     let most = 0;
-    for (let i = 0; i < 20 * RUN.tickHz; i++) {
+    for (let i = 0; i < 30 * RUN.tickHz; i++) {
       tick(w, { moveX: 0, moveY: 0 }, STEP);
       let n = 0;
-      for (let k = 0; k < w.enemies.count; k++) if (w.enemies.items[k]!.type === 'interceptor') n++;
+      for (let k = 0; k < w.enemies.count; k++) if (w.enemies.items[k]!.type === 'sabueso') n++;
       most = Math.max(most, n);
     }
     expect(most).toBe(2);

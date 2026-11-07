@@ -17,21 +17,18 @@ describe('registro de entidades', () => {
     expect(count('props')).toBe(10);
   });
 
-  it('la prioridad del Acto 1 son 3 jugables, 20 enemigos, 3 jefes y 4 armas', () => {
+  it('la prioridad del Acto 1 son 3 jugables, sus 9 enemigos, 3 jefes y 4 armas', () => {
     const p = act1Priority();
     // Gus aún no tiene armas propias con arte: Dot y Benny llevan dos cada uno.
-    expect(p).toHaveLength(30);
+    expect(p).toHaveLength(19);
     expect(p).toEqual(
       expect.arrayContaining([
         'dot',
         'gus',
         'benny',
-        'aspiradora_cria',
-        'blindado',
-        'predicador',
-        'excavadora',
-        'interceptor',
-        'mortero',
+        'necrofago',
+        'reptador',
+        'babosa',
         'liquidador',
         'sabueso',
         'bidonero',
@@ -39,7 +36,6 @@ describe('registro de entidades', () => {
         'petardos',
       ]),
     );
-    // Nevera (acto 2) y motorista (acto 3) solo salen desde el depurador.
     expect(p).not.toContain('nevera');
     expect(p).not.toContain('motorista');
     expect(p).not.toContain('mae');

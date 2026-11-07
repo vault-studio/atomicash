@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { spawnable } from '../src/engine/systems/spawning';
 import { ENEMY_STATS, MOB_IDS, type EnemyStats } from '../src/config/enemies';
 import { BUILDINGS, PROP_LIST, PROP_SHAPES, PROPS } from '../src/config/props';
 import { RUN } from '../src/config/run';
@@ -174,7 +175,7 @@ describe('edificios', () => {
           .map((e) => e.type);
       tick(w, { moveX: 0, moveY: 0 }, STEP);
       const near = types();
-      for (const [type, count] of BUILDINGS.enemies[kind])
+      for (const [type, count] of BUILDINGS.enemies[w.act][kind].filter(([t]) => spawnable(w, t)))
         expect(near.filter((t) => t === type).length).toBeGreaterThanOrEqual(count);
       const before = w.enemies.count;
       tick(w, { moveX: 0, moveY: 0 }, STEP);
@@ -208,7 +209,6 @@ describe('edificios', () => {
       // Delante del edificio = hacia la cámara (+x, +y), fuera de su huella.
       expect(c!.x).toBeGreaterThan(x + 1.2 * T);
       expect(c!.y).toBeGreaterThan(y + 1.2 * T);
-      w.nextEvent = Infinity;
       const level = w.level;
       const coupons = w.coupons;
       p.x = c!.x;
@@ -236,7 +236,9 @@ describe('edificios', () => {
     const crates = w.pickups.items
       .slice(0, w.pickups.count)
       .filter(
-        (k) => k.kind === 'crate' && Math.hypot(k.x - x, k.y - y) < BUILDINGS.ring + BUILDINGS.jitter + 1,
+        (k) =>
+          k.kind === 'crate' &&
+          Math.hypot(k.x - x, k.y - y) < BUILDINGS.chest.ring + BUILDINGS.chest.spread + 1,
       );
     expect(crates.length).toBeGreaterThanOrEqual(BUILDINGS.crates.min);
     expect(crates.length).toBeLessThanOrEqual(BUILDINGS.crates.max);

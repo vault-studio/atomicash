@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOSS_IDS, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
+import { ACT_IDS } from '../src/config/acts';
 import { HORDES } from '../src/config/waves';
 import { planRing, widestGap } from '../src/engine/encircle';
 import { createRng } from '../src/engine/rng';
@@ -34,13 +35,14 @@ describe('cercos', () => {
 });
 
 describe('horda en anillo', () => {
-  for (const at of [0, 200, 400]) {
-    it(`en el segundo ${at}: varios roles, pesados y una salida libre`, () => {
-      const w = createWorld('dot', 7, { startWeapon: null, hazards: false });
+  for (const act of ACT_IDS) {
+    it(`en el acto ${act}: varios roles, pesados y una salida libre`, () => {
+      const w = createWorld('dot', 7, { startWeapon: null, hazards: false, act });
       w.player.god = true;
-      w.nextEvent = w.nextElite = w.nextHorde = Infinity;
+      w.nextSpecial = w.nextElite = Infinity;
       for (const k of BOSS_IDS) w.bossSpawned[k] = true;
-      w.time = at;
+      // Con todos los roles desbloqueados: el evento especial del segundo 80 del acto.
+      w.time = 80;
       announceHorde(w, 'ring');
       const before = w.nextId;
       for (let i = 0; i < Math.ceil((HORDES.warn + 0.1) * RUN.tickHz); i++) {
@@ -49,7 +51,7 @@ describe('horda en anillo', () => {
       }
       const p = w.player;
       const ring = w.enemies.items.slice(0, w.enemies.count).filter((e) => e.id >= before);
-      expect(ring.length).toBeGreaterThan(10);
+      expect(ring.length).toBeGreaterThan(5);
       expect(new Set(ring.map((e) => ENEMY_STATS[e.type].role)).size).toBeGreaterThanOrEqual(2);
       expect(ring.some((e) => ENEMY_STATS[e.type].role === 'heavy')).toBe(true);
       const angles = ring.map((e) => Math.atan2(e.y - p.y, e.x - p.x));

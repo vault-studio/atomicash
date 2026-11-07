@@ -37,10 +37,10 @@ export const MIRROR = TUNING.mirror;
 export type RainKind = 'scrap' | 'acid';
 
 /**
- * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Caen en los segundos de `times`, haya jefe o no;
- * después, cada `everyMin`–`everyMax` s, esperando a que pase el jefe. Van por turnos (`order`). Mientras duran (`dur`), cada `every` s cae
- * algo a menos de su `radius` del jugador, marcado `warn` s antes (`aimChance`: probabilidad de que vaya a por él). Si
- * alcanza al jugador hace `dmg` y da `rad`. `scrap.dustLife`: s que dura la nube de polvo del impacto.
+ * Lluvias que cambian el mapa, en `src/data/tuning.json` → `rains`. Las lanzan los eventos especiales de cada acto
+ * (`CAMPAIGN.specials`); `order` es solo el turno de la tecla de depuración. Mientras duran (`dur`), cada `every` s
+ * cae algo a menos de su `radius` del jugador, marcado `warn` s antes (`aimChance`: probabilidad de que vaya a por
+ * él). Si alcanza al jugador hace `dmg` y da `rad`. `scrap.dustLife`: s que dura la nube de polvo del impacto.
  * - `rubbleInset`: distancia mínima de los escombros al borde de su casilla (el doble es el hueco para pasar).
  * - `objectiveMargin`: los destrozos se quedan a esta distancia de la zona de un objetivo.
  */
@@ -83,8 +83,6 @@ export const ENDLESS = {
   maxPerMin: 0.08,
   hpPerMin: 0.15,
   eliteEvery: 15,
-  /** Hordas más a menudo (multiplica el intervalo). */
-  specialsMult: 0.7,
 } as const;
 
 export type DailyMod = 'elites' | 'hordes' | 'glass' | 'irradiated' | 'barrels';
@@ -99,7 +97,8 @@ export const DAILY = {
   /** Cupones extra por terminar el primer reto del día. */
   reward: 150,
   elites: { every: 0.5 },
-  hordes: { every: 0.5 },
+  /** Marabunta: todos los eventos especiales son emboscadas (el doble que el 50 % normal). */
+  hordes: { chance: 1 },
   /** Cristal: haces y recibes el doble de daño. */
   glass: { dealt: 2, taken: 2 },
   irradiated: { chance: 0.25 },

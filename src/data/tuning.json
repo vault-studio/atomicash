@@ -111,7 +111,7 @@
       "hp": 25,
       "dmg": 8,
       "speed": 78,
-      "xp": 1,
+      "xp": 2,
       "rage": {
         "allyDeathR": 0
       }
@@ -192,7 +192,8 @@
       "wreck": true,
       "rage": {
         "enabled": false
-      }
+      },
+      "cap": 2
     },
     "babosa": {
       "role": "heavy",
@@ -203,7 +204,9 @@
       "kbRes": 0.6,
       "rage": {
         "enabled": false
-      }
+      },
+      "cap": 3,
+      "capRole": true
     },
     "aspiradora": {
       "role": "normal",
@@ -241,7 +244,9 @@
       "metal": true,
       "rage": {
         "enabled": false
-      }
+      },
+      "cap": 3,
+      "capRole": true
     },
     "predicador": {
       "role": "normal",
@@ -265,7 +270,9 @@
       "wreck": true,
       "rage": {
         "enabled": false
-      }
+      },
+      "cap": 2,
+      "capRole": true
     },
     "interceptor": {
       "role": "interceptor",
@@ -288,7 +295,6 @@
       "speed": 60,
       "xp": 3,
       "cap": 2,
-      "spawnFrom": 240,
       "rage": {
         "enabled": false
       },
@@ -326,7 +332,6 @@
       "xp": 3,
       "cap": 2,
       "capRole": true,
-      "spawnFrom": 300,
       "rage": {
         "enabled": false
       }
@@ -521,8 +526,8 @@
     },
     "rey_rata": {
       "every": 1.2,
-      "summon": 7,
-      "summonType": "dron",
+      "summon": 4,
+      "summonType": "necrofago",
       "summonDist": 300,
       "summonStop": 1,
       "chain": 3,
@@ -535,7 +540,7 @@
       "chainP2": 4,
       "aimP2": 0.4,
       "gapP2": 0.12,
-      "summonP2": 10
+      "summonP2": 6
     },
     "dirigible": {
       "lift": 0,
@@ -558,6 +563,7 @@
       "p2SummonType": "dron",
       "p2SummonDist": 340,
       "dropXp": 100,
+      "groundAfter": 45,
       "laneR": 34
     },
     "coloso": {
@@ -578,7 +584,9 @@
       "debrisSpread": 180,
       "summonGhouls": 6,
       "summonDist": 120,
-      "turretDist": 110
+      "turretDist": 110,
+      "summonType": "saqueador",
+      "turretType": "tirador"
     },
     "copia": {
       "hold": 320,
@@ -608,9 +616,8 @@
     "cd": 15
   },
   "elites": {
-    "first": 40,
-    "everyMin": 30,
-    "everyMax": 50,
+    "everyMin": 10,
+    "everyMax": 40,
     "cacheChance": 0.2,
     "hp": 14,
     "r": 1.35,
@@ -647,20 +654,6 @@
       "color": 14100029,
       "healOnHit": 0.15,
       "regen": 0.01
-    }
-  },
-  "bosses": {
-    "rey_rata": {
-      "at": 120,
-      "kills": 200
-    },
-    "dirigible": {
-      "at": 240,
-      "kills": 500
-    },
-    "coloso": {
-      "at": 360,
-      "kills": 1000
     }
   },
   "weapons": {
@@ -919,210 +912,122 @@
   },
   "waves": [
     {
+      "act": 1,
       "from": 0,
       "rate": 1.3,
       "max": 40,
       "mix": {
-        "dron": 6,
-        "necrofago": 4,
-        "interceptor": 1,
-        "tirador": 1
+        "necrofago": 8,
+        "liquidador": 1,
+        "sabueso": 1
       }
     },
     {
+      "act": 1,
       "from": 60,
+      "rate": 1.8,
+      "max": 60,
+      "mix": {
+        "necrofago": 8,
+        "reptador": 2,
+        "liquidador": 1,
+        "sabueso": 1,
+        "bidonero": 1,
+        "babosa": 1
+      }
+    },
+    {
+      "act": 1,
+      "from": 120,
       "rate": 2,
       "max": 70,
       "mix": {
-        "dron": 5,
-        "necrofago": 5,
-        "saqueador": 2,
-        "interceptor": 1,
-        "tirador": 1,
-        "sabueso": 1
+        "necrofago": 8,
+        "reptador": 2,
+        "liquidador": 1,
+        "sabueso": 1,
+        "bidonero": 1,
+        "babosa": 1
       }
     },
     {
-      "from": 120,
+      "act": 2,
+      "from": 0,
+      "rate": 1.4,
+      "max": 50,
+      "mix": {
+        "aspiradora": 6,
+        "torreta": 1,
+        "interceptor": 1,
+        "nevera": 1
+      }
+    },
+    {
+      "act": 2,
+      "from": 60,
       "rate": 2.2,
+      "max": 80,
+      "mix": {
+        "dron": 10,
+        "aspiradora": 3,
+        "torreta": 1,
+        "interceptor": 1,
+        "nevera": 1,
+        "excavadora": 1
+      }
+    },
+    {
+      "act": 2,
+      "from": 120,
+      "rate": 2.4,
       "max": 90,
       "mix": {
-        "dron": 5,
-        "necrofago": 4,
-        "saqueador": 3,
+        "dron": 10,
+        "aspiradora": 3,
+        "torreta": 1,
         "interceptor": 1,
-        "sabueso": 1,
-        "liquidador": 1
+        "nevera": 1,
+        "excavadora": 1
       }
     },
     {
-      "from": 180,
+      "act": 3,
+      "from": 0,
+      "rate": 2,
+      "max": 70,
+      "mix": {
+        "predicador": 6,
+        "tirador": 3,
+        "motorista": 1,
+        "mortero": 1
+      }
+    },
+    {
+      "act": 3,
+      "from": 60,
       "rate": 2.6,
       "max": 100,
       "mix": {
-        "necrofago": 4,
-        "saqueador": 3,
-        "reptador": 3,
-        "dron": 3,
-        "aspiradora": 1,
-        "interceptor": 1,
-        "sabueso": 1,
-        "liquidador": 1
+        "saqueador": 7,
+        "predicador": 3,
+        "tirador": 2,
+        "motorista": 1,
+        "mortero": 1,
+        "blindado": 1
       }
     },
     {
-      "from": 240,
+      "act": 3,
+      "from": 120,
       "rate": 3,
       "max": 120,
       "mix": {
-        "dron": 5,
-        "necrofago": 4,
-        "saqueador": 3,
-        "reptador": 2,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1
-      }
-    },
-    {
-      "from": 300,
-      "rate": 3.2,
-      "max": 130,
-      "mix": {
-        "saqueador": 4,
-        "reptador": 3,
+        "saqueador": 7,
+        "predicador": 3,
         "tirador": 2,
-        "hinchado": 2,
-        "aspiradora": 2,
-        "dron": 3,
-        "blindado": 1,
-        "interceptor": 1,
+        "motorista": 1,
         "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 360,
-      "rate": 4,
-      "max": 180,
-      "mix": {
-        "necrofago": 4,
-        "saqueador": 3,
-        "reptador": 3,
-        "dron": 5,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 420,
-      "rate": 3.8,
-      "max": 160,
-      "mix": {
-        "saqueador": 4,
-        "tirador": 2,
-        "hinchado": 2,
-        "babosa": 2,
-        "aspiradora": 3,
-        "reptador": 3,
-        "blindado": 2,
-        "predicador": 1,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 480,
-      "rate": 4.4,
-      "max": 190,
-      "mix": {
-        "cortacesped": 2,
-        "saqueador": 4,
-        "babosa": 2,
-        "reptador": 3,
-        "tirador": 2,
-        "aspiradora": 2,
-        "necrofago": 3,
-        "blindado": 2,
-        "predicador": 1,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 570,
-      "rate": 5,
-      "max": 220,
-      "mix": {
-        "excavadora": 1,
-        "cortacesped": 3,
-        "torreta": 1,
-        "saqueador": 4,
-        "babosa": 3,
-        "hinchado": 3,
-        "reptador": 3,
-        "blindado": 2,
-        "predicador": 2,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 660,
-      "rate": 5.6,
-      "max": 260,
-      "mix": {
-        "excavadora": 2,
-        "cortacesped": 3,
-        "torreta": 1,
-        "babosa": 3,
-        "aspiradora": 3,
-        "saqueador": 4,
-        "reptador": 4,
-        "tirador": 2,
-        "blindado": 3,
-        "predicador": 1,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
-      }
-    },
-    {
-      "from": 750,
-      "rate": 6.4,
-      "max": 300,
-      "mix": {
-        "excavadora": 2,
-        "cortacesped": 4,
-        "torreta": 2,
-        "babosa": 3,
-        "aspiradora": 4,
-        "saqueador": 4,
-        "reptador": 4,
-        "hinchado": 2,
-        "blindado": 3,
-        "predicador": 2,
-        "interceptor": 1,
-        "mortero": 1,
-        "sabueso": 1,
-        "liquidador": 1,
-        "bidonero": 1
+        "blindado": 1
       }
     }
   ],
@@ -1139,9 +1044,6 @@
     "specialsBossDelay": 10
   },
   "hordes": {
-    "first": 50,
-    "everyMin": 45,
-    "everyMax": 70,
     "warn": 2.2,
     "order": [
       "ring",
@@ -1155,36 +1057,30 @@
       "max": 48,
       "gap": 0.7,
       "heavyEvery": 6,
-      "mix": [
-        {
-          "from": 0,
-          "types": {
-            "necrofago": 5,
-            "dron": 2,
-            "babosa": 1
-          }
+      "mix": {
+        "1": {
+          "necrofago": 5,
+          "reptador": 2,
+          "liquidador": 1,
+          "babosa": 1
         },
-        {
-          "from": 180,
-          "types": {
-            "necrofago": 4,
-            "saqueador": 2,
-            "tirador": 1,
-            "blindado": 1
-          }
+        "2": {
+          "aspiradora": 3,
+          "dron": 5,
+          "excavadora": 1
         },
-        {
-          "from": 360,
-          "types": {
-            "saqueador": 3,
-            "necrofago": 2,
-            "reptador": 1,
-            "tirador": 1,
-            "blindado": 1,
-            "excavadora": 1
-          }
+        "3": {
+          "predicador": 2,
+          "saqueador": 4,
+          "tirador": 1,
+          "blindado": 1
         }
-      ]
+      },
+      "actCount": {
+        "1": 1,
+        "2": 0.6,
+        "3": 0.7
+      }
     },
     "stampede": {
       "count": 18,
@@ -1193,16 +1089,38 @@
       "width": 220,
       "rowGap": 34,
       "speed": 1.6,
-      "types": [
-        {
-          "from": 0,
-          "type": "dron"
-        },
-        {
-          "from": 240,
-          "type": "reptador"
-        }
-      ]
+      "types": {
+        "1": [
+          {
+            "type": "reptador",
+            "count": 1
+          },
+          {
+            "type": "necrofago",
+            "count": 1
+          }
+        ],
+        "2": [
+          {
+            "type": "dron",
+            "count": 1
+          },
+          {
+            "type": "aspiradora",
+            "count": 0.5
+          }
+        ],
+        "3": [
+          {
+            "type": "saqueador",
+            "count": 1
+          },
+          {
+            "type": "predicador",
+            "count": 0.6
+          }
+        ]
+      }
     },
     "wall": {
       "count": 20,
@@ -1210,40 +1128,41 @@
       "max": 36,
       "spacing": 30,
       "extra": 1.5,
-      "types": [
-        {
-          "from": 0,
-          "type": "necrofago"
-        },
-        {
-          "from": 200,
-          "type": "saqueador"
-        },
-        {
-          "from": 480,
-          "type": "cortacesped"
-        }
-      ]
+      "types": {
+        "1": [
+          {
+            "type": "necrofago",
+            "count": 1
+          }
+        ],
+        "2": [
+          {
+            "type": "dron",
+            "count": 1
+          },
+          {
+            "type": "aspiradora",
+            "count": 0.5
+          }
+        ],
+        "3": [
+          {
+            "type": "saqueador",
+            "count": 1
+          },
+          {
+            "type": "predicador",
+            "count": 0.6
+          }
+        ]
+      }
     }
   },
   "events": {
-    "first": 90,
-    "every": 180,
-    "order": [
-      "supply",
-      "swarm",
-      "rain"
-    ],
     "bossQuiet": 20,
     "supply": {
-      "dist": 320,
       "gems": 4,
       "gemValue": 5
-    },
-    "swarm": {
-      "count": 28,
-      "r": 380,
-      "type": "dron"
     },
     "rain": {
       "dur": 12,
@@ -1258,13 +1177,6 @@
     "rushDur": 2
   },
   "rains": {
-    "times": [
-      30,
-      160,
-      310
-    ],
-    "everyMin": 100,
-    "everyMax": 140,
     "order": [
       "scrap",
       "acid"
@@ -1300,5 +1212,43 @@
     "distMax": 700,
     "r": 28,
     "blastDmg": 12
+  },
+  "campaign": {
+    "bossAt": 120,
+    "clearMin": 3,
+    "clearMax": 15,
+    "fade": 0.6,
+    "specials": {
+      "times": [
+        40,
+        80
+      ],
+      "hordeChance": 0.5,
+      "rains": [
+        "scrap",
+        "acid",
+        "radioactive"
+      ],
+      "endlessEvery": 40
+    },
+    "gates": {
+      "normal": 0,
+      "shooter": 0,
+      "interceptor": 10,
+      "launcher": 30,
+      "heavy": 60,
+      "chaser": 60
+    },
+    "acts": {
+      "1": {
+        "boss": "rey_rata"
+      },
+      "2": {
+        "boss": "dirigible"
+      },
+      "3": {
+        "boss": "coloso"
+      }
+    }
   }
 }

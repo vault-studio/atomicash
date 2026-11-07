@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { AI, ELITES, ENEMY_STATS, RAGE } from '../src/config/enemies';
 import { FIELD_PICKUP_IDS } from '../src/config/items';
 import { RUN, STREAK, XP, streakMult } from '../src/config/run';
+import { ENTITIES } from '../src/config/entities';
 import { HORDES } from '../src/config/waves';
 import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
 import { IRRADIATED, RAD } from '../src/config/radiation';
@@ -17,9 +18,8 @@ const STILL: InputState = { moveX: 0, moveY: 0 };
 
 function quiet(seed = 1): World {
   const w = createWorld('dot', seed, { startWeapon: null, hazards: false });
-  w.nextEvent = Infinity;
   w.nextElite = Infinity;
-  w.nextHorde = Infinity;
+  w.nextSpecial = Infinity;
   w.spawnAcc = -1e9;
   w.player.god = true;
   for (const k of ['rey_rata', 'dirigible', 'coloso']) w.bossSpawned[k] = true;
@@ -36,13 +36,14 @@ const run = (w: World, sec: number): void => {
 const alive = (w: World): Enemy[] => w.enemies.items.slice(0, w.enemies.count).filter((e) => !e.dead);
 
 describe('élites', () => {
-  it('aparecen solos cada 60–90 s', () => {
+  it('aparecen solos, cada `everyMin`–`everyMax` s', () => {
     const w = quiet();
-    w.nextElite = ELITES.first;
-    run(w, ELITES.first + 1);
+    const at = 12;
+    w.nextElite = at;
+    run(w, at + 1);
     expect(alive(w).filter((e) => e.elite)).toHaveLength(1);
-    expect(w.nextElite).toBeGreaterThanOrEqual(ELITES.first + ELITES.everyMin);
-    expect(w.nextElite).toBeLessThanOrEqual(ELITES.first + ELITES.everyMax + 1);
+    expect(w.nextElite).toBeGreaterThanOrEqual(at + ELITES.everyMin);
+    expect(w.nextElite).toBeLessThanOrEqual(at + ELITES.everyMax + 1);
   });
 
   it('son más duros, sueltan un power-up (y a veces el cofre) y llenan la barra del HUD al golpearlos', () => {
@@ -85,6 +86,7 @@ describe('hordas en formación', () => {
       const fresh = alive(w).filter((e) => e.id >= before);
       expect(w.horde).toBeNull();
       expect(fresh.length).toBeGreaterThanOrEqual(HORDES[kind].count);
+      for (const e of fresh) expect(ENTITIES[e.type].act).toBe(w.act);
       expect(fresh.filter((e) => isOnScreen(w, e.prevX, e.prevY))).toEqual([]);
       if (kind !== 'ring') expect(fresh.every((e) => e.march > 0)).toBe(true);
     });

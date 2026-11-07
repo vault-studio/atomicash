@@ -1,5 +1,6 @@
 // Lanzador (CAMBIOS §3, «tirador especial»): la salva del mortero cae en línea por delante del jugador.
 import { afterEach, describe, expect, it } from 'vitest';
+import { ENTITIES } from '../src/config/entities';
 import { AI, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { applyTuning, resetTuning } from '../src/config/tuning';
@@ -14,7 +15,7 @@ const STEP = 1 / RUN.tickHz;
 function quiet(): World {
   applyTuning({ spawn: { rateMult: 0 } });
   const w = createWorld('dot', 1, { hazards: false, startWeapon: null });
-  w.nextEvent = w.nextElite = w.nextHorde = Infinity;
+  w.nextSpecial = w.nextElite = Infinity;
   w.player.god = true;
   return w;
 }
@@ -23,11 +24,11 @@ const run = (w: World, input: InputState, sec: number): void => {
 };
 
 describe('mortero', () => {
-  it('es un lanzador del Acto 1 con límite y minuto de aparición', () => {
+  it('es un lanzador del Acto 3 con límite', () => {
     const s = ENEMY_STATS.mortero;
     expect(s.role).toBe('launcher');
     expect(s.cap).toBeGreaterThan(0);
-    expect(s.spawnFrom).toBeGreaterThan(0);
+    expect(ENTITIES.mortero.act).toBe(3);
   });
 
   it('la salva se marca por delante del jugador, en su dirección y cayendo una tras otra', () => {

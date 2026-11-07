@@ -14,7 +14,7 @@ afterEach(resetTuning);
 function quiet(): World {
   applyTuning({ spawn: { rateMult: 0 } });
   const w = createWorld('dot', 1, { hazards: false, startWeapon: null });
-  w.nextEvent = w.nextElite = w.nextHorde = Infinity;
+  w.nextSpecial = w.nextElite = Infinity;
   w.player.god = true;
   return w;
 }

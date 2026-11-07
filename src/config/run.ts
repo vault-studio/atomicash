@@ -150,6 +150,8 @@ export const JUICE = {
    * `textIn` es lo que tarda el texto en aparecer.
    */
   defeat: { zoom: 1.35, lift: 120, hold: 1.2, textIn: 0.35 },
+  /** Título al empezar cada acto, con el juego de fondo: dura `dur` s desde que empieza el acto. */
+  actIntro: { dur: 3.6 },
 } as const;
 
 /**

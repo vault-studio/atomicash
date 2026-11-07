@@ -29,7 +29,7 @@ const idle = { moveX: 0, moveY: 0 } as never;
 
 function freshWorld(seed = 1): World {
   const w = createWorld('dot', seed, { startWeapon: null });
-  w.nextHorde = w.nextElite = w.nextEvent = w.nextObjective = w.nextDownpour = Infinity;
+  w.nextSpecial = w.nextElite = w.nextObjective = Infinity;
   w.player.god = true;
   tick(w, idle, STEP);
   return w;
@@ -163,7 +163,6 @@ describe('dónde no caen destrozos', () => {
   it('sin mapa (pruebas) no hay destrozos', () => {
     const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
     expect(addRubble(w, 500, 500)).toBe(false);
-    w.nextDownpour = 0;
     updateDownpour(w, STEP);
     expect(w.downpour).toBeNull();
   });
@@ -246,9 +245,15 @@ describe('los enemigos también cambian el mapa', () => {
     expect(w.slimes.items[0]!.life).toBeCloseTo(60, 0);
     e.dead = true;
     w.enemies.count = 0;
-    for (let k = 0; k < 59 * 60; k++) tick(w, idle, STEP);
+    const wait = (sec: number): void => {
+      for (let k = 0; k < sec * 60; k++) {
+        w.spawnAcc = -1e9; // sin oleadas: otra babosa dejaría otro rastro
+        tick(w, idle, STEP);
+      }
+    };
+    wait(59);
     expect(w.slimes.count).toBeGreaterThanOrEqual(1);
-    for (let k = 0; k < 2 * 60; k++) tick(w, idle, STEP);
+    wait(2);
     expect(w.slimes.count).toBe(0);
   });
 });
@@ -283,47 +288,21 @@ describe('lluvias', () => {
     }
   });
 
-  it('caen a las 0:30, 2:40 y 5:10, por turnos, aunque haya jefe', () => {
+  it('sola no empieza: la lanza un evento especial; sin tipo, van por turnos', () => {
     const w = freshWorld();
-    const seen: [number, string][] = [];
-    w.nextDownpour = RAINS.times[0]!;
-    w.bossAlive = 1;
-    for (const at of RAINS.times) {
-      w.time = at - 1;
-      updateDownpour(w, STEP);
-      expect(w.downpour).toBeNull();
-      w.time = at;
-      updateDownpour(w, STEP);
-      seen.push([at, w.downpour!.kind]);
-      w.downpour = null;
-    }
-    expect(seen).toEqual([
-      [30, 'scrap'],
-      [160, 'acid'],
-      [310, 'scrap'],
-    ]);
-  });
-
-  it('las de después de las horas fijas esperan a que pase el jefe', () => {
-    const w = freshWorld();
-    w.downpourIdx = RAINS.times.length;
-    w.nextDownpour = 0;
-    w.bossAlive = 1;
     updateDownpour(w, STEP);
     expect(w.downpour).toBeNull();
-    w.bossAlive = 0;
-    w.nextDownpour = 0;
-    w.time = 1000;
-    updateDownpour(w, STEP);
-    expect(w.downpour).not.toBeNull();
-    expect(w.nextDownpour).toBeGreaterThanOrEqual(w.time + RAINS.everyMin);
+    startDownpour(w);
+    expect(w.downpour!.kind).toBe('scrap');
+    startDownpour(w);
+    expect(w.downpour!.kind).toBe('acid');
   });
 
   it('con un jefe vivo siguen saliendo enemigos, a la mitad de ritmo', () => {
     const count = (boss: boolean): number => {
       const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
       w.player.god = true;
-      w.nextHorde = w.nextElite = w.nextEvent = w.nextObjective = Infinity;
+      w.nextSpecial = w.nextElite = w.nextObjective = Infinity;
       w.bossAlive = boss ? 1 : 0;
       for (let k = 0; k < 30 * 60; k++) tick(w, idle, STEP);
       return w.enemies.count;

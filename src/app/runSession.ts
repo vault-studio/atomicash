@@ -18,6 +18,8 @@ import type { HordeKind } from '../config/waves';
 import type { DailyMod, ObjectiveKind } from '../config/modes';
 import type { WeaponId } from '../config/weapons';
 import { advance, createFixedStep } from '../engine/loop';
+import { CAMPAIGN, type ActId } from '../config/acts';
+import { actTime, advanceAct } from '../engine/systems/campaign';
 import { spawnEnemy } from '../engine/systems/enemies';
 import {
   applyChoice,
@@ -62,6 +64,9 @@ export interface HudSnapshot {
   xpNext: number;
   level: number;
   time: number;
+  /** Acto en curso y segundos que lleva. */
+  act: ActId;
+  actTime: number;
   kills: number;
   dps: number;
   weapons: { id: WeaponId; lvl: number }[];
@@ -233,6 +238,8 @@ function snapshot(w: World): HudSnapshot {
     xpNext: w.xpNext,
     level: w.level,
     time: w.time,
+    act: w.act,
+    actTime: actTime(w),
     kills: w.kills,
     dps: currentDps(w),
     weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
@@ -331,13 +338,14 @@ export async function startRun(host: HTMLElement, opts: RunOptions, cb: RunCallb
     } else if (e.code === 'KeyL') gainXp(world, world.xpNext - world.xp, true);
     else if (e.code === 'KeyG') p.god = !p.god;
     else if (e.code === 'KeyB') {
-      const next = (['rey_rata', 'dirigible', 'coloso'] as const).find((k) => !world.bossSpawned[k]);
-      if (next) spawnBoss(world, next);
+      const boss = CAMPAIGN.acts[world.act].boss;
+      if (!world.bossSpawned[boss]) spawnBoss(world, boss);
     } else if (e.code === 'KeyT') world.time += 60;
     else if (e.code === 'KeyE') spawnElite(world);
     else if (e.code === 'KeyH') announceHorde(world);
     else if (e.code === 'KeyN') startDownpour(world);
     else if (e.code === 'KeyM') putBomb(world, p.x + p.facingX * 120, p.y + p.facingY * 120);
+    else if (e.code === 'KeyY') advanceAct(world);
   };
   window.addEventListener('keydown', onKey);
 

@@ -1,10 +1,10 @@
 // Lluvias que cambian el mapa: de chatarra (rompe el suelo y deja escombros) y de ácido (gotas grandes que dejan un lago).
 // Cada objeto se marca en el suelo antes de caer; el aviso lo resuelve `updateTelegraphs`, que deja el destrozo.
-// No confundir con `w.rain`, la lluvia radiactiva de los eventos, que da experiencia y no toca el mapa.
+// Las lanza un evento especial (spawning.ts). No confundir con `w.rain`, la lluvia radiactiva, que da experiencia y no
+// toca el mapa.
 import { RAINS, type RainKind } from '../../config/modes';
 import { HAZARDS } from '../../config/radiation';
 import { RUN } from '../../config/run';
-import { EVENTS } from '../../config/waves';
 import { banner } from '../fx';
 import { hurtIndex } from '../runStats';
 import { markFall, scarFree } from '../scars';
@@ -61,20 +61,7 @@ function drop(w: World, kind: RainKind): void {
 export function updateDownpour(w: World, dt: number): void {
   if (!w.hazardsOn) return;
   const d = w.downpour;
-  if (!d) {
-    if (w.time < w.nextDownpour) return;
-    // Las de hora fija caen a su hora; las de después esperan a que pase el jefe.
-    const fixed = w.downpourIdx < RAINS.times.length;
-    if (!fixed && w.bossAlive > 0) w.nextDownpour = w.time + EVENTS.bossQuiet;
-    else if (!fixed && w.time - w.lastBossAt < EVENTS.bossQuiet)
-      w.nextDownpour = w.lastBossAt + EVENTS.bossQuiet;
-    else {
-      startDownpour(w);
-      w.nextDownpour =
-        RAINS.times[w.downpourIdx] ?? w.time + RAINS.everyMin + w.rng() * (RAINS.everyMax - RAINS.everyMin);
-    }
-    return;
-  }
+  if (!d) return;
   d.left -= dt;
   d.next -= dt;
   if (d.left <= 0) w.downpour = null;

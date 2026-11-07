@@ -117,19 +117,27 @@ export class GroundView {
   private usedBroken = 0;
   private key = '';
   private readonly scale = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
-  private readonly sandTotal: number;
-  private readonly tint: number;
+  private sandTotal = 0;
+  private tint = 0xffffff;
 
   constructor(
-    private readonly tiles: GroundTiles | null,
+    private tiles: GroundTiles | null,
     private readonly actors: Container,
     private readonly world: World,
   ) {
-    this.sandTotal = tiles ? tiles.sand.reduce((a, t) => a + t.weight, 0) : 0;
-    this.tint = TILES.acts[world.act].tint;
+    this.setAct(tiles, world.act);
     this.layer.sortableChildren = true;
     this.craters.zIndex = 1;
     this.layer.addChild(this.craters);
+  }
+
+  /** Cambia las baldosas, los objetos y el tinte a los de `act`; la próxima `update` repinta todo. */
+  setAct(tiles: GroundTiles | null, act: ActId): void {
+    this.tiles = tiles;
+    this.sandTotal = tiles ? tiles.sand.reduce((a, t) => a + t.weight, 0) : 0;
+    this.tint = TILES.acts[act].tint;
+    for (const s of this.sprites) s.tint = this.tint;
+    this.key = '';
   }
 
   /** Coloca las casillas que caen dentro de la cámara (centro en mundo y semiextensión en px isométricos). */

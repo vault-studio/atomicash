@@ -1,10 +1,11 @@
 // HUD de la run (04_ART_UI.md §2) con estética de terminal de fósforo de los 50: PV y RAD arriba a la izquierda,
 // tiempo y XP arriba al centro, radar, bajas y pausa arriba a la derecha, armas, objetos y consumibles en una tira
 // abajo (al centro, o a la derecha en pantallas táctiles).
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CONSUMABLE_IDS } from '../../../config/items';
 import { RAD } from '../../../config/radiation';
-import { PLAYER, STREAK } from '../../../config/run';
+import { JUICE, PLAYER, STREAK } from '../../../config/run';
 import { WEAPONS } from '../../../config/weapons';
 import type { Banner, World } from '../../../engine/types';
 import { hudIcon, weaponIcon } from '../../icons';
@@ -93,7 +94,7 @@ export function Hud({ hud, world, onPause, onMap, onConsume }: Props) {
       </div>
 
       <div className="hud__tc">
-        <div className={`hud__time ${hud.storm ? 'is-storm' : ''}`}>{fmtTime(hud.time)}</div>
+        <div className={`hud__time ${hud.storm ? 'is-storm' : ''}`}>{fmtTime(hud.actTime)}</div>
         <div className="meter meter--xp">
           <span className="meter__label">{t('run.level', { n: hud.level })}</span>
           <div className="meter__bar">
@@ -178,6 +179,18 @@ export function Hud({ hud, world, onPause, onMap, onConsume }: Props) {
           )}
         </div>
       </div>
+
+      {hud.actTime < JUICE.actIntro.dur && (
+        <div
+          key={hud.act}
+          className="act-intro"
+          role="status"
+          style={{ '--act-dur': `${JUICE.actIntro.dur}s` } as CSSProperties}
+        >
+          <span className="act-intro__label">{t('run.act', { n: hud.act })}</span>
+          <strong className="act-intro__name">{t(`acts.${hud.act}`)}</strong>
+        </div>
+      )}
 
       <div className="hud__banners" aria-live="polite">
         {hud.banners.slice(-2).map((b, i) => (

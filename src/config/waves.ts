@@ -1,10 +1,12 @@
-// Oleadas del Acto 1 «Las Afueras» (02_GAMEPLAY.md §5). Valores de partida del prototipo.
-// Cada entrada rige desde `from` (segundos) hasta la siguiente.
-import { TUNING as T, type DeepReadonly, type Retype } from './tuning';
+// Oleadas de cada acto (02_GAMEPLAY.md §5). Cada entrada rige, dentro de su acto, desde `from` hasta la siguiente.
+import type { ActId } from './acts';
+import { TUNING as T, type DeepReadonly } from './tuning';
 import type { StatEnemyId } from './enemies';
 
 export interface WaveDef {
-  /** Segundo de la run en que empieza. */
+  /** Acto al que pertenece. */
+  readonly act: ActId;
+  /** Segundo del acto en que empieza. */
   readonly from: number;
   /** Enemigos que aparecen por segundo. */
   readonly rate: number;
@@ -14,16 +16,12 @@ export interface WaveDef {
   readonly mix: Readonly<Partial<Record<StatEnemyId, number>>>;
 }
 
-// DECISIÓN: cada jefe llega con un minuto de respiro (menos enemigos y de los flojos) a su hora (BOSSES.at). Los jefes
-// salen en los minutos 2, 4 y 6 (usuario); los demás tramos conservan su orden y se corren para dejar sitio a los
-// respiros. Si el jefe sale antes por bajas, el respiro sigue a su hora.
 /**
- * Valores en `src/data/tuning.json` → `waves`. Notas por campo:
- * - `…`: Respiro: Rey Rata (minuto 2)
- * - `…`: Respiro: Dirigible (minuto 4)
- * - `…`: Respiro: Coloso (minuto 6)
+ * Valores en `src/data/tuning.json` → `waves`: lista plana, tres entradas por acto (segundos 0, 60 y 120 del acto; la
+ * última rige con el jefe en el mapa). Las mezclas solo llevan enemigos de su acto (`ENTITIES[id].act`); cada rol se
+ * desbloquea en su segundo (`CAMPAIGN.gates`), así que un tipo aún bloqueado de la mezcla simplemente no sale.
  */
-export const WAVES: readonly WaveDef[] = T.waves;
+export const WAVES = T.waves as readonly WaveDef[];
 
 /**
  * Valores en `src/data/tuning.json` → `spawn`. Notas por campo:
@@ -43,37 +41,46 @@ export const WAVES: readonly WaveDef[] = T.waves;
 export const SPAWN: DeepReadonly<typeof T.spawn> = T.spawn;
 
 /**
- * Eventos del director (02_GAMEPLAY.md §7: «1 cada ~3 min»), rotando, con silencio tras un jefe.
- * DECISIÓN: el prototipo lanzaba uno por minuto; se sigue la especificación.
+ * Valores en `src/data/tuning.json` → `events`:
+ * - `bossQuiet`: s de silencio tras un jefe para el evento «Tú mismo, otra vez».
+ * - `supply`: lo que dan las cajas de suministros.
+ * - `rain`: lluvia radiactiva (uno de los eventos especiales): duración, más enemigos y más experiencia.
  */
-export const EVENTS = T.events as Retype<
-  typeof T.events,
-  { order: readonly EventKind[]; swarm: { type: StatEnemyId } }
->;
-
-export type EventKind = 'supply' | 'swarm' | 'rain';
+export const EVENTS: DeepReadonly<typeof T.events> = T.events;
 
 /**
  * Hordas en formación (dossier §10), con aviso en el borde de la pantalla `warn` s antes:
  * - `ring`: anillo que se cierra desde fuera de cámara.
  * - `stampede`: estampida que cruza la pantalla en línea recta (apunta a donde estabas).
  * - `wall`: muro que avanza en formación hacia el jugador y luego persigue.
- * El tipo de enemigo sale de `types` según el minuto (el último cuyo `from` se ha pasado). El anillo es un cerco de
- * varios roles (CAMBIOS §4): sale de `mix` (pesos por tipo según el minuto) y siempre deja una salida.
+ * El anillo es un cerco de varios roles (CAMBIOS §4): sale de `mix` (pesos por tipo de su acto) y siempre deja una
+ * salida. Estampida y muro usan el primer tipo de `types` de su acto que pueda salir ya.
  */
 /**
  * Valores en `src/data/tuning.json` → `hordes`. Notas por campo:
  * - `margin`: Margen fuera de cámara donde aparecen, en px de mundo.
  * - `ring.gap`: Anchura (rad) de la salida libre del cerco. `ring.heavyEvery`: un pesado cada tantos puestos.
- * - `ring.mix`: Pesos por tipo; vale la última entrada cuyo `from` (s) se ha pasado. Pesado = rol `heavy`.
+ * - `ring.mix`: Pesos por tipo y acto, solo con tipos del acto. Pesado = rol `heavy`.
+ * - `ring.actCount`: Multiplica los puestos del cerco en cada acto: los normales de los actos 2 y 3 son mucho más duros.
  * - `stampede.width`: Anchura del rebaño (perpendicular a la marcha) y separación entre filas.
+ * - `stampede.types`, `wall.types`: Por acto, tipos por orden de preferencia; `count` multiplica cuántos salen
+ *   (los duros salen menos). El último de cada lista debe estar desbloqueado desde el segundo 0.
  * - `wall.extra`: Segundos extra de marcha en formación tras llegar a la altura del jugador.
  */
-type HordeTypes = { types: readonly { from: number; type: StatEnemyId }[] };
-export type RingMix = readonly { from: number; types: Partial<Record<StatEnemyId, number>> }[];
-export const HORDES = T.hordes as Retype<
-  typeof T.hordes,
-  { order: readonly HordeKind[]; ring: { mix: RingMix }; stampede: HordeTypes; wall: HordeTypes }
->;
+export interface HordeType {
+  readonly type: StatEnemyId;
+  readonly count: number;
+}
+type ActTypes = { readonly types: Readonly<Record<ActId, readonly HordeType[]>> };
+export type RingMix = Readonly<Record<ActId, Readonly<Partial<Record<StatEnemyId, number>>>>>;
+type Raw = typeof T.hordes;
+export const HORDES = T.hordes as unknown as DeepReadonly<
+  Omit<Raw, 'order' | 'ring' | 'stampede' | 'wall'>
+> & {
+  readonly order: readonly HordeKind[];
+  readonly ring: DeepReadonly<Omit<Raw['ring'], 'mix'>> & { readonly mix: RingMix };
+  readonly stampede: DeepReadonly<Omit<Raw['stampede'], 'types'>> & ActTypes;
+  readonly wall: DeepReadonly<Omit<Raw['wall'], 'types'>> & ActTypes;
+};
 
 export type HordeKind = 'ring' | 'stampede' | 'wall';

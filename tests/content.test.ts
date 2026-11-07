@@ -1,6 +1,7 @@
 // F2-03…F2-07: enemigos con IA, irradiados, RAD, jefes, Tormenta, objetos y eventos.
 import { describe, expect, it } from 'vitest';
-import { AI, BOSSES, ENEMY_STATS } from '../src/config/enemies';
+import { ACT_IDS, CAMPAIGN } from '../src/config/acts';
+import { AI, ENEMY_STATS } from '../src/config/enemies';
 import { ITEMS } from '../src/config/items';
 import { IRRADIATED, RAD, radTier } from '../src/config/radiation';
 import { RUN, XP } from '../src/config/run';
@@ -16,9 +17,8 @@ const STILL: InputState = { moveX: 0, moveY: 0 };
 
 function quiet(charId: 'dot' | 'errante' | 'mae' = 'dot', seed = 1): World {
   const w = createWorld(charId, seed, { startWeapon: null, hazards: false });
-  w.nextEvent = Infinity;
   w.nextElite = Infinity;
-  w.nextHorde = Infinity;
+  w.nextSpecial = Infinity;
   w.spawnAcc = -1e9;
   for (const k of ['rey_rata', 'dirigible', 'coloso']) w.bossSpawned[k] = true;
   return w;
@@ -54,7 +54,6 @@ describe('radiación (02_GAMEPLAY.md §6)', () => {
 
   it('sube en los charcos, no baja sola y solo la quitan el yodo o los rasgos', () => {
     const w = createWorld('dot', 1, { startWeapon: null });
-    w.nextEvent = Infinity;
     w.spawnAcc = -1e9;
     const h = w.hazards[0]!;
     w.player.x = h.x;
@@ -186,46 +185,39 @@ describe('IA de enemigos (03_CONTENT.md)', () => {
     const w = quiet();
     w.player.god = true;
     const e = spawnEnemy(w, 'torreta', w.player.x + 300, w.player.y, false);
-    run(w, 3);
+    let shots = 0;
+    for (let i = 0; i < 4 * RUN.tickHz; i++) {
+      run(w, STEP);
+      shots = Math.max(shots, e.burst + w.ebullets.count);
+    }
     expect(e.x).toBe(w.player.x + 300);
-    expect(e.burst + w.ebullets.count).toBeGreaterThan(0);
+    expect(shots).toBeGreaterThan(0);
   });
 });
 
 describe('jefes y Tormenta (F2-05)', () => {
-  it('aparecen en los minutos 3, 6 y 10', () => {
-    const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
-    w.player.god = true;
-    w.nextEvent = Infinity;
-    for (const k of ['rey_rata', 'dirigible', 'coloso'] as const) {
-      w.time = BOSSES[k].at - STEP / 2;
+  it('cada acto saca su jefe a su hora, solo por tiempo', () => {
+    for (const act of ACT_IDS) {
+      const w = createWorld('dot', 1, { startWeapon: null, hazards: false, act });
+      w.player.god = true;
+      w.kills = 100_000;
+      w.time = CAMPAIGN.bossAt - 2 * STEP;
       tick(w, STILL, STEP);
-      expect(alive(w).some((e) => e.type === k)).toBe(true);
+      expect(w.bossAlive).toBe(0);
+      w.time = CAMPAIGN.bossAt;
+      tick(w, STILL, STEP);
+      expect(alive(w).some((e) => e.type === CAMPAIGN.acts[act].boss)).toBe(true);
+      expect(w.bossAlive).toBe(1);
     }
-    expect(w.bossAlive).toBe(3);
   });
 
-  it('o antes, al llegar a sus bajas', () => {
-    const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
-    w.player.god = true;
-    w.nextEvent = Infinity;
-    for (const k of ['rey_rata', 'dirigible', 'coloso'] as const) {
-      w.kills = BOSSES[k].kills - 1;
-      tick(w, STILL, STEP);
-      expect(alive(w).some((e) => e.type === k)).toBe(false);
-      w.kills = BOSSES[k].kills;
-      tick(w, STILL, STEP);
-      expect(alive(w).some((e) => e.type === k)).toBe(true);
-    }
-    expect(w.time).toBeLessThan(BOSSES.rey_rata.at);
-  });
-
-  it('el Rey Rata invoca drones y suelta un cofre', () => {
+  it('el Rey Rata invoca necrófagos y suelta un cofre', () => {
     const w = quiet();
     w.player.god = true;
     const b = spawnEnemy(w, 'rey_rata', w.player.x + 200, w.player.y, false);
     run(w, AI.rey_rata.every + 0.5);
-    expect(alive(w).filter((e) => e.type === 'dron').length).toBeGreaterThan(0);
+    expect(alive(w).filter((e) => e.type === AI.rey_rata.summonType).length).toBeGreaterThan(0);
+    expect(AI.rey_rata.summonType).toBe('necrofago');
     killEnemy(w, b, 'llave');
     expect(w.pickups.items.slice(0, w.pickups.count).some((k) => k.kind === 'chest')).toBe(true);
     expect(w.bosses).toBe(1);
@@ -289,22 +281,6 @@ describe('objetos y eventos (F2-06/F2-07)', () => {
     // Sin hueco libre no se abre otro cofre.
     openItemChoice(w);
     expect(w.choice).toBeNull();
-  });
-
-  it('rotan suministros, enjambre y lluvia', () => {
-    const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
-    w.player.god = true;
-    for (const k of ['rey_rata', 'dirigible', 'coloso']) w.bossSpawned[k] = true;
-    w.time = EVENTS.first - STEP / 2;
-    tick(w, STILL, STEP);
-    expect(w.pickups.items.slice(0, w.pickups.count).some((k) => k.kind === 'crate')).toBe(true);
-    const before = w.enemies.count;
-    w.time = EVENTS.first + EVENTS.every - STEP / 2;
-    tick(w, STILL, STEP);
-    expect(w.enemies.count - before).toBeGreaterThanOrEqual(EVENTS.swarm.count);
-    w.time = EVENTS.first + EVENTS.every * 2 - STEP / 2;
-    tick(w, STILL, STEP);
-    expect(w.rain).toBeGreaterThan(0);
   });
 
   it('la caja de suministros da chatarra y un consumible', () => {

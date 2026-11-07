@@ -16,6 +16,7 @@ import { BUILDINGS } from '../../config/props';
 import { chestSpot } from '../obstacles';
 import { acidPatch } from '../scars';
 import { COUPONS, FX, JUICE, KNOCKBACK, PLAYER, STREAK, SUMMARY, XP, streakMult } from '../../config/run';
+import { CAMPAIGN, LAST_ACT } from '../../config/acts';
 import { EVENTS } from '../../config/waves';
 import { DAILY } from '../../config/modes';
 import { FUSIONS, SOURCE_INDEX, WEAPONS, type DamageSource, type WeaponBase } from '../../config/weapons';
@@ -422,6 +423,8 @@ export function killEnemy(w: World, e: Enemy, src: DamageSource): void {
     if (e.type === 'dirigible') dropGems(w, e.x, e.y, AI.dirigible.dropXp);
     // El Coloso gana la run (y pregunta si seguir en infinito); en infinito solo es un jefe más.
     if (e.type === 'coloso' && !w.endless) colossusDown(w);
+    // Cae el jefe del acto: la limpieza se hace fuera de los bucles que recorren enemigos (`updateCampaign`).
+    else if (w.act < LAST_ACT && e.type === CAMPAIGN.acts[w.act].boss) w.actBossDown = true;
   }
   if (e.type === 'hinchado' && w.blasts.count < w.blasts.items.length) {
     // Se resuelve después (resolveBlasts): puede morir dentro de un bucle que ya recorre una consulta.

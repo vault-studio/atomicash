@@ -1,4 +1,5 @@
 // Fase 4 del dossier: barriles explosivos, objetivos en el mapa (§11) y modo infinito tras el Coloso (§17).
+import { CAMPAIGN } from '../../config/acts';
 import { BARRELS, DAILY, ENDLESS, OBJECTIVES } from '../../config/modes';
 import { JUICE } from '../../config/run';
 import { addShake, banner, boom, burst, hitStop } from '../fx';
@@ -195,8 +196,9 @@ export function chooseEndless(w: World, go: boolean): void {
   }
   w.endless = true;
   w.endlessAt = w.time;
-  // Los élites empiezan a salir a su ritmo de infinito desde ya.
+  // Los élites y los eventos especiales empiezan a salir a su ritmo de infinito desde ya.
   w.nextElite = Math.min(w.nextElite, w.time + ENDLESS.eliteEvery);
+  w.nextSpecial = w.time + CAMPAIGN.specials.endlessEvery;
   banner(w, 'banner.endless');
 }
 

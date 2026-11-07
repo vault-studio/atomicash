@@ -19,7 +19,7 @@ const STILL: InputState = { moveX: 0, moveY: 0 };
 
 function quiet(opts = {}): World {
   const w = createWorld('dot', 1, { startWeapon: null, hazards: false, ...opts });
-  w.nextEvent = w.nextElite = w.nextHorde = w.nextObjective = Infinity;
+  w.nextSpecial = w.nextElite = w.nextObjective = Infinity;
   w.spawnAcc = -1e9;
   w.player.god = true;
   for (const k of ['rey_rata', 'dirigible', 'coloso']) w.bossSpawned[k] = true;

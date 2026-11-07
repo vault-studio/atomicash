@@ -46,7 +46,7 @@ export function benchScenario(build: BenchBuild, sc: Scenario, seed = 1): number
   const w: World = createWorld('dot', seed, { hazards: false, startWeapon: null });
   w.player.god = true;
   w.xpNext = Infinity;
-  w.nextElite = w.nextHorde = w.nextEvent = w.nextDownpour = Infinity;
+  w.nextElite = w.nextSpecial = Infinity;
   for (const k of BOSS_IDS) w.bossSpawned[k] = true;
   w.weapons = build.weapons.map((x) => createWeapon(x.id, x.lvl));
   const S = SETUP[sc];

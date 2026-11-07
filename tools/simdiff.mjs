@@ -37,7 +37,10 @@ function loadCsv(dir) {
 
 const KEYS = [
   'time',
+  'act',
   'level',
+  'level120',
+  'level240',
   'kills',
   'surrounded',
   'stuns',
@@ -57,7 +60,7 @@ if (!b) {
       .map(([c, n]) => `${c} ${n}`)
       .join(', ');
     console.log(
-      `${key} (n=${g.n}): ${fmt(g.sum.time / g.n)} s · victorias ${g.wins}/${g.n} · muere por: ${deaths || '—'}`,
+      `${key} (n=${g.n}): ${fmt(g.sum.time / g.n)} s · acto ${fmt((g.sum.act ?? 0) / g.n)} · nivel 120 s ${fmt((g.sum.level120 ?? 0) / g.n)} · 240 s ${fmt((g.sum.level240 ?? 0) / g.n)} · victorias ${g.wins}/${g.n} · muere por: ${deaths || '—'}`,
     );
     all.n += g.n;
     all.time += g.sum.time;

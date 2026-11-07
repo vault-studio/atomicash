@@ -9,7 +9,6 @@ import { createWorld, results, tick } from '../src/engine/world';
 
 function quiet(): World {
   const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
-  w.nextEvent = Infinity;
   w.spawnAcc = -1e9;
   return w;
 }

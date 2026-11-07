@@ -13,6 +13,7 @@ import { ENTITIES } from '../src/config/entities';
 import { IRRADIATED, RAD } from '../src/config/radiation';
 import { RUN } from '../src/config/run';
 import { applyTuning, resetTuning } from '../src/config/tuning';
+import { ACT_IDS } from '../src/config/acts';
 import { HORDES, WAVES } from '../src/config/waves';
 import { cellKey, worldHazardAt } from '../src/engine/hazards';
 import { hitsObstacle, createCellObject, worldObjectAt } from '../src/engine/obstacles';
@@ -35,7 +36,7 @@ const idle = { moveX: 0, moveY: 0 };
 function quiet(god = true): World {
   applyTuning({ spawn: { rateMult: 0 } });
   const w = createWorld('dot', 1, { startWeapon: null });
-  w.nextHorde = w.nextElite = w.nextEvent = w.nextObjective = w.nextDownpour = Infinity;
+  w.nextSpecial = w.nextElite = w.nextObjective = Infinity;
   w.player.god = god;
   tick(w, idle, STEP);
   return w;
@@ -67,6 +68,8 @@ describe('datos de los enemigos nuevos', () => {
       expect(s.rage?.enabled, id).toBe(false);
     }
     expect(ENTITIES.liquidador.act).toBe(1);
+    expect(ENTITIES.sabueso.act).toBe(1);
+    expect(ENTITIES.bidonero.act).toBe(1);
     expect(ENTITIES.nevera.act).toBe(2);
     expect(ENTITIES.motorista.act).toBe(3);
     for (const id of ['sabueso', 'nevera', 'motorista'] as const)
@@ -90,32 +93,20 @@ describe('datos de los enemigos nuevos', () => {
 });
 
 describe('oleadas', () => {
-  it('sabueso con cada interceptor salvo el primer tramo; liquidador y bidonero en sus tramos', () => {
-    for (const wave of WAVES) {
-      const m = wave.mix as Record<string, number | undefined>;
-      expect(m.sabueso !== undefined, `sabueso @${wave.from}`).toBe(
-        m.interceptor !== undefined && wave.from > 0,
-      );
-      expect(m.liquidador !== undefined, `liquidador @${wave.from}`).toBe(
-        wave.from === 120 || wave.from === 180 || wave.from >= 300,
-      );
-      expect(m.bidonero !== undefined, `bidonero @${wave.from}`).toBe(
-        m.mortero !== undefined && wave.from >= 300,
-      );
-    }
+  it('cada uno sale en su acto: liquidador, sabueso y bidonero en el 1, nevera en el 2, motorista en el 3', () => {
+    const act = { liquidador: 1, sabueso: 1, bidonero: 1, nevera: 2, motorista: 3 } as const;
+    for (const wave of WAVES)
+      for (const [id, a] of Object.entries(act))
+        if (wave.act !== a) expect(wave.mix, `${id} en el acto ${wave.act}`).not.toHaveProperty(id);
+    for (const act2 of ACT_IDS)
+      for (const [id, a] of Object.entries(act))
+        if (a !== act2) expect(HORDES.ring.mix[act2]).not.toHaveProperty(id);
   });
 
-  it('nevera y motorista no están en oleadas ni en cercos, y no salen en una partida larga', () => {
-    for (const wave of WAVES) {
-      expect(wave.mix).not.toHaveProperty('nevera');
-      expect(wave.mix).not.toHaveProperty('motorista');
-    }
-    for (const m of HORDES.ring.mix) {
-      expect(m.types).not.toHaveProperty('nevera');
-      expect(m.types).not.toHaveProperty('motorista');
-    }
+  it('en una partida larga del Acto 1 no pasan de su tope ni salen los de otros actos', () => {
     const w = createWorld('dot', 3, { startWeapon: null, hazards: false, maxEnemies: 300 });
     w.player.god = true;
+    w.bossSpawned.rey_rata = true;
     w.time = 800;
     const seen = new Set<string>();
     let worstCeptors = 0;
@@ -158,29 +149,28 @@ describe('oleadas', () => {
 describe('tope compartido (capRole)', () => {
   it('con dos interceptores de cualquier tipo no sale otro; con uno, sí', () => {
     const w = quiet();
+    w.act = 3;
     w.time = 600;
     const p = w.player;
     expect(spawnable(w, 'motorista')).toBe(true);
     const a = spawnEnemy(w, 'interceptor', p.x + 900, p.y, false);
-    expect(spawnable(w, 'sabueso')).toBe(true);
     spawnEnemy(w, 'sabueso', p.x + 900, p.y, false);
-    for (const id of ['interceptor', 'sabueso', 'motorista'] as const)
-      expect(spawnable(w, id), id).toBe(false);
+    expect(spawnable(w, 'motorista')).toBe(false);
     // Los muertos no cuentan.
     a.dead = true;
-    for (const id of ['interceptor', 'sabueso', 'motorista'] as const)
-      expect(spawnable(w, id), id).toBe(true);
+    expect(spawnable(w, 'motorista')).toBe(true);
   });
 
   it('con dos lanzadores de cualquier tipo no sale otro', () => {
     const w = quiet();
+    w.act = 3;
     w.time = 600;
     const p = w.player;
-    spawnEnemy(w, 'mortero', p.x + 900, p.y, false);
+    spawnEnemy(w, 'bidonero', p.x + 900, p.y, false);
     spawnEnemy(w, 'nevera', p.x + 900, p.y, false);
-    for (const id of ['mortero', 'bidonero', 'nevera'] as const) expect(spawnable(w, id), id).toBe(false);
+    expect(spawnable(w, 'mortero')).toBe(false);
     // Un tirador de balas no es un lanzador.
-    expect(spawnable(w, 'liquidador')).toBe(true);
+    expect(spawnable(w, 'tirador')).toBe(true);
   });
 });
 

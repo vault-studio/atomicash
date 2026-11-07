@@ -137,6 +137,18 @@ export function detonateBomb(w: World): Enemy {
   return e;
 }
 
+/**
+ * Cambio de acto: una bomba sin pisar se queda en el mapa viejo, así que el evento vuelve a esperar y sale de nuevo
+ * dentro de la ventana de `MIRROR` a partir de ahora. Si ya se pisó, el evento está hecho (la copia viva desaparece
+ * con el resto de enemigos).
+ */
+export function resetMirrorBomb(w: World): void {
+  const m = w.mirror;
+  if (m.phase !== 1) return;
+  m.phase = 0;
+  m.at = w.time + m.rng() * (MIRROR.to - MIRROR.from);
+}
+
 /** Un tick del evento: sortea sitio cuando llega su hora (esperando a que pase un jefe) y detecta que la pisen. */
 export function updateMirror(w: World): void {
   const m = w.mirror;

@@ -21,7 +21,7 @@ interface EntityInput {
   readonly size: number;
   readonly color: string;
   readonly method: AnimMethod;
-  /** Acto en el que aparece. Los de los actos 2 y 3 no salen en oleadas: solo desde el depurador. */
+  /** Acto en el que aparece; fuera de él solo sale en eventos especiales. */
   readonly act: 1 | 2 | 3;
   /** Solo supervivientes. */
   readonly status?: Availability;
@@ -69,10 +69,11 @@ const DEFS = {
 
   // ---------- Enemigos (enemies) ----------
   // DECISIÓN: la biblia no fija color de firma para enemigos; se usan los del prototipo.
-  dron: { category: 'enemies', size: 0.8, color: '#9FB3C0', method: 'rigid', act: 1 },
+  // Hinchado y cortacésped no salen en oleadas ni guarniciones: quedan para futuros eventos.
+  dron: { category: 'enemies', size: 0.8, color: '#9FB3C0', method: 'rigid', act: 2 },
   necrofago: { category: 'enemies', size: 1.3, color: '#8F9A6A', method: 'mixamo', act: 1 },
-  saqueador: { category: 'enemies', size: 1.3, color: '#B0533C', method: 'mixamo', act: 1 },
-  tirador: { category: 'enemies', size: 1.3, color: '#D08A3A', method: 'mixamo', act: 1 },
+  saqueador: { category: 'enemies', size: 1.3, color: '#B0533C', method: 'mixamo', act: 3 },
+  tirador: { category: 'enemies', size: 1.3, color: '#D08A3A', method: 'mixamo', act: 3 },
   reptador: { category: 'enemies', size: 1.2, color: '#6FBF4A', method: 'mixamo', act: 1 },
   hinchado: { category: 'enemies', size: 1.6, color: '#D6C38A', method: 'deform', act: 1 },
   cortacesped: { category: 'enemies', size: 1.5, color: '#8AA0B0', method: 'rigid', act: 1 },
@@ -81,22 +82,22 @@ const DEFS = {
     size: 1.6,
     color: '#9A6AC9',
     method: 'rigid',
-    act: 1,
+    act: 2,
     extraAnims: ['idle'],
   },
   babosa: { category: 'enemies', size: 1.8, color: '#4F6B2A', method: 'deform', act: 1 },
-  aspiradora: { category: 'enemies', size: 1.7, color: '#B8A070', method: 'rigid', act: 1 },
-  aspiradora_cria: { category: 'enemies', size: 0.4, color: '#D8C090', method: 'rigid', act: 1 },
-  excavadora: { category: 'enemies', size: 1.8, color: '#C9A04A', method: 'rigid', act: 1 },
-  blindado: { category: 'enemies', size: 1.5, color: '#7A7A7A', method: 'mixamo', act: 1 },
+  aspiradora: { category: 'enemies', size: 1.7, color: '#B8A070', method: 'rigid', act: 2 },
+  aspiradora_cria: { category: 'enemies', size: 0.4, color: '#D8C090', method: 'rigid', act: 2 },
+  excavadora: { category: 'enemies', size: 1.8, color: '#C9A04A', method: 'rigid', act: 2 },
+  blindado: { category: 'enemies', size: 1.5, color: '#7A7A7A', method: 'mixamo', act: 3 },
   // Tirador especial (CAMBIOS §3). Modelo sin esqueleto: lo monta y anima tools/render_mortero.py.
-  mortero: { category: 'enemies', size: 1.6, color: '#8A6A4A', method: 'rigid_mixamo', act: 1 },
-  predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 1 },
+  mortero: { category: 'enemies', size: 1.6, color: '#8A6A4A', method: 'rigid_mixamo', act: 3 },
+  predicador: { category: 'enemies', size: 1.4, color: '#F0E070', method: 'mixamo', act: 3 },
   // Robot de carrera (CAMBIOS §2).
-  interceptor: { category: 'enemies', size: 1.1, color: '#3FE0FF', method: 'rigid', act: 1 },
+  interceptor: { category: 'enemies', size: 1.1, color: '#3FE0FF', method: 'rigid', act: 2 },
   // Copia del jugador (evento «Tú mismo, otra vez»): se dibuja con los sprites de su personaje (`Enemy.skin`).
   copia: { category: 'enemies', size: 1.3, color: '#C070FF', method: 'mixamo', act: 1 },
-  // Tiradores y corredores nuevos. Nevera (acto 2) y motorista (acto 3) solo salen desde el depurador.
+  // Tiradores y corredores nuevos.
   liquidador: { category: 'enemies', size: 1.3, color: '#8FD14A', method: 'rigid_mixamo', act: 1 },
   sabueso: { category: 'enemies', size: 1.2, color: '#D9E04A', method: 'rigid', act: 1 },
   bidonero: { category: 'enemies', size: 1.6, color: '#5E9C3A', method: 'rigid_mixamo', act: 1 },
@@ -115,18 +116,18 @@ const DEFS = {
     variantOf: 'rey_rata',
   },
   // DECISIÓN: el Dirigible es una mole que tapa el cielo, 3,5 veces su tamaño original (5).
-  dirigible: { category: 'bosses', size: 17.5, color: '#C8B0E0', method: 'rigid', act: 1 },
+  dirigible: { category: 'bosses', size: 17.5, color: '#C8B0E0', method: 'rigid', act: 2 },
   dirigible_dmg: {
     category: 'bosses',
     size: 17.5,
     color: '#C8B0E0',
     method: 'rigid',
-    act: 1,
+    act: 2,
     variantOf: 'dirigible',
   },
-  coloso: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 1 },
-  coloso_p2: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 1, variantOf: 'coloso' },
-  coloso_p3: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 1, variantOf: 'coloso' },
+  coloso: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 3 },
+  coloso_p2: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 3, variantOf: 'coloso' },
+  coloso_p3: { category: 'bosses', size: 6, color: '#8C8C84', method: 'mixamo', act: 3, variantOf: 'coloso' },
 
   // ---------- Props y armas (props) ----------
   llave: { category: 'props', size: 0.5, color: '#D8D8D8', method: 'static', act: 1, owner: 'dot' },

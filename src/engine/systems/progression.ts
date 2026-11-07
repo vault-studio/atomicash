@@ -414,7 +414,7 @@ export function applyChoice(w: World, i: number): void {
 const MAGNETIC: ReadonlySet<PickupKind> = new Set<PickupKind>(['gem', 'stim', 'coupon', ...FIELD_PICKUP_IDS]);
 
 /** Imán: todo lo que atrae, en cualquier parte del mapa, vuela hacia el jugador. */
-function magnetPull(w: World): void {
+export function magnetPull(w: World): void {
   for (let i = 0; i < w.pickups.count; i++) {
     const k = w.pickups.items[i]!;
     if (MAGNETIC.has(k.kind)) k.pull = true;

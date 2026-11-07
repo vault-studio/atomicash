@@ -780,7 +780,7 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           e.phase = 2;
           banner(w, 'banner.ratPhase');
           addShake(w, 6);
-          ring(w, 'necrofago', p.x, p.y, 4, A.summonDist + 30);
+          ring(w, A.summonType, p.x, p.y, 4, A.summonDist + 30);
         }
         const p2 = e.phase >= 2;
         // `burst` = embestidas que le quedan en el ciclo; `mt` en persecución = tiempo parado llamando a las ratas.
@@ -886,6 +886,11 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
         banner(w, 'banner.blimpDown');
         addShake(w, 6);
       }
+      // Es obligatorio matarlo para pasar de acto: con armas de suelo solas, baja a su alcance pasado un rato.
+      if (e.flying && w.time - e.born >= A.groundAfter) {
+        e.flying = false;
+        banner(w, 'banner.blimpLow');
+      }
       e.timer -= dt;
       if (e.timer <= 0) {
         e.timer = p2 ? A.everyP2 : A.every;
@@ -977,8 +982,8 @@ function think(w: World, e: Enemy, d: number, ux: number, uy: number, dt: number
           }
         } else {
           markAttack(w, e, 'attack_2');
-          spawnEnemy(w, 'torreta', e.x + A.turretDist, e.y, false);
-          ring(w, 'necrofago', e.x, e.y, A.summonGhouls, A.summonDist);
+          spawnEnemy(w, A.turretType, e.x + A.turretDist, e.y, false);
+          ring(w, A.summonType, e.x, e.y, A.summonGhouls, A.summonDist);
         }
       }
       break;
@@ -1093,7 +1098,7 @@ export function updateEnemies(w: World, dt: number): void {
     e.x = nx;
     e.y = ny;
     // Los de tierra rodean los obstáculos; los voladores pasan por encima.
-    if (!e.flying && !(e.type === 'coloso' && e.alt) && e.type !== 'torreta')
+    if (!e.flying && !(e.type === 'coloso' && e.alt) && e.type !== 'torreta' && e.type !== 'dirigible')
       blockCircle(w, e, e.r, vx + e.kbx, vy + e.kby, e.side);
     e.kbx *= kd;
     e.kby *= kd;

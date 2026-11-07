@@ -14,9 +14,6 @@ export interface EnemyStats {
   readonly cap?: number;
   /** `cap` cuenta todos los vivos con su mismo `role` (de cualquier tipo), no solo los de su tipo. */
   readonly capRole?: boolean;
-  /** Segundo de la run desde el que puede salir en oleadas, y hasta cuál (ausente = siempre). */
-  readonly spawnFrom?: number;
-  readonly spawnUntil?: number;
   readonly hp: number;
   /** Daño de contacto. */
   readonly dmg: number;
@@ -177,6 +174,7 @@ export const statsOf = (id: StatEnemyId): EnemyStats => ENEMY_STATS[id];
  *   con una onda de `stompR`. DECISIÓN: zona grande pero que da tiempo: el más lento (190 px/s) sale en 1 s y le
  *   quedan 0,6 s para reaccionar.
  * - `coloso.jumpH`: Altura del salto en pantalla (px), para el dibujo.
+ * - `coloso.summonType`, `coloso.turretType`: Lo que llama, del Acto 3 como él: un anillo y un apoyo fijo a su lado.
  */
 export const AI = T.ai as Retype<
   typeof T.ai,
@@ -184,6 +182,7 @@ export const AI = T.ai as Retype<
     rey_rata: { summonType: StatEnemyId };
     aspiradora: { childType: StatEnemyId };
     dirigible: { p2SummonType: StatEnemyId };
+    coloso: { summonType: StatEnemyId; turretType: StatEnemyId };
   }
 >;
 
@@ -198,12 +197,6 @@ export const BOSS_VARIANTS: Readonly<
     { phase: 3, id: 'coloso_p3' },
   ],
 };
-
-/**
- * Cada jefe sale al llegar a su minuto (`at`, en s) o a su número de bajas (`kills`), lo que pase antes.
- * DECISIÓN: quien mata rápido no espera al reloj; quien va lento tiene el jefe a su hora igualmente.
- */
-export const BOSSES: Readonly<Record<BossKind, { at: number; kills: number }>> = T.bosses;
 
 /**
  * Furia: perfil por defecto (ver `RageProfile`); cada enemigo puede cambiar campos en `enemies.<id>.rage` o apagarla
@@ -285,8 +278,8 @@ export type EliteId = 'blindado' | 'veloz' | 'radiactivo' | 'divisor' | 'vampiri
 export const ELITE_IDS: readonly EliteId[] = ['blindado', 'veloz', 'radiactivo', 'divisor', 'vampirico'];
 
 /**
- * Élites: un enemigo de la oleada vigente, más grande y duro, cada 30–50 s. Suelta siempre un power-up y a veces
- * (`cacheChance`) el cofre especial.
+ * Élites: un enemigo de la oleada vigente (de su acto y ya desbloqueado), más grande y duro, cada `everyMin`–`everyMax`
+ * s, también el primero de cada acto. Suelta siempre un power-up y a veces (`cacheChance`) el cofre especial.
  * DECISIÓN: el cofre especial (tragaperras de cupones y un nivel) es sobre todo de los edificios limpios; los cofres
  * de objeto son de los jefes y solo hay dos huecos, así que un élite no puede quitarle el hueco a un jefe.
  */

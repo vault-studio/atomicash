@@ -1,6 +1,7 @@
-// Director de la run: oleadas fuera de cámara (F1-05), eventos, jefes (F2-05/F2-07), élites y hordas en formación.
+// Director de cada acto: oleadas fuera de cámara (F1-05), eventos especiales (emboscadas y lluvias), jefes (F2-05/F2-07)
+// y élites. La transición entre actos está en campaign.ts.
+import { CAMPAIGN, type ActId, type SpecialRain } from '../../config/acts';
 import {
-  BOSSES,
   BOSS_IDS,
   ELITES,
   ELITE_IDS,
@@ -10,31 +11,43 @@ import {
   type EnemyStats,
   type StatEnemyId,
 } from '../../config/enemies';
+import { ENTITIES } from '../../config/entities';
 import { tuningVersion } from '../../config/tuning';
 import { planRing } from '../encircle';
 import { underCap } from '../rules';
 import { BUILDINGS } from '../../config/props';
 import { DAILY, ENDLESS } from '../../config/modes';
-import { EVENTS, HORDES, SPAWN, WAVES, type HordeKind, type WaveDef } from '../../config/waves';
+import {
+  EVENTS,
+  HORDES,
+  SPAWN,
+  WAVES,
+  type HordeKind,
+  type HordeType,
+  type WaveDef,
+} from '../../config/waves';
 import { banner } from '../fx';
 import { SFX, sfx } from '../sfx';
 import type { Enemy, World } from '../types';
 import { offscreenDistance } from '../view';
+import { actTime, eliteDelay, nextSpecialAt } from './campaign';
 import { addChest } from './combat';
 import { makeElite, spawnEnemy } from './enemies';
+import { startDownpour } from './rains';
 
-/** Oleada vigente en el segundo `t`. */
-export function currentWave(t: number): WaveDef {
-  let w = WAVES[0]!;
-  for (const x of WAVES) if (t >= x.from) w = x;
-  return w;
+/** Índice en `WAVES` de la oleada vigente en el segundo `t` del acto (para depuración y HUD). */
+export function currentWaveIndex(act: ActId, t: number): number {
+  let idx = -1;
+  for (let i = 0; i < WAVES.length; i++) {
+    const x = WAVES[i]!;
+    if (x.act === act && (idx < 0 || t >= x.from)) idx = i;
+  }
+  return Math.max(0, idx);
 }
 
-/** Índice de la oleada vigente (para depuración y HUD). */
-export function currentWaveIndex(t: number): number {
-  let idx = 0;
-  for (let i = 0; i < WAVES.length; i++) if (t >= WAVES[i]!.from) idx = i;
-  return idx;
+/** Oleada vigente en el segundo `t` del acto. */
+export function currentWave(act: ActId, t: number): WaveDef {
+  return WAVES[currentWaveIndex(act, t)]!;
 }
 
 // Pesos de cada oleada precalculados para no recorrer objetos en cada aparición; se rehacen si el depurador cambia
@@ -70,28 +83,39 @@ function aliveOf(w: World, type: StatEnemyId, role?: EnemyRole): number {
   return n;
 }
 
+/** ¿Pertenece al acto y su rol ya se ha desbloqueado? */
+export function unlocked(w: World, type: StatEnemyId): boolean {
+  const role = (ENEMY_STATS[type] as EnemyStats).role;
+  return ENTITIES[type].act === w.act && (role === undefined || actTime(w) >= CAMPAIGN.gates[role]);
+}
+
 /**
- * ¿Puede salir ahora en oleada? Ventana de tiempo (`spawnFrom`/`spawnUntil`) y tope en pantalla (`cap`; con `capRole`
- * cuenta los vivos de su mismo rol, sean del tipo que sean).
+ * ¿Puede salir ahora? Enemigo del acto, con su rol ya desbloqueado (`CAMPAIGN.gates`), y bajo su tope en pantalla (`cap`;
+ * con `capRole` cuenta los vivos de su mismo rol, sean del tipo que sean).
  */
 export function spawnable(w: World, type: StatEnemyId): boolean {
+  if (!unlocked(w, type)) return false;
   const s: EnemyStats = ENEMY_STATS[type];
-  if (s.spawnFrom !== undefined && w.time < s.spawnFrom) return false;
-  if (s.spawnUntil !== undefined && w.time >= s.spawnUntil) return false;
   return underCap(s.cap ? aliveOf(w, type, s.capRole === true ? s.role : undefined) : 0, s.cap);
 }
 
-/** Tipo al azar según los pesos de la oleada, entre los que pueden salir; null si ninguno. */
-function pickType(w: World, waveIdx: number): StatEnemyId | null {
+const canElite = (w: World, t: StatEnemyId): boolean => spawnable(w, t) && !ELITES.exclude.includes(t);
+
+/** Tipo al azar según los pesos de la oleada, entre los que cumplen `can`; null si ninguno. */
+function pickType(
+  w: World,
+  waveIdx: number,
+  can: (w: World, t: StatEnemyId) => boolean = spawnable,
+): StatEnemyId | null {
   const m = waveMix(waveIdx);
   let total = 0;
-  for (let i = 0; i < m.types.length; i++) if (spawnable(w, m.types[i]!)) total += m.weights[i]!;
+  for (let i = 0; i < m.types.length; i++) if (can(w, m.types[i]!)) total += m.weights[i]!;
   if (total <= 0) return null;
   let r = w.rng() * total;
   let last: StatEnemyId | null = null;
   for (let i = 0; i < m.types.length; i++) {
     const t = m.types[i]!;
-    if (!spawnable(w, t)) continue;
+    if (!can(w, t)) continue;
     last = t;
     r -= m.weights[i]!;
     if (r < 0) return t;
@@ -132,33 +156,36 @@ export function spawnBoss(w: World, kind: (typeof BOSS_IDS)[number]): void {
   banner(w, 'banner.boss', { boss: kind });
 }
 
-function fireEvent(w: World): void {
-  const kind = EVENTS.order[w.eventIdx++ % EVENTS.order.length]!;
-  const p = w.player;
-  if (kind === 'supply') {
-    const a = w.rng() * TAU;
-    const S = EVENTS.supply;
-    addChest(w, 'crate', p.x + Math.cos(a) * S.dist, p.y + Math.sin(a) * S.dist, 16);
-    banner(w, 'banner.supply');
-  } else if (kind === 'swarm') {
-    const S = EVENTS.swarm;
-    for (let i = 0; i < S.count; i++) {
-      const a = (i / S.count) * TAU;
-      spawnEnemy(w, S.type, p.x + Math.cos(a) * S.r, p.y + Math.sin(a) * S.r);
-    }
-    banner(w, 'banner.swarm');
-  } else {
-    w.rain = EVENTS.rain.dur;
-    banner(w, 'banner.rain');
-  }
+export type SpecialKind = HordeKind | SpecialRain;
+
+/**
+ * Qué evento especial toca: con `u` ∈ [0, 1) se decide entre emboscada (probabilidad `hordeChance`) y lluvia, y con
+ * `v` ∈ [0, 1) cuál dentro del grupo.
+ */
+export function rollSpecial(u: number, v: number, hordeChance: number): SpecialKind {
+  const list: readonly SpecialKind[] = u < hordeChance ? HORDES.order : CAMPAIGN.specials.rains;
+  return list[Math.floor(v * list.length)]!;
 }
 
-/** Élite: un enemigo de la oleada vigente con un prefijo al azar, fuera de cámara. */
+/** Lanza un evento especial: una emboscada o una lluvia. */
+function fireSpecial(w: World): void {
+  const chance = w.dailyMod === 'hordes' ? DAILY.hordes.chance : CAMPAIGN.specials.hordeChance;
+  const kind = rollSpecial(w.rng(), w.rng(), chance);
+  if (kind === 'ring' || kind === 'stampede' || kind === 'wall') announceHorde(w, kind);
+  // Sin mapa (pruebas) las lluvias de chatarra y ácido no tienen dónde caer.
+  else if (kind === 'radioactive' || !w.hazardsOn) {
+    w.rain = EVENTS.rain.dur;
+    banner(w, 'banner.rain');
+  } else startDownpour(w, kind);
+}
+
+/** Élite: un enemigo de la oleada vigente, de su acto y ya desbloqueado, con un prefijo al azar, fuera de cámara. */
 export function spawnElite(w: World): Enemy {
-  const waveIdx = currentWaveIndex(w.time);
-  let type = pickType(w, waveIdx);
-  for (let k = 0; k < 8 && (!type || ELITES.exclude.includes(type)); k++) type = pickType(w, waveIdx);
-  if (!type || ELITES.exclude.includes(type)) type = 'saqueador';
+  const waveIdx = currentWaveIndex(w.act, actTime(w));
+  const type =
+    pickType(w, waveIdx, canElite) ??
+    // Todo lo elegible está en su tope: un enemigo cualquiera de la oleada que pueda ser élite.
+    waveMix(waveIdx).types.find((t) => !ELITES.exclude.includes(t))!;
   const kind = ELITE_IDS[(w.rng() * ELITE_IDS.length) | 0]!;
   placeOffscreen(w, spot);
   const e = spawnEnemy(w, type, spot.x, spot.y, false);
@@ -168,15 +195,14 @@ export function spawnElite(w: World): Enemy {
   return e;
 }
 
-/** Tipo de enemigo de una horda según el minuto. */
-function hordeType(types: readonly { from: number; type: StatEnemyId }[], t: number): StatEnemyId {
-  let id = types[0]!.type;
-  for (const x of types) if (t >= x.from) id = x.type;
-  return id;
+/** Primer tipo de la lista que pueda salir ya; el último siempre está desbloqueado (`validateConfig`). */
+function hordeType(w: World, types: readonly HordeType[]): HordeType {
+  for (const x of types) if (spawnable(w, x.type)) return x;
+  return types[types.length - 1]!;
 }
 
-function hordeCount(H: { count: number; perMin: number; max: number }, t: number): number {
-  return Math.min(H.max, Math.round(H.count + (H.perMin * t) / 60));
+function hordeCount(H: { count: number; perMin: number; max: number }, t: number, mult = 1): number {
+  return Math.round(Math.min(H.max, H.count + (H.perMin * t) / 60) * mult);
 }
 
 /** Anuncia una horda: el HUD marca el borde de la pantalla por donde llegará. */
@@ -198,11 +224,11 @@ function releaseHorde(w: World): void {
   if (h.kind === 'ring') {
     // Cerco de varios roles con una salida (CAMBIOS §4). Solo al soltar la horda: aquí sí se pueden crear listas.
     const H = HORDES.ring;
-    let mix = H.mix[0]!.types;
-    for (const m of H.mix) if (t >= m.from) mix = m.types;
-    const ids = Object.keys(mix) as StatEnemyId[];
+    const mix = H.mix[w.act];
+    const ids = (Object.keys(mix) as StatEnemyId[]).filter((id) => spawnable(w, id));
+    if (ids.length === 0) return;
     const plan = planRing(
-      hordeCount(H, t),
+      hordeCount(H, t, H.actCount[w.act]),
       H.gap,
       H.heavyEvery,
       ids.map((id) => mix[id]!),
@@ -228,8 +254,8 @@ function releaseHorde(w: World): void {
   const cy = p.y + h.ay * D;
   if (h.kind === 'stampede') {
     const H = HORDES.stampede;
-    const n = hordeCount(H, t);
-    const type = hordeType(H.types, t);
+    const { type, count } = hordeType(w, H.types[w.act]);
+    const n = hordeCount(H, t, count);
     const cols = Math.max(3, Math.round(Math.sqrt(n * 1.5)));
     for (let i = 0; i < n; i++) {
       const col = i % cols;
@@ -245,8 +271,8 @@ function releaseHorde(w: World): void {
     }
   } else {
     const H = HORDES.wall;
-    const n = hordeCount(H, t);
-    const type = hordeType(H.types, t);
+    const { type, count } = hordeType(w, H.types[w.act]);
+    const n = hordeCount(H, t, count);
     for (let i = 0; i < n; i++) {
       const side = (i - (n - 1) / 2) * H.spacing;
       const e = spawnEnemy(w, type, cx + px * side, cy + py * side);
@@ -258,28 +284,24 @@ function releaseHorde(w: World): void {
 }
 
 function updateSpecials(w: World, dt: number): void {
-  // Élites y hordas descansan mientras hay un jefe (se retrasan, no se pierden).
+  // Élites y eventos descansan mientras hay un jefe (se retrasan, no se pierden).
   if (w.bossAlive > 0) {
     if (w.nextElite < w.time + SPAWN.specialsBossDelay) w.nextElite = w.time + SPAWN.specialsBossDelay;
-    if (!w.horde && w.nextHorde < w.time + SPAWN.specialsBossDelay)
-      w.nextHorde = w.time + SPAWN.specialsBossDelay;
+    if (!w.horde && w.nextSpecial < w.time + SPAWN.specialsBossDelay)
+      w.nextSpecial = w.time + SPAWN.specialsBossDelay;
   }
-  const often = w.endless ? ENDLESS.specialsMult : 1;
   if (w.time >= w.nextElite) {
     spawnElite(w);
-    const k = w.dailyMod === 'elites' ? DAILY.elites.every : 1;
-    w.nextElite = w.endless
-      ? w.time + ENDLESS.eliteEvery
-      : w.time + (ELITES.everyMin + w.rng() * (ELITES.everyMax - ELITES.everyMin)) * k;
+    w.nextElite = w.time + (w.endless ? ENDLESS.eliteEvery : eliteDelay(w));
   }
   if (w.horde) {
     // Una horda avisada antes del jefe espera a que muera.
     if (w.bossAlive === 0) w.horde.t -= dt;
     if (w.horde.t <= 0) releaseHorde(w);
-  } else if (w.time >= w.nextHorde) {
-    announceHorde(w);
-    const k = often * (w.dailyMod === 'hordes' ? DAILY.hordes.every : 1);
-    w.nextHorde = w.time + (HORDES.everyMin + w.rng() * (HORDES.everyMax - HORDES.everyMin)) * k;
+  } else if (w.time >= w.nextSpecial) {
+    fireSpecial(w);
+    w.specialIdx++;
+    w.nextSpecial = nextSpecialAt(w);
   }
 }
 
@@ -298,8 +320,8 @@ function updateGarrisons(w: World): void {
   for (let b = 0; b < w.buildings.length; b++) {
     const B = w.buildings[b]!;
     if ((B.x - p.x) ** 2 + (B.y - p.y) ** 2 > D2 || w.garrisoned.has(B.key)) continue;
-    w.garrisoned.add(B.key);
     if (B.kind === 'supply') {
+      w.garrisoned.add(B.key);
       const C = BUILDINGS.crates;
       const n = C.min + Math.floor(w.rng() * (C.max - C.min + 1));
       for (let k = 0; k < n; k++) {
@@ -310,9 +332,12 @@ function updateGarrisons(w: World): void {
       }
       continue;
     }
-    const groups = BUILDINGS.enemies[B.kind];
+    // Solo lo que ya pueda salir; si aún no hay nada, el edificio espera a que se vuelva a pasar cerca.
+    const groups = BUILDINGS.enemies[w.act][B.kind].filter(([type]) => spawnable(w, type));
     let n = 0;
     for (const [, count] of groups) n += count;
+    if (n === 0) continue;
+    w.garrisoned.add(B.key);
     const gar = w.garrisons.length;
     w.garrisons.push({ x: B.x + BUILDINGS.cache.offset, y: B.y + BUILDINGS.cache.offset, left: n });
     let k = 0;
@@ -327,7 +352,7 @@ function updateGarrisons(w: World): void {
 export function updateSpawning(w: World, dt: number): void {
   // Con un jefe vivo los edificios esperan: su guarnición saldrá cuando se vuelva a pasar cerca.
   if (w.bossAlive === 0) updateGarrisons(w);
-  const waveIdx = currentWaveIndex(w.time);
+  const waveIdx = currentWaveIndex(w.act, actTime(w));
   const wave = WAVES[waveIdx]!;
   const pool = w.enemies;
 
@@ -375,17 +400,10 @@ export function updateSpawning(w: World, dt: number): void {
     alive++;
   }
 
-  if (w.time >= w.nextEvent) {
-    if (w.bossAlive > 0) w.nextEvent = w.time + EVENTS.bossQuiet;
-    else if (w.time - w.lastBossAt < EVENTS.bossQuiet) w.nextEvent = w.lastBossAt + EVENTS.bossQuiet;
-    else {
-      fireEvent(w);
-      w.nextEvent += EVENTS.every;
-    }
-  }
   updateSpecials(w, dt);
   if (w.rain > 0) w.rain -= dt;
 
-  for (const k of BOSS_IDS)
-    if (!w.bossSpawned[k] && (w.time >= BOSSES[k].at || w.kills >= BOSSES[k].kills)) spawnBoss(w, k);
+  // Cada jefe, a su hora dentro de su acto. Ninguno vuelve en infinito.
+  const boss = CAMPAIGN.acts[w.act].boss;
+  if (!w.endless && !w.bossSpawned[boss] && actTime(w) >= CAMPAIGN.bossAt) spawnBoss(w, boss);
 }

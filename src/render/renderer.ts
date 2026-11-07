@@ -1,8 +1,10 @@
 // Render de la run con PixiJS v8. Lee el World y dibuja; nunca lo modifica.
 import { Application, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
+import { LAST_ACT, type ActId } from '../config/acts';
 import { ENTITIES, type AnimId } from '../config/entities';
 import { PALETTE, RAD_FOG, RUN_COLORS, VIEW } from '../config/render';
 import { JUICE } from '../config/run';
+import { actCurtain, actTime } from '../engine/systems/campaign';
 import { currentWaveIndex } from '../engine/systems/spawning';
 import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
@@ -41,6 +43,12 @@ export class GameRenderer {
   private readonly fog = new Container();
   private readonly fogHole = new Sprite(fogTexture());
   private readonly fogEdge = new Graphics();
+  /** Cortina negra del cambio de acto, encima de todo el mundo. */
+  private readonly curtain = new Graphics();
+  /** Acto que pinta el suelo, baldosas ya cargadas por acto (null si fallaron) y las que se están cargando. */
+  private groundAct: ActId;
+  private readonly actTiles = new Map<ActId, GroundTiles | null>();
+  private readonly actLoading = new Set<ActId>();
   /** Luces de la cinemática de victoria: rayos tras el personaje y chispas delante. */
   private readonly cineBack = new Graphics();
   private readonly cineFront = new Graphics();
@@ -81,6 +89,8 @@ export class GameRenderer {
       this.fx.sa = new FxSprites(fxArt);
     }
     app.stage.addChild(this.worldLayer);
+    this.groundAct = world.act;
+    this.actTiles.set(world.act, tiles);
     this.groundView = new GroundView(tiles, this.actors, world);
     this.worldLayer.addChild(this.groundView.layer, this.groundView.outlines, this.fx.ground);
     if (this.fx.sg) this.worldLayer.addChild(this.fx.sg.layer);
@@ -104,7 +114,7 @@ export class GameRenderer {
     this.fx.art = pickupArt;
     this.fog.addChild(this.fogHole, this.fogEdge);
     this.fog.visible = false;
-    app.stage.addChild(this.fog, this.overlay);
+    app.stage.addChild(this.fog, this.overlay, this.curtain);
     this.defeatText = new Text({
       text: translate('run.defeat'),
       style: {
@@ -155,6 +165,30 @@ export class GameRenderer {
       loadFxArt().catch(() => null),
     ]);
     return new GameRenderer(app, lib, world, translate, tiles, pickupArt, fxArt);
+  }
+
+  /** Carga las baldosas de un acto en segundo plano. Si fallan, ese acto sigue sin baldosas. */
+  private loadAct(act: ActId): void {
+    if (this.actTiles.has(act) || this.actLoading.has(act)) return;
+    this.actLoading.add(act);
+    void loadGroundTiles(act)
+      .catch(() => null)
+      .then((tiles) => {
+        this.actTiles.set(act, tiles);
+        this.actLoading.delete(act);
+      });
+  }
+
+  /** Precarga el acto siguiente al caer el jefe y cambia el suelo con `w.act`. Devuelve si el suelo del acto está listo. */
+  private syncAct(w: World): boolean {
+    if (w.actClearAt >= 0 && w.act < LAST_ACT) this.loadAct((w.act + 1) as ActId);
+    if (w.act === this.groundAct) return true;
+    this.loadAct(w.act);
+    const tiles = this.actTiles.get(w.act);
+    if (tiles === undefined) return false;
+    this.groundView.setAct(tiles, w.act);
+    this.groundAct = w.act;
+    return true;
   }
 
   /** Enciende o apaga el filtro de pantalla vieja sobre todo el lienzo. */
@@ -285,6 +319,7 @@ export class GameRenderer {
       width / 2 - isoX(fx, fy) * k + shx,
       height / 2 - (isoY(fx, fy) - lift) * k + shy,
     );
+    const groundReady = this.syncAct(w);
     this.groundView.update(px, py, width / 2 / k, height / 2 / k);
 
     // Animación del jugador (biblia §5): death una vez; run al moverse; idle quieto. Sin hoja de idle, quieto se
@@ -344,11 +379,16 @@ export class GameRenderer {
       } else this.drawVictory(isoX(px, py), isoY(px, py), cine, k, false);
     }
 
+    const c = this.curtain;
+    c.clear();
+    const shut = groundReady ? actCurtain(w) : 1;
+    if (shut > 0) c.rect(0, 0, width, height).fill({ color: 0x000000, alpha: shut });
+
     if (this.debugOn) {
       // DECISIÓN: el overlay F3 es una herramienta de desarrollo y no pasa por i18n.
       this.debugText.text =
         `FPS ${dbg.fps.toFixed(0)}  pasos/frame ${dbg.steps}\n` +
-        `t ${w.time.toFixed(1)} s  ticks ${w.ticks}  oleada ${currentWaveIndex(w.time)}  enemigos ${w.enemies.count}\n` +
+        `t ${w.time.toFixed(1)} s  acto ${w.act} (${actTime(w).toFixed(1)} s)  ticks ${w.ticks}  oleada ${currentWaveIndex(w.act, actTime(w))}  enemigos ${w.enemies.count}\n` +
         `sprites ${this.lib.count}  ${p.charId} (${p.x.toFixed(0)}, ${p.y.toFixed(0)}) dir ${dirIndex(p.facingX, p.facingY)}`;
     }
   }

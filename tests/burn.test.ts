@@ -12,9 +12,8 @@ const B = WEAPONS.coctel.burn;
 
 function quiet(): World {
   const w = createWorld('dot', 1, { startWeapon: null, hazards: false });
-  w.nextEvent = Infinity;
   w.nextElite = Infinity;
-  w.nextHorde = Infinity;
+  w.nextSpecial = Infinity;
   w.spawnAcc = -1e9;
   w.player.god = true;
   for (const k of ['rey_rata', 'dirigible', 'coloso']) w.bossSpawned[k] = true;

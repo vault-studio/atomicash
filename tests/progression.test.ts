@@ -23,7 +23,6 @@ const STILL: InputState = { moveX: 0, moveY: 0 };
 
 function quiet(seed = 1, weapon: WeaponId | null = null): World {
   const w = createWorld('dot', seed, { startWeapon: weapon, hazards: false });
-  w.nextEvent = Infinity;
   w.spawnAcc = -1e9;
   return w;
 }

@@ -12,7 +12,12 @@ export interface RunReport {
   /** Segundos jugados. */
   time: number;
   won: boolean;
+  /** Acto alcanzado. */
+  act: number;
   level: number;
+  /** Nivel a los 120 y a los 240 s (si murió antes, el último que tuvo). */
+  level120: number;
+  level240: number;
   kills: number;
   /** Minuto de la muerte y tipo que dio el último golpe (null si sigue vivo). */
   deathMin: number | null;
@@ -38,6 +43,13 @@ export interface RunReport {
   picks: { min: number; kind: string; id: string }[];
 }
 
+/** Nivel que se tenía en el segundo `t`, según los segundos en que se alcanzó cada nivel. */
+function levelAtTime(levelAt: readonly number[], t: number): number {
+  let lvl = 1;
+  for (let n = 2; n < levelAt.length; n++) if (levelAt[n]! >= 0 && levelAt[n]! <= t) lvl = n;
+  return lvl;
+}
+
 export function buildReport(w: World): RunReport {
   const rs = w.rs;
   const taken = [...rs.dmgTaken].reduce((a, b) => a + b, 0) || 1;
@@ -48,7 +60,10 @@ export function buildReport(w: World): RunReport {
     seed: w.seed,
     time: r1(w.time),
     won: w.won,
+    act: w.act,
     level: w.level,
+    level120: levelAtTime(rs.levelAt, 120),
+    level240: levelAtTime(rs.levelAt, 240),
     kills: w.kills,
     deathMin: dead ? r1(w.player.deadAt! / 60) : null,
     deathCause: dead && rs.lastSrc >= 0 ? HURT_SOURCES[rs.lastSrc]! : null,
@@ -107,7 +122,10 @@ export function reportsToCsv(
       seed: r.seed,
       time: r.time,
       won: r.won,
+      act: r.act,
       level: r.level,
+      level120: r.level120,
+      level240: r.level240,
       kills: r.kills,
       deathMin: r.deathMin ?? '',
       deathCause: r.deathCause ?? '',
