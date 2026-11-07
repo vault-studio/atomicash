@@ -1,0 +1,25 @@
+{
+  "id": "bidonero",
+  "anim": "attack",
+  "cell": [
+    256,
+    256
+  ],
+  "pivot": [
+    128,
+    200
+  ],
+  "directions": [
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE",
+    "E",
+    "SE"
+  ],
+  "frames": 12,
+  "fps": 12,
+  "loop": false
+}

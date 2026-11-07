@@ -400,7 +400,7 @@ export const FX_ART = {
     shell: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1 },
     // El obús con tinte: verde (barril de ácido del bidonero) y azul pálido (nevera).
     barrel: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1, tint: 0x7dff3a },
-    ice: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1, tint: 0xbfe6ff },
+    ice: { strip: 'fall_shell', w: 36, ay: 0.95, fps: 1, tint: 0x8fd0ff },
   },
   /**
    * Auras de arma en el suelo. `ring`: parte del ancho del frame que ocupa el anillo, que marca el alcance; (`ax`, `ay`)

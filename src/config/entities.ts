@@ -97,9 +97,9 @@ const DEFS = {
   // Copia del jugador (evento «Tú mismo, otra vez»): se dibuja con los sprites de su personaje (`Enemy.skin`).
   copia: { category: 'enemies', size: 1.3, color: '#C070FF', method: 'mixamo', act: 1 },
   // Tiradores y corredores nuevos. Nevera (acto 2) y motorista (acto 3) solo salen desde el depurador.
-  liquidador: { category: 'enemies', size: 1.3, color: '#8FD14A', method: 'mixamo', act: 1 },
+  liquidador: { category: 'enemies', size: 1.3, color: '#8FD14A', method: 'rigid_mixamo', act: 1 },
   sabueso: { category: 'enemies', size: 1.2, color: '#D9E04A', method: 'rigid', act: 1 },
-  bidonero: { category: 'enemies', size: 1.6, color: '#5E9C3A', method: 'mixamo', act: 1 },
+  bidonero: { category: 'enemies', size: 1.6, color: '#5E9C3A', method: 'rigid_mixamo', act: 1 },
   nevera: { category: 'enemies', size: 1.7, color: '#BFE6F2', method: 'rigid', act: 2 },
   motorista: { category: 'enemies', size: 1.5, color: '#C06A2A', method: 'rigid', act: 3 },
   moscon: { category: 'enemies', size: 0.8, color: '#3AA0A0', method: 'rigid', act: 2 },
