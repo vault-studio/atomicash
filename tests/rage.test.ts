@@ -14,7 +14,7 @@ import {
   rageStep,
   rageTrigger,
   type RageState,
-} from '../src/engine/rage';
+} from '../src/engine/systems/enemies/rageRules';
 import { killEnemy } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { createWorld, tick } from '../src/engine/world';

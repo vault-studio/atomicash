@@ -3,12 +3,12 @@ node_modules
 assets
 MDS
 package-lock.json
-atomic-ash-proto.html
+docs/archivo/
 make-manifest.mjs
 NOVEDADES
 ARTE
 docs/CAMBIOS.md
-GAME_BALANCE.md
+docs/BALANCE.md
 src/data/tuning.json
 android
 out

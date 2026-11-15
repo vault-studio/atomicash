@@ -5,7 +5,7 @@ import { AI, ENEMY_STATS } from '../src/config/enemies';
 import { RUN } from '../src/config/run';
 import { applyTuning, resetTuning } from '../src/config/tuning';
 import { spawnEnemy } from '../src/engine/systems/enemies';
-import { launchSalvo } from '../src/engine/systems/shooters';
+import { launchSalvo } from '../src/engine/systems/enemies/shooters';
 import type { InputState, World } from '../src/engine/types';
 import { createWorld, tick } from '../src/engine/world';
 

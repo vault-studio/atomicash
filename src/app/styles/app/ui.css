@@ -1,0 +1,281 @@
+/* ---------- Menú tipo terminal ---------- */
+.terminal {
+  height: 100%;
+  overflow-y: auto;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 24px
+    max(16px, env(safe-area-inset-left));
+  background: var(--crt-bg);
+  color: var(--crt);
+}
+
+.terminal__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+}
+
+.terminal h1 {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: 2rem;
+  letter-spacing: 0.15em;
+}
+
+.terminal h2 {
+  font-size: 1.1rem;
+  margin: 24px 0 12px;
+}
+
+.terminal p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.lang {
+  margin-left: auto;
+}
+
+.lang select {
+  background: var(--crt-bg);
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  padding: 4px 6px;
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px;
+  background: rgba(60, 255, 107, 0.04);
+  color: var(--crema);
+  border: 2px solid;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.card:hover:not(:disabled),
+.card:focus-visible {
+  background: rgba(60, 255, 107, 0.12);
+  outline: none;
+}
+
+.card:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.card__swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.card small {
+  opacity: 0.8;
+}
+
+/* ---------- Run ---------- */
+.run,
+.run__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.run__canvas canvas {
+  display: block;
+}
+
+.run__back {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  min-height: 40px;
+  padding: 6px 12px;
+  background: rgba(11, 20, 13, 0.85);
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  cursor: pointer;
+}
+
+.run__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(130 * var(--u) + 8px);
+  padding: 0 16px;
+  text-align: center;
+  font-size: max(14px, calc(18 * var(--u)));
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ---------- Aviso de orientación (solo móvil en vertical) ---------- */
+.rotate {
+  display: none;
+}
+
+@media (orientation: portrait) and (pointer: coarse) {
+  .rotate {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    background: var(--crt-bg);
+    color: var(--crt);
+    font-size: 1.4rem;
+  }
+}
+
+/* ---------- Joystick virtual (mitad izquierda) ---------- */
+.run__canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.joy {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  background: rgba(11, 20, 13, 0.35);
+  pointer-events: none;
+}
+
+.joy[hidden] {
+  display: none;
+}
+
+.joy__knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  background: rgba(60, 255, 107, 0.55);
+  border: 2px solid var(--crt);
+}
+
+/* ---------- Filtro CRT (04_ART_UI.md §1): scanlines, viñeta y brillo; desactivable ---------- */
+.crt .terminal::after,
+.crt .crt-target::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+  mix-blend-mode: multiply;
+}
+
+.crt .terminal {
+  text-shadow: 0 0 6px rgba(60, 255, 107, 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .crt .terminal {
+    animation: crt-flicker 6s infinite steps(1);
+  }
+}
+
+@keyframes crt-flicker {
+  0%,
+  96%,
+  100% {
+    opacity: 1;
+  }
+  97% {
+    opacity: 0.96;
+  }
+}
+
+.reduce-motion .terminal {
+  animation: none !important;
+}
+
+/* Pantalla vieja de la run: scanlines y viñeta (::after) y grano que se mueve a saltos (::before), por encima del
+   juego y del HUD. La curvatura y la aberración van en el filtro del lienzo (render/oldScreen.ts). */
+.crt .run::after,
+.crt .run::before {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  z-index: 60;
+}
+
+.crt .run {
+  overflow: hidden;
+}
+
+.crt .run::after {
+  inset: 0;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.26) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.7) 100%);
+  mix-blend-mode: multiply;
+}
+
+.crt .run::before {
+  inset: -50%;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .crt .run::before {
+    animation: crt-grain 0.5s infinite steps(1);
+  }
+}
+
+.reduce-motion .run::before {
+  animation: none !important;
+}
+
+@keyframes crt-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-7%, 4%);
+  }
+  40% {
+    transform: translate(5%, -6%);
+  }
+  60% {
+    transform: translate(-3%, 8%);
+  }
+  80% {
+    transform: translate(8%, -2%);
+  }
+}
+
+/* Icono pequeño de arma junto a su nombre (pausa, resumen, selección). */
+.wicon {
+  display: inline-block;
+  width: 1.4em;
+  height: 1.4em;
+  margin-right: 0.35em;
+  vertical-align: middle;
+}

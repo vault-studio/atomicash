@@ -1,0 +1,252 @@
+/* ---------- Búnker: terminal de fósforo verde (04_ART_UI.md §2) ---------- */
+.term-btn {
+  min-height: 44px;
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  cursor: pointer;
+}
+
+.term-btn:hover,
+.term-btn:focus-visible {
+  background: rgba(60, 255, 107, 0.15);
+  outline: none;
+}
+
+.credits {
+  margin-left: auto;
+  color: #ffe14a;
+  font-size: 1.3rem;
+}
+
+.bunker__active {
+  margin-top: 8px !important;
+  opacity: 1 !important;
+}
+
+.bunker__menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+  max-width: 720px;
+}
+
+.bunker__entry {
+  display: grid;
+  grid-template-columns: minmax(180px, 14em) 1fr;
+  gap: 12px;
+  align-items: baseline;
+  min-height: 44px;
+  padding: 6px 10px;
+  text-align: left;
+  background: transparent;
+  color: var(--crt);
+  border: 1px solid transparent;
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+
+.bunker__entry:hover,
+.bunker__entry:focus-visible {
+  background: var(--crt);
+  color: var(--crt-bg);
+  outline: none;
+}
+
+.bunker__cmd {
+  letter-spacing: 0.08em;
+}
+
+.bunker__desc {
+  opacity: 0.8;
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  background: var(--cereza);
+  color: var(--crema);
+  border-radius: 8px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.cards--wide {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.card--survivor {
+  cursor: default;
+}
+
+button.card--survivor {
+  cursor: pointer;
+}
+
+.card--survivor .row {
+  margin: 6px 0 0;
+}
+
+.card--survivor .btn {
+  min-height: 40px;
+  padding: 4px 10px;
+  font-size: 1rem;
+}
+
+.card.is-active {
+  box-shadow: 0 0 0 2px var(--crt) inset;
+}
+
+.is-irradiated {
+  box-shadow: 0 0 14px rgba(125, 255, 58, 0.55);
+  background: rgba(125, 255, 58, 0.08) !important;
+}
+
+.stars {
+  color: #ffe14a;
+}
+
+.stars__off {
+  opacity: 0.25;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0;
+  max-width: 420px;
+}
+
+.field--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.field input[type='checkbox'] {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--crt);
+}
+
+.field input[type='range'] {
+  accent-color: var(--crt);
+  min-height: 32px;
+}
+
+.field select {
+  background: var(--crt-bg);
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  padding: 4px 6px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 16px 0 8px;
+}
+
+.chip {
+  min-height: 40px;
+  padding: 4px 12px;
+  background: transparent;
+  color: var(--crt);
+  border: 1px solid rgba(60, 255, 107, 0.5);
+  cursor: pointer;
+}
+
+.chip[aria-selected='true'] {
+  background: var(--crt);
+  color: var(--crt-bg);
+}
+
+.shop {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 900px;
+}
+
+.shop__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 8px 10px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+  color: var(--crema);
+}
+
+.shop__row > span:first-child {
+  flex: 1 1 260px;
+}
+
+.shop__icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+}
+
+.shop__row small {
+  opacity: 0.75;
+}
+
+.shop__row .btn {
+  min-width: 120px;
+}
+
+.shop__row.is-done {
+  border-color: var(--crt);
+}
+
+.pips {
+  color: var(--crt);
+  letter-spacing: 2px;
+}
+
+.progress {
+  display: block;
+  height: 6px;
+  margin-top: 6px;
+  background: rgba(60, 255, 107, 0.15);
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--crt);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  gap: 4px 24px;
+  color: var(--crema);
+}
+
+.stats dd {
+  margin: 0;
+  text-align: right;
+}
+
+.btn--danger {
+  border-color: var(--cereza);
+}

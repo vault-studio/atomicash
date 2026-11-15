@@ -18,7 +18,7 @@ import { addAcid, addRubble, markFall, scarFree } from '../src/engine/scars';
 import { addChest, killEnemy } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import { startDownpour, updateDownpour } from '../src/engine/systems/rains';
-import { launchSalvo } from '../src/engine/systems/shooters';
+import { launchSalvo } from '../src/engine/systems/enemies/shooters';
 import { hurtIndex } from '../src/engine/runStats';
 import type { World } from '../src/engine/types';
 import { createWorld, tick } from '../src/engine/world';

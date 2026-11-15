@@ -8,7 +8,7 @@ import { JUICE } from '../config/run';
 import { spriteIdFor } from '../engine/systems/combat';
 import type { Enemy, World } from '../engine/types';
 import { ActorView } from './actor';
-import { flyLift } from './fxLayer';
+import { flyLift } from './fx';
 import { dirIndex, isoX, isoY } from './iso';
 import type { SpriteMeta } from './spriteMeta';
 import type { SpriteLibrary } from './sprites';

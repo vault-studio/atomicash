@@ -1,0 +1,249 @@
+/* ---------- Intro «ATOMIC ASH»: monitor de búnker de fósforo verde, años 50 ----------
+ * El tubo se enciende como una raya, escribe dos líneas de arranque y saca el título en píxeles gordos sin la T.
+ * Cae una bomba de los 50 en el hueco: el impacto quema la imagen (negativo, nieve, desgarro horizontal y salto)
+ * y el hongo, tramado a 4 tonos, se queda como la T. Encima, barrido, grano, barra que rueda y parpadeo.
+ * Todo lo que se mueve va con steps() para que parezca de pocos fotogramas. Un solo reloj: animation-delay desde
+ * el montaje, con `--impact` puesto por Intro.tsx; `forwards` (no `both`) en lo que no empieza en reposo. */
+
+.intro {
+  --impact: 2s;
+  --ph-hot: #dcffe4;
+  --ph-hi: #3cff6b;
+  --ph-mid: #1fa046;
+  --ph-lo: #0d5a24;
+  --glow: rgba(60, 255, 107, 0.55);
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  background: #000;
+  color: var(--ph-hi);
+  container-type: size;
+  cursor: pointer;
+}
+
+.intro--leaving {
+  opacity: 0;
+  transition: opacity 0.24s steps(3) 0.34s;
+}
+
+.intro__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* ---------- Tubo: imagen, encendido y apagado ---------- */
+
+.intro__screen {
+  position: absolute;
+  inset: 0;
+  animation: intro-flicker 3.3s steps(1) 0.5s infinite;
+}
+
+.intro--leaving .intro__screen {
+  animation: intro-off 0.34s forwards;
+}
+
+/* La imagen en sí: el desgarro (filtro SVG) y el salto del impacto. Lleva el fondo opaco para que el negativo
+   y el tinte del destello tengan algo debajo. */
+.intro__picture {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse 70% 65% at 50% 48%, #03170a, #010804 70%, #000);
+  animation:
+    intro-shake 0.6s steps(1) var(--impact) forwards,
+    intro-tear 0.5s steps(1) var(--impact) forwards;
+}
+
+/* Al encender: un punto, una raya y el tubo entero que se calienta. Al apagar, la imagen se encoge en ella. */
+.intro__beam {
+  position: absolute;
+  inset: 0;
+  background: var(--ph-hot);
+  pointer-events: none;
+  animation: intro-on 0.5s both;
+}
+
+.intro--leaving .intro__beam {
+  animation: intro-beam-off 0.34s forwards;
+}
+
+/* ---------- Texto del terminal ---------- */
+
+.intro__type {
+  display: block;
+  width: calc(var(--n) * (1ch + var(--ls)));
+  white-space: pre;
+}
+
+.intro__type > span {
+  display: inline-block;
+  box-sizing: content-box;
+  overflow: hidden;
+  vertical-align: bottom;
+  width: 100%;
+  animation: intro-type calc(var(--n) * var(--cps)) steps(var(--n)) var(--at) both;
+}
+
+/* Cabecera centrada, como la de un terminal; estrecha para no cruzarse con la caída de la bomba. */
+.intro__boot {
+  --ls: 0.05em;
+  --cps: 11ms;
+  position: absolute;
+  top: 6.5cqh;
+  left: 0;
+  right: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.35em;
+  font-family: var(--mono);
+  font-size: min(4.6cqh, 2.3cqw);
+  line-height: 1;
+  letter-spacing: var(--ls);
+  text-transform: uppercase;
+  color: var(--ph-hi);
+  text-shadow: 0 0 0.3em var(--glow);
+}
+
+/* Aviso en vídeo inverso que parpadea. */
+.intro__alert > span {
+  background: var(--ph-hi);
+  color: #000;
+  text-shadow: none;
+  box-shadow: 0 0 0.5em var(--glow);
+  animation:
+    intro-type calc(var(--n) * var(--cps)) steps(var(--n)) var(--at) both,
+    intro-alert 0.5s steps(1) 1.4s infinite;
+}
+
+/* ---------- Título ---------- */
+
+.intro__stage {
+  display: grid;
+  justify-items: center;
+  gap: 7cqh;
+  translate: 0 3cqh;
+  /* Hipo de la señal cuando acaba el subtítulo: dos fotogramas desgarrados. */
+  animation: intro-hiccup 0.2s steps(1) calc(var(--impact) + 3s) forwards;
+}
+
+.intro__title {
+  position: relative;
+  margin: 0;
+  width: min(80cqw, 172cqh);
+  line-height: 0;
+}
+
+.intro__logo,
+.intro__bomb {
+  display: block;
+  overflow: visible;
+  shape-rendering: crispEdges;
+}
+
+/* El haz no es perfecto: un pelín de desenfoque y el brillo del fósforo alrededor. */
+.intro__logo {
+  width: 100%;
+  height: auto;
+  filter: blur(0.12cqh) drop-shadow(0 0 0.5cqh rgba(60, 255, 107, 0.8))
+    drop-shadow(0 0 3cqh rgba(60, 255, 107, 0.25));
+}
+
+.intro__tone1 {
+  fill: var(--ph-lo);
+}
+
+.intro__tone2 {
+  fill: var(--ph-mid);
+}
+
+.intro__tone3 {
+  fill: var(--ph-hi);
+}
+
+.intro__tone4 {
+  fill: var(--ph-hot);
+}
+
+/* Cada letra se enciende a su vez, se quema con el destello y la onda la empuja un píxel. */
+.intro__glyph {
+  fill: var(--ph-hi);
+  opacity: 0;
+  animation:
+    intro-warm 0.5s steps(1) calc(0.45s + var(--i) * 45ms) forwards,
+    intro-scorch 0.9s steps(4) var(--impact) forwards,
+    intro-shove 0.18s steps(1) calc(var(--impact) + var(--near) * 4ms) forwards;
+}
+
+/* Guion bajo parpadeando en el hueco: falta una letra. */
+.intro__cursor {
+  fill: var(--ph-hi);
+  opacity: 0;
+  animation:
+    intro-blink 0.5s steps(1) 0.75s infinite,
+    intro-gone 1ms var(--impact) forwards;
+}
+
+.intro__frame {
+  opacity: 0;
+  animation: intro-frame var(--dur) calc(var(--impact) + var(--at));
+}
+
+.intro__cloud {
+  opacity: 0;
+  animation: intro-show 1ms calc(var(--impact) + var(--at)) forwards;
+}
+
+.intro__boil {
+  animation: intro-boil 0.9s steps(1) calc(var(--impact) + 1.2s) infinite both;
+}
+
+.intro__boil--b {
+  animation-name: intro-boil-b;
+}
+
+/* La bomba cae a saltos (aceleración en 15 fotogramas) justo encima del hueco y desaparece al tocar el suelo. */
+.intro__drop {
+  position: absolute;
+  left: calc(14 / 120 * 100%);
+  bottom: 0;
+  width: calc(13 / 120 * 100%);
+  aspect-ratio: 13 / 16;
+}
+
+.intro__bomb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: var(--glow-a);
+  filter: drop-shadow(0 0 0.35cqh var(--ph-hi));
+  animation:
+    intro-fall 0.9s steps(3) calc(var(--impact) - 0.9s + var(--lag) * 60ms) both,
+    intro-gone 1ms var(--impact) forwards;
+}
+
+/* Subtítulo a máquina con cursor de bloque. */
+.intro__sub {
+  --ls: 0.1em;
+  --cps: 40ms;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: min(5.4cqh, 2.6cqw);
+  line-height: 1;
+  letter-spacing: var(--ls);
+  text-transform: uppercase;
+  color: var(--ph-hi);
+  text-shadow: 0 0 0.3em var(--glow);
+}
+
+/* El cursor no sale hasta que empieza a escribir. */
+.intro__sub .intro__type > span {
+  border-right: 0.6ch solid transparent;
+  animation:
+    intro-type calc(var(--n) * var(--cps)) steps(var(--n)) var(--at) both,
+    intro-caret 0.8s steps(1) var(--at) infinite;
+}

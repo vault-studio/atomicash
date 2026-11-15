@@ -8,7 +8,7 @@ import type { World } from '../../../engine/types';
 import { currentDps } from '../../../engine/world';
 import { weaponIcon } from '../../icons';
 import { headOf } from '../bunker/Portraits';
-import { fmtTime } from './Hud';
+import { fmtTime } from '../../format';
 
 const pct = (v: number): string => `${v > 0 ? '+' : ''}${Math.round(v * 100)} %`;
 

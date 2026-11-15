@@ -1,0 +1,283 @@
+/* ---------- Tablón: expediente, órdenes del día y medallas ---------- */
+.terminal .board__h {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 26px 0 12px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--crt);
+  letter-spacing: 0.1em;
+}
+
+.board__h small {
+  margin-left: auto;
+  font-size: 1rem;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+.board__record {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.board__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 12px 6px;
+  background: rgba(60, 255, 107, 0.07);
+  border: 1px solid rgba(60, 255, 107, 0.45);
+  box-shadow: inset 0 0 18px rgba(60, 255, 107, 0.12);
+}
+
+.board__num {
+  font-family: var(--hud-font);
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--crt);
+  text-shadow: 0 0 10px rgba(60, 255, 107, 0.55);
+}
+
+.board__lbl {
+  font-size: 0.95rem;
+  color: var(--crema);
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* Misiones: órdenes en fila, todas de la misma altura. */
+.board__missions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  grid-template-areas:
+    'icon title'
+    'icon count'
+    'bar bar'
+    'reward btn';
+  align-items: center;
+  gap: 6px 12px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(60, 255, 107, 0.4);
+  color: var(--crema);
+  overflow: hidden;
+}
+
+.order__icon {
+  grid-area: icon;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 6px rgba(60, 255, 107, 0.35));
+}
+
+.order__title {
+  grid-area: title;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+
+.order__count {
+  grid-area: count;
+  opacity: 0.85;
+}
+
+.order__count b {
+  color: var(--crt);
+  font-size: 1.4rem;
+}
+
+/* Barra a tramos, como un medidor de fósforo. */
+.order__bar {
+  grid-area: bar;
+  height: 14px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 10px, rgba(0, 0, 0, 0.85) 10px 12px),
+    linear-gradient(90deg, var(--crt) var(--p), rgba(60, 255, 107, 0.12) var(--p));
+  border: 1px solid rgba(60, 255, 107, 0.5);
+}
+
+.order__reward {
+  grid-area: reward;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffe14a;
+  font-size: 1.4rem;
+}
+
+.order__reward img {
+  width: 30px;
+  height: 30px;
+}
+
+.order .btn {
+  grid-area: btn;
+  justify-self: end;
+}
+
+.order.is-ready {
+  border-color: #ffe14a;
+  animation: order-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes order-glow {
+  from {
+    box-shadow: 0 0 6px rgba(255, 225, 74, 0.3);
+  }
+  to {
+    box-shadow: 0 0 22px rgba(255, 225, 74, 0.75);
+  }
+}
+
+.order.is-claimed > :not(.order__stamp) {
+  opacity: 0.4;
+}
+
+.order__stamp {
+  grid-area: btn;
+  justify-self: end;
+  padding: 2px 10px;
+  border: 3px solid var(--cereza);
+  color: var(--cereza);
+  font-family: var(--title-font);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
+/* Logros: medallas con el progreso alrededor. */
+.board__medals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 10px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(60, 255, 107, 0.25);
+  color: var(--crema);
+}
+
+.medal__ring {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--crt) var(--p), rgba(60, 255, 107, 0.12) var(--p));
+}
+
+.medal__core {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--crt-bg);
+  color: var(--crt);
+  font-size: 1.3rem;
+}
+
+.medal__name {
+  font-size: 1.15rem;
+  line-height: 1.1;
+}
+
+.medal__desc {
+  opacity: 0.75;
+}
+
+.medal__reward {
+  margin-top: auto;
+  font-size: 0.95rem;
+  color: #ffe14a;
+}
+
+.medal:not(.is-won) .medal__name {
+  opacity: 0.8;
+}
+
+.medal.is-won {
+  border-color: #ffe14a;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 225, 74, 0.16), rgba(0, 0, 0, 0.5) 70%);
+}
+
+.medal.is-won .medal__ring {
+  background: conic-gradient(#ffe14a, #ff9a2a, #ffe14a, #ff9a2a, #ffe14a);
+  box-shadow: 0 0 18px rgba(255, 225, 74, 0.6);
+}
+
+.medal.is-won .medal__core {
+  color: #ffe14a;
+  font-size: 2.4rem;
+  text-shadow: 0 0 10px rgba(255, 225, 74, 0.8);
+}
+
+@media (max-width: 900px) {
+  .board__record {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Selector de superviviente con su cara (Taller). */
+.chip--face {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+}
+
+.chip--face img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  object-position: 50% 20%;
+  border: 2px solid var(--rarity);
+  border-radius: 50%;
+  background: #1a1a12;
+}
+
+/* Conflicto de partidas al entrar con Google (encima de cualquier pantalla) */
+.save-conflict {
+  position: fixed;
+  z-index: 50;
+  background: rgba(8, 10, 6, 0.92);
+  text-align: center;
+}
+
+.online-taken {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--crt);
+}
+
+.online-taken p {
+  margin: 0 0 8px;
+}

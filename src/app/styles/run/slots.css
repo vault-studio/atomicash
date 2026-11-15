@@ -1,0 +1,129 @@
+/* Tragaperras de los cofres (dossier §7) */
+.choice__card.is-spinning {
+  cursor: default;
+  filter: blur(0.6px) brightness(0.92);
+  animation: slot-shake 0.09s linear infinite alternate;
+}
+
+.choice__card.is-landed {
+  animation: slot-land 0.5s ease-out both;
+}
+
+.choice__card:disabled {
+  cursor: default;
+}
+
+@keyframes slot-shake {
+  from {
+    transform: translateY(-2px);
+  }
+  to {
+    transform: translateY(2px);
+  }
+}
+
+@keyframes slot-land {
+  0% {
+    transform: scale(1.12);
+    box-shadow: 0 0 40px var(--crt);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.slotm {
+  --accent: var(--crt);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 18px 26px 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(60, 255, 107, 0.035) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 50% 30%, rgba(60, 255, 107, 0.1), transparent 70%), #050a06;
+  color: var(--crt);
+  border: 2px solid var(--accent);
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 24px rgba(0, 0, 0, 0.8),
+    0 0 14px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 6px 0 #000;
+  text-shadow: 0 0 6px rgba(60, 255, 107, 0.45);
+}
+
+.slotm__reels {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  background: #000;
+  border: 1px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.slotm__reel {
+  width: 64px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(#020402, #0b140d 30%, #0b140d 70%, #020402);
+  color: rgba(60, 255, 107, 0.55);
+  border: 1px solid rgba(60, 255, 107, 0.25);
+  font-family: var(--title-font);
+  font-size: 46px;
+  filter: blur(1.2px);
+}
+
+.slotm__reel.is-landed {
+  color: var(--accent);
+  border-color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
+  filter: none;
+  animation: slot-land 0.4s ease-out both;
+}
+
+.slotm__label {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.slotm__prize {
+  margin: 0;
+  font-size: 22px;
+  color: rgba(60, 255, 107, 0.8);
+}
+
+.slotm.is-ready.is-big {
+  --accent: #ffb347;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 24px rgba(0, 0, 0, 0.8),
+    0 0 30px #ffb347,
+    0 6px 0 #000;
+}
+
+.slotm.is-ready.is-jackpot {
+  --accent: #ffe14a;
+  animation: slot-jackpot 0.35s steps(2) 6;
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 24px rgba(0, 0, 0, 0.8),
+    0 0 50px #ffe14a,
+    0 6px 0 #000;
+}
+
+@keyframes slot-jackpot {
+  50% {
+    border-color: #ffffff;
+  }
+}
+
+@media (max-height: 460px) {
+  .slotm__reel {
+    width: 50px;
+    height: 64px;
+    font-size: 36px;
+  }
+}

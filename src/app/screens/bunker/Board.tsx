@@ -6,9 +6,9 @@ import { ACHIEVEMENTS, ACHIEVEMENT_IDS, MISSIONS, type MissionKind } from '../..
 import { achievementProgress, claimMission } from '../../../meta/actions';
 import { useSave } from '../../../store/save';
 import { hudIcon, pickupIcon, weaponIcon } from '../../icons';
-import { fmtTime } from '../run/Hud';
+import { fmtTime } from '../../format';
 import { Screen, untilMidnight } from './common';
-import { Leaderboard } from './Online';
+import { Leaderboard } from './Leaderboard';
 
 /** Dibujo de cada tipo de misión. */
 const MISSION_ICON: Readonly<Record<MissionKind, string>> = {
