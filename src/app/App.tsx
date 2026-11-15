@@ -17,7 +17,7 @@ import { Expedition } from './screens/bunker/Expedition';
 import { Settings } from './screens/bunker/Settings';
 import { Stores } from './screens/bunker/Stores';
 import { Supplies } from './screens/bunker/Supplies';
-import { SaveConflictDialog } from './screens/bunker/Online';
+import { SaveConflictDialog } from './screens/bunker/SaveConflictDialog';
 import { RunReward } from './screens/run/RunReward';
 
 type View = BunkerView | 'bunker';

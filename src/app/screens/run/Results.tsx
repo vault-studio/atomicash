@@ -3,7 +3,7 @@
 import { useTranslation } from 'react-i18next';
 import type { RunResults } from '../../../engine/world';
 import { sourceIcon } from '../../icons';
-import { fmtTime } from './Hud';
+import { fmtTime } from '../../format';
 
 interface Props {
   r: RunResults;
