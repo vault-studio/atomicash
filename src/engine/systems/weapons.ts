@@ -327,51 +327,17 @@ function pulseAura(w: World, wp: Weapon, r: number, dmg: number): number {
 }
 
 export function updateWeapon(w: World, wp: Weapon, dt: number): void {
-  const p = w.player;
-  const st = w.st;
-  const out = w.qWeapon;
-  const lvl = wp.lvl;
   switch (wp.id) {
     case 'llave':
     case 'dinamo':
       fireOrbit(w, wp, dt);
       return;
-    case 'geiger': {
-      const W = WEAPONS.geiger;
-      wp.r = (W.r + W.rPerLvl * (lvl - 1) + W.rPerRad * p.rad) * st.area;
-      wp.cd -= dt;
-      if (wp.cd > 0) return;
-      wp.cd = W.tickCd;
-      pulseAura(w, wp, wp.r, scaled(W.dmg, W.dmgPerLvl, lvl));
+    case 'geiger':
+      fireGeiger(w, wp, dt);
       return;
-    }
-    case 'nucleo_inestable': {
-      const W = WEAPONS.nucleo_inestable;
-      wp.r = (W.r + W.rPerRad * p.rad) * st.area;
-      wp.cd -= dt;
-      wp.cd2 -= dt;
-      if (wp.cd <= 0) {
-        wp.cd = W.tickCd;
-        pulseAura(w, wp, wp.r, W.dmg);
-      }
-      if (wp.cd2 <= 0) {
-        const k = queryEnemies(w, p.x, p.y, wp.r, out);
-        if (k === 0) {
-          wp.cd2 = 0.05;
-          return;
-        }
-        wp.cd2 = W.boltCd * st.cdMult;
-        const dmg = W.boltDmg * (1 + W.boltRadBonus * p.rad);
-        for (let b = 0; b < W.bolts; b++) {
-          const e = w.enemies.items[out[(w.rng() * k) | 0]!]!;
-          if (e.dead) continue;
-          const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.unstable);
-          beamPoint(beam, e.x, e.y);
-          hitEnemy(w, e, dmg, wp.id, HIT_DIRECT);
-        }
-      }
+    case 'nucleo_inestable':
+      fireUnstable(w, wp, dt);
       return;
-    }
   }
 
   wp.cd -= dt;
@@ -379,262 +345,379 @@ export function updateWeapon(w: World, wp: Weapon, dt: number): void {
 
   switch (wp.id) {
     case 'pistola_clavos':
-    case 'remachadora': {
-      const isPistol = wp.id === 'pistola_clavos';
-      const W = isPistol ? WEAPONS.pistola_clavos : WEAPONS.remachadora;
-      const t = nearest(w, p.x, p.y, W.range);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const n = isPistol ? lvl : WEAPONS.remachadora.count;
-      const pierce = (isPistol ? 0 : WEAPONS.remachadora.pierce) + st.pierce;
-      const base = Math.atan2(t.y - p.y, t.x - p.x);
-      for (let i = 0; i < n; i++) {
-        addShot(
-          w,
-          base + (i - (n - 1) / 2) * W.spread,
-          W.speed,
-          4,
-          W.range / W.speed,
-          W.dmg,
-          pierce,
-          wp.id,
-          0.5,
-        );
-      }
-      wp.cd = (isPistol ? W.cd * Math.pow(WEAPONS.pistola_clavos.cdPerLvl, lvl - 1) : W.cd) * st.cdMult;
+    case 'remachadora':
+      fireNails(w, wp);
       return;
-    }
     case 'jeringa':
-    case 'dardos_incendiarios': {
-      const isSyringe = wp.id === 'jeringa';
-      const W = isSyringe ? WEAPONS.jeringa : WEAPONS.dardos_incendiarios;
-      const t = nearest(w, p.x, p.y, W.range);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const n = isSyringe ? 2 + lvl : WEAPONS.dardos_incendiarios.count;
-      const base = Math.atan2(t.y - p.y, t.x - p.x);
-      for (let i = 0; i < n; i++) {
-        addShot(
-          w,
-          base + (i / (n - 1) - 0.5) * W.fan,
-          W.speed,
-          4,
-          W.range / W.speed,
-          W.dmg,
-          st.pierce,
-          wp.id,
-          0.3,
-        );
-      }
-      wp.cd = W.cd * st.cdMult;
+    case 'dardos_incendiarios':
+      fireDarts(w, wp);
+      return;
+    case 'escopeta_chatarra':
+      fireShotgun(w, wp);
+      return;
+    case 'rifle_cerrojo':
+      fireRifle(w, wp);
+      return;
+    case 'coctel':
+      fireCocktail(w, wp);
+      return;
+    case 'petardos':
+      fireFirecrackers(w, wp);
+      return;
+    case 'tesla':
+      fireTesla(w, wp);
+      return;
+    case 'martillo_pilon':
+      fireHammer(w, wp);
+      return;
+    case 'megafono':
+      fireMegaphone(w, wp);
+      return;
+    case 'desfibrilador':
+      fireDefib(w, wp);
+      return;
+    case 'nucleo_cobalto':
+      fireCobalt(w, wp);
+      return;
+  }
+}
+
+/** Contador Geiger: aura que crece con el nivel y la RAD. */
+function fireGeiger(w: World, wp: Weapon, dt: number): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.geiger;
+  wp.r = (W.r + W.rPerLvl * (lvl - 1) + W.rPerRad * p.rad) * st.area;
+  wp.cd -= dt;
+  if (wp.cd > 0) return;
+  wp.cd = W.tickCd;
+  pulseAura(w, wp, wp.r, scaled(W.dmg, W.dmgPerLvl, lvl));
+  return;
+}
+
+/** Núcleo inestable: aura y rayos al azar a los de dentro. */
+function fireUnstable(w: World, wp: Weapon, dt: number): void {
+  const p = w.player;
+  const st = w.st;
+  const out = w.qWeapon;
+  const W = WEAPONS.nucleo_inestable;
+  wp.r = (W.r + W.rPerRad * p.rad) * st.area;
+  wp.cd -= dt;
+  wp.cd2 -= dt;
+  if (wp.cd <= 0) {
+    wp.cd = W.tickCd;
+    pulseAura(w, wp, wp.r, W.dmg);
+  }
+  if (wp.cd2 <= 0) {
+    const k = queryEnemies(w, p.x, p.y, wp.r, out);
+    if (k === 0) {
+      wp.cd2 = 0.05;
       return;
     }
-    case 'escopeta_chatarra': {
-      const W = WEAPONS.escopeta_chatarra;
-      const t = nearest(w, p.x, p.y, W.range);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const n = W.pellets + W.pelletsPerLvl * (lvl - 1);
-      const base = Math.atan2(t.y - p.y, t.x - p.x);
-      for (let i = 0; i < n; i++) {
-        const a = base + (w.rng() - 0.5) * W.cone;
-        addShot(w, a, W.speed * (0.85 + w.rng() * 0.3), 3, W.life, W.dmg, st.pierce, wp.id, 1.2);
-      }
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'rifle_cerrojo': {
-      const W = WEAPONS.rifle_cerrojo;
-      const t = toughestInRange(w, W.range);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const a = Math.atan2(t.y - p.y, t.x - p.x);
-      addShot(
-        w,
-        a,
-        W.speed,
-        5,
-        W.range / W.speed,
-        scaled(W.dmg, W.dmgPerLvl, lvl),
-        W.pierce + st.pierce,
-        wp.id,
-        1,
-      );
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'coctel': {
-      const W = WEAPONS.coctel;
-      let thrown = 0;
-      for (let i = 0; i < lvl; i++) {
-        const t = randomInRange(w, W.range);
-        if (!t) break;
-        const l = w.lobs.acquire();
-        l.sx = p.x;
-        l.sy = p.y;
-        // Cae un poco por delante del bicho (hacia el jugador): como viene a por ti, se mete en el fuego.
-        const dx = p.x - t.x;
-        const dy = p.y - t.y;
-        const d = Math.sqrt(dx * dx + dy * dy) || 1;
-        const lead = Math.min(W.lead, d * 0.5) / d;
-        l.tx = t.x + dx * lead;
-        l.ty = t.y + dy * lead;
-        l.t = 0;
-        l.dur = W.flight;
-        l.lvl = lvl;
-        thrown++;
-        sfx(w, SFX.throw);
-      }
-      wp.cd = thrown === 0 ? 0.1 : W.cd * st.cdMult;
-      return;
-    }
-    case 'petardos': {
-      const W = WEAPONS.petardos;
-      const t = densestInRange(w, W.range, W.samples, W.crowdR);
-      if (!t) {
-        wp.cd = 0.1;
-        return;
-      }
-      const n = W.count[Math.min(lvl, W.count.length) - 1]!;
-      const r = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
-      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
-      const spread = W.spread * st.area;
-      for (let i = 0; i < n && w.mines.count < W.maxMines; i++) {
-        // Reparto uniforme en el disco: raíz del radio.
-        const a = w.rng() * Math.PI * 2;
-        const d = Math.sqrt(w.rng()) * spread;
-        const m = w.mines.acquire();
-        m.sx = p.x;
-        m.sy = p.y;
-        m.x = t.x + Math.cos(a) * d;
-        m.y = t.y + Math.sin(a) * d;
-        // Los de atrás vuelan un poco más: la ristra cae estirada.
-        m.flyDur = m.fly = W.flight * (1 + 0.25 * (i / n));
-        m.t = W.chain * i;
-        m.r = r;
-        m.dmg = dmg;
-      }
-      wp.cd = Math.max(0.3, W.cd + W.cdPerLvl * (lvl - 1)) * st.cdMult;
-      return;
-    }
-    case 'tesla': {
-      const W = WEAPONS.tesla;
-      const t = nearest(w, p.x, p.y, W.range);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      chain(
-        w,
-        t,
-        W.jumps + W.jumpsPerLvl * (lvl - 1),
-        scaled(W.dmg, W.dmgPerLvl, lvl),
-        'tesla',
-        p.x,
-        p.y,
-        false,
-      );
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'martillo_pilon': {
-      const W = WEAPONS.martillo_pilon;
-      const R = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
-      const k = queryEnemies(w, p.x, p.y, R, out);
-      let hits = 0;
-      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
-      for (let q = 0; q < k; q++) {
-        const e = w.enemies.items[out[q]!]!;
-        if (e.flying || e.dead) continue;
-        hits++;
-        hitEnemy(w, e, dmg, wp.id, HIT_DIRECT | HIT_MELEE, W.kb, p.x, p.y);
-      }
-      if (hits === 0) {
-        wp.cd = 0.05;
-        return;
-      }
-      boom(w, p.x, p.y, R, 0.2, FX.colors.hammer, SFX.slam);
-      addShake(w, 2);
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'megafono': {
-      const W = WEAPONS.megafono;
-      const R = W.range * st.area;
-      const t = nearest(w, p.x, p.y, R, true);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const base = Math.atan2(t.y - p.y, t.x - p.x);
-      const half = (W.angle + W.anglePerLvl * (lvl - 1)) / 2;
-      const ux = Math.cos(base);
-      const uy = Math.sin(base);
-      const cosHalf = Math.cos(half);
-      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
-      const kb = W.kb + W.kbPerLvl * (lvl - 1);
-      const k = queryEnemies(w, p.x, p.y, R, out);
-      for (let q = 0; q < k; q++) {
-        const e = w.enemies.items[out[q]!]!;
-        if (e.flying || e.dead) continue;
-        const dx = e.x - p.x;
-        const dy = e.y - p.y;
-        const d = Math.sqrt(dx * dx + dy * dy) || 1;
-        if ((dx * ux + dy * uy) / d < cosHalf && d > e.r + p.r) continue;
-        hitEnemy(w, e, dmg, wp.id, HIT_DIRECT, kb, p.x, p.y);
-      }
-      const beam = beamStart(
-        w,
-        p.x + Math.cos(base - half) * R,
-        p.y + Math.sin(base - half) * R,
-        0.15,
-        FX.colors.cone,
-        SFX.sonic,
-      );
-      beamPoint(beam, p.x, p.y);
-      beamPoint(beam, p.x + Math.cos(base + half) * R, p.y + Math.sin(base + half) * R);
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'desfibrilador': {
-      const W = WEAPONS.desfibrilador;
-      const k = nearestN(w, W.range, W.targets + lvl);
-      if (k === 0) {
-        wp.cd = 0.05;
-        return;
-      }
-      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl) * (1 + W.regenBonus * st.regen);
-      for (let i = 0; i < k; i++) {
-        const e = w.enemies.items[nearIdx[i]!]!;
-        const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.zap, SFX.defib);
-        beamPoint(beam, e.x, e.y);
-        hitEnemy(w, e, dmg, wp.id, 0, W.kb, p.x, p.y);
-      }
-      wp.cd = W.cd * st.cdMult;
-      return;
-    }
-    case 'nucleo_cobalto': {
-      const W = WEAPONS.nucleo_cobalto;
-      const t = nearest(w, p.x, p.y, W.speed * W.life);
-      if (!t) {
-        wp.cd = 0.05;
-        return;
-      }
-      const a = Math.atan2(t.y - p.y, t.x - p.x);
-      const dmg = scaled(W.dmg, W.dmgPerLvl, lvl) * (1 + W.radBonus * p.rad);
-      addShot(w, a, W.speed, W.size * st.area, W.life, dmg, W.pierce + lvl + st.pierce, wp.id, 0.6);
-      wp.cd = W.cd * st.cdMult;
-      return;
+    wp.cd2 = W.boltCd * st.cdMult;
+    const dmg = W.boltDmg * (1 + W.boltRadBonus * p.rad);
+    for (let b = 0; b < W.bolts; b++) {
+      const e = w.enemies.items[out[(w.rng() * k) | 0]!]!;
+      if (e.dead) continue;
+      const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.unstable);
+      beamPoint(beam, e.x, e.y);
+      hitEnemy(w, e, dmg, wp.id, HIT_DIRECT);
     }
   }
+  return;
+}
+
+/** Pistola de clavos y remachadora: ráfaga al más cercano. */
+function fireNails(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const isPistol = wp.id === 'pistola_clavos';
+  const W = isPistol ? WEAPONS.pistola_clavos : WEAPONS.remachadora;
+  const t = nearest(w, p.x, p.y, W.range);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const n = isPistol ? lvl : WEAPONS.remachadora.count;
+  const pierce = (isPistol ? 0 : WEAPONS.remachadora.pierce) + st.pierce;
+  const base = Math.atan2(t.y - p.y, t.x - p.x);
+  for (let i = 0; i < n; i++) {
+    addShot(w, base + (i - (n - 1) / 2) * W.spread, W.speed, 4, W.range / W.speed, W.dmg, pierce, wp.id, 0.5);
+  }
+  wp.cd = (isPistol ? W.cd * Math.pow(WEAPONS.pistola_clavos.cdPerLvl, lvl - 1) : W.cd) * st.cdMult;
+  return;
+}
+
+/** Jeringa y dardos incendiarios: abanico al más cercano. */
+function fireDarts(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const isSyringe = wp.id === 'jeringa';
+  const W = isSyringe ? WEAPONS.jeringa : WEAPONS.dardos_incendiarios;
+  const t = nearest(w, p.x, p.y, W.range);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const n = isSyringe ? 2 + lvl : WEAPONS.dardos_incendiarios.count;
+  const base = Math.atan2(t.y - p.y, t.x - p.x);
+  for (let i = 0; i < n; i++) {
+    addShot(
+      w,
+      base + (i / (n - 1) - 0.5) * W.fan,
+      W.speed,
+      4,
+      W.range / W.speed,
+      W.dmg,
+      st.pierce,
+      wp.id,
+      0.3,
+    );
+  }
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Escopeta de chatarra: perdigones en cono. */
+function fireShotgun(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.escopeta_chatarra;
+  const t = nearest(w, p.x, p.y, W.range);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const n = W.pellets + W.pelletsPerLvl * (lvl - 1);
+  const base = Math.atan2(t.y - p.y, t.x - p.x);
+  for (let i = 0; i < n; i++) {
+    const a = base + (w.rng() - 0.5) * W.cone;
+    addShot(w, a, W.speed * (0.85 + w.rng() * 0.3), 3, W.life, W.dmg, st.pierce, wp.id, 1.2);
+  }
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Rifle de cerrojo: un tiro perforante al más duro. */
+function fireRifle(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.rifle_cerrojo;
+  const t = toughestInRange(w, W.range);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const a = Math.atan2(t.y - p.y, t.x - p.x);
+  addShot(
+    w,
+    a,
+    W.speed,
+    5,
+    W.range / W.speed,
+    scaled(W.dmg, W.dmgPerLvl, lvl),
+    W.pierce + st.pierce,
+    wp.id,
+    1,
+  );
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Cóctel: botellas que caen delante de enemigos al azar. */
+function fireCocktail(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.coctel;
+  let thrown = 0;
+  for (let i = 0; i < lvl; i++) {
+    const t = randomInRange(w, W.range);
+    if (!t) break;
+    const l = w.lobs.acquire();
+    l.sx = p.x;
+    l.sy = p.y;
+    // Cae un poco por delante del bicho (hacia el jugador): como viene a por ti, se mete en el fuego.
+    const dx = p.x - t.x;
+    const dy = p.y - t.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const lead = Math.min(W.lead, d * 0.5) / d;
+    l.tx = t.x + dx * lead;
+    l.ty = t.y + dy * lead;
+    l.t = 0;
+    l.dur = W.flight;
+    l.lvl = lvl;
+    thrown++;
+    sfx(w, SFX.throw);
+  }
+  wp.cd = thrown === 0 ? 0.1 : W.cd * st.cdMult;
+  return;
+}
+
+/** Petardos: ristra sobre la zona con más enemigos. */
+function fireFirecrackers(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.petardos;
+  const t = densestInRange(w, W.range, W.samples, W.crowdR);
+  if (!t) {
+    wp.cd = 0.1;
+    return;
+  }
+  const n = W.count[Math.min(lvl, W.count.length) - 1]!;
+  const r = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
+  const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
+  const spread = W.spread * st.area;
+  for (let i = 0; i < n && w.mines.count < W.maxMines; i++) {
+    // Reparto uniforme en el disco: raíz del radio.
+    const a = w.rng() * Math.PI * 2;
+    const d = Math.sqrt(w.rng()) * spread;
+    const m = w.mines.acquire();
+    m.sx = p.x;
+    m.sy = p.y;
+    m.x = t.x + Math.cos(a) * d;
+    m.y = t.y + Math.sin(a) * d;
+    // Los de atrás vuelan un poco más: la ristra cae estirada.
+    m.flyDur = m.fly = W.flight * (1 + 0.25 * (i / n));
+    m.t = W.chain * i;
+    m.r = r;
+    m.dmg = dmg;
+  }
+  wp.cd = Math.max(0.3, W.cd + W.cdPerLvl * (lvl - 1)) * st.cdMult;
+  return;
+}
+
+/** Bobina tesla: rayo que salta entre enemigos. */
+function fireTesla(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.tesla;
+  const t = nearest(w, p.x, p.y, W.range);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  chain(w, t, W.jumps + W.jumpsPerLvl * (lvl - 1), scaled(W.dmg, W.dmgPerLvl, lvl), 'tesla', p.x, p.y, false);
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Martillo pilón: golpe en área alrededor del jugador. */
+function fireHammer(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const out = w.qWeapon;
+  const lvl = wp.lvl;
+  const W = WEAPONS.martillo_pilon;
+  const R = (W.r + W.rPerLvl * (lvl - 1)) * st.area;
+  const k = queryEnemies(w, p.x, p.y, R, out);
+  let hits = 0;
+  const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
+  for (let q = 0; q < k; q++) {
+    const e = w.enemies.items[out[q]!]!;
+    if (e.flying || e.dead) continue;
+    hits++;
+    hitEnemy(w, e, dmg, wp.id, HIT_DIRECT | HIT_MELEE, W.kb, p.x, p.y);
+  }
+  if (hits === 0) {
+    wp.cd = 0.05;
+    return;
+  }
+  boom(w, p.x, p.y, R, 0.2, FX.colors.hammer, SFX.slam);
+  addShake(w, 2);
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Megáfono: cono de sonido que empuja. */
+function fireMegaphone(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const out = w.qWeapon;
+  const lvl = wp.lvl;
+  const W = WEAPONS.megafono;
+  const R = W.range * st.area;
+  const t = nearest(w, p.x, p.y, R, true);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const base = Math.atan2(t.y - p.y, t.x - p.x);
+  const half = (W.angle + W.anglePerLvl * (lvl - 1)) / 2;
+  const ux = Math.cos(base);
+  const uy = Math.sin(base);
+  const cosHalf = Math.cos(half);
+  const dmg = scaled(W.dmg, W.dmgPerLvl, lvl);
+  const kb = W.kb + W.kbPerLvl * (lvl - 1);
+  const k = queryEnemies(w, p.x, p.y, R, out);
+  for (let q = 0; q < k; q++) {
+    const e = w.enemies.items[out[q]!]!;
+    if (e.flying || e.dead) continue;
+    const dx = e.x - p.x;
+    const dy = e.y - p.y;
+    const d = Math.sqrt(dx * dx + dy * dy) || 1;
+    if ((dx * ux + dy * uy) / d < cosHalf && d > e.r + p.r) continue;
+    hitEnemy(w, e, dmg, wp.id, HIT_DIRECT, kb, p.x, p.y);
+  }
+  const beam = beamStart(
+    w,
+    p.x + Math.cos(base - half) * R,
+    p.y + Math.sin(base - half) * R,
+    0.15,
+    FX.colors.cone,
+    SFX.sonic,
+  );
+  beamPoint(beam, p.x, p.y);
+  beamPoint(beam, p.x + Math.cos(base + half) * R, p.y + Math.sin(base + half) * R);
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Desfibrilador: descargas a los más cercanos. */
+function fireDefib(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.desfibrilador;
+  const k = nearestN(w, W.range, W.targets + lvl);
+  if (k === 0) {
+    wp.cd = 0.05;
+    return;
+  }
+  const dmg = scaled(W.dmg, W.dmgPerLvl, lvl) * (1 + W.regenBonus * st.regen);
+  for (let i = 0; i < k; i++) {
+    const e = w.enemies.items[nearIdx[i]!]!;
+    const beam = beamStart(w, p.x, p.y, 0.1, FX.colors.zap, SFX.defib);
+    beamPoint(beam, e.x, e.y);
+    hitEnemy(w, e, dmg, wp.id, 0, W.kb, p.x, p.y);
+  }
+  wp.cd = W.cd * st.cdMult;
+  return;
+}
+
+/** Núcleo de cobalto: bola lenta que atraviesa. */
+function fireCobalt(w: World, wp: Weapon): void {
+  const p = w.player;
+  const st = w.st;
+  const lvl = wp.lvl;
+  const W = WEAPONS.nucleo_cobalto;
+  const t = nearest(w, p.x, p.y, W.speed * W.life);
+  if (!t) {
+    wp.cd = 0.05;
+    return;
+  }
+  const a = Math.atan2(t.y - p.y, t.x - p.x);
+  const dmg = scaled(W.dmg, W.dmgPerLvl, lvl) * (1 + W.radBonus * p.rad);
+  addShot(w, a, W.speed, W.size * st.area, W.life, dmg, W.pierce + lvl + st.pierce, wp.id, 0.6);
+  wp.cd = W.cd * st.cdMult;
+  return;
 }
 
 export function updateWeapons(w: World, dt: number): void {
