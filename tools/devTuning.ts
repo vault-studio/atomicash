@@ -8,7 +8,7 @@ import type { Plugin } from 'vite';
 const FILE = 'src/data/tuning.json';
 const ROUTE = '/__tuning';
 /** Cabecera propia: obliga a una petición «con preflight», que el navegador no manda desde otras páginas. */
-const HEADER = 'x-atomicash-dev';
+export const HEADER = 'x-atomicash-dev';
 const MAX_BYTES = 1_000_000;
 
 export type TuningCheck = { ok: true; data: Record<string, unknown> } | { ok: false; error: string };
@@ -46,7 +46,7 @@ export function validateTuningText(text: string, reference: Record<string, unkno
   return { ok: true, data };
 }
 
-function readBody(req: IncomingMessage): Promise<string> {
+export function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let size = 0;
     const chunks: Buffer[] = [];
@@ -63,11 +63,11 @@ function readBody(req: IncomingMessage): Promise<string> {
 }
 
 /** Da al JSON el formato del proyecto (Prettier) para que el diff solo muestre los valores cambiados. */
-async function format(json: Record<string, unknown>): Promise<string> {
+export async function format(json: Record<string, unknown>, file = FILE): Promise<string> {
   const raw = JSON.stringify(json, null, 2) + '\n';
   try {
     const prettier = await import('prettier');
-    const cfg = (await prettier.resolveConfig(FILE)) ?? {};
+    const cfg = (await prettier.resolveConfig(file)) ?? {};
     return await prettier.format(raw, { ...cfg, parser: 'json' });
   } catch {
     return raw;

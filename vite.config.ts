@@ -3,9 +3,11 @@ import react from '@vitejs/plugin-react';
 import { artAssets } from './tools/artAssets.ts';
 import { pwa } from './tools/pwa.ts';
 import { devTuning } from './tools/devTuning.ts';
+import { devEvents } from './tools/devEvents.ts';
 
 export default defineConfig({
-  plugins: [react(), artAssets(), pwa(), devTuning()],
+  // `editor.html` (editor de eventos, src/editor/) solo existe en dev: no está en `input` y no entra en el build.
+  plugins: [react(), artAssets(), pwa(), devTuning(), devEvents()],
   // DECISIÓN: `assets/` es la carpeta de arte de la biblia (concept, models, sprites, icons).
   // No se usa como publicDir para no copiar conceptos ni .glb al build; el plugin artAssets
   // solo publica sprites/, icons/ y manifest.json. El JS/CSS compilado va a `static/`.

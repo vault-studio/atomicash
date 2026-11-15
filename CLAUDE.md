@@ -44,6 +44,7 @@ Las carpetas con `index.ts` se importan desde fuera solo por su índice. Los val
 | **Audio** (mezcla, efectos, música)                                          | `src/audio/`, `src/config/audio.ts`, `src/app/runSession/sound.ts`, `src/engine/sfx.ts`                                                                                                      | `assets/audio/` (generado por `tools/build_audio.py`) |
 | **Intro y carga**                                                            | `src/app/screens/Intro.tsx`, `src/app/screens/intro/`, `src/app/screens/ExpeditionLoader.tsx`, `src/app/screens/loader/`, `src/app/styles/{intro,loader}/`                                   | resto de la UI                                        |
 | **Depurador** (panel F1, atajos)                                             | `src/app/debug/`, `tools/devTuning.ts`                                                                                                                                                       | motor, salvo para leerlo                              |
+| **Editor de eventos** (editor.html, solo dev)                                | `src/editor/`, `src/config/events.ts`, `tools/devEvents.ts`, `src/data/events/`, `editor.html`                                                                                               | `src/engine/`, el juego, `assets/`                    |
 | **Balance** (números, simulación)                                            | `src/data/tuning.json`, `src/config/tuning.ts`, `tests/sim/`, `tools/simdiff.mjs`, `docs/BALANCE.md`                                                                                         | lógica                                                |
 | **Arte** (importar sprites, tiles y efectos)                                 | `tools/*.py`, `tools/artAssets.ts`, `src/config/entities.ts`, `src/config/render/{sprites,art}.ts`                                                                                           | `assets/` a mano, `ARTE/`                             |
 | **Textos**                                                                   | `src/i18n/{es,en}.json` (busca la clave con grep, no los leas enteros)                                                                                                                       | —                                                     |
@@ -91,7 +92,7 @@ Los tests están en `tests/<tema>.test.ts`. Lee solo el del área.
 
 ## 6. Comandos
 
-- **Desarrollo:** `npm run dev` (puerto 5173; en el panel de vista previa, `atomicash-dev`).
+- **Desarrollo:** `npm run dev` (puerto 5173; en el panel de vista previa, `atomicash-dev`). Editor de eventos: `/editor.html`.
 - **Tests:** `npm test`. Tipos: `npm run typecheck`. Lint y formato: `npm run lint`. Build: `npm run build`.
 - **Simulación:** `npm run sim` (semilla fija, 600 s; referencia en `tests/sim/__snapshots__`).
 - **Smoke:** `npm run smoke` (60 s con piloto automático; captura en `out/smoke.png`).
