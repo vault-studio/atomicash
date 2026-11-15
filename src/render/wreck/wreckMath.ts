@@ -1,6 +1,6 @@
 // Cálculos de los restos de robots, sin Pixi: cómo se parte un sprite en trozos y por dónde vuela cada uno.
-import { ENTITIES, type EntityId } from '../config/entities';
-import { VIEW } from '../config/render';
+import { ENTITIES, type EntityId } from '../../config/entities';
+import { VIEW } from '../../config/render';
 
 /** Ancho en px de mundo de la celda del sprite: de él salen el tamaño de la explosión y lo lejos que llegan las piezas. */
 export function wreckWidth(id: EntityId): number {

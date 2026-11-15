@@ -8,7 +8,7 @@ import { killEnemy } from '../src/engine/systems/combat';
 import { spawnEnemy } from '../src/engine/systems/enemies';
 import type { Enemy, World } from '../src/engine/types';
 import { createWorld } from '../src/engine/world';
-import { pieceAt, shatter, wreckRand, type PieceState } from '../src/render/wreckMath';
+import { pieceAt, shatter, wreckRand, type PieceState } from '../src/render/wreck/wreckMath';
 
 const spawn = (w: World, type: Parameters<typeof spawnEnemy>[1]): Enemy => spawnEnemy(w, type, 300, 300)!;
 const stats = (): [string, EnemyStats][] => Object.entries(ENEMY_STATS) as [string, EnemyStats][];
