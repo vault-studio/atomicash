@@ -27,6 +27,7 @@ Al terminar una tarea: una línea breve en `DONE.md` y quitarla de aquí.
 
 ## Bugs conocidos
 
+- `tests/alloc.test.ts` falla a veces en la suite completa con carga de CPU (efecto de tiempos, también en commits anteriores con `--no-concurrent-recompilation`). Solo pasa siempre. Posible arreglo: ejecutarlo sin paralelismo.
 - Depurador › Valores: solo edita claves que ya existen en `tuning.json` (para añadir `rage`/`dash` a un enemigo hay que editar el archivo).
 
 ## Notas que hay que tener presentes
