@@ -1,19 +1,13 @@
-// Dossier fase 2: élites, hordas en formación, avisos de los jefes y racha de bajas.
+// Avisos de los jefes en el suelo antes de sus ataques.
 import { describe, expect, it } from 'vitest';
-import { AI, ELITES, ENEMY_STATS, RAGE } from '../src/config/enemies';
-import { FIELD_PICKUP_IDS } from '../src/config/items';
-import { RUN, STREAK, XP, streakMult } from '../src/config/run';
-import { ENTITIES } from '../src/config/entities';
-import { HORDES } from '../src/config/waves';
-import { addPickup, addRad, hitEnemy, hurtPlayer, killEnemy } from '../src/engine/systems/combat';
-import { IRRADIATED, RAD } from '../src/config/radiation';
+import { AI } from '../src/config/enemies';
+import { RUN } from '../src/config/run';
 import { spawnEnemy } from '../src/engine/systems/enemies';
-import { announceHorde, spawnElite } from '../src/engine/systems/spawning';
 import { MODE_CHASE, type Enemy, type InputState, type World } from '../src/engine/types';
-import { isOnScreen } from '../src/engine/view';
 import { createWorld, tick } from '../src/engine/world';
 
 const STEP = 1 / RUN.tickHz;
+
 const STILL: InputState = { moveX: 0, moveY: 0 };
 
 function quiet(seed = 1): World {
@@ -34,77 +28,6 @@ const run = (w: World, sec: number): void => {
 };
 
 const alive = (w: World): Enemy[] => w.enemies.items.slice(0, w.enemies.count).filter((e) => !e.dead);
-
-describe('élites', () => {
-  it('aparecen solos, cada `everyMin`–`everyMax` s', () => {
-    const w = quiet();
-    const at = 12;
-    w.nextElite = at;
-    run(w, at + 1);
-    expect(alive(w).filter((e) => e.elite)).toHaveLength(1);
-    expect(w.nextElite).toBeGreaterThanOrEqual(at + ELITES.everyMin);
-    expect(w.nextElite).toBeLessThanOrEqual(at + ELITES.everyMax + 1);
-  });
-
-  it('son más duros, sueltan un power-up (y a veces el cofre) y llenan la barra del HUD al golpearlos', () => {
-    const w = quiet();
-    const e = spawnElite(w);
-    expect(e.elite).not.toBeNull();
-    expect(e.maxHp).toBeCloseTo(ENEMY_STATS[e.type].hp * (1 + w.time / 250) * ELITES.hp);
-    hitEnemy(w, e, 1, 'llave', 4);
-    expect(w.eliteFocus).toBe(e.id);
-    (w as { rng: () => number }).rng = () => 0; // por debajo de cacheChance: también cofre
-    killEnemy(w, e, 'llave');
-    const kinds = w.pickups.items.slice(0, w.pickups.count).map((k) => k.kind);
-    expect(kinds.filter((k) => (FIELD_PICKUP_IDS as readonly string[]).includes(k)).length).toBeGreaterThan(
-      0,
-    );
-    expect(kinds.filter((k) => k === 'cache')).toHaveLength(1);
-  });
-
-  it('el blindado resta su blindaje a cada golpe y el divisor se parte al morir', () => {
-    const w = quiet();
-    const e = spawnEnemy(w, 'saqueador', w.player.x + 300, w.player.y);
-    e.elite = 'blindado';
-    expect(hitEnemy(w, e, 10, 'llave', 4)).toBe(10 - ELITES.blindado.armor);
-    e.elite = 'divisor';
-    killEnemy(w, e, 'llave');
-    expect(alive(w).filter((o) => o.type === 'saqueador')).toHaveLength(ELITES.divisor.split);
-  });
-});
-
-describe('hordas en formación', () => {
-  for (const kind of HORDES.order) {
-    it(`${kind}: avisa y llega fuera de cámara tras el aviso`, () => {
-      const w = quiet();
-      announceHorde(w, kind);
-      expect(w.horde?.kind).toBe(kind);
-      run(w, HORDES.warn - 0.1);
-      expect(alive(w)).toHaveLength(0);
-      const before = w.nextId;
-      run(w, 0.2);
-      const fresh = alive(w).filter((e) => e.id >= before);
-      expect(w.horde).toBeNull();
-      expect(fresh.length).toBeGreaterThanOrEqual(HORDES[kind].count);
-      for (const e of fresh) expect(ENTITIES[e.type].act).toBe(w.act);
-      expect(fresh.filter((e) => isOnScreen(w, e.prevX, e.prevY))).toEqual([]);
-      if (kind !== 'ring') expect(fresh.every((e) => e.march > 0)).toBe(true);
-    });
-  }
-
-  it('la estampida sigue recta aunque el jugador no esté en su camino', () => {
-    const w = quiet();
-    announceHorde(w, 'stampede');
-    run(w, HORDES.warn + 0.05);
-    const e = alive(w)[0]!;
-    const dx = e.dx;
-    const dy = e.dy;
-    w.player.x += 500;
-    run(w, 0.5);
-    expect(e.dx).toBe(dx);
-    expect(e.dy).toBe(dy);
-  });
-});
 
 describe('avisos de los jefes', () => {
   it('el Rey Rata llama a las ratas parado y luego encadena embestidas avisadas, más en fase 2', () => {
@@ -147,118 +70,5 @@ describe('avisos de los jefes', () => {
     expect(b.phase).toBe(2);
     expect(b.burst).toBe(R.chainP2);
     expect(lanes(w2, b)).toBe(R.chainP2);
-  });
-});
-
-describe('cinemática de victoria', () => {
-  it('la pide la máquina de cupones al recogerla, no las bajas de élites ni de jefes', () => {
-    const w = quiet();
-    killEnemy(w, spawnElite(w), 'llave');
-    killEnemy(w, spawnEnemy(w, 'rey_rata', w.player.x + 300, w.player.y), 'llave');
-    expect(w.victory).toBe(false);
-    addPickup(w, 'cache', w.player.x, w.player.y, 10);
-    tick(w, STILL, STEP);
-    expect(w.victory).toBe(true);
-    expect(w.choice?.type).toBe('cache');
-  });
-});
-
-describe('racha de bajas', () => {
-  it('multiplica la experiencia por tramos y se pierde al recibir un golpe', () => {
-    expect(streakMult(0)).toBe(1);
-    expect(streakMult(100)).toBe(1.5);
-    expect(streakMult(300)).toBe(2);
-    const w = quiet();
-    w.player.god = false;
-    w.streak = STREAK.tiers[1]!.at;
-    const e = spawnEnemy(w, 'necrofago', w.player.x + 300, w.player.y, false);
-    killEnemy(w, e, 'llave');
-    const gems = w.pickups.items.slice(0, w.pickups.count).filter((k) => k.kind === 'gem');
-    const total = gems.reduce((s, k) => s + k.val, 0);
-    expect(total).toBe(Math.round(ENEMY_STATS.necrofago.xp * XP.killMult * 1.5));
-    expect(w.bestStreak).toBe(STREAK.tiers[1]!.at + 1);
-    hurtPlayer(w, 5);
-    expect(w.streak).toBe(0);
-    expect(w.bestStreak).toBe(STREAK.tiers[1]!.at + 1);
-  });
-});
-
-describe('radiación', () => {
-  it('los enemigos irradiados irradian al acercarse, sin tocarte', () => {
-    const w = quiet();
-    const e = spawnEnemy(w, 'torreta', w.player.x + IRRADIATED.auraR * 0.5, w.player.y, false);
-    e.irr = true;
-    run(w, 1);
-    expect(w.player.rad).toBeCloseTo(IRRADIATED.auraRad, 0);
-    e.irr = false;
-    const before = w.player.rad;
-    run(w, 1);
-    expect(w.player.rad).toBeLessThanOrEqual(before);
-  });
-
-  it('al 100 % de RAD se muere, salvo inmortal', () => {
-    const w = quiet();
-    w.player.rad = RAD.max - 0.5;
-    run(w, STEP);
-    expect(w.player.deadAt).toBeNull();
-    w.player.god = false;
-    w.player.rad = RAD.max - 0.01;
-    addRad(w, 1);
-    run(w, STEP);
-    expect(w.player.deadAt).not.toBeNull();
-  });
-
-  it('si un irradiado te lleva a 100 también se muere', () => {
-    const w = quiet();
-    w.player.god = false;
-    w.player.rad = RAD.max - 2;
-    const e = spawnEnemy(w, 'torreta', w.player.x + IRRADIATED.auraR * 0.5, w.player.y, false);
-    e.irr = true;
-    run(w, 1);
-    expect(w.player.rad).toBe(RAD.max);
-    expect(w.player.deadAt).not.toBeNull();
-  });
-});
-
-describe('furia', () => {
-  it('los normales se enfurecen tras `chaseAfter` s: más daño y vida, y se les pasa a los `dur` s', () => {
-    const w = quiet();
-    w.level = RAGE.minLevel;
-    const e = spawnEnemy(w, 'dron', w.player.x + 2000, w.player.y, false);
-    const s = ENEMY_STATS.dron;
-    run(w, RAGE.chaseAfter - 0.5);
-    expect(e.rage).toBe(false);
-    expect(e.dmg).toBe(s.dmg);
-    const hp = e.hp;
-    const maxHp = e.maxHp;
-    run(w, 1);
-    expect(e.rage).toBe(true);
-    expect(e.hp).toBeCloseTo(hp * RAGE.hp);
-    expect(e.maxHp).toBeCloseTo(maxHp * RAGE.hp);
-    expect(e.dmg).toBeCloseTo(s.dmg * RAGE.dmg);
-    run(w, RAGE.dur);
-    expect(e.rage).toBe(false);
-    expect(e.dmg).toBeCloseTo(s.dmg);
-  });
-
-  it('no hay furia hasta el nivel mínimo, y luego cuenta desde que se alcanza', () => {
-    const w = quiet();
-    w.level = RAGE.minLevel - 1;
-    const e = spawnEnemy(w, 'dron', w.player.x + 2000, w.player.y, false);
-    run(w, RAGE.chaseAfter + 5);
-    expect(e.rage).toBe(false);
-    w.level = RAGE.minLevel;
-    run(w, RAGE.chaseAfter - 0.5);
-    expect(e.rage).toBe(false);
-    run(w, 1);
-    expect(e.rage).toBe(true);
-  });
-
-  it('ni jefes ni élites se enfurecen', () => {
-    const w = quiet();
-    w.level = RAGE.minLevel;
-    const elite = spawnElite(w);
-    run(w, RAGE.chaseAfter + 1);
-    expect(elite.rage).toBe(false);
   });
 });

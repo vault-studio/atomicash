@@ -8,7 +8,7 @@ make-manifest.mjs
 NOVEDADES
 ARTE
 docs/CAMBIOS.md
-GAME_BALANCE.md
+docs/BALANCE.md
 src/data/tuning.json
 android
 out
