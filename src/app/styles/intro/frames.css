@@ -1,0 +1,175 @@
+/* ---------- Fotogramas ---------- */
+
+/* Visible solo mientras dura (va con `forwards`): fotogramas sueltos y cosas que desaparecen. */
+/* Fotogramas sueltos con valores fijos (sin interpolar): un `from → to` de 1 ms con steps(1) se quedaba en el
+ * `from` al pasar de largo en tiempo real. Visible solo mientras dura (sin `fill`). */
+@keyframes intro-frame {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+/* Desaparece y se queda así (con `forwards`): la bomba y el cursor al impacto. */
+@keyframes intro-gone {
+  from,
+  to {
+    opacity: 0;
+  }
+}
+
+/* Aparece y se queda (con `forwards`): el hongo definitivo. */
+@keyframes intro-show {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-on {
+  0% {
+    transform: scale(0.02, 0.006);
+    opacity: 1;
+    animation-timing-function: steps(2);
+  }
+  24% {
+    transform: scale(1, 0.006);
+    opacity: 1;
+    animation-timing-function: steps(3);
+  }
+  50% {
+    transform: scale(1, 1);
+    opacity: 0.3;
+    animation-timing-function: steps(3);
+  }
+  100% {
+    transform: scale(1, 1);
+    opacity: 0;
+  }
+}
+
+@keyframes intro-off {
+  0% {
+    transform: none;
+    animation-timing-function: steps(3);
+  }
+  45% {
+    transform: scale(1, 0.006);
+    animation-timing-function: steps(2);
+  }
+  80% {
+    transform: scale(0.02, 0.006);
+  }
+  100% {
+    transform: scale(0, 0);
+  }
+}
+
+@keyframes intro-beam-off {
+  0% {
+    opacity: 0;
+  }
+  25%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  41% {
+    opacity: 0.9;
+  }
+  42% {
+    opacity: 1;
+  }
+  77% {
+    translate: 0.5cqw 0;
+  }
+  78% {
+    opacity: 0.95;
+    translate: 0 0;
+  }
+  79% {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-type {
+  0% {
+    width: 0;
+  }
+}
+
+@keyframes intro-caret {
+  0% {
+    border-right-color: var(--ph-hi);
+  }
+  50% {
+    border-right-color: transparent;
+  }
+}
+
+@keyframes intro-alert {
+  50% {
+    background: transparent;
+    color: var(--ph-hi);
+    box-shadow: none;
+  }
+}
+
+@keyframes intro-blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-warm {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.2;
+  }
+  45% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  85%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-scorch {
+  0% {
+    fill: var(--ph-hot);
+  }
+  100% {
+    fill: var(--ph-hi);
+  }
+}
+
+@keyframes intro-shove {
+  0% {
+    transform: translateX(calc(var(--dir) * 1.5px));
+  }
+  50% {
+    transform: translateX(calc(var(--dir) * 0.6px));
+  }
+  100% {
+    transform: none;
+  }
+}

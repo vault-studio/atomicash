@@ -1,0 +1,63 @@
+/* ---------- Reto diario (dossier §14) ---------- */
+.daily {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid #4a8cff;
+  background: rgba(20, 30, 60, 0.55);
+  color: var(--crema);
+}
+
+.daily__text {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  font-size: clamp(16px, 2.4vh, 19px);
+}
+
+.daily__text strong {
+  color: #8ab6ff;
+  font-family: var(--hud-font);
+  letter-spacing: 0.06em;
+}
+
+.daily__text b {
+  color: #ffe14a;
+  font-weight: normal;
+}
+
+.daily__text small {
+  opacity: 0.8;
+}
+
+/* ---------- Barras de progreso (ficha del personaje) ---------- */
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 17px;
+}
+
+.gauge__label {
+  color: var(--ocre);
+}
+
+.gauge__bar {
+  display: block;
+  height: 8px;
+  background: rgba(60, 255, 107, 0.12);
+  border: 1px solid rgba(60, 255, 107, 0.35);
+}
+
+.gauge__bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #1f9a42, var(--crt));
+  box-shadow: 0 0 8px rgba(60, 255, 107, 0.6);
+}
+
+.gauge.is-full .gauge__bar > span {
+  background: linear-gradient(90deg, #c89a20, #ffe14a);
+  box-shadow: 0 0 8px rgba(255, 225, 74, 0.6);
+}

@@ -1,0 +1,252 @@
+/* ---------- Suministros: la caja de protagonista ---------- */
+.supply {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.3fr);
+  gap: clamp(14px, 3vw, 40px);
+  align-items: center;
+  max-width: 1100px;
+  margin-top: 8px;
+}
+
+.supply__hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  max-height: 62vh;
+  overflow: hidden;
+  border: 2px solid rgba(255, 225, 74, 0.35);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 55%, #3a3016, #0b140d 70%);
+  box-shadow:
+    0 6px 0 #000,
+    inset 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Rayos de luz girando detrás de la caja. */
+.supply__rays,
+.crate__rays {
+  position: absolute;
+  inset: -40%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 225, 74, 0.16) 0deg 9deg, transparent 9deg 24deg);
+  mask-image: radial-gradient(circle, #000 15%, transparent 60%);
+  animation: rays-spin 18s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rays-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.supply__crate {
+  position: relative;
+  width: 72%;
+  filter: drop-shadow(0 14px 10px rgba(0, 0, 0, 0.7));
+  animation: crate-bob 2.6s ease-in-out infinite;
+}
+
+@keyframes crate-bob {
+  50% {
+    transform: translateY(-6px) rotate(-1.5deg);
+  }
+}
+
+.supply__zone {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  padding: 2px 14px;
+  background: var(--ocre);
+  color: #1a1206;
+  font-family: var(--title-font);
+  font-size: clamp(13px, 2.2vh, 18px);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  box-shadow: 0 3px 0 #000;
+}
+
+.supply__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.terminal .supply__title {
+  margin: 0;
+  color: var(--crt);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.supply__odds {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.odds {
+  --rarity: #9a9a8a;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--rarity);
+  border-left-width: 6px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.odds__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.odds__rarity {
+  color: var(--rarity);
+  font-family: var(--hud-font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.odds__rate {
+  color: var(--crema);
+  font-family: var(--title-font);
+  font-size: 1.3rem;
+}
+
+.odds__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.odds__face {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--crema);
+}
+
+.odds__face img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  object-position: 50% 20%;
+  border: 2px solid var(--rarity);
+  border-radius: 50%;
+  background: #1a1a12;
+}
+
+.supply__pity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--crema);
+  font-size: 1rem;
+}
+
+.supply__pitybar {
+  display: block;
+  height: 10px;
+  border: 1px solid var(--rarity);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.supply__pitybar > span {
+  display: block;
+  height: 100%;
+  background: var(--rarity);
+  box-shadow: 0 0 10px var(--rarity);
+}
+
+.supply__buy {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* Botón gordo de feria: número de cajas arriba, precio en cupones abajo. */
+.buy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: 72px;
+  padding: 6px 8px;
+  border: 3px solid #ffe14a;
+  border-radius: 6px;
+  background: linear-gradient(#3a2e10, #1c1606);
+  color: #ffe14a;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #000;
+  transition: transform 0.1s;
+}
+
+.buy:hover:not(:disabled),
+.buy:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  background: linear-gradient(#5a4614, #2a2008);
+}
+
+.buy:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #000;
+}
+
+.buy:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.buy--10 {
+  border-color: #ffb43a;
+}
+
+.buy--100 {
+  border-color: #ff7a2a;
+}
+
+.buy__count {
+  font-family: var(--title-font);
+  font-size: clamp(20px, 3.4vh, 28px);
+  line-height: 1;
+  text-shadow: 0 2px 0 #000;
+}
+
+.buy__cost {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--crema);
+  font-size: 1.1rem;
+}
+
+.buy__cost img {
+  width: 26px;
+}
+
+.terminal .supply__rules {
+  opacity: 0.6;
+}
+
+@media (max-width: 760px) {
+  .supply {
+    grid-template-columns: 1fr;
+  }
+  .supply__hero {
+    max-height: 34vh;
+    aspect-ratio: 16 / 9;
+  }
+  .supply__crate {
+    width: auto;
+    height: 80%;
+  }
+}

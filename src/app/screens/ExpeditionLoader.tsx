@@ -1,7 +1,7 @@
 // Pantalla de carga de la expedición: un monitor viejo de fósforo verde que recibe la emisión de una prueba nuclear.
 // El hongo se pinta píxel a píxel en un canvas diminuto (tramado ordenado, seis tonos de fósforo que tardan en
 // apagarse) que el navegador amplía sin suavizar, a 12 fotogramas por segundo, como los juegos de cinta del aparato de
-// muñeca. El tubo (sacudida, destello, nieve, parpadeo, barra de barrido y líneas) va en CSS (nukeload.css). El reloj
+// muñeca. El tubo (sacudida, destello, nieve, parpadeo, barra de barrido y líneas) va en CSS (styles/loader/). El reloj
 // del dibujo es una animación CSS de relleno: así todo se congela y se inspecciona a la vez con document.getAnimations().
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ import { paint, readouts } from './loader/paint';
 export const FPS = 12;
 /** Línea del suelo, en fracción del alto desde arriba (debajo va el texto). */
 const GROUND = 0.79;
-/** Periodo de la barra de barrido (cuadra con load-roll en nukeload.css). */
+/** Periodo de la barra de barrido (cuadra con load-roll en styles/loader/frames.css). */
 export const ROLL_MS = 3600;
 /** Fotograma fijo con movimiento reducido: el hongo ya formado. */
 const STILL_FRAME = 30;
@@ -42,7 +42,7 @@ export const ASH = 55;
 /** Columnas de sobra a cada lado de las tablas por columna, para las filas que el desgarro mueve de lado. */
 export const MARGIN = 24;
 
-/** Lado del píxel del dibujo en px CSS: múltiplo de 3 para caer justo en las líneas del filtro CRT (styles.css). */
+/** Lado del píxel del dibujo en px CSS: múltiplo de 3 para caer justo en las líneas del filtro CRT (styles/app/ui.css). */
 const pixelSize = (h: number): number => 3 * Math.max(1, Math.round(h / 420));
 
 export interface Grid {

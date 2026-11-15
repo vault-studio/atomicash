@@ -1,0 +1,249 @@
+/* ---------- Árbol: pantalla de radar con las tres ramas ---------- */
+.tree {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 320px);
+  gap: 12px;
+  font-size: 17px;
+}
+
+.tree__stage {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Llena todo el hueco: al acercar se ve también lo que queda a los lados del disco. */
+.tree__map {
+  width: 100%;
+  height: 100%;
+  /* Los gestos (pellizco, arrastre) los lleva el árbol, no el navegador. */
+  touch-action: none;
+  user-select: none;
+}
+
+.tree__map.is-zoomed {
+  cursor: grab;
+}
+
+.tree__map.is-zoomed:active {
+  cursor: grabbing;
+}
+
+/* Botones de zoom, arriba a la izquierda del mapa (las esquinas del disco están vacías). */
+.tree__zoom {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tree__zoom-btn {
+  min-width: 48px;
+  min-height: 48px;
+  width: 48px;
+  height: 48px;
+  font: inherit;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: var(--crt);
+  background: rgba(5, 16, 8, 0.85);
+  border: 2px solid var(--crt);
+  cursor: pointer;
+}
+
+.tree__zoom-btn:hover:not(:disabled),
+.tree__zoom-btn:focus-visible {
+  background: var(--crt);
+  color: var(--crt-bg);
+  outline: none;
+}
+
+.tree__zoom-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.tree__disc {
+  stroke: rgba(60, 255, 107, 0.45);
+  stroke-width: 0.4;
+}
+
+.tree__wedge {
+  opacity: 0.07;
+}
+
+.tree__ring {
+  fill: none;
+  stroke: rgba(60, 255, 107, 0.16);
+  stroke-width: 0.25;
+  stroke-dasharray: 0.8 0.8;
+}
+
+.tree__spoke {
+  stroke: rgba(60, 255, 107, 0.1);
+  stroke-width: 0.25;
+}
+
+/* Barrido del radar: una cuña que gira despacio. */
+.tree__sweep {
+  transform-origin: 50px 50px;
+  animation: tree-sweep 7s linear infinite;
+  pointer-events: none;
+}
+
+.tree__sweep path {
+  fill: rgba(60, 255, 107, 0.07);
+}
+
+@keyframes tree-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Uniones */
+.tree__wire {
+  stroke: rgba(243, 233, 210, 0.13);
+  stroke-width: 0.7;
+  stroke-linecap: round;
+}
+
+.tree__edge.is-near .tree__wire {
+  stroke: var(--c);
+  stroke-opacity: 0.45;
+  stroke-dasharray: 1 1;
+}
+
+.tree__edge.is-on .tree__wire {
+  stroke: var(--c);
+  stroke-width: 1.1;
+  filter: url(#tree-glow);
+}
+
+.tree__flow {
+  stroke: #fff;
+  stroke-width: 0.45;
+  stroke-linecap: round;
+  stroke-dasharray: 0.6 3.4;
+  opacity: 0.8;
+  animation: tree-flow 1.4s linear infinite;
+}
+
+@keyframes tree-flow {
+  to {
+    stroke-dashoffset: -4;
+  }
+}
+
+/* Nodos */
+.tree__node {
+  cursor: pointer;
+  outline: none;
+}
+
+.tree__base {
+  fill: #0b140d;
+}
+
+.tree__icon {
+  transition:
+    filter 0.2s,
+    opacity 0.2s;
+}
+
+.tree__rim {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.45;
+  stroke-opacity: 0.5;
+}
+
+.tree__inner {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.25;
+  stroke-opacity: 0.6;
+}
+
+.tree__crown {
+  fill: none;
+  stroke: #ffe14a;
+  stroke-width: 0.35;
+  stroke-dasharray: 1.2 0.7;
+  opacity: 0.6;
+}
+
+.tree__node.is-big .tree__rim {
+  stroke-width: 0.7;
+}
+
+.tree__node.is-unique .tree__rim {
+  stroke: #ffe14a;
+  stroke-width: 0.8;
+}
+
+/* Sin aprender: apagado; a tiro y con cupones: late; aprendido: a todo color y brillando. */
+.tree__node.is-locked .tree__icon {
+  filter: grayscale(0.85) brightness(0.62);
+}
+
+.tree__node.is-poor .tree__icon,
+.tree__node.is-open .tree__icon {
+  filter: grayscale(0.4) brightness(0.85);
+}
+
+.tree__halo {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: 0.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tree-halo 1.4s ease-out infinite;
+}
+
+.tree__node.is-poor .tree__halo {
+  stroke: rgba(243, 233, 210, 0.5);
+  animation: none;
+}
+
+@keyframes tree-halo {
+  from {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+.tree__node.is-owned .tree__rim,
+.tree__node.is-root .tree__rim {
+  stroke-opacity: 1;
+  stroke-width: 0.8;
+  filter: url(#tree-glow);
+}
+
+.tree__node.is-owned.is-unique .tree__crown {
+  opacity: 1;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tree-sweep 9s linear infinite;
+}
+
+.tree__node:hover .tree__icon {
+  filter: none;
+}
+
+.tree__node.is-sel .tree__rim,
+.tree__node:focus-visible .tree__rim {
+  stroke: #fff;
+  stroke-opacity: 1;
+  stroke-width: 0.9;
+}

@@ -1,0 +1,125 @@
+/* Taller: tres bloques con lista. En pantallas estrechas, Mejoras ocupa la columna izquierda entera. */
+.sheet__cols--shop {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.sheet__block--tall {
+  grid-row: span 2;
+}
+
+@media (min-width: 1200px) and (min-height: 521px) {
+  .sheet__cols--shop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .sheet__block--tall {
+    grid-row: auto;
+  }
+}
+
+/* Móvil en horizontal: el Taller usa todo el ancho (sin retrato) para que las filas respiren. */
+@media (max-height: 520px) {
+  .sheet__body--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sheet__body--wide .sheet__side {
+    display: none;
+  }
+  .sheet__cols--shop .sheet__hint {
+    display: none;
+  }
+  /* Sin scroll dentro de cada caja (se veía fila y media): crecen con su lista y hace scroll la ficha entera. */
+  .sheet__cols--shop {
+    flex: none;
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+  .sheet__cols--shop .wk {
+    flex: none;
+    overflow: visible;
+  }
+  .wk__row {
+    min-height: 52px;
+    padding: 2px 8px;
+  }
+}
+
+.sheet__block--list {
+  justify-content: flex-start;
+}
+
+.sheet__hint {
+  flex: none;
+  margin: 0;
+  font-size: clamp(16px, 2.2vh, 20px);
+  line-height: 1.2;
+  opacity: 0.8;
+}
+
+.wk {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.wk__row {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 8px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+}
+
+.wk__row.is-current {
+  border-color: #ffe14a;
+  background: rgba(255, 225, 74, 0.08);
+}
+
+.wk__icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid rgba(60, 255, 107, 0.4);
+}
+
+.wk__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.wk__text strong {
+  font-weight: normal;
+  font-size: clamp(16px, 2.6vh, 22px);
+  line-height: 1.1;
+  color: var(--crema);
+}
+
+.wk__row.is-current .wk__text strong {
+  color: #ffe14a;
+}
+
+.wk__text small {
+  font-size: 16px;
+  line-height: 1.15;
+  opacity: 0.8;
+}
+
+.wk__btn {
+  flex: none;
+  min-width: 96px;
+  padding: 6px 10px;
+  font-size: clamp(16px, 2.2vh, 20px);
+  white-space: nowrap;
+}

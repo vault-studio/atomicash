@@ -1,0 +1,142 @@
+/* Intendencia: una ficha grande por consumible, con el mismo marco que la ficha del personaje. */
+.stores__rule {
+  flex: none;
+  margin: 0;
+  font-size: clamp(16px, 2.6vh, 24px);
+  line-height: 1.2;
+  color: var(--crema);
+}
+
+.stores__grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: clamp(8px, 1.4vw, 16px);
+}
+
+@media (max-width: 640px) {
+  .stores__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stores__card {
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.stores__icon {
+  flex: none;
+  width: clamp(56px, 17vh, 150px);
+  height: clamp(56px, 17vh, 150px);
+  object-fit: cover;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  box-shadow: 0 4px 0 #000;
+}
+
+.sheet__block.stores__card h3 {
+  font-family: var(--title-font);
+  font-size: clamp(18px, 3.4vh, 32px);
+  line-height: 1.1;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+  letter-spacing: 0.04em;
+}
+
+.stores__desc {
+  margin: 0;
+  font-size: clamp(16px, 2.4vh, 22px);
+  line-height: 1.15;
+  color: var(--crt);
+}
+
+.stores__count {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px clamp(10px, 1.6vw, 24px);
+  font-size: clamp(16px, 2.2vh, 20px);
+}
+
+.stores__count b {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(22px, 4.6vh, 44px);
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.stores__foot {
+  flex: none;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, 1vh, 10px);
+}
+
+.stores__buy {
+  flex: none;
+  align-self: stretch;
+  min-height: clamp(48px, 7vh, 72px);
+  font-size: clamp(16px, 2.4vh, 24px);
+}
+
+/* Pantalla baja (móvil en horizontal): 2×2, icono a la izquierda y pie con cifras y botón; la rejilla hace scroll. */
+@media (max-height: 520px) {
+  .stores__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(140px, 1fr);
+    overflow-y: auto;
+  }
+  .stores__card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'icon name'
+      'icon desc'
+      'foot foot';
+    grid-template-rows: auto 1fr auto;
+    align-items: center;
+    text-align: left;
+    column-gap: 12px;
+    overflow: hidden;
+  }
+  .stores__icon {
+    grid-area: icon;
+    width: 64px;
+    height: 64px;
+    align-self: start;
+  }
+  .sheet__block.stores__card h3 {
+    grid-area: name;
+    align-self: end;
+  }
+  .stores__desc {
+    grid-area: desc;
+    align-self: start;
+  }
+  .stores__foot {
+    grid-area: foot;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .stores__count {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .stores__count b {
+    font-size: 20px;
+  }
+  .stores__buy {
+    align-self: auto;
+    min-width: 130px;
+    min-height: 48px;
+  }
+}

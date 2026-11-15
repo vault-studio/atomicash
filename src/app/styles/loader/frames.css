@@ -1,0 +1,170 @@
+/* ---------- Fotogramas ---------- */
+@keyframes load-jolt {
+  0% {
+    translate: 0 0;
+  }
+  8% {
+    translate: -1.6cqw 2.2cqh;
+  }
+  16% {
+    translate: 1.2cqw -1.6cqh;
+  }
+  25% {
+    translate: -0.8cqw 1cqh;
+  }
+  33% {
+    translate: 0.6cqw -0.6cqh;
+  }
+  42% {
+    translate: -0.3cqw 0.4cqh;
+  }
+  50%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes load-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  23% {
+    opacity: 0.84;
+  }
+  25% {
+    opacity: 1;
+  }
+  51% {
+    opacity: 0.92;
+  }
+  52% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.78;
+  }
+  80% {
+    opacity: 0.95;
+  }
+  82% {
+    opacity: 1;
+  }
+}
+
+@keyframes load-boot {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  40% {
+    opacity: 0.3;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes load-fill {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes load-type {
+  0% {
+    clip-path: inset(0 100% 0 0);
+  }
+  100% {
+    clip-path: inset(-0.5em -1em -0.5em -0.5em);
+  }
+}
+
+@keyframes load-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes load-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-7%, 4%);
+  }
+  40% {
+    transform: translate(5%, -6%);
+  }
+  60% {
+    transform: translate(-3%, 8%);
+  }
+  80% {
+    transform: translate(8%, -2%);
+  }
+}
+
+@keyframes load-snow {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.12;
+  }
+}
+
+@keyframes load-roll {
+  0% {
+    transform: translateY(-30cqh);
+  }
+  100% {
+    transform: translateY(104cqh);
+  }
+}
+
+@keyframes load-flash {
+  0% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 0.7;
+  }
+  67%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes load-clock {
+  100% {
+    translate: 1px 0;
+  }
+}
+
+@keyframes load-off {
+  0% {
+    transform: none;
+  }
+  60% {
+    transform: scale(1, 0.006);
+  }
+  100% {
+    transform: scale(0, 0.006);
+  }
+}
+
+@keyframes load-off-glow {
+  0% {
+    opacity: 0;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}

@@ -1,0 +1,190 @@
+/* Panel */
+.tree__panel {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 2px;
+}
+
+.tree__help {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.tree__shards {
+  margin: 0;
+  color: #ffe14a;
+  font-size: 19px;
+}
+
+/* Zona táctil de cada nodo, más ancha que el dibujo. */
+.tree__hit {
+  fill: transparent;
+}
+
+.tree__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 2px solid var(--c);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, transparent), rgba(0, 0, 0, 0.6) 60%);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--c) 30%, transparent);
+  color: var(--crema);
+}
+
+.tree__card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tree__card-icon {
+  width: 84px;
+  height: 84px;
+  flex: none;
+  border: 2px solid var(--c);
+  border-radius: 50%;
+  object-fit: cover;
+  background: #0b140d;
+}
+
+.tree__card-branch {
+  display: block;
+  font-size: 16px;
+  color: var(--c);
+  letter-spacing: 0.08em;
+}
+
+.tree__card-name {
+  display: block;
+  font-family: var(--title-font);
+  font-size: 1.1rem;
+  line-height: 1.1;
+  color: var(--crema);
+}
+
+.tree__card-fx {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.tree__card-state {
+  margin: 0;
+  color: var(--c);
+}
+
+.tree__buy {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tree__buy img {
+  width: 24px;
+  height: 24px;
+}
+
+.tree__branches {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tree__branch {
+  display: grid;
+  grid-template-columns: 6.5em 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--c);
+}
+
+.tree__branch-bar {
+  height: 8px;
+  background: color-mix(in srgb, var(--c) 15%, transparent);
+}
+
+.tree__branch-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+}
+
+.tree__bonuses {
+  padding: 10px 12px;
+  border: 1px solid rgba(60, 255, 107, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--crema);
+}
+
+.tree__bonuses h3 {
+  margin: 0 0 8px;
+  color: var(--crt);
+  letter-spacing: 0.1em;
+}
+
+.tree__bonuses p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.tree__bonuses ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree__bonuses li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tree__bonuses img {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.tree__foot {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: auto;
+}
+
+.tree__foot .btn,
+.tree__confirm .btn {
+  min-height: 48px;
+  padding: 4px 14px;
+  font-size: 17px;
+}
+
+.tree__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+@media (max-width: 760px), (max-height: 520px) {
+  .tree {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .tree__card-icon {
+    width: 56px;
+    height: 56px;
+  }
+}

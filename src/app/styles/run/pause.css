@@ -1,0 +1,207 @@
+/* Pausa: estadísticas del personaje en una ficha de terminal, compacta para el móvil en horizontal. */
+.overlay--pause {
+  justify-content: safe center;
+  gap: 10px;
+}
+
+.pstats {
+  width: min(980px, 100%);
+  padding: 10px 16px 12px;
+  background: rgba(11, 20, 13, 0.92);
+  border: 2px solid var(--crt);
+  color: var(--crt);
+  box-shadow: 0 0 18px rgba(60, 255, 107, 0.2);
+}
+
+/* Con retrato: el busto del personaje a la izquierda, saliendo un poco por encima de la ficha. */
+.pstats--head {
+  position: relative;
+  padding-left: clamp(150px, 22%, 220px);
+}
+
+.pstats__head {
+  position: absolute;
+  left: 0;
+  /* Centrado en alto, con aire arriba y abajo para no tocar el borde. */
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(150px, 22%, 220px);
+  height: auto;
+  max-height: calc(100% - 16px);
+  object-fit: contain;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+.pstats__name {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: normal;
+  color: #ffe14a;
+}
+
+.pstats__cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px 20px;
+  align-items: start;
+}
+
+.pstats table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.pstats caption {
+  padding: 4px 0 2px;
+  text-align: left;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  border-bottom: 1px solid rgba(60, 255, 107, 0.35);
+}
+
+.pstats th {
+  padding: 1px 8px 1px 0;
+  text-align: left;
+  font-weight: normal;
+  color: var(--crema);
+}
+
+.pstats th small {
+  color: var(--crt);
+  opacity: 0.7;
+}
+
+.pstats td {
+  padding: 1px 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pstats tr.is-off {
+  opacity: 0.4;
+}
+
+/* Armas de la partida: fichas grandes a la derecha y, bajo las tablas, las combinaciones de la elegida. */
+.pstats__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 232px;
+  gap: 8px 16px;
+  align-items: start;
+}
+
+.pstats__left {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pstats__tiles {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pstats__tile {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--crema);
+  border: 2px solid rgba(60, 255, 107, 0.4);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.05;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pstats__tile:hover,
+.pstats__tile:focus-visible {
+  outline: none;
+  border-color: var(--crt);
+}
+
+.pstats__tile.is-sel {
+  border-color: #ffe14a;
+  background: rgba(255, 225, 74, 0.1);
+}
+
+.pstats__wicon {
+  width: 64px;
+  height: 64px;
+  flex: none;
+}
+
+.pstats__wtext {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  color: var(--crt);
+}
+
+.pstats__wname {
+  color: var(--crema);
+}
+
+.pstats__wname small {
+  color: var(--crt);
+  opacity: 0.8;
+}
+
+.pstats__panel {
+  min-width: 0;
+  padding: 3px 8px;
+  border: 1px dashed rgba(60, 255, 107, 0.45);
+  font-size: 16px;
+  line-height: 1.15;
+}
+
+.pstats__combo,
+.pstats__combos {
+  margin: 0;
+}
+
+.pstats__combos {
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.pstats__combos > li > span:first-child {
+  color: var(--ocre);
+}
+
+.pstats__combos em {
+  margin-left: 6px;
+  font-style: normal;
+  opacity: 0.85;
+}
+
+.pstats__combos .is-ready em {
+  color: #ffe14a;
+  opacity: 1;
+}
+
+.pstats__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--crema);
+  vertical-align: middle;
+}
+
+.pstats__chip .wicon {
+  width: 24px;
+  height: 24px;
+}

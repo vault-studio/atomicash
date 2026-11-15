@@ -1,0 +1,245 @@
+/* Apertura: la caja tiembla y estalla con el color de lo mejor que trae. */
+.supply-open {
+  --rarity: #9a9a8a;
+  justify-content: safe center;
+  overflow-x: hidden;
+}
+
+.crate {
+  position: relative;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.supply-open .crate__rays {
+  inset: -120%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--rarity) 30%, transparent) 0deg 8deg,
+    transparent 8deg 20deg
+  );
+  mask-image: radial-gradient(circle, #000 4%, transparent 30%);
+  animation: rays-spin 4s linear infinite;
+}
+
+.crate__img {
+  position: relative;
+  width: min(260px, 40vh);
+  animation: crate-open 1.4s ease-in both;
+}
+
+@keyframes crate-open {
+  0% {
+    transform: scale(0.6);
+  }
+  12% {
+    transform: scale(1);
+  }
+  20%,
+  36%,
+  52%,
+  68% {
+    transform: rotate(-5deg) scale(1.02);
+  }
+  28%,
+  44%,
+  60%,
+  76% {
+    transform: rotate(5deg) scale(1.04);
+  }
+  86% {
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 24px var(--rarity)) brightness(1.4);
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+    filter: drop-shadow(0 0 60px var(--rarity)) brightness(2.5);
+  }
+}
+
+.crate__flash {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, #fff 0%, var(--rarity) 40%, transparent 75%);
+  opacity: 0;
+  pointer-events: none;
+  animation: crate-flash 1.4s ease-out both;
+}
+
+@keyframes crate-flash {
+  0%,
+  80% {
+    opacity: 0;
+  }
+  92% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.crate .btn {
+  position: relative;
+}
+
+.crate__result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  margin: auto 0;
+}
+
+.terminal .crate__sum,
+.crate__sum {
+  margin: 0;
+  color: var(--crema);
+  font-size: 1.2rem;
+}
+
+.pulls {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 1100px;
+}
+
+.pulls--100 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  gap: 6px;
+}
+
+/* Ficha sacada: entra girando como una carta y brilla con el color de su rareza. */
+.pull {
+  --rarity: #9a9a8a;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 140px;
+  padding: 10px 8px 8px;
+  border: 3px solid var(--rarity);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--rarity) 35%, #120f08), #0b0a06 75%);
+  color: var(--crema);
+  text-align: center;
+  box-shadow: 0 5px 0 #000;
+  animation: pull-deal 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.pull.is-rare,
+.pull.is-epic,
+.pull.is-legendary {
+  box-shadow:
+    0 5px 0 #000,
+    0 0 18px var(--rarity);
+}
+
+@keyframes pull-deal {
+  from {
+    opacity: 0;
+    transform: translateY(30px) rotateY(90deg) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pull__art {
+  display: block;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--rarity);
+  background: #14120a;
+}
+
+.pull__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+
+.pull__name {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: 0.95rem;
+  line-height: 1.1;
+  color: #ffe14a;
+}
+
+.pull__note {
+  color: var(--crt);
+}
+
+.pull__stamp {
+  position: absolute;
+  top: 6px;
+  right: -6px;
+  padding: 0 6px;
+  background: var(--cereza);
+  color: var(--crema);
+  font-family: var(--title-font);
+  font-size: 0.75rem;
+  transform: rotate(10deg);
+  box-shadow: 0 2px 0 #000;
+}
+
+.pulls--100 .pull {
+  width: auto;
+  padding: 4px;
+  gap: 2px;
+  border-width: 2px;
+}
+
+.pulls--100 .pull__art {
+  width: 52px;
+  height: 52px;
+}
+
+.pulls--100 .pull__name {
+  font-size: 0.65rem;
+}
+
+.pulls--100 .pull__note,
+.pulls--100 .pull__stamp {
+  font-size: 0.7rem;
+}
+
+.ticket__reward {
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
+  margin-top: 8px;
+  padding-top: 6px;
+}
+
+.ticket__reward p {
+  margin: 2px 0;
+}
+
+.ticket__ach {
+  font-weight: bold;
+}
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}

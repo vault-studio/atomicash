@@ -4,7 +4,7 @@ import { audio } from '../../audio/audio';
 import { ASH } from './intro/cloud';
 import { Bomb, Logo, TearFilters, Typed } from './intro/parts';
 
-/** Momento del impacto de la bomba en ms; intro.css lo recibe como `--impact`. */
+/** Momento del impacto de la bomba en ms; styles/intro/ lo recibe como `--impact`. */
 const IMPACT_MS = 2000;
 /** A partir de aquí el tubo se apaga (raya y punto) y la intro se quita al terminar. */
 const INTRO_FADE_MS = 6000;

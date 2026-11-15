@@ -1,0 +1,193 @@
+/* Caída con aceleración: y = −60·(1 − t²) en cqh, a 3 saltos por tramo. */
+@keyframes intro-fall {
+  0% {
+    transform: translateY(-60cqh);
+  }
+  20% {
+    transform: translateY(-57.6cqh);
+  }
+  40% {
+    transform: translateY(-50.4cqh);
+  }
+  60% {
+    transform: translateY(-38.4cqh);
+  }
+  80% {
+    transform: translateY(-21.6cqh);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Dos fotogramas en negativo y un resto que se apaga (nunca más de dos destellos fuertes). */
+@keyframes intro-flash {
+  0% {
+    opacity: 1;
+    visibility: visible;
+  }
+  10% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  35% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes intro-tint {
+  from {
+    visibility: visible;
+  }
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Salto vertical (pierde el sincronismo) y sacudida que se apaga. */
+@keyframes intro-shake {
+  0% {
+    translate: 0 6cqh;
+  }
+  10% {
+    translate: -1.6cqw 0;
+  }
+  20% {
+    translate: 1.4cqw -1cqh;
+  }
+  32% {
+    translate: -1cqw 0.8cqh;
+  }
+  44% {
+    translate: 0.8cqw 0;
+  }
+  58% {
+    translate: -0.4cqw 0.3cqh;
+  }
+  72%,
+  100% {
+    translate: 0 0;
+  }
+}
+
+@keyframes intro-tear {
+  0% {
+    filter: url(#intro-tear-a);
+  }
+  18% {
+    filter: url(#intro-tear-b);
+  }
+  36% {
+    filter: none;
+  }
+  52% {
+    filter: url(#intro-tear-b);
+  }
+  64% {
+    filter: url(#intro-tear-a);
+  }
+  76%,
+  100% {
+    filter: none;
+  }
+}
+
+@keyframes intro-hiccup {
+  0% {
+    filter: url(#intro-tear-b);
+    translate: 0.8cqw 3cqh;
+  }
+  40% {
+    filter: url(#intro-tear-a);
+    translate: -0.5cqw 3cqh;
+  }
+  80%,
+  100% {
+    filter: none;
+    translate: 0 3cqh;
+  }
+}
+
+@keyframes intro-boil {
+  0% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-boil-b {
+  0% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-grain {
+  0% {
+    translate: 0 0;
+  }
+  25% {
+    translate: -6% 4%;
+  }
+  50% {
+    translate: 5% -7%;
+  }
+  75% {
+    translate: -3% 6%;
+  }
+}
+
+@keyframes intro-snow {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes intro-burst {
+  0% {
+    opacity: 0.75;
+  }
+  15% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes intro-roll {
+  from {
+    transform: translateY(-30cqh);
+  }
+  to {
+    transform: translateY(110cqh);
+  }
+}
+
+@keyframes intro-ash {
+  from {
+    transform: translate(0, -4cqh);
+  }
+  to {
+    transform: translate(var(--drift), 104cqh);
+  }
+}

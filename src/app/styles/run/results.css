@@ -1,0 +1,163 @@
+/* Ticket de resultados: impreso en el terminal (sale de arriba abajo, como una impresora de fósforo). */
+.ticket {
+  width: min(380px, 92vw);
+  padding: 16px 18px 20px;
+  background: repeating-linear-gradient(0deg, rgba(60, 255, 107, 0.035) 0 1px, transparent 1px 3px), #050a06;
+  color: var(--crt);
+  border: 2px solid var(--crt);
+  box-shadow:
+    inset 0 0 0 1px #000,
+    inset 0 0 24px rgba(0, 0, 0, 0.8),
+    0 0 14px rgba(60, 255, 107, 0.35),
+    0 6px 0 #000;
+  text-shadow: 0 0 6px rgba(60, 255, 107, 0.45);
+  animation: ticket-out 0.6s steps(12) both;
+}
+
+/*
+ * Resultados: el ticket se desplaza por dentro y los botones quedan siempre a la vista, por larga que sea la lista.
+ * En horizontal con poca altura (móvil) los botones pasan a una columna a la derecha del ticket.
+ */
+.overlay--results {
+  overflow: hidden;
+  justify-content: center;
+}
+
+.overlay--results .ticket {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--crt) transparent;
+}
+
+.overlay--results .overlay__actions {
+  flex-shrink: 0;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .overlay--results {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .overlay--results .ticket {
+    max-height: 100%;
+  }
+
+  .overlay--results .overlay__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: min(220px, 30vw);
+  }
+}
+
+@keyframes ticket-out {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.ticket h2 {
+  margin: 0;
+  text-align: center;
+  font-family: var(--title-font);
+  font-size: 22px;
+  color: #ff5a5a;
+  text-shadow: 0 0 8px rgba(255, 90, 90, 0.6);
+}
+
+.ticket h2.is-won {
+  color: var(--crt);
+  text-shadow: 0 0 10px var(--crt);
+}
+
+.ticket h3 {
+  margin: 12px 0 4px;
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
+  padding-top: 8px;
+}
+
+.ticket__no,
+.ticket__thanks {
+  margin: 2px 0 8px;
+  text-align: center;
+  font-size: 15px;
+  opacity: 0.7;
+}
+
+.ticket dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin: 0;
+  font-size: 19px;
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
+  padding-top: 6px;
+}
+
+.ticket dt {
+  color: rgba(60, 255, 107, 0.78);
+}
+
+.ticket dd {
+  margin: 0;
+  text-align: right;
+  font-family: var(--hud-font);
+  font-size: 16px;
+}
+
+.ticket__total {
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
+  margin-top: 4px;
+  padding-top: 4px;
+  font-size: 22px;
+  color: #ffe14a !important;
+  text-shadow: 0 0 8px rgba(255, 225, 74, 0.55);
+}
+
+.ticket__sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+
+.ticket__sources li {
+  display: grid;
+  grid-template-columns: 9em 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.ticket__bar {
+  height: 8px;
+  background: var(--crt);
+  box-shadow: 0 0 6px rgba(60, 255, 107, 0.6);
+}
+
+.ticket__extra {
+  border-top: 1px dashed rgba(60, 255, 107, 0.45);
+  margin-top: 8px;
+  padding-top: 6px;
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket {
+    animation: none;
+  }
+  .choice__card {
+    transition: none;
+  }
+}
+
+.reduce-motion .ticket {
+  animation: none;
+}

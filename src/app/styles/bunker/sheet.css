@@ -1,0 +1,288 @@
+/* ---------- Ficha del personaje ---------- */
+.sheet {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.5vh, 12px);
+  padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 0%, #1e2a1c, var(--crt-bg) 70%);
+  color: var(--crt);
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sheet__head h1 {
+  margin: 0;
+  font-family: var(--title-font);
+  font-size: clamp(18px, 3.2vh, 28px);
+  letter-spacing: 0.08em;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.sheet__tabs {
+  display: flex;
+  border-bottom: 2px solid var(--crt);
+}
+
+.sheet__credits {
+  font-size: clamp(16px, 2.8vh, 24px);
+  white-space: nowrap;
+}
+
+.sheet__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: clamp(150px, 26%, 260px) minmax(0, 1fr);
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.sheet__side {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet__portrait {
+  flex: 1;
+  min-height: 0;
+}
+
+.sheet__main {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El árbol no hace scroll: el mapa llena el alto que queda. */
+.sheet__main:has(.tree) {
+  overflow: hidden;
+}
+
+/* Ficha: 2×2 que llena todo el alto; cifras y textos escalan con la pantalla. */
+.sheet__cols {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: clamp(8px, 1.4vw, 16px);
+}
+
+.sheet__block {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(6px, 1.6vh, 16px);
+  padding: clamp(8px, 2vh, 22px) clamp(10px, 1.6vw, 26px);
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  background: linear-gradient(160deg, rgba(20, 40, 22, 0.55), rgba(0, 0, 0, 0.55));
+  box-shadow: inset 0 0 24px rgba(60, 255, 107, 0.06);
+  color: var(--crema);
+  overflow: hidden;
+}
+
+.sheet__block h3 {
+  margin: 0;
+  color: var(--ocre);
+  font-size: clamp(16px, 2.8vh, 28px);
+  font-weight: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sheet__row {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 32px);
+  min-height: 0;
+}
+
+.sheet__row--end {
+  align-items: flex-end;
+}
+
+.sheet__row--end .gauge {
+  flex: 1;
+}
+
+/* Nivel en grande. */
+.sheet__big {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(44px, 13vh, 140px);
+  line-height: 0.9;
+  color: #ffe14a;
+  text-shadow:
+    0 3px 0 #000,
+    0 0 18px rgba(255, 225, 74, 0.35);
+}
+
+.sheet__stars {
+  font-size: clamp(26px, 7vh, 72px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-shadow: 0 3px 0 #000;
+}
+
+.sheet__bonus {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(18px, 3.4vh, 34px);
+  line-height: 1.1;
+  color: var(--crt);
+}
+
+.sheet__none {
+  margin: 0;
+  font-size: clamp(16px, 2.8vh, 26px);
+  opacity: 0.7;
+}
+
+.sheet__passive {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: clamp(20px, 4.4vh, 44px);
+  line-height: 1.15;
+  color: var(--crt);
+}
+
+.sheet__block .gauge {
+  font-size: clamp(16px, 2.4vh, 24px);
+}
+
+.sheet__block .gauge__bar {
+  height: clamp(10px, 1.8vh, 18px);
+}
+
+.sheet__btn {
+  min-height: clamp(48px, 7vh, 72px);
+  padding: 4px clamp(12px, 1.6vw, 28px);
+  font-size: clamp(18px, 2.6vh, 26px);
+  white-space: nowrap;
+}
+
+/* Arma inicial: icono grande, nombre y, si tiene más de una, el selector. */
+.sheet__wicon {
+  width: clamp(72px, 20vh, 200px);
+  height: clamp(72px, 20vh, 200px);
+  flex: none;
+  object-fit: cover;
+  border: 2px solid rgba(60, 255, 107, 0.45);
+  box-shadow: 0 4px 0 #000;
+}
+
+.sheet__weapon {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sheet__weapon strong {
+  font-family: var(--title-font);
+  font-weight: normal;
+  font-size: clamp(20px, 4.4vh, 44px);
+  line-height: 1.1;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.sheet__weapon select {
+  min-height: 48px;
+  font-size: clamp(16px, 2.4vh, 22px);
+  background: var(--crt-bg);
+  color: var(--crt);
+  border: 1px solid var(--crt);
+  padding: 4px 6px;
+}
+
+/* Cabecera de bloque con su botón «i» en la esquina; el botón sobresale del margen para no agrandar la fila. */
+.sheet__bhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: none;
+}
+
+.info-btn {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  margin: -12px -6px -12px 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffe14a;
+  border: 2px solid #ffe14a;
+  font-family: var(--title-font);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.info-btn:hover,
+.info-btn:focus-visible {
+  background: rgba(255, 225, 74, 0.18);
+  outline: none;
+}
+
+/* Arma inicial: icono, nombre y selector centrados en el recuadro. */
+.sheet__center {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 28px);
+}
+
+.sheet__center .sheet__weapon {
+  flex: 0 1 auto;
+  min-width: 0;
+  align-items: center;
+  text-align: center;
+}
+
+.sheet__center .sheet__weapon strong {
+  font-size: clamp(18px, 3.6vh, 44px);
+  overflow-wrap: anywhere;
+}
+
+.sheet__center .sheet__weapon select {
+  max-width: 100%;
+}
+
+/* Pantalla baja (móvil en horizontal): bloques más justos; si no caben, la ficha hace scroll. */
+@media (max-height: 520px) {
+  .sheet__cols {
+    grid-template-rows: repeat(2, minmax(150px, 1fr));
+  }
+  .sheet__block {
+    gap: 4px;
+    padding: 6px 10px;
+  }
+  .sheet__bonus {
+    font-size: 16px;
+  }
+  .sheet__stars {
+    font-size: 24px;
+  }
+}

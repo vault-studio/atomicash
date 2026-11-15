@@ -1,0 +1,244 @@
+/* Medidores: etiqueta, barra segmentada y valor. */
+.meter {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: calc(8 * var(--u));
+  width: 100%;
+}
+
+.meter__label,
+.meter__val {
+  font-family: var(--hud-font);
+  font-size: max(10.5px, calc(20 * var(--u)));
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.meter__bar {
+  position: relative;
+  --bar-h: max(12px, calc(20 * var(--u)));
+  height: var(--bar-h);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--phos-dim);
+  overflow: hidden;
+}
+
+.meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--phos);
+  box-shadow: 0 0 10px var(--phos);
+  transition: width 0.1s linear;
+}
+
+/* Segmentos: rayas oscuras sobre el relleno. */
+.meter__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 calc(9 * var(--u)),
+    rgba(0, 0, 0, 0.55) calc(9 * var(--u)) calc(11 * var(--u))
+  );
+  pointer-events: none;
+}
+
+.meter--hp.is-low .meter__fill {
+  background: var(--cereza);
+  box-shadow: 0 0 10px var(--cereza);
+  animation: hud-blink 0.6s steps(2) infinite;
+}
+
+.meter--rad .meter__bar {
+  --bar-h: max(9px, calc(14 * var(--u)));
+}
+
+.meter--rad .meter__val {
+  font-size: max(10.5px, calc(17 * var(--u)));
+}
+
+.meter--xp {
+  --u: var(--u-top);
+  grid-template-columns: auto 1fr;
+  width: min(100%, calc(400 * var(--u)));
+}
+
+.meter--xp .meter__bar {
+  --bar-h: max(8px, calc(12 * var(--u)));
+}
+
+.meter--xp .meter__fill {
+  background: var(--turquesa);
+  box-shadow: 0 0 8px var(--turquesa);
+}
+
+.meter--xp .meter__label {
+  font-size: max(10.5px, calc(17 * var(--u)));
+}
+
+.meter--boss {
+  grid-template-columns: 1fr;
+}
+
+.meter--boss .meter__bar {
+  --bar-h: max(15px, calc(20 * var(--u)));
+  border-color: #ffe14a;
+}
+
+.meter--boss .meter__fill {
+  background: #8a3324;
+  box-shadow: none;
+}
+
+/* Marca donde el jefe cambia de fase. */
+.meter__mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc(2 * var(--u));
+  margin-left: -1px;
+  background: #ffe14a;
+  z-index: 1;
+}
+
+/* Élite: barra verde con el prefijo, como la del jefe pero más fina. */
+.meter--elite {
+  grid-template-columns: 1fr;
+  width: 86%;
+}
+
+.meter--elite .meter__bar {
+  --bar-h: max(14px, calc(18 * var(--u)));
+  border-color: #9dff00;
+}
+
+.meter--elite .meter__fill {
+  background: #3c9a2a;
+  box-shadow: none;
+}
+
+.meter--elite .meter__over {
+  color: #d8ffb0;
+}
+
+/* Racha de bajas bajo el contador. */
+.hud__streak {
+  font-family: var(--hud-font);
+  font-size: max(10.5px, calc(16 * var(--u)));
+  color: var(--phos);
+}
+
+.hud__streak.is-hot {
+  color: #ffe14a;
+  text-shadow: 0 0 8px rgba(255, 225, 74, 0.8);
+}
+
+.hud__streak b {
+  font-weight: inherit;
+  animation: hud-blink 0.8s steps(2) infinite;
+}
+
+/* Objetivo del mapa bajo el reloj. */
+.hud__objective {
+  width: 86%;
+  display: grid;
+  gap: calc(2 * var(--u));
+  justify-items: center;
+  font-family: var(--hud-font);
+  font-size: max(10.5px, calc(15 * var(--u)));
+  color: #ffe14a;
+}
+
+.hud__objective .meter__bar {
+  --bar-h: max(13px, calc(16 * var(--u)));
+  width: 100%;
+  border-color: #ffe14a;
+}
+
+.hud__objective .meter__fill {
+  background: #b8901a;
+  box-shadow: none;
+}
+
+.hud__status--endless {
+  color: #ff8a2a;
+  text-shadow: 0 0 8px rgba(255, 138, 42, 0.8);
+}
+
+.hud__daily {
+  font-family: var(--hud-font);
+  font-size: max(10.5px, calc(14 * var(--u)));
+  color: #4a8cff;
+}
+
+.hud__edge.is-objective {
+  animation: none;
+}
+
+.hud__edge.is-objective .hud__edge-arrow {
+  color: #ffe14a;
+  text-shadow:
+    0 0 12px rgba(255, 225, 74, 0.8),
+    0 2px 0 #000;
+}
+
+.endless__text {
+  max-width: calc(520 * var(--u));
+  text-align: center;
+  font-size: max(10.5px, calc(20 * var(--u)));
+}
+
+/* Aviso de horda: flecha roja pegada al borde por donde llega, o el marco entero si es un anillo. */
+.hud__edge {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  z-index: 5;
+  animation: hud-blink 0.35s steps(2) infinite;
+}
+
+.hud__edge-arrow {
+  position: absolute;
+  font-size: 46px;
+  color: var(--cereza);
+  text-shadow:
+    0 0 12px rgba(215, 38, 61, 0.9),
+    0 2px 0 #000;
+}
+
+.hud__edge-sign {
+  position: relative;
+  font-family: var(--title-font);
+  font-size: 22px;
+  color: #ffe14a;
+  text-shadow: 0 2px 0 #000;
+}
+
+.hud__edge-ring {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  box-shadow: inset 0 0 60px 18px rgba(215, 38, 61, 0.55);
+  animation: hud-blink 0.35s steps(2) infinite;
+}
+
+.meter__over {
+  position: relative;
+  z-index: 1;
+  display: block;
+  text-align: center;
+  font-size: calc(var(--bar-h) * 0.72);
+  line-height: calc(var(--bar-h) - 4px);
+  color: #ffe14a;
+}
+
+@keyframes hud-blink {
+  50% {
+    opacity: 0.55;
+  }
+}

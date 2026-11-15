@@ -1,0 +1,177 @@
+/* Radar. */
+.radar {
+  display: grid;
+  justify-items: center;
+  gap: calc(4 * var(--u));
+}
+
+.radar__open {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.radar__screen {
+  width: calc(176 * var(--u));
+  height: calc(176 * var(--u));
+  display: block;
+}
+
+.radar__legend {
+  gap: calc(2 * var(--u)) calc(8 * var(--u));
+  max-width: calc(176 * var(--u));
+  font-size: max(10.5px, calc(13 * var(--u)));
+}
+
+.radar__legend .mapkey__icon {
+  width: max(14px, calc(18 * var(--u)));
+  height: max(14px, calc(18 * var(--u)));
+}
+
+.btn-icon {
+  min-width: max(38px, calc(52 * var(--u)));
+  min-height: max(38px, calc(52 * var(--u)));
+  background: var(--panel-bg);
+  color: var(--phos);
+  border: 2px solid var(--phos-dim);
+  font-size: max(10.5px, calc(18 * var(--u)));
+  cursor: pointer;
+  text-shadow: inherit;
+}
+
+/* Barra inferior: armas, objetos y consumibles en una sola tira, sin panel. Centrada, salvo en táctil. */
+.hud__dock {
+  --slot: max(34px, calc(56 * var(--u)));
+  left: 50%;
+  bottom: max(calc(8 * var(--u)), env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+}
+
+.slots {
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+}
+
+.slots + .slots {
+  margin-left: calc(10 * var(--u));
+  padding-left: calc(10 * var(--u));
+  border-left: 1px solid var(--phos-dim);
+}
+
+.slot {
+  position: relative;
+  width: var(--slot);
+  height: var(--slot);
+  padding: calc(3 * var(--u));
+  background: var(--panel-bg);
+  border: 1px solid var(--phos-dim);
+  color: var(--crema);
+  line-height: 1;
+  text-shadow: 0 1px 0 #000;
+}
+
+/* Hueco libre: un punto que dice cuánto cabe sin ocupar sitio. */
+.slot.is-empty {
+  width: max(5px, calc(8 * var(--u)));
+  height: max(5px, calc(8 * var(--u)));
+  padding: 0;
+  opacity: 0.5;
+}
+
+.slot--item {
+  border-color: #b06aff;
+}
+
+.slot__icon {
+  display: block;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.slot__pips {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  display: flex;
+  gap: 1px;
+}
+
+.slot__pips i {
+  flex: 1;
+  height: max(2px, calc(4 * var(--u)));
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.slot__pips i.is-on {
+  background: var(--phos);
+  box-shadow: 0 0 4px var(--phos);
+}
+
+.slot__lvl {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  font-family: var(--hud-font);
+  font-size: max(11px, calc(17 * var(--u)));
+  color: #ffe14a;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 3px #000;
+}
+
+.slot__key {
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  font-size: max(10.5px, calc(13 * var(--u)));
+  opacity: 0.6;
+}
+
+.slot--cons {
+  font: inherit;
+  cursor: pointer;
+}
+
+.slot--cons:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (pointer: coarse) {
+  .slot__key {
+    display: none;
+  }
+
+  /* El joystick ocupa la mano izquierda: los consumibles quedan al alcance de la derecha. */
+  .hud__dock {
+    left: auto;
+    right: max(12px, env(safe-area-inset-right));
+    transform: none;
+  }
+
+  /* Se pulsan a ciegas con el pulgar mientras el otro mueve: bastante más grandes que las armas. */
+  .slot--cons {
+    width: max(50px, calc(var(--slot) * 1.35));
+    height: max(50px, calc(var(--slot) * 1.35));
+  }
+
+  .slots:has(.slot--cons) {
+    gap: max(6px, calc(6 * var(--u)));
+  }
+}
+
+/* La leyenda del radar solo cabe en pantallas altas. */
+@container (max-height: 560px) {
+  .radar__legend {
+    display: none;
+  }
+}
