@@ -1,26 +1,13 @@
 // Une motor, entrada y render: paso fijo a 60 Hz y render a la tasa del monitor con interpolación.
 // La UI (React) recibe una foto del estado 10 veces por segundo y las elecciones al abrirse.
 import type { Ticker } from 'pixi.js';
-import { audio, type MusicState } from '../audio/audio';
-import { AUDIO } from '../config/audio';
-import {
-  BOSS_PHASES,
-  ELITES,
-  MOB_IDS,
-  type BossKind,
-  type EliteId,
-  type StatEnemyId,
-} from '../config/enemies';
-import type { ConsumableId, ItemId } from '../config/items';
-import { radTier } from '../config/radiation';
-import { PLAYER, RUN, streakMult } from '../config/run';
-import type { HordeKind } from '../config/waves';
-import type { DailyMod, ObjectiveKind } from '../config/modes';
-import type { WeaponId } from '../config/weapons';
-import { advance, createFixedStep } from '../engine/loop';
-import { CAMPAIGN, type ActId } from '../config/acts';
-import { actTime, advanceAct } from '../engine/systems/campaign';
-import { spawnEnemy } from '../engine/systems/enemies';
+import { audio } from '../../audio/audio';
+import { MOB_IDS } from '../../config/enemies';
+import { RUN } from '../../config/run';
+import { advance, createFixedStep } from '../../engine/loop';
+import { CAMPAIGN } from '../../config/acts';
+import { advanceAct } from '../../engine/systems/campaign';
+import { spawnEnemy } from '../../engine/systems/enemies';
 import {
   applyChoice,
   banishCard,
@@ -28,238 +15,27 @@ import {
   gainXp,
   lockCard,
   reroll,
-} from '../engine/systems/progression';
-import { putBomb } from '../engine/systems/mirror';
-import { startDownpour } from '../engine/systems/rains';
-import { announceHorde, spawnBoss, spawnElite } from '../engine/systems/spawning';
-import type { Banner, Choice, Enemy, InputState, World } from '../engine/types';
-import { SFX, SFX_COUNT, type SfxId } from '../engine/sfx';
-import { isOnScreen, isoX, isoY, setView } from '../engine/view';
+} from '../../engine/systems/progression';
+import { putBomb } from '../../engine/systems/mirror';
+import { startDownpour } from '../../engine/systems/rains';
+import { announceHorde, spawnBoss, spawnElite } from '../../engine/systems/spawning';
+import type { Choice, Enemy, InputState, World } from '../../engine/types';
+import { setView } from '../../engine/view';
+import { createWorld, killPlayer, results, tick } from '../../engine/world';
+import i18n from '../../i18n';
+import { InputManager } from '../../input';
+import { screenToWorldDir } from '../../render/iso';
+import { GameRenderer } from '../../render/renderer';
+import { sprites } from '../../render/sprites';
+import { snapshot } from './snapshot';
+import { createSoundTap } from './sound';
 import {
-  createWorld,
-  currentDps,
-  killPlayer,
-  results,
-  tick,
-  type RunResults,
-  type WorldOptions,
-} from '../engine/world';
-import { weaponSlots, type StatSurvivorId } from '../config/survivors';
-import i18n from '../i18n';
-import { InputManager } from '../input';
-import { screenToWorldDir } from '../render/iso';
-import { GameRenderer } from '../render/renderer';
-import { sprites } from '../render/sprites';
-
-/** Móvil (puntero grueso) en vertical. Es la misma condición que muestra el aviso `.rotate` en CSS. */
-export const PORTRAIT_QUERY = '(orientation: portrait) and (pointer: coarse)';
-
-export interface HudSnapshot {
-  charId: StatSurvivorId;
-  hp: number;
-  maxHp: number;
-  rad: number;
-  radColor: string;
-  xp: number;
-  xpNext: number;
-  level: number;
-  time: number;
-  /** Acto en curso y segundos que lleva. */
-  act: ActId;
-  actTime: number;
-  kills: number;
-  dps: number;
-  weapons: { id: WeaponId; lvl: number }[];
-  /** Huecos de arma: los del personaje más los ganados con los minijefes. */
-  slots: number;
-  cons: Record<ConsumableId, number>;
-  items: ItemId[];
-  rerolls: number;
-  /** Jefe vivo: vida, fase y fracciones donde cambia de fase (marcas de la barra). */
-  boss: { id: StatEnemyId; frac: number; phase: number; marks: readonly number[] } | null;
-  /** Último élite golpeado, mientras dura su barra. */
-  elite: { id: StatEnemyId; prefix: EliteId; frac: number } | null;
-  /** Horda avisada: dirección de pantalla (unitaria) y fracción de la cuenta atrás que queda. */
-  horde: { kind: HordeKind; sx: number; sy: number; left: number } | null;
-  streak: number;
-  streakMult: number;
-  /** Objetivo del mapa: progreso, tiempo que queda y dirección de pantalla si está fuera de la vista. */
-  objective: {
-    kind: ObjectiveKind;
-    progress: number;
-    goal: number;
-    left: number;
-    dir: { sx: number; sy: number } | null;
-  } | null;
-  /** Minutos jugados en el modo infinito, o null. */
-  endless: number | null;
-  dailyMod: DailyMod | null;
-  banners: Banner[];
-  rain: boolean;
-  storm: boolean;
-}
-
-export interface RunCallbacks {
-  onHud: (s: HudSnapshot) => void;
-  onChoice: (c: Choice | null) => void;
-  onEnd: (r: RunResults) => void;
-}
-
-export interface RunSettings {
-  showDamage: boolean;
-  reduceMotion: boolean;
-  /** Filtro de pantalla vieja sobre el juego. */
-  crt: boolean;
-}
-
-const SFX_NAMES = Object.keys(SFX) as SfxId[];
-
-/** Intensidad de la partida para la música por capas: enemigos en pantalla, hordas y élites. */
-function musicState(w: World): MusicState {
-  const L = AUDIO.layers;
-  let onScreen = 0;
-  let elite = false;
-  for (let i = 0; i < w.enemies.count; i++) {
-    const e = w.enemies.items[i]!;
-    if (e.dead) continue;
-    if (e.elite) elite = true;
-    if (isOnScreen(w, e.x, e.y)) onScreen++;
-  }
-  const intensity = Math.min(1, onScreen / L.fullAt + (w.horde ? L.horde : 0) + (elite ? L.elite : 0));
-  return {
-    intensity,
-    streak: streakMult(w.streak) > 1,
-    lowHp: w.player.hp < w.player.maxHp * L.lowHp && w.player.deadAt === null,
-  };
-}
-
-/** Hace sonar lo que el motor contó desde el último fotograma y el chasquido del Geiger según la RAD. */
-function createSoundTap(): (w: World, frameSec: number) => void {
-  const prev = new Int32Array(SFX_COUNT);
-  let geiger = 0;
-  return (w, frameSec) => {
-    for (let i = 0; i < SFX_COUNT; i++) {
-      const n = w.sfx[i]! - prev[i]!;
-      prev[i] = w.sfx[i]!;
-      if (n <= 0) continue;
-      // Colocado en el estéreo según dónde pasó respecto al jugador en la pantalla (isométrica), en pantallas.
-      const ox = w.sfxX[i]! - w.player.x;
-      const oy = w.sfxY[i]! - w.player.y;
-      const dx = isoX(ox, oy) / (w.view.halfW || 1);
-      const dy = isoY(ox, oy) / (w.view.halfH || 1);
-      audio.play(SFX_NAMES[i]!, n, dx, Math.sqrt(dx * dx + dy * dy));
-    }
-    geiger += frameSec * AUDIO.geigerRate * (w.player.rad / 100) * (0.5 + Math.random());
-    if (geiger >= 1) {
-      geiger = 0;
-      audio.play('geiger');
-    }
-    audio.setMusic(w.bossAlive > 0 ? 'boss' : 'run');
-    audio.setMusicState(musicState(w));
-  };
-}
-
-/**
- * Sustituye a la entrada del jugador en cada paso fijo (depurador, piloto automático). Devuelve `true` si ha rellenado
- * `out`; con `false` se usa la entrada normal.
- */
-export type InputOverride = (w: World, out: InputState) => boolean;
-
-export interface RunSession {
-  readonly world: World;
-  choose(i: number): void;
-  reroll(): void;
-  banish(i: number): void;
-  lock(i: number): void;
-  consume(i: number): void;
-  setPaused(p: boolean): void;
-  /** Escala el tiempo que recibe el paso fijo (1 = normal, 0 = congelado). Para el depurador. */
-  setSpeed(mult: number): void;
-  /** Fase de test: saca al Coloso cerca del jugador. */
-  spawnColossus(): void;
-  apply(settings: RunSettings): void;
-  dispose(): void;
-}
-
-export interface RunOptions extends WorldOptions {
-  charId: StatSurvivorId;
-  seed: number;
-  settings: RunSettings;
-  /** Si existe, sustituye a la entrada del jugador (depurador). */
-  inputOverride?: InputOverride;
-}
-
-function objectiveSnap(w: World): HudSnapshot['objective'] {
-  const o = w.objective;
-  if (!o) return null;
-  let dir: { sx: number; sy: number } | null = null;
-  if (!isOnScreen(w, o.x, o.y, -o.r * 0.5)) {
-    const sx = isoX(o.x - w.player.x, o.y - w.player.y);
-    const sy = isoY(o.x - w.player.x, o.y - w.player.y);
-    const l = Math.hypot(sx, sy) || 1;
-    dir = { sx: sx / l, sy: sy / l };
-  }
-  return { kind: o.kind, progress: o.progress, goal: o.goal, left: o.left, dir };
-}
-
-function snapshot(w: World): HudSnapshot {
-  let boss: HudSnapshot['boss'] = null;
-  let elite: HudSnapshot['elite'] = null;
-  const showElite = w.time - w.eliteFocusAt < ELITES.barTime;
-  if (w.bossAlive > 0 || showElite) {
-    for (let i = 0; i < w.enemies.count; i++) {
-      const e = w.enemies.items[i]!;
-      if (e.dead) continue;
-      if (e.boss)
-        boss = {
-          id: e.type,
-          frac: Math.max(0, e.hp / e.maxHp),
-          phase: e.phase,
-          marks: BOSS_PHASES[e.type as BossKind] ?? [],
-        };
-      else if (showElite && e.elite && e.id === w.eliteFocus)
-        elite = { id: e.type, prefix: e.elite, frac: Math.max(0, e.hp / e.maxHp) };
-    }
-  }
-  let horde: HudSnapshot['horde'] = null;
-  if (w.horde) {
-    const sx = isoX(w.horde.ax, w.horde.ay);
-    const sy = isoY(w.horde.ax, w.horde.ay);
-    const l = Math.hypot(sx, sy) || 1;
-    horde = { kind: w.horde.kind, sx: sx / l, sy: sy / l, left: w.horde.t };
-  }
-  return {
-    charId: w.charId,
-    hp: Math.max(0, w.player.hp),
-    maxHp: w.player.maxHp,
-    rad: w.player.rad,
-    radColor: radTier(w.player.rad).color,
-    xp: w.xp,
-    xpNext: w.xpNext,
-    level: w.level,
-    time: w.time,
-    act: w.act,
-    actTime: actTime(w),
-    kills: w.kills,
-    dps: currentDps(w),
-    weapons: w.weapons.map((x) => ({ id: x.id, lvl: x.lvl })),
-    slots: weaponSlots(w.charId, PLAYER.weaponSlots),
-    cons: { ...w.cons },
-    items: [...w.items],
-    rerolls: w.rerolls,
-    boss,
-    elite,
-    horde,
-    objective: objectiveSnap(w),
-    endless: w.endless ? (w.time - w.endlessAt) / 60 : null,
-    dailyMod: w.dailyMod,
-    streak: w.streak,
-    streakMult: streakMult(w.streak),
-    banners: w.banners.slice(),
-    rain: w.rain > 0,
-    storm: w.storm,
-  };
-}
+  PORTRAIT_QUERY,
+  type RunCallbacks,
+  type RunOptions,
+  type RunSession,
+  type RunSettings,
+} from './types';
 
 /** Primer enemigo vivo de tipo `type`. */
 function findAlive(w: World, type: Enemy['type']): Enemy | null {
