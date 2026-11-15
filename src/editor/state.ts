@@ -19,6 +19,7 @@ export interface Piece extends EventPiece {
 interface Snapshot {
   readonly pieces: readonly Piece[];
   readonly biome: EventBiome;
+  readonly size: number;
 }
 
 export interface EditorState {
@@ -26,6 +27,8 @@ export interface EditorState {
   nameEs: string;
   nameEn: string;
   biome: EventBiome;
+  /** Lado del mapa en casillas (EVENT_SIZES). */
+  size: number;
   /** Ocultar el decorado de otros biomas en el listado. */
   filterBiome: boolean;
   pieces: readonly Piece[];
@@ -34,6 +37,8 @@ export interface EditorState {
   message: string;
   setMeta(m: Partial<Pick<EditorState, 'id' | 'nameEs' | 'nameEn' | 'filterBiome' | 'message'>>): void;
   setBiome(b: EventBiome): void;
+  /** Cambia el lado; no encoge si alguna pieza quedaría fuera. */
+  setSize(size: number): void;
   add(entry: Entry, x: number, y: number): void;
   move(uid: number, x: number, y: number): void;
   update(uid: number, patch: Partial<Pick<EventPiece, 'flip' | 'blocks' | 'count'>>): void;
@@ -49,9 +54,9 @@ const MAX_UNDO = 200;
 let nextUid = 1;
 
 /** ¿Cabe la pieza? Dentro del mapa; decorado y recogibles, uno por casilla; enemigos, un grupo por casilla. */
-export function fits(pieces: readonly Piece[], p: EventPiece, ignore: number | null): boolean {
+export function fits(pieces: readonly Piece[], p: EventPiece, ignore: number | null, size: number): boolean {
   const cells = pieceCells(p);
-  if (!cells.every(([x, y]) => inside(x, y))) return false;
+  if (!cells.every(([x, y]) => inside(x, y, size))) return false;
   const enemy = p.type === 'enemy';
   const taken = new Set<string>();
   for (const q of pieces)
@@ -65,6 +70,7 @@ const blank = {
   nameEs: '',
   nameEn: '',
   biome: 'any' as EventBiome,
+  size: EVENT_SIZE as number,
   pieces: [] as Piece[],
   selected: null,
   past: [],
@@ -73,8 +79,8 @@ const blank = {
 export const useEditor = create<EditorState>()((set, get) => {
   /** Guarda el estado actual para deshacer y aplica el cambio. */
   const commit = (next: Partial<Snapshot> & { selected?: number | null; message?: string }): void => {
-    const { pieces, biome, past } = get();
-    set({ past: [...past, { pieces, biome }].slice(-MAX_UNDO), message: '', ...next });
+    const { pieces, biome, size, past } = get();
+    set({ past: [...past, { pieces, biome, size }].slice(-MAX_UNDO), message: '', ...next });
   };
   const edit = (uid: number, fn: (p: Piece) => Piece | null): void => {
     const pieces = get().pieces;
@@ -90,6 +96,13 @@ export const useEditor = create<EditorState>()((set, get) => {
     message: '',
     setMeta: (m) => set(m),
     setBiome: (biome) => biome !== get().biome && commit({ biome }),
+    setSize(size) {
+      const { pieces, size: now } = get();
+      if (size === now) return;
+      const out = pieces.filter((p) => !pieceCells(p).every(([x, y]) => inside(x, y, size))).length;
+      if (out > 0) return set({ message: `${out} pieza(s) quedarían fuera: muévelas o bórralas antes` });
+      commit({ size });
+    },
     add(entry, x, y) {
       const pieces = get().pieces;
       const p: EventPiece = {
@@ -108,7 +121,8 @@ export const useEditor = create<EditorState>()((set, get) => {
         commit({ pieces: pieces.map((q) => (q === same ? { ...q, count } : q)), selected: same.uid });
         return;
       }
-      if (!fits(pieces, p, null)) return set({ message: 'Esa casilla está ocupada o se sale del mapa' });
+      if (!fits(pieces, p, null, get().size))
+        return set({ message: 'Esa casilla está ocupada o se sale del mapa' });
       const uid = nextUid++;
       commit({ pieces: [...pieces, { ...p, uid }], selected: uid });
     },
@@ -117,7 +131,7 @@ export const useEditor = create<EditorState>()((set, get) => {
       edit(uid, (p) => {
         if (p.x === x && p.y === y) return null;
         const n = { ...p, x, y };
-        if (fits(pieces, n, uid)) return n;
+        if (fits(pieces, n, uid, get().size)) return n;
         set({ message: 'No cabe ahí' });
         return null;
       });
@@ -126,7 +140,7 @@ export const useEditor = create<EditorState>()((set, get) => {
       const { pieces } = get();
       edit(uid, (p) => {
         const n = { ...p, ...patch };
-        if (fits(pieces, n, uid)) return n;
+        if (fits(pieces, n, uid, get().size)) return n;
         set({ message: 'Volteado no cabe: muévelo antes' });
         return null;
       });
@@ -152,13 +166,14 @@ export const useEditor = create<EditorState>()((set, get) => {
         nameEs: names.es,
         nameEn: names.en,
         biome: event.biome,
+        size: event.size,
         pieces,
         message: `Abierto «${event.id}»`,
       });
     },
     reset: () => set({ ...blank, message: 'Evento nuevo' }),
     toEvent() {
-      const { id, biome, pieces } = get();
+      const { id, biome, size, pieces } = get();
       const list = pieces.map(({ type, id: pid, x, y, flip, blocks, count }) => ({
         type,
         id: pid,
@@ -168,7 +183,7 @@ export const useEditor = create<EditorState>()((set, get) => {
         blocks,
         count,
       }));
-      return { version: EVENT_VERSION, id: id.trim(), biome, size: EVENT_SIZE, pieces: list };
+      return { version: EVENT_VERSION, id: id.trim(), biome, size, pieces: list };
     },
   };
 });

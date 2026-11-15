@@ -5,8 +5,13 @@ import { ACT_IDS, type ActId } from './acts';
 import { PROP_LIST } from './props';
 
 export const EVENT_VERSION = 1;
-/** Lado del mapa del editor, en casillas (impar: hay una casilla central). */
+/**
+ * Lados posibles del evento, en casillas: impares, para que haya una casilla central (0, 0) a la que se refieren las
+ * piezas. `EVENT_SIZE` es el de un evento nuevo.
+ */
+export const EVENT_SIZES = [3, 5, 7, 9, 11, 13, 15] as const;
 export const EVENT_SIZE = 15;
+export const isEventSize = (n: unknown): n is number => (EVENT_SIZES as readonly unknown[]).includes(n);
 
 /** Bioma del evento: el de un acto o cualquiera. */
 export type EventBiome = ActId | 'any';
@@ -99,8 +104,7 @@ export function validateEvent(raw: unknown): EventCheck {
   if (typeof raw.id !== 'string' || !EVENT_ID_RE.test(raw.id))
     return { ok: false, error: 'id: solo minúsculas, números y _ (1–40)' };
   if (!EVENT_BIOMES.includes(raw.biome as EventBiome)) return { ok: false, error: 'Bioma desconocido' };
-  if (!isInt(raw.size) || raw.size < 1 || raw.size % 2 === 0)
-    return { ok: false, error: 'El tamaño debe ser un entero impar' };
+  if (!isEventSize(raw.size)) return { ok: false, error: `Tamaño no válido (${EVENT_SIZES.join(', ')})` };
   if (!Array.isArray(raw.pieces)) return { ok: false, error: 'Falta la lista de piezas' };
   const half = (raw.size - 1) / 2;
   const pieces: EventPiece[] = [];

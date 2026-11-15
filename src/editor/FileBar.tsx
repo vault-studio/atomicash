@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import {
   EVENT_BIOMES,
+  EVENT_SIZES,
   EVENT_ID_RE,
   validateEvent,
   validateEventNames,
@@ -80,6 +81,16 @@ export function FileBar() {
           {EVENT_BIOMES.map((b) => (
             <option key={b} value={String(b)}>
               {BIOME_LABELS[String(b)]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label title="Lado del mapa en casillas; impar, con una casilla central">
+        Tamaño{' '}
+        <select value={s.size} onChange={(e) => s.setSize(Number(e.target.value))}>
+          {EVENT_SIZES.map((n) => (
+            <option key={n} value={n}>
+              {n}×{n}
             </option>
           ))}
         </select>

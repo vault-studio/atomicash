@@ -4,7 +4,7 @@ import { memo, useEffect, useState } from 'react';
 import { isActId } from '../config/acts';
 import type { EventBiome } from '../config/events';
 import { TILES, type TileIndex, type TileInfo } from '../config/render';
-import { ALL_CELLS, MAP_HALF_H, MAP_HALF_W, TILE_SCALE, cellWorld, diamond, isoX, isoY } from './geometry';
+import { TILE_SCALE, cellWorld, cellsOf, diamond, isoX, isoY, mapHalf } from './geometry';
 
 interface Tile {
   readonly info: TileInfo;
@@ -44,12 +44,12 @@ function pick(tiles: readonly Tile[], x: number, y: number): Tile | undefined {
   return tiles[0];
 }
 
-export const Ground = memo(function Ground({ biome }: { biome: EventBiome }) {
+export const Ground = memo(function Ground({ biome, size }: { biome: EventBiome; size: number }) {
   const { tiles, height } = useTiles(biome);
   return (
     <>
       {tiles.length > 0 &&
-        ALL_CELLS.map(([x, y]) => {
+        cellsOf(size).map(([x, y]) => {
           const t = pick(tiles, x, y)!;
           const [wx, wy] = cellWorld(x, y);
           const h = height + t.info.head;
@@ -77,26 +77,29 @@ export const Ground = memo(function Ground({ biome }: { biome: EventBiome }) {
 
 /** Rejilla de casillas y marcas: casillas que bloquean, huella de la selección y casilla bajo el cursor. */
 export function Grid({
+  size,
   plain,
   blocked,
   marked,
   hover,
   hoverOk,
 }: {
+  size: number;
   plain: boolean;
   blocked: readonly [number, number][];
   marked: readonly [number, number][];
   hover: readonly [number, number][];
   hoverOk: boolean;
 }) {
-  const box = { left: -MAP_HALF_W, top: -MAP_HALF_H, width: 2 * MAP_HALF_W, height: 2 * MAP_HALF_H };
-  const vb = `${-MAP_HALF_W} ${-MAP_HALF_H} ${2 * MAP_HALF_W} ${2 * MAP_HALF_H}`;
+  const m = mapHalf(size);
+  const box = { left: -m.w, top: -m.h, width: 2 * m.w, height: 2 * m.h };
+  const vb = `${-m.w} ${-m.h} ${2 * m.w} ${2 * m.h}`;
   const poly = (cls: string) => (c: readonly [number, number]) => (
     <polygon key={`${cls}${c[0]},${c[1]}`} className={cls} points={diamond(c[0], c[1])} />
   );
   return (
     <svg className="ev-grid" style={box} viewBox={vb}>
-      {ALL_CELLS.map(poly(plain ? 'ev-cell ev-cell--plain' : 'ev-cell'))}
+      {cellsOf(size).map(poly(plain ? 'ev-cell ev-cell--plain' : 'ev-cell'))}
       {blocked.map(poly('ev-cell--blocks'))}
       {marked.map(poly('ev-cell--sel'))}
       {hover.map(poly(hoverOk ? 'ev-cell--hover' : 'ev-cell--bad'))}

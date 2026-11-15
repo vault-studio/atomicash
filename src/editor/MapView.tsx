@@ -12,7 +12,7 @@ import {
 } from 'react';
 import { pieceCells, type EventPiece } from '../config/events';
 import type { Entry } from './catalog';
-import { cellAtScreen, MAP_HALF_H, MAP_HALF_W } from './geometry';
+import { cellAtScreen, mapHalf } from './geometry';
 import { Grid, Ground } from './Ground';
 import { PieceView } from './PieceView';
 import { fits, useEditor, type Piece } from './state';
@@ -43,7 +43,7 @@ export function MapView({
   byKey: ReadonlyMap<string, Entry>;
   dragEntry: Entry | null;
 }) {
-  const { pieces, selected, biome, select, move, add } = useEditor();
+  const { pieces, selected, biome, size, select, move, add } = useEditor();
   const box = useRef<HTMLDivElement>(null);
   const [cam, setCam] = useState({ x: 0, y: 0, zoom: 0.3 });
   const [drag, setDrag] = useState<Drag | null>(null);
@@ -65,11 +65,12 @@ export function MapView({
 
   const fit = (): void => {
     const r = box.current!.getBoundingClientRect();
-    const zoom = Math.min(r.width / (2 * MAP_HALF_W), r.height / (2 * MAP_HALF_H)) * ZOOM.margin;
+    const m = mapHalf(size);
+    const zoom = Math.min(ZOOM.max, Math.min(r.width / (2 * m.w), r.height / (2 * m.h)) * ZOOM.margin);
     setCam({ x: 0, y: 0, zoom });
   };
-  // Al abrir, el mapa entero en la ventana.
-  useLayoutEffect(fit, []);
+  // Al abrir y al cambiar de tamaño, el mapa entero en la ventana.
+  useLayoutEffect(fit, [size]);
   const zoomBy = (f: number, ox = 0, oy = 0): void =>
     setCam((c) => {
       const zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, c.zoom * f));
@@ -111,7 +112,7 @@ export function MapView({
       const p = pieces.find((q) => q.uid === drag.uid)!;
       const n = { ...p, x: x + drag.dx, y: y + drag.dy };
       setDrag({ ...drag, target: [n.x, n.y] });
-      setHover({ cells: pieceCells(n), ok: fits(pieces, n, p.uid) });
+      setHover({ cells: pieceCells(n), ok: fits(pieces, n, p.uid, size) });
     }
   };
 
@@ -140,7 +141,7 @@ export function MapView({
     const stack = pieces.some(
       (q) => q.type === 'enemy' && p.type === 'enemy' && q.id === p.id && q.x === p.x && q.y === p.y,
     );
-    setHover({ cells: pieceCells(p), ok: stack || fits(pieces, p, null) });
+    setHover({ cells: pieceCells(p), ok: stack || fits(pieces, p, null, size) });
   };
 
   const onDrop = (e: DragEvent): void => {
@@ -172,8 +173,9 @@ export function MapView({
       onDrop={onDrop}
     >
       <div className="ev-stage" style={stage}>
-        <Ground biome={biome} />
+        <Ground biome={biome} size={size} />
         <Grid
+          size={size}
           plain={biome === 'any'}
           blocked={blocked}
           marked={sel ? pieceCells(sel) : []}

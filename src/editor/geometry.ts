@@ -1,6 +1,6 @@
 // Geometría del editor: la misma proyección isométrica y el mismo tamaño de casilla que el juego.
 import { isoX, isoY } from '../engine/view';
-import { EVENT_SIZE, pieceCells, type EventPiece } from '../config/events';
+import { pieceCells, type EventPiece } from '../config/events';
 import { TILES } from '../config/render';
 import { RUN } from '../config/run';
 
@@ -8,8 +8,8 @@ import { RUN } from '../config/run';
 export const T = RUN.groundCell;
 /** Px de mundo por px de imagen de una baldosa (igual que render/ground/view.ts). */
 export const TILE_SCALE = ((T * Math.SQRT2) / TILES.imageWidth) * TILES.overlap;
-/** Casillas a cada lado de la central. */
-export const HALF = (EVENT_SIZE - 1) / 2;
+/** Casillas a cada lado de la central en un evento de lado `size`. */
+export const halfOf = (size: number): number => (size - 1) / 2;
 
 export { isoX, isoY };
 
@@ -35,7 +35,8 @@ export function cellAtScreen(px: number, py: number): [number, number] {
   return [Math.round((a + b) / 2 / T), Math.round((b - a) / 2 / T)];
 }
 
-export const inside = (x: number, y: number): boolean => Math.abs(x) <= HALF && Math.abs(y) <= HALF;
+export const inside = (x: number, y: number, size: number): boolean =>
+  Math.abs(x) <= halfOf(size) && Math.abs(y) <= halfOf(size);
 
 /** Rombo de una casilla en coordenadas de pantalla, para el `points` de un polígono SVG. */
 export function diamond(x: number, y: number): string {
@@ -50,13 +51,23 @@ export function diamond(x: number, y: number): string {
   return corners.map(([wx, wy]) => `${isoX(wx, wy).toFixed(1)},${isoY(wx, wy).toFixed(1)}`).join(' ');
 }
 
-/** Todas las casillas del mapa, de atrás hacia delante. */
-export const ALL_CELLS: readonly [number, number][] = (() => {
-  const out: [number, number][] = [];
-  for (let y = -HALF; y <= HALF; y++) for (let x = -HALF; x <= HALF; x++) out.push([x, y]);
-  return out.sort((p, q) => p[0] + p[1] - (q[0] + q[1]));
-})();
+const cellCache = new Map<number, readonly [number, number][]>();
 
-/** Semiancho y semialto del mapa en pantalla (px de mundo). */
-export const MAP_HALF_W = isoX((HALF + 0.5) * T, -(HALF + 0.5) * T);
-export const MAP_HALF_H = isoY((HALF + 0.5) * T, (HALF + 0.5) * T);
+/** Todas las casillas de un mapa de lado `size`, de atrás hacia delante. */
+export function cellsOf(size: number): readonly [number, number][] {
+  let out = cellCache.get(size);
+  if (!out) {
+    const h = halfOf(size);
+    const list: [number, number][] = [];
+    for (let y = -h; y <= h; y++) for (let x = -h; x <= h; x++) list.push([x, y]);
+    out = list.sort((p, q) => p[0] + p[1] - (q[0] + q[1]));
+    cellCache.set(size, out);
+  }
+  return out;
+}
+
+/** Semiancho y semialto en pantalla (px de mundo) de un mapa de lado `size`. */
+export function mapHalf(size: number): { w: number; h: number } {
+  const e = (halfOf(size) + 0.5) * T;
+  return { w: isoX(e, -e), h: isoY(e, e) };
+}

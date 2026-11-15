@@ -64,6 +64,11 @@ describe('validateEvent: casos buenos', () => {
     expect(validateEvent(event([], { biome: 'any' })).ok).toBe(true);
   });
 
+  it('acepta todos los tamaños impares de 3 a 15', () => {
+    for (const size of [3, 5, 7, 9, 11, 13, 15]) expect(validateEvent(event([], { size })).ok).toBe(true);
+    expect(validateEvent(event([piece({ x: 1, y: -1 })], { size: 3 })).ok).toBe(true);
+  });
+
   it('los de 2 casillas giran con el volteo y los edificios ocupan 3×3', () => {
     expect(pieceCells(piece({ id: LONG }))).toEqual([
       [0, 0],
@@ -86,7 +91,7 @@ describe('validateEvent: casos malos', () => {
     expect(error(event(undefined, { id: 'Con Espacios' }))).toMatch(/id/);
     expect(error(event(undefined, { id: '' }))).toMatch(/id/);
     expect(error(event(undefined, { biome: 4 }))).toMatch(/Bioma/);
-    expect(error(event(undefined, { size: 14 }))).toMatch(/impar/);
+    for (const size of [14, 1, 17, '15', 15.5]) expect(error(event(undefined, { size }))).toMatch(/Tamaño/);
     expect(error(event(undefined, { pieces: 'nada' }))).toMatch(/piezas/);
   });
 
@@ -105,6 +110,9 @@ describe('validateEvent: casos malos', () => {
     expect(error(event([piece({ x: 8 })]))).toMatch(/sale/);
     expect(error(event([piece({ id: LONG, x: 7 })]))).toMatch(/sale/);
     expect(error(event([piece({ id: BIG, x: 6, y: 0 })]))).toMatch(/sale/);
+    expect(error(event([piece({ x: 2 })], { size: 3 }))).toMatch(/sale/);
+    expect(error(event([piece({ id: BIG, x: 0, y: 0 })], { size: 3 }))).toMatch(/sale/);
+    expect(validateEvent(event([piece({ id: BIG, x: -1, y: -1 })], { size: 3 })).ok).toBe(true);
   });
 
   it('una pieza de decorado o recogible por casilla; un grupo de enemigos por casilla', () => {
