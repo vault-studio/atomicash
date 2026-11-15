@@ -1,126 +1,37 @@
-# TASKS — cambios de jugabilidad
+# TASKS — Atomic Ash
 
-Rama: `main` · Roadmap: `docs/CAMBIOS.md` · Estado: **T0–T16 hechas y publicadas**.
+Rama: `main` · Roadmap: `docs/CAMBIOS.md` · Historial de lo hecho: `DONE.md` (no leerlo salvo que haga falta contexto de una tarea antigua).
 
-Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha (pruebas vistas por el director) · ⛔ bloqueada
+Leyenda: ⬜ pendiente · 🔄 en curso · ✅ hecha · ⛔ bloqueada
 
-## Fase 0 — Base: datos, depurador y pruebas (CAMBIOS §6.1–6.3)
-
-| #   | Tarea                                                                                                                                                                                                                                                                                                               | Reutiliza                                                                          | Crea                                                                                     | Pruebas                                                      | Estado                                                                                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| T0  | Arnés de simulación con semilla fija: corre N s por personaje y exporta estadísticas a `out/*.json`; instantánea de referencia                                                                                                                                                                                      | `createWorld`/`tick`, `results()`, `dmgBy`                                         | `tests/sim/`, `npm run sim` (sustituye a `sim.js`, que simula el prototipo HTML antiguo) | la sim es determinista (dos pasadas iguales)                 | ✅                                                                                            |
-| T1  | Archivo de datos `src/data/tuning.json` + cargador; los `config/*.ts` leen de él (personajes, enemigos, IA, furia, élites, armas, oleadas, hordas)                                                                                                                                                                  | objetos de `src/config/`                                                           | `src/data/tuning.json`, `src/config/tuning.ts`                                           | test de carga y validación; sim de T0 idéntica antes/después | ✅                                                                                            |
-| T1b | Números sueltos que queden en `src/engine/systems/*` → archivo de datos (agente `data-migrator`)                                                                                                                                                                                                                    | —                                                                                  | —                                                                                        | sim idéntica, typecheck                                      | ✅ (hecho por el director: solo quedaban 2 valores; el resto son efectos visuales o técnicos) |
-| T2  | Depurador (superposición DEV, F1): editar valores, exportar/importar JSON, volver a defaults, guardar como defaults (middleware Vite); herramientas: personaje y build inicial, generar enemigo/cerco, jefe, velocidad y pausa, reinicio instantáneo, invencible, semilla fija; arranque por URL `?dev&char=&seed=` | atajos DEV de `runSession.ts`, `spawnEnemy`, `spawnBoss`, `announceHorde`, `p.god` | `src/app/debug/`                                                                         | tests de import/export/reset; prueba manual en el panel      | ✅                                                                                            |
-| T3  | Smoke test: arranca, 60 s de partida sin errores de consola, captura en `out/smoke.png`                                                                                                                                                                                                                             | URL de T2                                                                          | `tests/smoke/smoke.mjs`, dependencia `playwright`                                        | `npm run smoke`                                              | ✅                                                                                            |
-
-## Fase 1 — Interceptores y tiradores (CAMBIOS §2, §3 normales)
-
-| #   | Tarea                                                                                                                                   | Reutiliza                                | Crea                                                  | Pruebas                                                         | Estado |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | ------ |
-| T5  | Aturdimiento del jugador + inmunidad posterior; el autoataque sigue                                                                     | `stun` de enemigos (solo enemigos hoy)   | funciones puras `tryStun`                             | unitarios: aturde, inmunidad, no encadena                       | ✅     |
-| T6  | Interceptor: muy rápido, giro lento, apunta a una ruta de salida (predicción), aturde si carrera > 2 s, máx. 2 en pantalla; placeholder | IA por tipo en `enemies.ts`, spawner     | rol `interceptor`, `predictPosition`, límite por tipo | unitarios: predicción, límite; sim: cargas esquivadas/recibidas | ✅     |
-| T7  | Tiradores normales desde el minuto 0 (disparo o zona de peligro)                                                                        | `AI.tirador`, rastro de babosa como zona | zona de peligro configurable                          | sim                                                             | ✅     |
-
-## Fase 2 — Velocidad de los enemigos (CAMBIOS §1)
-
-| #   | Tarea                                                                                                                                                      | Reutiliza                                                   | Crea                         | Pruebas                           | Estado                                                                         |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | ---------------------------- | --------------------------------- | ------------------------------------------------------------------------------ |
-| T8  | Furia configurable por enemigo: condición (vida %, aliado cercano muere, X s persiguiendo), duración, enfriamiento, velocidad > jugador, indicador visible | `RAGE`, `enrage()`, tinte rojo                              | condiciones y ciclo de furia | unitarios de condición/ciclo; sim | ✅ furia por defecto + excepciones por enemigo; aliado muerto solo en reptador |
-| T9  | Habilidad de velocidad (carrera/embestida) telegrafiada, con apuntado predictivo opcional                                                                  | embestida del cortacésped y del Rey Rata (`aim`, `dashSpd`) | habilidad genérica por datos | unitarios de apuntado; sim        | ✅                                                                             |
-
-## Fase 3 — Roles y cercos (CAMBIOS §4)
-
-| #   | Tarea                                                                 | Reutiliza                           | Crea                                         | Pruebas                             | Estado                                                                     |
-| --- | --------------------------------------------------------------------- | ----------------------------------- | -------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
-| T10 | Campo `role` por enemigo; pesados que bloquean de verdad (solo ellos) | `kbRes`, separación en `enemies.ts` | colisión jugador–pesado                      | unitarios; rendimiento (alloc.test) | ✅                                                                         |
-| T11 | Cercos compuestos por roles, siempre con al menos una salida          | `HORDES.ring/wall/stampede`         | composición por datos, comprobación de hueco | unitario «siempre hay salida»       | ✅ `hordes.ring.mix` por minuto, salida `gap`, un pesado cada `heavyEvery` |
-
-## Fase 4 — Tiradores especiales (CAMBIOS §3)
-
-| #   | Tarea                                                                                                                        | Reutiliza                                                             | Crea                   | Pruebas                                            | Estado                                                                |
-| --- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------- | -------------------------------------------------- | --------------------------------------------------------------------- |
-| T12 | Línea de impactos por delante del jugador según su dirección, cada uno marcado en el suelo; minuto configurable; placeholder | bombardeo en pasillo del Dirigible (`bombCount`, `bombWarn`, `laneR`) | rol `tirador_especial` | unitarios de colocación; sim: esquivados/recibidos | ✅ `mortero` (Acto 1, desde 240 s, máx. 2), `ai.mortero`; placeholder |
-
-## Fase 5 — Armas, builds y blindaje (CAMBIOS §5)
-
-| #   | Tarea                                                                                   | Reutiliza                         | Crea                      | Pruebas                             | Estado                                                                                                                                     |
-| --- | --------------------------------------------------------------------------------------- | --------------------------------- | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| T13 | Blindaje plano por impacto (hoy es un multiplicador) + daño contra blindaje por arma    | `armor`, élite `blindado`         | `applyArmor`              | unitarios de daño y blindaje        | ✅ blindado 6, excavadora 8, élite +4; `armorPierce` en rifle, martillo y remachadora; `armor.minFrac` 0,2                                 |
-| T14 | Especialización hordas / jefes / élites y control (empuje, ralentización, interrupción) | armas existentes, `stun` de minas | campos por nivel en datos | sim por build: ninguna gana en todo | ✅ `spec` por arma, `slow` (cóctel), `interrupt` (megáfono, martillo, remachadora); charcos solapados no suman; `tests/sim/builds.test.ts` |
-
-## Fase 6 — Estadísticas completas (CAMBIOS §6.4)
-
-| #   | Tarea                                                                                                                                                     | Reutiliza                       | Crea                 | Pruebas                | Estado                                                          |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | -------------------- | ---------------------- | --------------------------------------------------------------- |
-| T15 | Colector de estadísticas (supervivencia, daño por fuente/arma, TTK, ritmo, presión, esquivas, decisiones) + exportar JSON/CSV desde el depurador y la sim | `dmgBy`, `SUMMARY`, `results()` | `engine/runStats.ts` | unitarios del colector | ✅ pestaña Estadísticas, `npm run balance`, `tools/simdiff.mjs` |
-
-## Fase 7 — Balance final (CAMBIOS §7)
-
-| #   | Tarea                                                                             | Reutiliza       | Crea | Pruebas                                   | Estado                                                                        |
-| --- | --------------------------------------------------------------------------------- | --------------- | ---- | ----------------------------------------- | ----------------------------------------------------------------------------- |
-| T16 | Pasadas de balance con semilla fija por personaje y build, pocos valores cada vez | sim + depurador | —    | comparación de estadísticas antes/después | ✅ bot «kite» esquiva charcos y rastros; sin cambios de valores (ver Balance) |
-
-## Tras la primera prueba del usuario (2026-11-03)
-
-- ✅ La embestida (saqueador, cortacésped, Rey Rata) siempre llega: corre en línea recta hasta dejar al jugador `over` px atrás (tope `maxDur` por si algo la frena), en vez de durar un tiempo fijo que se quedaba corto.
-- ✅ Aturdido no se dispara (cambia CAMBIOS §2, que decía que el autoataque seguía).
-- Efecto en balance (bot «kite» que ahora también esquiva el pasillo marcado, build propia): media 410 → 361 s; Dot 409 s (1/6), Gus 261 s (0/6), Benny 412 s (3/6). Daño del saqueador por partida 6 → 30. Muertes repartidas; 6 semillas dan mucho ruido.
-- ✅ Cofre especial: con 500 cupones ya recogidos en la partida, las tiradas siguientes dan entre 50 y 200 (`CACHE_ROLL.capAfter`/`capped`).
-- ✅ Jefes en los minutos 2, 4 y 6 (`bosses.*.at`); los respiros se mueven con ellos y el resto de tramos de oleada conserva su orden.
-- ✅ 30 % menos de experiencia por baja (`XP.killMult` 3,125 → 2,1875).
-- Efecto en balance de estos tres (bot «kite», build propia): media 361 → 214 s; Dot 166 s (0/6), Gus 224 s (0/6), Benny 253 s (1/6). Nivel medio al acabar 26 → 13. El Rey Rata en el minuto 2 mata 4 de 18 partidas. Pendiente de la prueba del usuario.
-- ✅ Pausa: armas en fichas grandes con daño y DPS desde que se consiguieron; al pulsar una, con qué se combina.
-- ✅ Expedición y Supervivientes en una pantalla (retrato grande + cuadrícula de retratos) y ficha del personaje: nivel y su bonificación, estrellas y su bonificación, pasiva, arma inicial y su árbol.
-- ✅ Árbol por personaje pagado con sus chapas (las fichas de los duplicados de las cajas); el de cuenta desaparece y devuelve sus cupones. Mods nuevos: arma inicial, cuerpo a cuerpo y duración de consumibles.
-- ✅ Suministros pasa al menú principal; Intendencia queda con taller, mercader y mochila.
-- ✅ Ficha: botón «i» en Nivel, Estrellas y Arma inicial con ventana de lo que da cada uno; arma inicial centrada.
-- ✅ Taller dentro de la ficha (pestañas Ficha · Taller · Árbol): mejoras de cupones, implante y arsenal (aprender y elegir armas iniciales). Intendencia queda en una pantalla de consumibles (comprar packs; mochila y lo que se lleva a la expedición en la misma ficha). Desaparece el mercader con rotación diaria.
-- ✅ Pasillo de embestida sin aspecto de depuración: franja de tierra difuminada, brillo rojo que avanza con la carga y galones que marchan hacia donde irá (`FX_ART.lane`).
-- ✅ Botón de pantalla completa en el menú principal y en Ajustes (`src/app/fullscreen.tsx`). Oculto si el juego está instalado; en iPhone, Ajustes explica cómo añadirlo a la pantalla de inicio.
-- ✅ HUD de la run a escala de la pantalla del juego (`--u` en `run.css`): compacto en móvil y grande en PC. Armas, objetos y consumibles en una tira abajo al centro, sin panel. PV/RAD ya no pisa el nivel. Botón de test del Coloso oculto (`TEST_PHASE = false`).
-- ✅ Saltar la intro ya no pulsa el menú de debajo (toque y teclado). En PC, PV/RAD, nivel y radar crecen menos que el resto (`--u-top`, `--u-radar`); en móvil no cambian.
-- ✅ En táctil, la tira de armas y equipo va abajo a la derecha, y los consumibles se usan con un segundo dedo mientras el otro mueve el joystick.
-- ✅ Mapa: dos edificios nunca salen juntos (`PROPS.buildingGap`, un bloque libre entre ellos) y alrededor de cada uno queda una casilla sin objetos ni ácido (`PROPS.clearance`). Las zonas de objetivo buscan un sitio despejado. Cofres y cajas siempre a la vista: las del supermercado, de la derecha a la esquina delantera; los que caerían detrás del edificio pasan a su cara visible (`chestSpot`).
-- ✅ En táctil, los botones de consumibles miden 50 px como mínimo (antes 37 en móvil).
-- ✅ Árboles personalizados: Radiación (igual para todos, con los caminos Plomo y Mutación), Pasiva y Oficio de cada personaje y 6 nodos mixtos, 28 nodos en total. 15 puntos: 1 por estrella y 1 cada 3 niveles. Cada nodo cuesta 1 punto y se recolocan gratis. Las chapas gastadas en el árbol viejo se devuelven (guardado v4). Todos los efectos tienen icono propio en `assets/icons/tree/` y las mejoras del Taller, en `assets/icons/upgrades/`.
-- ✅ Destrozos del mapa (`engine/scars.ts`): cada impacto del mortero rompe el suelo y deja escombros; lluvia de chatarra y lluvia de ácido (`systems/rains.ts`, `tuning.json` → `rains`, atajo N), a las 0:30, 2:40 y 5:10 aunque haya jefe y luego cada 100–140 s, por turnos. El ácido deja lagos con las baldosas de siempre. Arte propio desde 2026-11-04.
-- ✅ Con un jefe vivo las oleadas siguen al 50 % de su ritmo (`bossRateMult`); antes se paraban del todo. Primer élite a los 40 s.
-- ✅ Lluvias de 15 s; la de ácido cae cada 0,4 s en un radio de 800 (unos 37 lagos) y solo el 10 % busca al jugador (`aimChance`, la chatarra sigue en 25 %). El rastro de babosa dura 60 s (`trailEvery` 0,8 y `maxSlime` 500 para aguantarlo). El hinchado deja 4 losetas de ácido juntas (`acidCells`). Las bombas del dirigible dejan escombros. Los esbirros del rey rata salen alrededor del jugador (`summonDist` 300).
-- ✅ Arte de destrozos y efectos (`tools/slice_destrozos.py`, hojas en `ARTE/`): 3 baldosas de suelo roto, 4 montones de escombros (tierra y asfalto para obús y dirigible, chatarra para la lluvia), chatarra, gota y obús cayendo, polvo del impacto de chatarra, perdigón, explosiones de bomba y crio-granada, y auras del Geiger y del Núcleo inestable. Pendientes: sprites de interceptor y mortero.
-- ✅ Radar: cada sitio con su marcador (zona con enemigos, suministros, cofre, evento, zona hecha) y leyenda por categorías. Pausa → «Mapa»: mapa a pantalla completa con nombres, ácido, enemigos y flechas a lo que no cabe; Esc vuelve a la pausa. Las flechas del HUD ya no salen encima de los menús.
-- ✅ Pulsar el radar (ratón o dedo, también con otro dedo en el joystick) pausa y abre el mapa; al cerrarlo se vuelve directamente a la partida.
-- ✅ El botón de pausa responde con un dedo en el joystick, y el toque que abre la pausa no pulsa lo que aparece debajo.
-- ✅ La galería de assets (2026-11-05) pasó a ser un proyecto aparte: `Apps/galeria-assets`, con su propia copia del arte. El arte nuevo de Atomic Ash no llega solo: hay que copiarlo allí.
-- ✅ Muerte de los robots (aspiradora, cría, excavadora, cortacésped, dron, torreta, dirigible e interceptor): revientan y dejan sus piezas en el suelo, en vez de la animación de muerte. Solo visual, sin daño ni cambios de balance. Las piezas se recortan del propio sprite al empezar la partida (`render/wreckLayer.ts`, ajustes en `FX_ART.wreck`), así que no hace falta arte aparte. Un robot nuevo solo necesita `"wreck": true` en `tuning.json`; `tests/wreck.test.ts` falla si a uno se le olvida. Sin sprite (interceptor), trozos de su color. Los restos duran 25 s (jefes 90 s), con tope de 80 (`FX.wreckTime`, `wreckBossTime`, `maxWrecks`). El Coloso conserva su muerte. Las hojas `*_death` de estos robots ya no se usan.
-- ✅ Sprites del interceptor (`tools/render_rigido.py`, con chorro de la tobera) y del mortero (`tools/render_mortero.py`: esqueleto, pesos y animaciones por código, porque el modelo llega en T y sin esqueleto; marcha pesada, disparo con 4 retrocesos y caída de espaldas). Ya no quedan enemigos como placeholder.
-- ✅ Manchas quemadas propias bajo los robots que revientan (`ARTE/fx_quemaduras.webp` → `assets/fx/scorch.png`, 4 variantes).
-- ✅ Actos con nombre: 1 «Las Afueras», 2 «Las Heladas» (hielo), 3 «La Espesura» (plantas), en `acts.*` de i18n y `src/config/acts.ts`. Los actos 2 y 3 tienen suelo y objetos propios (láminas `ARTE/tiles_{hielo,plantas}.webp` y `ARTE/objetos_{hielo,plantas}_*.webp`; `python tools/slice_tiles.py hielo plantas` y `python tools/slice_props.py 2 3` los recortan sin tocar el Acto 1). `World.act` decide qué objeto sale, no dónde: el mapa de una semilla tiene la misma forma en los tres actos y el Acto 1 no cambia. Solo se ven en el depurador (pestaña Partida › Acto, o `?act=2`), que reinicia con la misma semilla para comparar. Enemigos, escombros y suelo roto siguen siendo los del Acto 1, y en los charcos del hielo y las plantas el daño sigue siendo el del ácido.
-- ✅ Tipo nuevo de enemigo, lanzador (`role: "launcher"`): lanza varios proyectiles que rompen el terreno. Hoy solo el mortero, que antes figuraba como tirador. Solo cambia la etiqueta: el código solo distingue los pesados, así que no afecta a cómo se juega.
-- ✅ Primer evento especial, «Tú mismo, otra vez» (`engine/systems/mirror.ts`, `tuning.json` → `mirror` y `ai.copia`): una bomba por partida, entre los minutos 3 y 5 y marcada en el radar. Al pisarla explota y sale una copia hostil de tu personaje, más lenta que tú, que dispara ráfagas según tu nivel y tus armas. Es una guarnición de 1: al morir deja el cofre especial donde cae. La bomba es un placeholder y no tiene sonido propio. Atajo DEV: M. Valores de partida, pendientes de probar jugando.
-- ✅ Cinco enemigos nuevos con sprites propios (`tools/render_rig.py`: esqueleto, pesos y animaciones por código). Liquidador (tirador, Acto 1): cada chorro suma RAD. Sabueso Geiger (interceptor, Acto 1): corre más cuanta más RAD llevas. Bidonero (lanzador, Acto 1, desde 5:00): cada bidón deja un lago de ácido. Nevera de asalto (lanzador, Acto 2): abre la puerta y escupe bloques; cada uno deja hielo que frena al jugador. Motorista de chatarra (interceptor, Acto 3): si falla, derrapa y recibe un 50 % más de daño. Interceptores y lanzadores comparten tope de 2 en pantalla (`capRole`). Los tres del Acto 1 se suman a las oleadas sin quitar a nadie. Nevera y Motorista no salen en partida porque los actos 2 y 3 aún no tienen enemigos: se generan desde el depurador.
-- Efecto en balance (bot «kite», build propia, 6 semillas, mucho ruido): Dot 180 → 161 s, Gus 166 → 212 s, Benny 139 → 200 s. Las otras builds bajan unos 15 s. El Sabueso quita 5–12 PV por partida. El Bidonero apenas se ve: el bot suele morir antes de las 5:00. Valores de partida, pendientes de probar jugando.
-- ✅ Campaña de 3 actos en una partida (`engine/systems/campaign.ts`, `campaign` y `waves` por acto en `tuning.json`). Rey Rata, Dirigible y Coloso salen en el minuto 2 de su acto; al matar a los dos primeros: fuera enemigos, cofre, fundido, bioma nuevo y título de acto con el juego de fondo; el Coloso gana. Desbloqueo por rol (0, 10, 30, 60 s), especiales en 0:40 y 1:20 (emboscada o lluvia), élites cada 10–40 s. Hinchado y Cortacésped quedan fuera de oleadas para eventos.
-- Efecto en balance (126 partidas, 6 semillas): supervivencia media 90,6 → 116,5 s; nivel a 120/240 s con kite 6,6/8,0 → 7,7/9,8. Bot kite, build propia: Dot 161 → 135 s, Gus 212 → 170 s, Benny 200 → 327 s. Pendiente: `minWinSec` en `supabase/functions/_shared/runCheck.ts` sigue en 67 (laxo, no rechaza nada legítimo); subirlo a 360 exige redesplegar la función. Arte de bidón, hielo y escombros por bioma, sin hacer.
-- Lista de eventos elegidos para hacer poco a poco (2026-11-06). Acto 1: Las Devueltas, Los cartuchos enterrados, Baile de necrófagos. Acto 2: El platillo bajo el hielo, El Cobrador, Los necrófagos del hielo. Acto 3: La Mano, El trono de chatarra, La caravana del desierto. Sin acto: La puerta que no se abre, La limpieza.
-
-## Bugs conocidos
-
-- ~~`tests/alloc.test.ts` › «combate sin GC…»~~ Resuelto 2026-11-07. Eran dos problemas. (1) La prueba medía poco: el Rey Rata y el Dirigible de la multitud morían, su cofre abría la elección de objeto y `tick` se quedaba parado; en «2 000 ticks…» el jugador moría en el tick 271. Ahora los jefes no caen, el jugador es invencible, las bajas se reponen hasta 1 000 y la prueba comprueba, tramo a tramo, que el mundo no se para. (2) El motor reservaba memoria por tres causas: los objetos de los pools y `World`, `Player`, `Stats` y `RunStats` nacían con campos enteros y V8 los migraba a decimales a media partida (2 068 migraciones en 2 000 ticks), lo que deshacía lo optimizado (`decimalFields`, en `engine/pool.ts`); los decimales pasados como argumento y `vx`/`vy` como `let` de módulo reservaban unos 3 números por enemigo y tick (`cur` en `enemies.ts`, `body` en `obstacles.ts`, `queryCircle` en el spatial hash); y `Math.hypot` (`hypot2` en `rules.ts`). Ventana de 900 ticks con 1 000 enemigos: 4–6 MB y 0 GC. Ojo: `Math.sqrt(x*x + y*y)` no sustituye a `Math.hypot`: difiere en el último bit y cambia partidas enteras, y las instantáneas de `npm run sim` no lo detectan (son resúmenes de una sola semilla). Comprobado bit a bit contra `main`: posición, vida y estado de todos los enemigos en cada tick, 3 personajes × 4 semillas.
-- Depurador › Valores: solo edita claves que ya existen en `tuning.json` (no se puede añadir `rage`/`dash` a un enemigo que no los tenga; hay que añadirlos al archivo).
-
-## Preguntas resueltas
-
-1. Plantel (2026-11-03): por ahora Dot, Gus y Benny (el `ROSTER` actual). Mae y El Errante no entran. Sin tarea de plantel.
-2. Babosa, Reptador e Hinchado son mutantes y se quedan todos en el Acto 1 por ahora; quizá cambien de acto cuando haya más actos.
-
-## Balance (T16, 2026-11-03)
-
-`npm run balance` (126 partidas, 6 semillas) y `node tools/simdiff.mjs out/balance`. Bot «kite», build propia:
-Dot 451 s (4/6 victorias), Gus 423 s (2/6), Benny 357 s (4/6). Daño recibido repartido (Coloso 17 %, interceptor 16 %,
-barril 13 %, saqueador 11 %). Cargas del interceptor: 3,6 recibidas / 3,9 esquivadas por partida. El mortero casi nunca
-acierta al bot (cambia de rumbo sin parar): revisarlo jugando. Empezar con tesla es la peor build inicial (195–346 s).
+Al terminar una tarea: una línea breve en `DONE.md` y quitarla de aquí.
 
 ## Siguiente tarea recomendada
 
-Probar jugando (`npm run dev`, depurador F1) mortero, cercos y furia.
+⬜ Probar jugando (`npm run dev`, depurador F1) mortero, cercos y furia.
+
+## Pendiente de prueba del usuario (valores de partida)
+
+- ⬜ Jefes en los minutos 2/4/6 y −30 % de XP: media del bot bajó a ~214 s; el Rey Rata en el minuto 2 mata 4 de 18 partidas.
+- ⬜ Evento «Tú mismo, otra vez» (`mirror`, atajo M).
+- ⬜ Cinco enemigos nuevos (Liquidador, Sabueso Geiger, Bidonero, Nevera, Motorista).
+- ⬜ Campaña de 3 actos: supervivencia media 116,5 s (126 partidas).
+- ⬜ El mortero casi nunca acierta al bot: revisarlo jugando.
+
+## Pendiente
+
+- ⬜ Subir `minWinSec` de 67 a 360 en `supabase/functions/_shared/runCheck.ts` (exige redesplegar la función).
+- ⬜ Arte: bidón, hielo y escombros por bioma. Bomba del evento espejo: placeholder y sin sonido.
+- ⬜ Enemigos propios de los actos 2 y 3 en oleadas (hoy Nevera y Motorista solo salen desde el depurador).
+- ⬜ Eventos, poco a poco. Acto 1: Las Devueltas, Los cartuchos enterrados, Baile de necrófagos. Acto 2: El platillo bajo el hielo, El Cobrador, Los necrófagos del hielo. Acto 3: La Mano, El trono de chatarra, La caravana del desierto. Sin acto: La puerta que no se abre, La limpieza.
+
+## Bugs conocidos
+
+- Depurador › Valores: solo edita claves que ya existen en `tuning.json` (para añadir `rage`/`dash` a un enemigo hay que editar el archivo).
+
+## Notas que hay que tener presentes
+
+- No sustituir `Math.hypot` por `Math.sqrt(x*x + y*y)`: difiere en el último bit y cambia partidas enteras; `npm run sim` no lo detecta.
+- El arte nuevo no llega solo a `Apps/galeria-assets`: hay que copiarlo allí.
+- Plantel: solo Dot, Gus y Benny. Babosa, Reptador e Hinchado se quedan en el Acto 1.
+- Balance: `npm run balance` (126 partidas, 6 semillas) y `node tools/simdiff.mjs out/balance`. Con 6 semillas hay mucho ruido.
