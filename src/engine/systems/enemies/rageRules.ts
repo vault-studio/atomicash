@@ -1,6 +1,6 @@
 // Furia configurable por enemigo (CAMBIOS §1): decide cuándo se enfurece y lleva el ciclo dur/cd. Funciones puras sin
 // objetos nuevos (se llaman en el bucle de IA): el estado va en un `RageState` y el perfil llega como `def` + `ovr`.
-import type { RageOverride, RageProfile } from '../config/enemies';
+import type { RageOverride, RageProfile } from '../../../config/enemies';
 
 /** Estado de furia de un enemigo (lo cumple `Enemy`). */
 export interface RageState {

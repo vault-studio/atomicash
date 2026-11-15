@@ -3,10 +3,10 @@
 // cambia de dirección, se los come todos. Contrarresta correr en línea recta. Cada impacto rompe el suelo y deja
 // escombros (engine/scars.ts). El bidonero y la nevera usan la misma salva con su propio bloque de IA y otro tipo de
 // caída: lagos de ácido y manchas de hielo.
-import { AI, type SalvoAI } from '../../config/enemies';
-import { leadLine, type Vec } from '../rules';
-import { markFall } from '../scars';
-import type { Enemy, TeleFall, World } from '../types';
+import { AI, type SalvoAI } from '../../../config/enemies';
+import { leadLine, type Vec } from '../../rules';
+import { markFall } from '../../scars';
+import type { Enemy, TeleFall, World } from '../../types';
 
 const pts: Vec[] = Array.from({ length: 16 }, () => ({ x: 0, y: 0 }));
 

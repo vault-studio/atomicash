@@ -23,7 +23,7 @@ import { addIce, iceSlowAt, markFall, scarFree } from '../src/engine/scars';
 import { HIT_RAW, hitEnemy } from '../src/engine/systems/combat';
 import { interruptEnemy, spawnEnemy } from '../src/engine/systems/enemies';
 import { spawnElite, spawnable } from '../src/engine/systems/spawning';
-import { launchSalvo } from '../src/engine/systems/shooters';
+import { launchSalvo } from '../src/engine/systems/enemies/shooters';
 import { MODE_AIM, MODE_CHASE, MODE_DASH, type World } from '../src/engine/types';
 import { createWorld, tick } from '../src/engine/world';
 
