@@ -1,4 +1,4 @@
-// Balance de los supervivientes. Los valores vienen del prototipo (atomic-ash-proto.html).
+// Balance de los supervivientes. Los valores vienen del prototipo (docs/archivo/atomic-ash-proto.html).
 // DECISIÓN: los IDs son los de la biblia de arte (dot, mae, errante, benny), no los de 03_CONTENT.md
 // (mechanic, nurse, courier), porque la biblia es más reciente y fija las rutas de los assets.
 import { TUNING as T } from './tuning';

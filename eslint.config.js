@@ -26,7 +26,7 @@ export default tseslint.config(
       'out',
       'tests/_*',
       'make-manifest.mjs',
-      'atomic-ash-proto.html',
+      'docs/archivo/**',
       'assets',
       // Edge Functions de Deno (globals y npm: propios); `_shared` sí se lintea.
       'supabase/functions/*/index.ts',

@@ -1,5 +1,5 @@
 // Parámetros de la run. Todo número de balance vive en src/config (AGENTS.md §3).
-// Valores de partida del prototipo (atomic-ash-proto.html).
+// Valores de partida del prototipo (docs/archivo/atomic-ash-proto.html).
 import { TUNING as T, type DeepReadonly } from './tuning';
 export const RUN = {
   /** Paso fijo del motor (05_TECH.md §3). */

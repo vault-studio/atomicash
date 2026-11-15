@@ -1,4 +1,4 @@
-// Balance de enemigos y jefes del Acto 1. Valores de partida del prototipo (atomic-ash-proto.html).
+// Balance de enemigos y jefes del Acto 1. Valores de partida del prototipo (docs/archivo/atomic-ash-proto.html).
 import { TUNING as T, type DeepReadonly, type Retype } from './tuning';
 import { ENTITIES, type EntityId } from './entities';
 
